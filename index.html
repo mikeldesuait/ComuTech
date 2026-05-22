@@ -172,6 +172,30 @@
         .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: 500; }
         .modal-close:hover { background: #005f8c; }
         
+        /* Estilos para botones de demo en contacto */
+        .demo-buttons-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .demo-btn-small {
+            background: #2c7a4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        .demo-btn-small:hover {
+            background: #1e5a3a;
+            transform: translateY(-2px);
+        }
+        
         @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
             .section-title { font-size: 1.5rem; }
@@ -181,6 +205,8 @@
             .cookie-banner { flex-direction: column; text-align: center; }
             .cookie-buttons { justify-content: center; }
             .whatsapp-float { width: 50px; height: 50px; bottom: 20px; right: 20px; }
+            .demo-buttons-group { flex-direction: column; align-items: center; }
+            .demo-btn-small { width: 100%; max-width: 250px; }
         }
     </style>
 </head>
@@ -191,8 +217,8 @@
             <div class="logo-icon">⚙️</div>
             <h1>Comu<span>Tech</span></h1>
             <p class="tagline">El software que profesionaliza tu empresa de mantenimiento</p>
-            <p style="font-size: 0.9rem; margin-top: 16px; opacity: 0.7;">Piscinas · Jardines · Limpieza · Comunidades</p>
-            <button class="cta-button" id="btnProbarDemoHeader">Contacta</button>
+            <p style="font-size: 0.9rem; margin-top: 16px; opacity: 0.7;">Piscinas · Jardines · Limpieza</p>
+            <button class="cta-button" id="btnContactaHeader">Contacta</button>
         </div>
     </div>
 
@@ -428,10 +454,24 @@
             <div style="text-align: center;">
                 <div style="font-size: 2.5rem; margin-bottom: 16px;">📞</div>
                 <p style="margin-bottom: 24px; font-size: 1.1rem;">¿Listo para profesionalizar tu empresa de mantenimiento?</p>
-                <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                
+                <!-- Botones de contacto principales -->
+                <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;">
                     <button class="cta-button" id="btnContactarEmail">📧 Contactar por email</button>
                     <button class="cta-button" style="background: #25D366;" id="btnContactarWhatsApp">💬 Contactar por WhatsApp</button>
                 </div>
+                
+                <!-- Separador -->
+                <div style="margin: 30px 0; border-top: 1px solid #e2e8f0;"></div>
+                
+                <!-- Botones para probar las demos -->
+                <p style="margin-bottom: 16px; font-weight: 500; color: #1e4663;">🎮 Prueba las demos interactivas:</p>
+                <div class="demo-buttons-group">
+                    <button class="demo-btn-small" id="btnDemoCliente">🏘️ Portal del Cliente</button>
+                    <button class="demo-btn-small" id="btnDemoTecnico">👨‍🔧 Panel del Técnico</button>
+                    <button class="demo-btn-small" id="btnDemoGerente">📊 Panel del Gerente</button>
+                </div>
+                
                 <p style="margin-top: 30px; font-size: 0.85rem; color: #5b6e8c;">
                     📧 info@comutech.com | 📞 +34 601 231 068
                 </p>
@@ -533,18 +573,16 @@
         };
         
         // ========== REDIRECCIÓN A DEMOS ==========
-        function irDemo(tipo) {
-            if (tipo === 'cliente') {
-                window.location.href = 'democlientes.html';
-            } else if (tipo === 'tecnico') {
-                window.location.href = 'demotecnicos.html';
-            } else if (tipo === 'gerente') {
-                window.location.href = 'demogerente.html';
-            }
+        function abrirDemoCliente() {
+            window.location.href = 'democlientes.html';
         }
         
-        function abrirDemoCliente() {
-            window.location.href = 'democliente.html';
+        function abrirDemoTecnico() {
+            window.location.href = 'demotecnicos.html';
+        }
+        
+        function abrirDemoGerente() {
+            window.location.href = 'demogerente.html';
         }
         
         // ========== ACORDEÓN ==========
@@ -635,16 +673,26 @@
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
             
-            // Botón "Probar demo" del header
-            const btnHeader = document.getElementById('btnProbarDemoHeader');
-            if (btnHeader) btnHeader.onclick = abrirDemoCliente;
+            // Botón "Contacta" del header → Abre EMAIL
+            const btnHeader = document.getElementById('btnContactaHeader');
+            if (btnHeader) btnHeader.onclick = abrirEmail;
             
-            // Botones de contacto
+            // Botones de contacto de la sección
             const btnEmail = document.getElementById('btnContactarEmail');
             if (btnEmail) btnEmail.onclick = abrirEmail;
             
             const btnWhatsApp = document.getElementById('btnContactarWhatsApp');
             if (btnWhatsApp) btnWhatsApp.onclick = abrirWhatsApp;
+            
+            // Botones de demos
+            const btnDemoCliente = document.getElementById('btnDemoCliente');
+            if (btnDemoCliente) btnDemoCliente.onclick = abrirDemoCliente;
+            
+            const btnDemoTecnico = document.getElementById('btnDemoTecnico');
+            if (btnDemoTecnico) btnDemoTecnico.onclick = abrirDemoTecnico;
+            
+            const btnDemoGerente = document.getElementById('btnDemoGerente');
+            if (btnDemoGerente) btnDemoGerente.onclick = abrirDemoGerente;
             
             if (localStorage.getItem('legal_aceptado') !== null) {
                 document.getElementById('cookieBanner').style.display = 'none';
