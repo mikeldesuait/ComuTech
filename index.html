@@ -3,44 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ComuTech · SaaS para empresas de mantenimiento</title>
-    <meta name="description" content="Plataforma SaaS para empresas de mantenimiento de piscinas y jardines. Gestiona tus técnicos, comunícate con tus clientes y reporta todos los trabajos.">
+    <title>ComuTech · Software para empresas de mantenimiento</title>
+    <meta name="description" content="Software SaaS para empresas de mantenimiento de piscinas, jardines y limpieza. Gestiona tus técnicos, registra los trabajos y reporta a tus clientes.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            color: #1e293b;
-            line-height: 1.5;
-        }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.5; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         
         /* Header */
         .header {
-            background: linear-gradient(135deg, #0077b6 0%, #00a8e8 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: white;
             padding: 60px 0 80px 0;
             text-align: center;
             position: relative;
             overflow: hidden;
         }
-        .header::before { content: "💧"; position: absolute; font-size: 300px; opacity: 0.08; bottom: -50px; right: -50px; }
+        .header::before { content: "⚙️"; position: absolute; font-size: 300px; opacity: 0.05; bottom: -50px; right: -50px; }
         .logo-icon { font-size: 3rem; margin-bottom: 16px; }
         .header h1 { font-size: 3rem; font-weight: 700; margin-bottom: 8px; }
         .header h1 span { font-weight: 300; opacity: 0.9; }
         .header p { font-size: 1.2rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
-        .cta-button {
-            display: inline-block; background: white; color: #0077b6; padding: 14px 32px;
-            border-radius: 50px; font-weight: 600; text-decoration: none; margin-top: 32px;
-            transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .badge-clientes {
+            display: inline-block; background: rgba(255,255,255,0.2); padding: 6px 16px;
+            border-radius: 50px; font-size: 0.8rem; margin-bottom: 24px;
         }
-        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .cta-button {
+            display: inline-block; background: #0077b6; color: white; padding: 14px 32px;
+            border-radius: 50px; font-weight: 600; text-decoration: none; margin-top: 32px;
+            transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .cta-button:hover { background: #005f8c; transform: translateY(-3px); }
         
         /* Secciones */
-        .section { padding: 60px 0; border-bottom: 1px solid rgba(0,119,182,0.1); }
+        .section { padding: 60px 0; border-bottom: 1px solid #e2e8f0; }
         .section:last-child { border-bottom: none; }
-        .section-title { font-size: 2rem; font-weight: 700; color: #0077b6; text-align: center; margin-bottom: 16px; }
+        .section-title { font-size: 2rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 16px; }
         .section-subtitle { text-align: center; color: #5b6e8c; max-width: 700px; margin: 0 auto 48px auto; font-size: 1.1rem; }
         
         /* Tarjetas */
@@ -48,19 +47,19 @@
         .card {
             background: white; border-radius: 24px; padding: 28px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: all 0.3s;
-            border: 1px solid rgba(0,119,182,0.1);
+            border: 1px solid #e2e8f0;
         }
         .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
         .card-icon { font-size: 2.5rem; margin-bottom: 20px; }
-        .card-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; color: #1e4663; }
+        .card-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; color: #0f172a; }
         .card-list { list-style: none; margin-top: 16px; }
         .card-list li { padding: 8px 0; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #475569; border-bottom: 1px solid #f1f5f9; }
         .card-list li:last-child { border-bottom: none; }
-        .check { color: #2c7a4d; font-weight: bold; }
+        .check { color: #0077b6; font-weight: bold; }
         
         /* Beneficios */
         .benefits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
-        .benefit-item { text-align: center; padding: 20px; }
+        .benefit-item { text-align: center; padding: 20px; background: white; border-radius: 24px; border: 1px solid #e2e8f0; }
         .benefit-icon { font-size: 2rem; background: #eef2ff; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; }
         .benefit-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 8px; }
         .benefit-desc { font-size: 0.85rem; color: #5b6e8c; }
@@ -69,7 +68,7 @@
         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
         .pricing-card {
             background: white; border-radius: 24px; padding: 32px; text-align: center;
-            border: 1px solid rgba(0,119,182,0.1); transition: all 0.3s;
+            border: 1px solid #e2e8f0; transition: all 0.3s;
         }
         .pricing-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
         .pricing-card.featured { border: 2px solid #0077b6; position: relative; }
@@ -80,22 +79,22 @@
         .pricing-features { list-style: none; margin: 24px 0; text-align: left; }
         .pricing-features li { padding: 8px 0; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
         .pricing-button {
-            display: inline-block; background: #0077b6; color: white; padding: 12px 24px;
+            display: inline-block; background: #0f172a; color: white; padding: 12px 24px;
             border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.3s; width: 100%;
         }
-        .pricing-button:hover { background: #005f8c; }
+        .pricing-button:hover { background: #1e293b; }
         
         /* Timeline */
         .timeline { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; margin-top: 40px; }
-        .timeline-step { flex: 1; text-align: center; }
+        .timeline-step { flex: 1; text-align: center; background: white; padding: 24px; border-radius: 24px; border: 1px solid #e2e8f0; }
         .timeline-number { width: 50px; height: 50px; background: #0077b6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; margin: 0 auto 16px auto; }
         .timeline-title { font-weight: 600; margin-bottom: 8px; }
         .timeline-desc { font-size: 0.85rem; color: #5b6e8c; }
         
         /* Footer */
-        .footer { background: #1e293b; color: white; padding: 40px 0 20px 0; }
+        .footer { background: #0f172a; color: white; padding: 40px 0 20px 0; }
         .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
-        .footer-col h4 { font-size: 1rem; margin-bottom: 16px; color: #00a8e8; }
+        .footer-col h4 { font-size: 1rem; margin-bottom: 16px; color: #0077b6; }
         .footer-col p, .footer-col a { font-size: 0.8rem; color: #94a3b8; text-decoration: none; line-height: 1.8; }
         .footer-col a:hover { color: white; }
         .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #334155; font-size: 0.7rem; color: #64748b; }
@@ -105,12 +104,12 @@
         
         /* Cookie banner */
         .cookie-banner {
-            position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; color: white;
+            position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white;
             padding: 16px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
-            align-items: center; gap: 16px; z-index: 1000; box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            align-items: center; gap: 16px; z-index: 1000;
         }
         .cookie-banner p { font-size: 0.8rem; flex: 1; }
-        .cookie-banner a { color: #00a8e8; text-decoration: none; }
+        .cookie-banner a { color: #0077b6; text-decoration: none; }
         .cookie-buttons { display: flex; gap: 12px; }
         .cookie-btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; font-size: 0.8rem; }
         .cookie-accept { background: #0077b6; color: white; }
@@ -134,189 +133,204 @@
             width: 90%; max-height: 80vh; overflow-y: auto; color: #1e293b;
         }
         .modal-header { font-size: 1.5rem; font-weight: 700; color: #0077b6; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
-        .modal-body h4 { margin-top: 20px; margin-bottom: 8px; color: #1e4663; }
-        .modal-body p { font-size: 0.85rem; line-height: 1.6; color: #475569; margin-bottom: 12px; }
         .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="container">
-            <div class="logo-icon">⚙️💧🌿</div>
+            <div class="badge-clientes">🎯 Para empresas de mantenimiento</div>
+            <div class="logo-icon">⚙️</div>
             <h1>Comu<span>Tech</span></h1>
-            <p>SaaS para empresas de mantenimiento de piscinas y jardines</p>
-            <p style="font-size: 1rem; margin-top: 16px; opacity: 0.8;">Gestiona tus técnicos, reporta trabajos y comunícate con tus clientes</p>
+            <p>El software que tu empresa de mantenimiento necesita</p>
+            <p style="font-size: 1rem; margin-top: 16px; opacity: 0.8;">Piscinas · Jardines · Limpieza</p>
             <a href="#contacto" class="cta-button">📞 Solicitar demo</a>
         </div>
     </div>
 
     <div class="container">
-        <!-- Para quién es -->
+        <!-- Para ti, empresa de mantenimiento -->
         <div class="section">
-            <div class="section-title">¿Para quién es?</div>
+            <div class="section-title">Para ti, empresa de mantenimiento</div>
+            <div class="section-subtitle">
+                Tú tienes los técnicos y los clientes. Nosotros te ayudamos a gestionarlos.
+            </div>
             <div class="cards-grid">
                 <div class="card">
-                    <div class="card-icon">🏢</div>
-                    <div class="card-title">Empresas de mantenimiento</div>
+                    <div class="card-icon">👥</div>
+                    <div class="card-title">Gestiona tus técnicos</div>
                     <ul class="card-list">
-                        <li><span class="check">✓</span> Organiza a tus técnicos y rutas</li>
-                        <li><span class="check">✓</span> Registra todo el trabajo realizado</li>
+                        <li><span class="check">✓</span> Control de jornada laboral</li>
+                        <li><span class="check">✓</span> Registro de trabajos realizados</li>
                         <li><span class="check">✓</span> Control de tiempos y productos</li>
-                        <li><span class="check">✓</span> Informes profesionales automáticos</li>
-                        <li><span class="check">✓</span> Diferenciación frente a la competencia</li>
+                        <li><span class="check">✓</span> Disponibilidad y vacaciones</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <div class="card-icon">🏘️</div>
-                    <div class="card-title">Comunidades de propietarios</div>
+                    <div class="card-icon">📋</div>
+                    <div class="card-title">Reporta a tus clientes</div>
                     <ul class="card-list">
-                        <li><span class="check">✓</span> Acceso con código personalizado</li>
-                        <li><span class="check">✓</span> Estado de piscina y jardín en tiempo real</li>
-                        <li><span class="check">✓</span> Reporte de incidencias</li>
+                        <li><span class="check">✓</span> Informes automáticos por email</li>
+                        <li><span class="check">✓</span> Estado de piscinas y jardines</li>
                         <li><span class="check">✓</span> Confirmación de trabajos realizados</li>
-                        <li><span class="check">✓</span> Histórico completo de servicios</li>
+                        <li><span class="check">✓</span> Histórico para cada cliente</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <div class="card-icon">👨‍💼</div>
-                    <div class="card-title">Administradores de fincas</div>
+                    <div class="card-icon">🏢</div>
+                    <div class="card-title">Centraliza tu negocio</div>
                     <ul class="card-list">
-                        <li><span class="check">✓</span> Control de múltiples comunidades</li>
-                        <li><span class="check">✓</span> Visibilidad completa del servicio</li>
-                        <li><span class="check">✓</span> Estado de pagos y documentación</li>
-                        <li><span class="check">✓</span> Reportes descargables</li>
+                        <li><span class="check">✓</span> Todos tus clientes en un solo lugar</li>
+                        <li><span class="check">✓</span> Visibilidad de toda tu operativa</li>
+                        <li><span class="check">✓</span> Reportes y exportaciones</li>
+                        <li><span class="check">✓</span> Sin papeleo, todo digital</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Qué resuelve -->
+        <!-- Sectores que cubres -->
         <div class="section">
-            <div class="section-title">¿Qué problemas resuelve?</div>
-            <div class="benefits-grid">
-                <div class="benefit-item">
-                    <div class="benefit-icon">📞</div>
-                    <div class="benefit-title">Fin a las llamadas</div>
-                    <div class="benefit-desc">Los clientes reportan incidencias desde la app, no por teléfono</div>
+            <div class="section-title">Sectores que cubrimos</div>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🏊</div>
+                    <div class="card-title">Mantenimiento de piscinas</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Control de cloro, pH y temperatura</li>
+                        <li><span class="check">✓</span> Alertas de calidad del agua</li>
+                        <li><span class="check">✓</span> Gestión de productos químicos</li>
+                    </ul>
                 </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">📋</div>
-                    <div class="benefit-title">Sin papeles</div>
-                    <div class="benefit-desc">Todo el trabajo queda registrado digitalmente</div>
+                <div class="card">
+                    <div class="card-icon">🌿</div>
+                    <div class="card-title">Mantenimiento de jardines</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Planificación de riegos y podas</li>
+                        <li><span class="check">✓</span> Control de plagas</li>
+                        <li><span class="check">✓</span> Registro de tratamientos</li>
+                    </ul>
                 </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🔔</div>
-                    <div class="benefit-title">Alertas automáticas</div>
-                    <div class="benefit-desc">Notificaciones cuando hay problemas graves</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">📊</div>
-                    <div class="benefit-title">Transparencia total</div>
-                    <div class="benefit-desc">El cliente sabe lo que se ha hecho y cuándo</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">✅</div>
-                    <div class="benefit-title">Trazabilidad</div>
-                    <div class="benefit-desc">Todo queda registrado y auditable</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🏆</div>
-                    <div class="benefit-title">Profesionalidad</div>
-                    <div class="benefit-desc">Comunicación profesional que genera confianza</div>
+                <div class="card">
+                    <div class="card-icon">🧹</div>
+                    <div class="card-title">Limpieza de comunidades</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Control de frecuencias</li>
+                        <li><span class="check">✓</span> Registro de tareas realizadas</li>
+                        <li><span class="check">✓</span> Informes para los clientes</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- La plataforma -->
+        <!-- Lo que incluye -->
         <div class="section">
             <div class="section-title">La plataforma</div>
             <div class="cards-grid">
                 <div class="card">
                     <div class="card-icon">👨‍🔧</div>
-                    <div class="card-title">Panel del técnico</div>
+                    <div class="card-title">App para técnicos</div>
                     <ul class="card-list">
-                        <li><span class="check">✓</span> Control de jornada laboral</li>
-                        <li><span class="check">✓</span> Registro de mediciones y tratamientos</li>
-                        <li><span class="check">✓</span> Informes automáticos para clientes</li>
-                        <li><span class="check">✓</span> Histórico rápido de cada cliente</li>
-                        <li><span class="check">✓</span> Aviso de urgencia con un clic</li>
+                        <li><span class="check">✓</span> Iniciar y finalizar jornada</li>
+                        <li><span class="check">✓</span> Registrar trabajos desde el móvil</li>
+                        <li><span class="check">✓</span> Ver histórico del cliente</li>
+                        <li><span class="check">✓</span> Avisar de urgencias</li>
                     </ul>
                 </div>
                 <div class="card">
                     <div class="card-icon">👔</div>
-                    <div class="card-title">Panel del gestor</div>
+                    <div class="card-title">Panel de gestión</div>
                     <ul class="card-list">
                         <li><span class="check">✓</span> Supervisión en tiempo real</li>
-                        <li><span class="check">✓</span> Gestión de incidencias por gravedad</li>
-                        <li><span class="check">✓</span> Control de personal y disponibilidad</li>
-                        <li><span class="check">✓</span> Gestión de clientes y códigos de acceso</li>
-                        <li><span class="check">✓</span> Exportación de informes a PDF</li>
+                        <li><span class="check">✓</span> Gestión de incidencias</li>
+                        <li><span class="check">✓</span> Control de personal</li>
+                        <li><span class="check">✓</span> Informes y exportaciones</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <div class="card-icon">👤</div>
-                    <div class="card-title">Panel del cliente</div>
+                    <div class="card-icon">📧</div>
+                    <div class="card-title">Comunicación automática</div>
                     <ul class="card-list">
-                        <li><span class="check">✓</span> Acceso con código personalizado</li>
-                        <li><span class="check">✓</span> Estado de piscina y jardín</li>
-                        <li><span class="check">✓</span> Reporte de incidencias</li>
-                        <li><span class="check">✓</span> Confirmación de trabajos realizados</li>
-                        <li><span class="check">✓</span> Histórico de informes</li>
+                        <li><span class="check">✓</span> Informes automáticos para clientes</li>
+                        <li><span class="check">✓</span> Alertas por Telegram</li>
+                        <li><span class="check">✓</span> Confirmación de trabajos</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Valor añadido -->
+        <!-- Lo que tus clientes ven -->
         <div class="section">
-            <div class="section-title">El valor para tu empresa</div>
-            <div class="cards-grid">
-                <div class="card" style="background: linear-gradient(135deg, #0077b6 0%, #00a8e8 100%); color: white;">
-                    <div class="card-icon" style="color: white;">📈</div>
-                    <div class="card-title" style="color: white;">Diferenciación competitiva</div>
-                    <ul class="card-list">
-                        <li style="color: #e0f2fe;">✓ Ofreces a tus clientes una experiencia digital</li>
-                        <li style="color: #e0f2fe;">✓ Tus clientes reciben informes automáticos</li>
-                        <li style="color: #e0f2fe;">✓ Te posicionas como empresa moderna y profesional</li>
-                    </ul>
-                </div>
-                <div class="card" style="background: linear-gradient(135deg, #2c7a4d 0%, #1e5a3a 100%); color: white;">
-                    <div class="card-icon" style="color: white;">💰</div>
-                    <div class="card-title" style="color: white;">Ahorro de costes</div>
-                    <ul class="card-list">
-                        <li style="color: #d4edda;">✓ Menos llamadas = menos tiempo perdido</li>
-                        <li style="color: #d4edda;">✓ Todo registrado = menos reclamaciones</li>
-                        <li style="color: #d4edda;">✓ Mayor eficiencia operativa</li>
-                    </ul>
-                </div>
-                <div class="card" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white;">
-                    <div class="card-icon" style="color: white;">🤝</div>
-                    <div class="card-title" style="color: white;">Fidelización de clientes</div>
-                    <ul class="card-list">
-                        <li style="color: #fef3c7;">✓ Tus clientes reciben informes profesionales</li>
-                        <li style="color: #fef3c7;">✓ La comunicación es clara y trazable</li>
-                        <li style="color: #fef3c7;">✓ Tus clientes te recomendarán</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Planes -->
-        <div class="section">
-            <div class="section-title">Planes para empresas de mantenimiento</div>
+            <div class="section-title">Lo que ven tus clientes</div>
             <div class="section-subtitle">
-                Sin permanencia. Cancelación flexible. Soporte incluido.
+                Tus clientes (comunidades) reciben transparencia y profesionalidad
+            </div>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🔑</div>
+                    <div class="card-title">Acceso con código</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Cada comunidad tiene su código</li>
+                        <li><span class="check">✓</span> Ven solo sus datos</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Estado en tiempo real</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Calidad del agua</li>
+                        <li><span class="check">✓</span> Estado del jardín</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🚨</div>
+                    <div class="card-title">Alertas inmediatas</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Problemas graves</li>
+                        <li><span class="check">✓</span> Soluciones aplicadas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Valor para ti -->
+        <div class="section">
+            <div class="section-title">Qué ganas tú</div>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <div class="benefit-icon">🏆</div>
+                    <div class="benefit-title">Diferenciación</div>
+                    <div class="benefit-desc">Ofreces a tus clientes una experiencia digital que tu competencia no tiene</div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">💰</div>
+                    <div class="benefit-title">Ahorro de costes</div>
+                    <div class="benefit-desc">Menos llamadas, menos reclamaciones, más eficiencia</div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🤝</div>
+                    <div class="benefit-title">Clientes fidelizados</div>
+                    <div class="benefit-desc">La transparencia genera confianza y confianza genera renovación</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Precios -->
+        <div class="section">
+            <div class="section-title">Planes para tu empresa</div>
+            <div class="section-subtitle">
+                Facturación mensual. Sin permanencia. Cancelas cuando quieras.
             </div>
             <div class="pricing-grid">
                 <div class="pricing-card">
                     <div class="pricing-name">Básico</div>
                     <div class="pricing-price">49€<span>/mes</span></div>
                     <ul class="pricing-features">
-                        <li>✓ Hasta 5 clientes (piscinas/jardines)</li>
-                        <li>✓ 1 técnico</li>
-                        <li>✓ Panel de cliente</li>
-                        <li>✓ Panel de técnico</li>
-                        <li>✓ Panel de administrador</li>
+                        <li>✓ Hasta 10 clientes (comunidades)</li>
+                        <li>✓ 2 técnicos</li>
+                        <li>✓ App para técnicos</li>
+                        <li>✓ Panel de gestión</li>
+                        <li>✓ Portal para clientes</li>
                         <li>✓ Alertas por Telegram</li>
                     </ul>
                     <a href="#contacto" class="pricing-button">Empieza ahora</a>
@@ -326,52 +340,52 @@
                     <div class="pricing-name">Profesional</div>
                     <div class="pricing-price">99€<span>/mes</span></div>
                     <ul class="pricing-features">
-                        <li>✓ Hasta 20 clientes</li>
-                        <li>✓ 3 técnicos</li>
-                        <li>✓ Todas las funcionalidades</li>
+                        <li>✓ Hasta 30 clientes</li>
+                        <li>✓ 5 técnicos</li>
+                        <li>✓ Todo lo del plan Básico</li>
                         <li>✓ Exportación a PDF</li>
                         <li>✓ Prioridad en soporte</li>
                     </ul>
                     <a href="#contacto" class="pricing-button">Empieza ahora</a>
                 </div>
                 <div class="pricing-card">
-                    <div class="pricing-name">Enterprise</div>
+                    <div class="pricing-name">Empresarial</div>
                     <div class="pricing-price">A consultar</div>
                     <ul class="pricing-features">
                         <li>✓ Clientes ilimitados</li>
                         <li>✓ Técnicos ilimitados</li>
                         <li>✓ Soporte prioritario 24/7</li>
-                        <li>✓ Formación personalizada</li>
-                        <li>✓ API para integraciones</li>
+                        <li>✓ Formación incluida</li>
+                        <li>✓ API a medida</li>
                     </ul>
                     <a href="#contacto" class="pricing-button">Contactar</a>
                 </div>
             </div>
         </div>
 
-        <!-- Cómo funciona para el cliente (empresa de mantenimiento) -->
+        <!-- Cómo funciona -->
         <div class="section">
-            <div class="section-title">¿Cómo funciona para tu empresa?</div>
+            <div class="section-title">Cómo empiezas</div>
             <div class="timeline">
                 <div class="timeline-step">
                     <div class="timeline-number">1</div>
-                    <div class="timeline-title">Te damos acceso</div>
-                    <div class="timeline-desc">Panel de administrador para tu empresa</div>
+                    <div class="timeline-title">Solicitas demo</div>
+                    <div class="timeline-desc">30 minutos, sin compromiso</div>
                 </div>
                 <div class="timeline-step">
                     <div class="timeline-number">2</div>
-                    <div class="timeline-title">Das de alta a tus clientes</div>
-                    <div class="timeline-desc">Cada comunidad recibe su código de acceso</div>
+                    <div class="timeline-title">Prueba gratuita</div>
+                    <div class="timeline-desc">15 días con tus datos reales</div>
                 </div>
                 <div class="timeline-step">
                     <div class="timeline-number">3</div>
-                    <div class="timeline-title">Tus técnicos registran el trabajo</div>
-                    <div class="timeline-desc">Desde su móvil o tablet</div>
+                    <div class="timeline-title">Configuración</div>
+                    <div class="timeline-desc">Cargamos tus clientes y técnicos</div>
                 </div>
                 <div class="timeline-step">
                     <div class="timeline-number">4</div>
-                    <div class="timeline-title">Tus clientes ven el trabajo realizado</div>
-                    <div class="timeline-desc">Informes automáticos y transparencia total</div>
+                    <div class="timeline-title">Empiezas a usarlo</div>
+                    <div class="timeline-desc">Tu equipo operativo al día siguiente</div>
                 </div>
             </div>
         </div>
@@ -380,16 +394,16 @@
         <div class="section" id="contacto">
             <div class="section-title">¿Hablamos?</div>
             <div class="section-subtitle">
-                Solicita una demo gratuita y descubre cómo ComuTech puede ayudar a tu empresa de mantenimiento.
+                Cuéntanos tu negocio y te mostramos cómo ComuTech puede ayudarte.
             </div>
             <div style="text-align: center; margin-top: 40px;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">🏆</div>
+                <div style="font-size: 3rem; margin-bottom: 20px;">📞</div>
                 <p style="font-size: 1.1rem; margin-bottom: 20px;">
                     ¿Listo para profesionalizar tu empresa de mantenimiento?
                 </p>
                 <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                    <a href="#" class="cta-button" style="background: #0077b6; color: white;">📞 Solicitar demo</a>
-                    <a href="#" class="cta-button" style="background: #475569; color: white;">💬 Contactar por WhatsApp</a>
+                    <a href="#" class="cta-button">📞 Solicitar demo</a>
+                    <a href="#" class="cta-button" style="background: #25D366;">💬 Contactar por WhatsApp</a>
                 </div>
                 <p style="margin-top: 30px; font-size: 0.85rem; color: #5b6e8c;">
                     📧 info@comutech.com | 📞 +34 600 000 000
@@ -404,16 +418,15 @@
             <div class="footer-content">
                 <div class="footer-col">
                     <h4>ComuTech</h4>
-                    <p>SaaS para empresas de mantenimiento de piscinas y jardines</p>
+                    <p>Software para empresas de mantenimiento de piscinas, jardines y limpieza</p>
                     <p>© 2025 ComuTech. Todos los derechos reservados.</p>
                 </div>
                 <div class="footer-col">
-                    <h4>Enlaces legales</h4>
-                    <div class="legal-links" style="flex-direction: column; gap: 8px;">
-                        <a href="#" onclick="mostrarModal('aviso-legal')">📄 Aviso legal</a>
-                        <a href="#" onclick="mostrarModal('politica-privacidad')">🔒 Política de privacidad</a>
-                        <a href="#" onclick="mostrarModal('politica-cookies')">🍪 Política de cookies</a>
-                        <a href="#" onclick="mostrarModal('condiciones-uso')">📋 Condiciones de uso</a>
+                    <h4>Legal</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="#" onclick="mostrarModal('aviso-legal')">Aviso legal</a>
+                        <a href="#" onclick="mostrarModal('politica-privacidad')">Política de privacidad</a>
+                        <a href="#" onclick="mostrarModal('politica-cookies')">Política de cookies</a>
                     </div>
                 </div>
                 <div class="footer-col">
@@ -431,18 +444,17 @@
 
     <!-- Cookie banner -->
     <div id="cookieBanner" class="cookie-banner" style="display: flex;">
-        <p>🍪 Utilizamos cookies para mejorar tu experiencia. Más info en nuestra <a href="#" onclick="mostrarModal('politica-cookies')">política de cookies</a>.</p>
+        <p>🍪 Usamos cookies para mejorar tu experiencia.</p>
         <div class="cookie-buttons">
             <button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar</button>
             <button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar</button>
         </div>
     </div>
 
-    <!-- Modal -->
     <div id="modalPoliticas" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitulo">Aviso legal</div>
-            <div class="modal-body" id="modalBody"></div>
+            <div id="modalBody"></div>
             <button class="modal-close" onclick="cerrarModal()">Cerrar</button>
         </div>
     </div>
@@ -458,32 +470,20 @@
             const body = document.getElementById('modalBody');
             let contenido = '';
             if (tipo === 'aviso-legal') {
-                titulo.innerHTML = '📄 Aviso legal';
-                contenido = `<h4>1. Identificación</h4><p>ComuTech es una plataforma SaaS para empresas de mantenimiento.</p><h4>2. Contacto</h4><p>info@comutech.com | +34 600 000 000</p>`;
+                titulo.innerHTML = 'Aviso legal';
+                contenido = '<h4>ComuTech</h4><p>Software B2B para empresas de mantenimiento.</p><p>info@comutech.com</p>';
             } else if (tipo === 'politica-privacidad') {
-                titulo.innerHTML = '🔒 Política de privacidad';
-                contenido = `<h4>1. Datos recopilados</h4><p>Recopilamos los datos necesarios para la prestación del servicio.</p><h4>2. Derechos</h4><p>Puede ejercer sus derechos en info@comutech.com</p>`;
-            } else if (tipo === 'politica-cookies') {
-                titulo.innerHTML = '🍪 Política de cookies';
-                contenido = `<h4>1. ¿Qué son las cookies?</h4><p>Las cookies son pequeños archivos que se almacenan en su dispositivo.</p><h4>2. Tipos</h4><p>Usamos cookies técnicas y analíticas.</p>`;
+                titulo.innerHTML = 'Política de privacidad';
+                contenido = '<h4>Protección de datos</h4><p>Cumplimos con el RGPD. Tus datos están seguros.</p>';
             } else {
-                titulo.innerHTML = '📋 Condiciones de uso';
-                contenido = `<h4>1. Aceptación</h4><p>El uso de la plataforma implica la aceptación de estas condiciones.</p><h4>2. Modificaciones</h4><p>ComuTech puede modificar estas condiciones.</p>`;
+                titulo.innerHTML = 'Política de cookies';
+                contenido = '<h4>Uso de cookies</h4><p>Usamos cookies técnicas y analíticas para mejorar el servicio.</p>';
             }
             body.innerHTML = contenido;
             modal.style.display = 'flex';
         }
         function cerrarModal() { document.getElementById('modalPoliticas').style.display = 'none'; }
         window.onclick = function(event) { const modal = document.getElementById('modalPoliticas'); if (event.target === modal) modal.style.display = 'none'; }
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                if (href !== '#' && href !== '#contacto') return;
-                e.preventDefault();
-                const target = document.querySelector('#contacto');
-                if (target) target.scrollIntoView({ behavior: 'smooth' });
-            });
-        });
     </script>
 </body>
 </html>
