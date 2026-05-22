@@ -40,6 +40,57 @@
         .section-title { font-size: 2rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 16px; letter-spacing: -0.01em; }
         .section-subtitle { text-align: center; color: #5b6e8c; max-width: 700px; margin: 0 auto 48px auto; font-size: 1.1rem; }
         
+        /* Tarjetas de demo */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin: 40px 0 20px;
+        }
+        .demo-card {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .demo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px -15px rgba(0,0,0,0.15);
+            border-color: #0077b6;
+        }
+        .demo-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        .demo-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+        .demo-desc {
+            font-size: 0.85rem;
+            color: #5b6e8c;
+            margin-bottom: 20px;
+        }
+        .demo-btn {
+            background: #0077b6;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .demo-btn:hover {
+            background: #005f8c;
+            transform: translateY(-2px);
+        }
+        
         .valor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
         .valor-card { background: white; border-radius: 20px; padding: 28px; text-align: center; border: 1px solid #e2e8f0; transition: all 0.3s; }
         .valor-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); border-color: #cbd5e1; }
@@ -79,27 +130,6 @@
         .feature-list li:last-child { border-bottom: none; }
         .check { color: #0077b6; font-weight: bold; font-size: 1.1rem; }
         
-        .highlight-box { background: #f0f9ff; padding: 20px; border-radius: 14px; margin: 20px 0; border-left: 4px solid #0077b6; }
-        .highlight-title { font-weight: 700; margin-bottom: 8px; color: #0f172a; }
-        
-        .example-box {
-            background: #f1f5f9; padding: 12px 16px; border-radius: 12px;
-            font-size: 0.8rem; font-family: monospace; color: #1e293b; margin: 16px 0;
-        }
-        
-        .faq-box { background: #fff7ed; padding: 16px; border-radius: 14px; margin-top: 20px; }
-        .faq-question { font-weight: 600; font-size: 0.85rem; display: flex; gap: 8px; }
-        .faq-answer { font-size: 0.8rem; color: #5b6e8c; margin-top: 6px; margin-left: 28px; }
-        
-        .btn-demo { background: #0077b6; color: white; padding: 10px 28px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-        .btn-demo:hover { background: #005f8c; transform: translateY(-2px); }
-        
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
-        .card { background: white; border-radius: 20px; padding: 28px; border: 1px solid #e2e8f0; transition: all 0.3s; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); }
-        .card-icon { font-size: 2.2rem; margin-bottom: 16px; }
-        .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
-        
         .footer { background: #0f172a; color: white; padding: 40px 0 20px 0; margin-top: 40px; }
         .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
         .footer-col h4 { color: #0077b6; margin-bottom: 16px; font-size: 1rem; }
@@ -109,35 +139,26 @@
         
         .cookie-banner {
             position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white;
-            padding: 20px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
-            align-items: center; gap: 16px; z-index: 1000; font-size: 0.85rem;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+            padding: 16px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; gap: 16px; z-index: 1000; font-size: 0.8rem;
         }
-        .cookie-banner p { flex: 1; }
-        .cookie-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
-        .cookie-btn { padding: 10px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+        .cookie-btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; }
         .cookie-accept { background: #0077b6; color: white; }
-        .cookie-accept:hover { background: #005f8c; transform: translateY(-2px); }
-        .cookie-config { background: transparent; color: #94a3b8; border: 1px solid #475569; }
-        .cookie-config:hover { background: #1e293b; color: white; }
+        .cookie-decline { background: #475569; color: white; }
         
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 1001; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center;
         }
-        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; }
-        .modal-header { font-size: 1.5rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
-        .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: 500; }
-        .modal-close:hover { background: #005f8c; }
+        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { font-size: 1.4rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
+        .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; }
         
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
+            .demo-grid { grid-template-columns: 1fr; }
+            .valor-grid { grid-template-columns: 1fr; gap: 16px; }
             .header h1 { font-size: 2rem; }
             .section-title { font-size: 1.5rem; }
-            .valor-grid { grid-template-columns: 1fr; gap: 16px; }
-            .accordion-header { padding: 16px 20px; }
-            .accordion-title { font-size: 0.95rem; }
-            .cookie-banner { flex-direction: column; text-align: center; }
-            .cookie-buttons { justify-content: center; }
         }
     </style>
 </head>
@@ -154,8 +175,50 @@
     </div>
 
     <div class="container">
+        <!-- SECCIÓN DE DEMOS INTERACTIVAS (NUEVA) -->
+        <div class="section">
+            <div class="section-title">🎮 Prueba ComuTech sin instalar nada</div>
+            <div class="section-subtitle">
+                Haz clic en cualquier demo y descubre cómo funciona cada panel<br>
+                <span style="font-size: 0.85rem;">Simulaciones interactivas · Sin registro · Sin compromiso</span>
+            </div>
+            
+            <div class="demo-grid">
+                <!-- Demo Cliente -->
+                <div class="demo-card" onclick="irDemo('cliente')">
+                    <div class="demo-icon">🏘️</div>
+                    <div class="demo-title">Portal del Cliente</div>
+                    <div class="demo-desc">
+                        Lo que ven tus clientes: estado de la piscina, informes automáticos, historial y reporte de incidencias.
+                    </div>
+                    <button class="demo-btn">👆 Ver demo cliente</button>
+                </div>
+                
+                <!-- Demo Técnico -->
+                <div class="demo-card" onclick="irDemo('tecnico')">
+                    <div class="demo-icon">👨‍🔧</div>
+                    <div class="demo-title">Panel del Técnico</div>
+                    <div class="demo-desc">
+                        Cómo trabajan tus técnicos: registro de trabajos, control de tiempos, funciona sin internet.
+                    </div>
+                    <button class="demo-btn">📱 Ver demo técnico</button>
+                </div>
+                
+                <!-- Demo Gerente -->
+                <div class="demo-card" onclick="irDemo('gerente')">
+                    <div class="demo-icon">📊</div>
+                    <div class="demo-title">Panel del Gerente</div>
+                    <div class="demo-desc">
+                        Control total de tu negocio: facturación, gastos, KPIs y rentabilidad por cliente.
+                    </div>
+                    <button class="demo-btn">💼 Ver demo gerente</button>
+                </div>
+            </div>
+        </div>
+
         <!-- TRES PILARES DE VALOR -->
-        <div style="margin-top: -30px; margin-bottom: 20px;">
+        <div class="section">
+            <div class="section-title">🏆 ¿Qué aporta ComuTech a tu negocio?</div>
             <div class="valor-grid">
                 <div class="valor-card">
                     <div class="valor-icon">🏆</div>
@@ -175,7 +238,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 1: VALOR PARA TUS CLIENTES -->
+        <!-- SECCIÓN: VALOR PARA TUS CLIENTES -->
         <div class="section">
             <div class="section-title">🏆 Lo que ven tus clientes</div>
             <div class="section-subtitle">
@@ -200,178 +263,11 @@
                             <li><span class="check">✓</span> Informes descargables en PDF</li>
                             <li><span class="check">✓</span> Sin ver datos de otros clientes</li>
                         </ul>
-                        <div class="highlight-box">
-                            <div class="highlight-title">💡 Por qué es importante para ti</div>
-                            <div style="font-size: 0.85rem;">Las comunidades que reciben informes transparentes renuevan contrato un 70% más. Dejas de recibir llamadas preguntando "¿han venido hoy?".</div>
+                        <div style="background: #f0f9ff; padding: 16px; border-radius: 14px; margin-top: 16px; border-left: 4px solid #0077b6;">
+                            <div style="font-weight: 700; margin-bottom: 8px;">💡 Beneficio para ti</div>
+                            <div style="font-size: 0.85rem;">Las comunidades que reciben informes transparentes renuevan contrato un 70% más.</div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title">
-                        <span class="accordion-icon">📧</span>
-                        <span>Informes automáticos por email</span>
-                    </div>
-                    <div class="accordion-indicator">▼</div>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <p style="margin-bottom: 16px;"><strong>Después de cada trabajo, el cliente recibe un email automático.</strong> Sin que tú hagas nada.</p>
-                        <ul class="feature-list">
-                            <li><span class="check">✓</span> Qué se ha hecho (ej: limpieza skimmers, control pH)</li>
-                            <li><span class="check">✓</span> Quién lo ha hecho (nombre del técnico)</li>
-                            <li><span class="check">✓</span> Cuándo se ha hecho (fecha y hora exacta)</li>
-                            <li><span class="check">✓</span> Próximo mantenimiento programado</li>
-                        </ul>
-                        <div class="example-box">
-                            📧 "Estimado administrador, el técnico Juan Pérez ha realizado hoy: limpieza de skimmers, control de pH (7.2 correcto), adición de cloro (2kg). Próxima visita: viernes 25/10."
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN 2: CONTROL DEL FLUJO DE TRABAJO -->
-        <div class="section">
-            <div class="section-title">⚙️ Control del flujo de trabajo</div>
-            <div class="section-subtitle">
-                Sabes lo que hace cada técnico, dónde y cuánto tiempo
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title">
-                        <span class="accordion-icon">📱</span>
-                        <span>Panel para técnicos (vía web)</span>
-                    </div>
-                    <div class="accordion-indicator">▼</div>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <ul class="feature-list">
-                            <li><span class="check">✓</span> Acceso desde cualquier móvil, solo con un enlace</li>
-                            <li><span class="check">✓</span> Registra cada trabajo: cliente → tarea → tiempo</li>
-                            <li><span class="check">✓</span> Funciona sin internet (guarda los datos localmente)</li>
-                            <li><span class="check">✓</span> Sincroniza automáticamente cuando hay conexión</li>
-                        </ul>
-                        <div class="highlight-box">
-                            <div class="highlight-title">📱 Sin tiendas, sin instalaciones complicadas</div>
-                            <div style="font-size: 0.85rem;">El técnico solo necesita guardar el enlace en su móvil. La primera vez carga la app y ya funciona incluso sin cobertura.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title">
-                        <span class="accordion-icon">🗂️</span>
-                        <span>Organización de clientes y técnicos</span>
-                    </div>
-                    <div class="accordion-indicator">▼</div>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <ul class="feature-list">
-                            <li><span class="check">✓</span> Asigna técnicos a cada cliente</li>
-                            <li><span class="check">✓</span> Planifica frecuencias (diario, semanal, quincenal)</li>
-                            <li><span class="check">✓</span> Control de incidencias y avisos</li>
-                            <li><span class="check">✓</span> Calendario compartido de tareas</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN 3: GESTIÓN INTEGRAL + FACTURACIÓN -->
-        <div class="section">
-            <div class="section-title">🏢 Gestión integral + Facturación</div>
-            <div class="section-subtitle">
-                Todo tu negocio en un solo lugar. Toma decisiones con datos reales.
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title">
-                        <span class="accordion-icon">💰</span>
-                        <span>Facturación y control de gastos</span>
-                    </div>
-                    <div class="accordion-indicator">▼</div>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <ul class="feature-list">
-                            <li><span class="check">✓</span> Registro de facturas emitidas por cliente</li>
-                            <li><span class="check">✓</span> Control de cobros (pagado / pendiente)</li>
-                            <li><span class="check">✓</span> Gastos por técnico (material, desplazamientos)</li>
-                            <li><span class="check">✓</span> Informe de rentabilidad por cliente y servicio</li>
-                            <li><span class="check">✓</span> Exportación a Excel para tu asesoría</li>
-                        </ul>
-                        <div class="example-box">
-                            📊 Ejemplo: "Cliente Urbanización Los Pinos: facturado 450€ este mes, gastos 120€ (productos + viaje), beneficio 330€ | Rentabilidad: 73%"
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title">
-                        <span class="accordion-icon">📈</span>
-                        <span>Dashboard y KPIs en tiempo real</span>
-                    </div>
-                    <div class="accordion-indicator">▼</div>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <ul class="feature-list">
-                            <li><span class="check">✓</span> <strong>Ingresos del mes</strong> - Facturación total y por cliente</li>
-                            <li><span class="check">✓</span> <strong>Horas trabajadas</strong> - Totales y por técnico</li>
-                            <li><span class="check">✓</span> <strong>Clientes activos</strong> - Cuántos tienes y su estado</li>
-                            <li><span class="check">✓</span> <strong>Renovaciones próximas</strong> - Contratos que vencen este mes</li>
-                            <li><span class="check">✓</span> <strong>Rentabilidad por servicio</strong> - ¿Qué te deja más margen?</li>
-                        </ul>
-                        <div class="highlight-box">
-                            <div class="highlight-title">🎯 Toma decisiones con datos</div>
-                            <div style="font-size: 0.85rem;">¿Qué clientes son más rentables? ¿Qué técnicos son más productivos? ¿Dónde pierdes tiempo o dinero? El dashboard te lo dice.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTORES -->
-        <div class="section">
-            <div class="section-title">🏊 Sectores que cubrimos</div>
-            <div class="cards-grid">
-                <div class="card">
-                    <div class="card-icon">🏊</div>
-                    <div class="card-title">Piscinas</div>
-                    <ul class="feature-list" style="margin-top: 12px;">
-                        <li><span class="check">✓</span> Control de productos químicos</li>
-                        <li><span class="check">✓</span> Registro de mediciones</li>
-                        <li><span class="check">✓</span> Alertas de calidad</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🌿</div>
-                    <div class="card-title">Jardines</div>
-                    <ul class="feature-list" style="margin-top: 12px;">
-                        <li><span class="check">✓</span> Planificación de riegos</li>
-                        <li><span class="check">✓</span> Control de podas y tratamientos</li>
-                        <li><span class="check">✓</span> Registro de productos</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🧹</div>
-                    <div class="card-title">Limpieza</div>
-                    <ul class="feature-list" style="margin-top: 12px;">
-                        <li><span class="check">✓</span> Control de frecuencias</li>
-                        <li><span class="check">✓</span> Checklists por zona</li>
-                        <li><span class="check">✓</span> Informes para comunidades</li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -386,7 +282,7 @@
                 <div style="font-size: 2.5rem; margin-bottom: 16px;">📞</div>
                 <p style="margin-bottom: 24px; font-size: 1.1rem;">¿Listo para profesionalizar tu empresa de mantenimiento?</p>
                 <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                    <button class="cta-button" onclick="solicitarDemo()">📞 Solicitar demo</button>
+                    <button class="cta-button" onclick="solicitarDemo()">📞 Solicitar demo real</button>
                     <button class="cta-button" style="background: #25D366;" onclick="contactarWhatsApp()">💬 Contactar por WhatsApp</button>
                 </div>
                 <p style="margin-top: 30px; font-size: 0.85rem; color: #5b6e8c;">
@@ -423,16 +319,14 @@
         </div>
     </div>
 
-    <!-- COOKIE BANNER CON ACEPTACIÓN ÚNICA -->
     <div id="cookieBanner" class="cookie-banner">
-        <p>🍪 En <strong>ComuTech</strong> usamos cookies técnicas y analíticas para mejorar tu experiencia. Al hacer clic en <strong>"Aceptar todo"</strong>, aceptas nuestra <a onclick="mostrarModal('politica-cookies')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Política de cookies</a>, <a onclick="mostrarModal('politica-privacidad')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Política de privacidad</a> y <a onclick="mostrarModal('aviso-legal')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Aviso legal</a>.</p>
-        <div class="cookie-buttons">
-            <button class="cookie-btn cookie-accept" onclick="aceptarTodo()">✅ Aceptar todo</button>
-            <button class="cookie-btn cookie-config" onclick="mostrarModal('politica-cookies')">⚙️ Configurar</button>
+        <p>🍪 Usamos cookies técnicas y analíticas para mejorar tu experiencia.</p>
+        <div style="display: flex; gap: 12px;">
+            <button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar</button>
+            <button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar</button>
         </div>
     </div>
 
-    <!-- MODAL LEGAL UNIFICADO -->
     <div id="modalPoliticas" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitulo">Aviso legal</div>
@@ -442,6 +336,17 @@
     </div>
 
     <script>
+        // ========== REDIRECCIÓN A DEMOS ==========
+        function irDemo(tipo) {
+            if (tipo === 'cliente') {
+                window.location.href = 'democliente.html';
+            } else if (tipo === 'tecnico') {
+                window.location.href = 'demotecnico.html';
+            } else if (tipo === 'gerente') {
+                window.location.href = 'demogerente.html';
+            }
+        }
+        
         // ========== ACORDEÓN ==========
         function inicializarAcordeon() {
             const headers = document.querySelectorAll('.accordion-header');
@@ -463,153 +368,52 @@
                 });
             });
         }
-
-        // ========== COOKIES Y LEGAL ==========
-        function aceptarTodo() {
-            // Aceptar cookies
-            localStorage.setItem('cookies_aceptadas', 'true');
-            localStorage.setItem('cookies_analiticas', 'true');
-            localStorage.setItem('legal_aceptado', 'true');
-            document.getElementById('cookieBanner').style.display = 'none';
-            console.log('✅ Usuario ha aceptado todas las políticas y cookies');
-        }
-
+        
         function solicitarDemo() {
-            if (!localStorage.getItem('legal_aceptado')) {
-                alert('Por favor, acepta nuestras políticas de privacidad y cookies antes de continuar.');
-                return;
-            }
             alert('✅ Solicitud enviada. Te contactaremos en menos de 24 horas.');
         }
-
+        
         function contactarWhatsApp() {
-            if (!localStorage.getItem('legal_aceptado')) {
-                alert('Por favor, acepta nuestras políticas de privacidad y cookies antes de continuar.');
-                return;
-            }
             window.open('https://wa.me/34600000000', '_blank');
         }
-
-        // ========== MODALES CON CONTENIDO LEGAL COMPLETO ==========
+        
+        function aceptarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'true');
+            document.getElementById('cookieBanner').style.display = 'none';
+        }
+        
+        function rechazarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'false');
+            document.getElementById('cookieBanner').style.display = 'none';
+        }
+        
         function mostrarModal(tipo) {
             const modal = document.getElementById('modalPoliticas');
             const titulo = document.getElementById('modalTitulo');
             const body = document.getElementById('modalBody');
             
             if (tipo === 'aviso-legal') {
-                titulo.textContent = '📜 Aviso legal';
-                body.innerHTML = `
-                    <h4>COMUTECH SOLUCIONES TÉCNICAS, S.L.</h4>
-                    <p>En cumplimiento de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se exponen a continuación los datos identificativos de la empresa titular del dominio comutech.com</p>
-                    
-                    <p><strong>Denominación Social:</strong> COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
-                    <strong>CIF:</strong> B12345678 (en trámites)<br>
-                    <strong>Domicilio Fiscal:</strong> Calle del Mar, 28, Edificio Levante, Oficina 5, C.P. 03189, Orihuela Costa, Alicante, España.<br>
-                    <strong>Correo Electrónico:</strong> info@comutech.com<br>
-                    <strong>Teléfono:</strong> +34 600 000 000</p>
-                    
-                    <h5>📌 Objeto del sitio web</h5>
-                    <p>El sitio web tiene como objeto la promoción y comercialización de software de gestión SaaS para empresas de mantenimiento de piscinas, jardines y limpieza.</p>
-                    
-                    <h5>📌 Propiedad intelectual</h5>
-                    <p>El diseño, logotipo, textos y código fuente del sitio web pertenecen a COMUTECH SOLUCIONES TÉCNICAS, S.L. o a sus licenciantes, estando protegidos por la normativa de propiedad intelectual.</p>
-                    
-                    <h5>📌 Condiciones de uso</h5>
-                    <p>El acceso a esta web es responsabilidad del usuario. ComuTech no se hace responsable de los daños que pudieran derivarse del uso inadecuado de la información aquí contenida.</p>
-                    
-                    <p><em>Última actualización: Mayo de 2026</em></p>
-                `;
+                titulo.textContent = 'Aviso legal';
+                body.innerHTML = '<h4>ComuTech Soluciones Técnicas, S.L.</h4><p>Calle del Mar, 28, Orihuela Costa, 03189, Alicante</p><p>info@comutech.com</p>';
             } else if (tipo === 'politica-privacidad') {
-                titulo.textContent = '🔒 Política de privacidad';
-                body.innerHTML = `
-                    <h4>Protección de datos personales</h4>
-                    <p>En COMUTECH SOLUCIONES TÉCNICAS, S.L. (en adelante, ComuTech), nos comprometemos a proteger su privacidad y a tratar sus datos personales conforme al <strong>Reglamento General de Protección de Datos (RGPD)</strong> y la <strong>Ley Orgánica 3/2018, de 5 de diciembre (LOPDGDD)</strong>.</p>
-                    
-                    <p><strong>Responsable del Tratamiento:</strong><br>
-                    COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
-                    CIF: B12345678<br>
-                    Domicilio: Calle del Mar, 28, 03189, Orihuela Costa (Alicante)<br>
-                    Email DPD: dpo@comutech.com</p>
-                    
-                    <h5>📌 ¿Qué datos recogemos?</h5>
-                    <p>Recogemos los datos que usted nos facilita a través del formulario de contacto de nuestra web: nombre, correo electrónico, teléfono y empresa. También podemos recoger datos de navegación a través de cookies analíticas (si las acepta).</p>
-                    
-                    <h5>📌 ¿Con qué finalidad tratamos sus datos?</h5>
-                    <ul>
-                        <li>✓ Gestionar su solicitud de información o demo sobre nuestros servicios.</li>
-                        <li>✓ Enviarle comunicaciones comerciales sobre nuestros productos (solo si nos ha dado su consentimiento expreso).</li>
-                        <li>✓ Mejorar nuestros servicios mediante análisis de navegación.</li>
-                    </ul>
-                    
-                    <h5>📌 Legitimación</h5>
-                    <p>La base legal para el tratamiento de sus datos es el consentimiento que usted nos otorga al marcar la casilla correspondiente en nuestro formulario de contacto.</p>
-                    
-                    <h5>📌 Destinatarios de sus datos</h5>
-                    <p>Sus datos no serán cedidos a terceros, salvo obligación legal. Utilizamos servicios de hosting ubicados en la Unión Europea, garantizando un nivel de protección adecuado.</p>
-                    
-                    <h5>📌 Sus derechos</h5>
-                    <p>Usted tiene derecho a <strong>acceder, rectificar, suprimir, limitar u oponerse</strong> al tratamiento de sus datos. Para ejercer estos derechos, escriba a nuestra dirección postal o al correo <strong>info@comutech.com</strong>, adjuntando copia de su DNI.</p>
-                    
-                    <h5>📌 Conservación de datos</h5>
-                    <p>Conservaremos sus datos mientras mantenga una relación comercial con nosotros o no solicite su supresión.</p>
-                    
-                    <p><em>Última revisión: Mayo de 2026</em></p>
-                `;
-            } else if (tipo === 'politica-cookies') {
-                titulo.textContent = '🍪 Política de cookies';
-                body.innerHTML = `
-                    <h4>Uso de cookies en ComuTech</h4>
-                    <p>En cumplimiento de la <strong>Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE)</strong>, le informamos sobre el uso de cookies en nuestro sitio web.</p>
-                    
-                    <h5>📌 ¿Qué son las cookies?</h5>
-                    <p>Las cookies son pequeños archivos de texto que los sitios web instalan en su navegador para almacenar información sobre su visita, facilitando la navegación y mejorando la experiencia.</p>
-                    
-                    <h5>📌 Tipos de cookies que utilizamos</h5>
-                    <ul>
-                        <li><strong>🍪 Cookies técnicas (obligatorias):</strong> Necesarias para el funcionamiento básico de la web (navegación, inicio de sesión). No requieren su consentimiento.</li>
-                        <li><strong>🍪 Cookies de preferencia:</strong> Recuerdan su configuración de idioma y zona horaria.</li>
-                        <li><strong>📊 Cookies analíticas:</strong> Nos ayudan a entender cómo interactúan los usuarios con nuestra web para mejorar nuestros servicios. Si las rechaza, no rastrearemos su comportamiento.</li>
-                    </ul>
-                    
-                    <h5>📌 Gestión de cookies</h5>
-                    <p>Puede aceptar todas las cookies haciendo clic en <strong>"Aceptar todo"</strong>. También puede configurar su navegador para bloquear o eliminar cookies, aunque esto podría afectar el funcionamiento de la web.</p>
-                    
-                    <h5>📌 Cookies de terceros</h5>
-                    <p>No utilizamos cookies de terceros para publicidad comportamental. Solo usamos cookies analíticas internas para medir el rendimiento de nuestra web.</p>
-                    
-                    <div style="background: #f0f9ff; padding: 15px; border-radius: 12px; margin: 20px 0;">
-                        <strong>⚙️ Configuración rápida:</strong><br>
-                        <button onclick="aceptarTodo(); cerrarModal();" style="background:#0077b6; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; cursor:pointer;">✅ Aceptar todas las cookies</button>
-                        <button onclick="rechazarCookies(); cerrarModal();" style="background:#475569; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; margin-left:10px; cursor:pointer;">❌ Rechazar analíticas</button>
-                    </div>
-                    
-                    <p><em>Última actualización: Mayo de 2026</em></p>
-                `;
+                titulo.textContent = 'Política de privacidad';
+                body.innerHTML = '<h4>Protección de datos</h4><p>Cumplimos con el RGPD. Tus datos están seguros.</p>';
+            } else {
+                titulo.textContent = 'Política de cookies';
+                body.innerHTML = '<h4>Uso de cookies</h4><p>Usamos cookies técnicas y analíticas para mejorar el servicio.</p>';
             }
             modal.style.display = 'flex';
         }
-
+        
         function cerrarModal() {
             document.getElementById('modalPoliticas').style.display = 'none';
         }
-
-        function rechazarCookies() {
-            localStorage.setItem('cookies_aceptadas', 'false');
-            localStorage.setItem('cookies_analiticas', 'false');
-            localStorage.setItem('legal_aceptado', 'true');
-            document.getElementById('cookieBanner').style.display = 'none';
-            console.log('❌ Cookies analíticas rechazadas, solo técnicas activas');
-        }
-
-        // ========== INICIALIZAR ==========
+        
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
             
-            // Comprobar si ya ha aceptado las políticas
-            if (localStorage.getItem('legal_aceptado') !== null) {
+            if (localStorage.getItem('cookies_aceptadas') !== null) {
                 document.getElementById('cookieBanner').style.display = 'none';
-            } else {
-                document.getElementById('cookieBanner').style.display = 'flex';
             }
             
             window.onclick = (event) => {
