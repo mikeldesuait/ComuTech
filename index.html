@@ -109,20 +109,26 @@
         
         .cookie-banner {
             position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white;
-            padding: 14px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
-            align-items: center; gap: 16px; z-index: 1000; font-size: 0.8rem;
+            padding: 20px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; gap: 16px; z-index: 1000; font-size: 0.85rem;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
         }
-        .cookie-btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; }
+        .cookie-banner p { flex: 1; }
+        .cookie-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+        .cookie-btn { padding: 10px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
         .cookie-accept { background: #0077b6; color: white; }
-        .cookie-decline { background: #475569; color: white; }
+        .cookie-accept:hover { background: #005f8c; transform: translateY(-2px); }
+        .cookie-config { background: transparent; color: #94a3b8; border: 1px solid #475569; }
+        .cookie-config:hover { background: #1e293b; color: white; }
         
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.6); z-index: 1001; justify-content: center; align-items: center;
         }
-        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal-header { font-size: 1.4rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
-        .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; }
+        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .modal-header { font-size: 1.5rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
+        .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: 500; }
+        .modal-close:hover { background: #005f8c; }
         
         @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
@@ -130,6 +136,8 @@
             .valor-grid { grid-template-columns: 1fr; gap: 16px; }
             .accordion-header { padding: 16px 20px; }
             .accordion-title { font-size: 0.95rem; }
+            .cookie-banner { flex-direction: column; text-align: center; }
+            .cookie-buttons { justify-content: center; }
         }
     </style>
 </head>
@@ -394,7 +402,7 @@
                 <div class="footer-col">
                     <h4>ComuTech</h4>
                     <p>Software para empresas de mantenimiento de piscinas, jardines y limpieza</p>
-                    <p>© 2025 ComuTech</p>
+                    <p>© 2025 ComuTech Soluciones Técnicas, S.L.</p>
                 </div>
                 <div class="footer-col">
                     <h4>Legal</h4>
@@ -406,23 +414,25 @@
                     <h4>Contacto</h4>
                     <p>📧 info@comutech.com</p>
                     <p>📞 +34 600 000 000</p>
-                    <p>📍 Madrid, España</p>
+                    <p>📍 Calle del Mar, 28, Orihuela Costa, 03189, Alicante</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>ComuTech cumple con el RGPD y la LSSI-CE.</p>
+                <p>ComuTech cumple con el RGPD, la LSSI-CE y la Ley de Cookies.</p>
             </div>
         </div>
     </div>
 
+    <!-- COOKIE BANNER CON ACEPTACIÓN ÚNICA -->
     <div id="cookieBanner" class="cookie-banner">
-        <p>🍪 Usamos cookies técnicas y analíticas para mejorar tu experiencia.</p>
-        <div style="display: flex; gap: 12px;">
-            <button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar</button>
-            <button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar</button>
+        <p>🍪 En <strong>ComuTech</strong> usamos cookies técnicas y analíticas para mejorar tu experiencia. Al hacer clic en <strong>"Aceptar todo"</strong>, aceptas nuestra <a onclick="mostrarModal('politica-cookies')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Política de cookies</a>, <a onclick="mostrarModal('politica-privacidad')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Política de privacidad</a> y <a onclick="mostrarModal('aviso-legal')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Aviso legal</a>.</p>
+        <div class="cookie-buttons">
+            <button class="cookie-btn cookie-accept" onclick="aceptarTodo()">✅ Aceptar todo</button>
+            <button class="cookie-btn cookie-config" onclick="mostrarModal('politica-cookies')">⚙️ Configurar</button>
         </div>
     </div>
 
+    <!-- MODAL LEGAL UNIFICADO -->
     <div id="modalPoliticas" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitulo">Aviso legal</div>
@@ -432,6 +442,7 @@
     </div>
 
     <script>
+        // ========== ACORDEÓN ==========
         function inicializarAcordeon() {
             const headers = document.querySelectorAll('.accordion-header');
             headers.forEach(header => {
@@ -453,38 +464,127 @@
             });
         }
 
+        // ========== COOKIES Y LEGAL ==========
+        function aceptarTodo() {
+            // Aceptar cookies
+            localStorage.setItem('cookies_aceptadas', 'true');
+            localStorage.setItem('cookies_analiticas', 'true');
+            localStorage.setItem('legal_aceptado', 'true');
+            document.getElementById('cookieBanner').style.display = 'none';
+            console.log('✅ Usuario ha aceptado todas las políticas y cookies');
+        }
+
         function solicitarDemo() {
+            if (!localStorage.getItem('legal_aceptado')) {
+                alert('Por favor, acepta nuestras políticas de privacidad y cookies antes de continuar.');
+                return;
+            }
             alert('✅ Solicitud enviada. Te contactaremos en menos de 24 horas.');
         }
 
         function contactarWhatsApp() {
+            if (!localStorage.getItem('legal_aceptado')) {
+                alert('Por favor, acepta nuestras políticas de privacidad y cookies antes de continuar.');
+                return;
+            }
             window.open('https://wa.me/34600000000', '_blank');
         }
 
-        function aceptarCookies() {
-            localStorage.setItem('cookies_aceptadas', 'true');
-            document.getElementById('cookieBanner').style.display = 'none';
-        }
-
-        function rechazarCookies() {
-            localStorage.setItem('cookies_aceptadas', 'false');
-            document.getElementById('cookieBanner').style.display = 'none';
-        }
-
+        // ========== MODALES CON CONTENIDO LEGAL COMPLETO ==========
         function mostrarModal(tipo) {
             const modal = document.getElementById('modalPoliticas');
             const titulo = document.getElementById('modalTitulo');
             const body = document.getElementById('modalBody');
             
             if (tipo === 'aviso-legal') {
-                titulo.textContent = 'Aviso legal';
-                body.innerHTML = '<h4>ComuTech</h4><p>Software B2B para empresas de mantenimiento.</p><p>info@comutech.com</p><p>Madrid, España</p>';
+                titulo.textContent = '📜 Aviso legal';
+                body.innerHTML = `
+                    <h4>COMUTECH SOLUCIONES TÉCNICAS, S.L.</h4>
+                    <p>En cumplimiento de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se exponen a continuación los datos identificativos de la empresa titular del dominio comutech.com</p>
+                    
+                    <p><strong>Denominación Social:</strong> COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
+                    <strong>CIF:</strong> B12345678 (en trámites)<br>
+                    <strong>Domicilio Fiscal:</strong> Calle del Mar, 28, Edificio Levante, Oficina 5, C.P. 03189, Orihuela Costa, Alicante, España.<br>
+                    <strong>Correo Electrónico:</strong> info@comutech.com<br>
+                    <strong>Teléfono:</strong> +34 600 000 000</p>
+                    
+                    <h5>📌 Objeto del sitio web</h5>
+                    <p>El sitio web tiene como objeto la promoción y comercialización de software de gestión SaaS para empresas de mantenimiento de piscinas, jardines y limpieza.</p>
+                    
+                    <h5>📌 Propiedad intelectual</h5>
+                    <p>El diseño, logotipo, textos y código fuente del sitio web pertenecen a COMUTECH SOLUCIONES TÉCNICAS, S.L. o a sus licenciantes, estando protegidos por la normativa de propiedad intelectual.</p>
+                    
+                    <h5>📌 Condiciones de uso</h5>
+                    <p>El acceso a esta web es responsabilidad del usuario. ComuTech no se hace responsable de los daños que pudieran derivarse del uso inadecuado de la información aquí contenida.</p>
+                    
+                    <p><em>Última actualización: Mayo de 2026</em></p>
+                `;
             } else if (tipo === 'politica-privacidad') {
-                titulo.textContent = 'Política de privacidad';
-                body.innerHTML = '<h4>Protección de datos</h4><p>Cumplimos con el RGPD. Tus datos están seguros y no los compartimos con terceros.</p>';
-            } else {
-                titulo.textContent = 'Política de cookies';
-                body.innerHTML = '<h4>Uso de cookies</h4><p>Usamos cookies técnicas y analíticas para mejorar el servicio. No almacenamos datos personales.</p>';
+                titulo.textContent = '🔒 Política de privacidad';
+                body.innerHTML = `
+                    <h4>Protección de datos personales</h4>
+                    <p>En COMUTECH SOLUCIONES TÉCNICAS, S.L. (en adelante, ComuTech), nos comprometemos a proteger su privacidad y a tratar sus datos personales conforme al <strong>Reglamento General de Protección de Datos (RGPD)</strong> y la <strong>Ley Orgánica 3/2018, de 5 de diciembre (LOPDGDD)</strong>.</p>
+                    
+                    <p><strong>Responsable del Tratamiento:</strong><br>
+                    COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
+                    CIF: B12345678<br>
+                    Domicilio: Calle del Mar, 28, 03189, Orihuela Costa (Alicante)<br>
+                    Email DPD: dpo@comutech.com</p>
+                    
+                    <h5>📌 ¿Qué datos recogemos?</h5>
+                    <p>Recogemos los datos que usted nos facilita a través del formulario de contacto de nuestra web: nombre, correo electrónico, teléfono y empresa. También podemos recoger datos de navegación a través de cookies analíticas (si las acepta).</p>
+                    
+                    <h5>📌 ¿Con qué finalidad tratamos sus datos?</h5>
+                    <ul>
+                        <li>✓ Gestionar su solicitud de información o demo sobre nuestros servicios.</li>
+                        <li>✓ Enviarle comunicaciones comerciales sobre nuestros productos (solo si nos ha dado su consentimiento expreso).</li>
+                        <li>✓ Mejorar nuestros servicios mediante análisis de navegación.</li>
+                    </ul>
+                    
+                    <h5>📌 Legitimación</h5>
+                    <p>La base legal para el tratamiento de sus datos es el consentimiento que usted nos otorga al marcar la casilla correspondiente en nuestro formulario de contacto.</p>
+                    
+                    <h5>📌 Destinatarios de sus datos</h5>
+                    <p>Sus datos no serán cedidos a terceros, salvo obligación legal. Utilizamos servicios de hosting ubicados en la Unión Europea, garantizando un nivel de protección adecuado.</p>
+                    
+                    <h5>📌 Sus derechos</h5>
+                    <p>Usted tiene derecho a <strong>acceder, rectificar, suprimir, limitar u oponerse</strong> al tratamiento de sus datos. Para ejercer estos derechos, escriba a nuestra dirección postal o al correo <strong>info@comutech.com</strong>, adjuntando copia de su DNI.</p>
+                    
+                    <h5>📌 Conservación de datos</h5>
+                    <p>Conservaremos sus datos mientras mantenga una relación comercial con nosotros o no solicite su supresión.</p>
+                    
+                    <p><em>Última revisión: Mayo de 2026</em></p>
+                `;
+            } else if (tipo === 'politica-cookies') {
+                titulo.textContent = '🍪 Política de cookies';
+                body.innerHTML = `
+                    <h4>Uso de cookies en ComuTech</h4>
+                    <p>En cumplimiento de la <strong>Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE)</strong>, le informamos sobre el uso de cookies en nuestro sitio web.</p>
+                    
+                    <h5>📌 ¿Qué son las cookies?</h5>
+                    <p>Las cookies son pequeños archivos de texto que los sitios web instalan en su navegador para almacenar información sobre su visita, facilitando la navegación y mejorando la experiencia.</p>
+                    
+                    <h5>📌 Tipos de cookies que utilizamos</h5>
+                    <ul>
+                        <li><strong>🍪 Cookies técnicas (obligatorias):</strong> Necesarias para el funcionamiento básico de la web (navegación, inicio de sesión). No requieren su consentimiento.</li>
+                        <li><strong>🍪 Cookies de preferencia:</strong> Recuerdan su configuración de idioma y zona horaria.</li>
+                        <li><strong>📊 Cookies analíticas:</strong> Nos ayudan a entender cómo interactúan los usuarios con nuestra web para mejorar nuestros servicios. Si las rechaza, no rastrearemos su comportamiento.</li>
+                    </ul>
+                    
+                    <h5>📌 Gestión de cookies</h5>
+                    <p>Puede aceptar todas las cookies haciendo clic en <strong>"Aceptar todo"</strong>. También puede configurar su navegador para bloquear o eliminar cookies, aunque esto podría afectar el funcionamiento de la web.</p>
+                    
+                    <h5>📌 Cookies de terceros</h5>
+                    <p>No utilizamos cookies de terceros para publicidad comportamental. Solo usamos cookies analíticas internas para medir el rendimiento de nuestra web.</p>
+                    
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 12px; margin: 20px 0;">
+                        <strong>⚙️ Configuración rápida:</strong><br>
+                        <button onclick="aceptarTodo(); cerrarModal();" style="background:#0077b6; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; cursor:pointer;">✅ Aceptar todas las cookies</button>
+                        <button onclick="rechazarCookies(); cerrarModal();" style="background:#475569; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; margin-left:10px; cursor:pointer;">❌ Rechazar analíticas</button>
+                    </div>
+                    
+                    <p><em>Última actualización: Mayo de 2026</em></p>
+                `;
             }
             modal.style.display = 'flex';
         }
@@ -493,11 +593,23 @@
             document.getElementById('modalPoliticas').style.display = 'none';
         }
 
+        function rechazarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'false');
+            localStorage.setItem('cookies_analiticas', 'false');
+            localStorage.setItem('legal_aceptado', 'true');
+            document.getElementById('cookieBanner').style.display = 'none';
+            console.log('❌ Cookies analíticas rechazadas, solo técnicas activas');
+        }
+
+        // ========== INICIALIZAR ==========
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
             
-            if (localStorage.getItem('cookies_aceptadas') !== null) {
+            // Comprobar si ya ha aceptado las políticas
+            if (localStorage.getItem('legal_aceptado') !== null) {
                 document.getElementById('cookieBanner').style.display = 'none';
+            } else {
+                document.getElementById('cookieBanner').style.display = 'flex';
             }
             
             window.onclick = (event) => {
