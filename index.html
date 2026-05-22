@@ -40,7 +40,6 @@
         .section-title { font-size: 2rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 16px; letter-spacing: -0.01em; }
         .section-subtitle { text-align: center; color: #5b6e8c; max-width: 700px; margin: 0 auto 48px auto; font-size: 1.1rem; }
         
-        /* Tarjetas de demo */
         .demo-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -139,11 +138,70 @@
         .modal-header { font-size: 1.4rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
         .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; }
         
+        /* Botón flotante de WhatsApp */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            z-index: 999;
+            animation: fadeInUp 0.5s ease;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+        .whatsapp-float img {
+            width: 35px;
+            height: 35px;
+        }
+        .whatsapp-float .cerrar-float {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #475569;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .whatsapp-float .cerrar-float:hover {
+            background: #dc2626;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         @media (max-width: 900px) {
             .demo-grid { grid-template-columns: 1fr; }
             .valor-grid { grid-template-columns: 1fr; gap: 16px; }
             .header h1 { font-size: 2rem; }
             .section-title { font-size: 1.5rem; }
+            .whatsapp-float { width: 50px; height: 50px; bottom: 20px; right: 20px; }
+            .whatsapp-float img { width: 28px; height: 28px; }
         }
     </style>
 </head>
@@ -155,7 +213,7 @@
             <h1>Comu<span>Tech</span></h1>
             <p class="tagline">El software que profesionaliza tu empresa de mantenimiento</p>
             <p style="font-size: 0.9rem; margin-top: 16px; opacity: 0.7;">Piscinas · Jardines · Limpieza</p>
-            <button class="cta-button" id="btnProbarDemo">Contacta</button>
+            <button class="cta-button" id="btnContacta">📧 Contacta</button>
         </div>
     </div>
 
@@ -288,11 +346,11 @@
                 <div style="font-size: 2.5rem; margin-bottom: 16px;">📞</div>
                 <p style="margin-bottom: 24px; font-size: 1.1rem;">¿Listo para profesionalizar tu empresa de mantenimiento?</p>
                 <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                    <button class="cta-button" id="btnProbarDemo2">🎮 Probar demo</button>
-                    <button class="cta-button" style="background: #25D366;" onclick="contactarWhatsApp()">💬 Contactar por WhatsApp</button>
+                    <button class="cta-button" id="btnContacta2">📧 Contactar por email</button>
+                    <button class="cta-button" style="background: #25D366;" id="btnWhatsApp">💬 Contactar por WhatsApp</button>
                 </div>
                 <p style="margin-top: 30px; font-size: 0.85rem; color: #5b6e8c;">
-                    📧 info@comutech.com | 📞 +34 601 231 068
+                    📧 info@comutech.com | 📞 +34 600 000 000
                 </p>
             </div>
         </div>
@@ -325,6 +383,12 @@
         </div>
     </div>
 
+    <!-- BOTÓN FLOTANTE DE WHATSAPP (aparece a los 5 segundos) -->
+    <div id="whatsappFloat" class="whatsapp-float" style="display: none;">
+        <div class="cerrar-float" onclick="cerrarWhatsAppFloat()">✖</div>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 35px; height: 35px;">
+    </div>
+
     <div id="cookieBanner" class="cookie-banner">
         <p>🍪 Usamos cookies técnicas y analíticas para mejorar tu experiencia.</p>
         <div style="display: flex; gap: 12px;">
@@ -342,20 +406,65 @@
     </div>
 
     <script>
-        // ========== REDIRECCIÓN A DEMOS ==========
-        function irDemo(tipo) {
-            if (tipo === 'cliente') {
-                window.location.href = 'democlientes.html';
-            } else if (tipo === 'tecnico') {
-                window.location.href = 'demotecnicos.html';
-            } else if (tipo === 'gerente') {
-                window.location.href = 'demogerente.html';
+        // ========== CONFIGURACIÓN ==========
+        // Cambia estos datos por los tuyos:
+        const EMAIL_DESTINO = "info@comutech.com";
+        const TELEFONO_WHATSAPP = "34601231068"; // Solo números, sin + ni espacios
+        
+        // Mensaje estándar para email y WhatsApp
+        const MENSAJE_ESTANDAR = "Hola, me interesa conocer más sobre ComuTech para mi empresa de mantenimiento. ¿Podéis darme información?";
+        
+        // ========== FUNCIONES DE CONTACTO ==========
+        
+        // Abrir correo electrónico con mensaje predefinido
+        function abrirEmail() {
+            const asunto = encodeURIComponent("Información sobre ComuTech");
+            const cuerpo = encodeURIComponent(MENSAJE_ESTANDAR);
+            window.location.href = `mailto:${EMAIL_DESTINO}?subject=${asunto}&body=${cuerpo}`;
+        }
+        
+        // Abrir WhatsApp con mensaje predefinido
+        function abrirWhatsApp() {
+            const mensaje = encodeURIComponent(MENSAJE_ESTANDAR);
+            window.open(`https://wa.me/${TELEFONO_WHATSAPP}?text=${mensaje}`, '_blank');
+        }
+        
+        // ========== BOTÓN FLOTANTE DE WHATSAPP ==========
+        let floatTimeout;
+        
+        function mostrarWhatsAppFloat() {
+            const floatBtn = document.getElementById('whatsappFloat');
+            if (floatBtn && !localStorage.getItem('whatsapp_float_cerrado')) {
+                floatBtn.style.display = 'flex';
             }
         }
         
-        // Botones "Probar demo" abren la demo del cliente
-        function abrirDemoCliente() {
-            window.location.href = 'democliente.html';
+        function cerrarWhatsAppFloat() {
+            const floatBtn = document.getElementById('whatsappFloat');
+            floatBtn.style.display = 'none';
+            localStorage.setItem('whatsapp_float_cerrado', 'true');
+        }
+        
+        // Mostrar el botón flotante después de 5 segundos
+        setTimeout(() => {
+            mostrarWhatsAppFloat();
+        }, 5000);
+        
+        // Al hacer clic en el botón flotante, abre WhatsApp
+        document.getElementById('whatsappFloat').onclick = function(e) {
+            if (e.target.classList.contains('cerrar-float')) return;
+            abrirWhatsApp();
+        };
+        
+        // ========== REDIRECCIÓN A DEMOS ==========
+        function irDemo(tipo) {
+            if (tipo === 'cliente') {
+                window.location.href = 'democliente.html';
+            } else if (tipo === 'tecnico') {
+                window.location.href = 'demotecnico.html';
+            } else if (tipo === 'gerente') {
+                window.location.href = 'demogerente.html';
+            }
         }
         
         // ========== ACORDEÓN ==========
@@ -380,10 +489,7 @@
             });
         }
         
-        function contactarWhatsApp() {
-            window.open('https://wa.me/34601231068', '_blank');
-        }
-        
+        // ========== COOKIES Y MODALES ==========
         function aceptarCookies() {
             localStorage.setItem('cookies_aceptadas', 'true');
             document.getElementById('cookieBanner').style.display = 'none';
@@ -416,14 +522,20 @@
             document.getElementById('modalPoliticas').style.display = 'none';
         }
         
+        // ========== INICIALIZAR ==========
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
             
-            // Asignar eventos a los botones "Probar demo"
-            const btnsProbar = document.querySelectorAll('#btnProbarDemo, #btnProbarDemo2');
-            btnsProbar.forEach(btn => {
-                btn.onclick = abrirDemoCliente;
+            // Asignar eventos a los botones de contacto
+            const btnsContacta = document.querySelectorAll('#btnContacta, #btnContacta2');
+            btnsContacta.forEach(btn => {
+                btn.onclick = abrirEmail;
             });
+            
+            const btnWhatsApp = document.getElementById('btnWhatsApp');
+            if (btnWhatsApp) {
+                btnWhatsApp.onclick = abrirWhatsApp;
+            }
             
             if (localStorage.getItem('cookies_aceptadas') !== null) {
                 document.getElementById('cookieBanner').style.display = 'none';
