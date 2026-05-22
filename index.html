@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>ComuTech · Software para empresas de mantenimiento</title>
-    <meta name="description" content="Software SaaS para empresas de mantenimiento de piscinas, jardines y limpieza. Gestiona tus técnicos, registra los trabajos y reporta a tus clientes.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Software SaaS para empresas de mantenimiento de piscinas, jardines y limpieza. Gestiona tus técnicos, registra los trabajos, factura y reporta a tus clientes.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.5; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         
+        /* Header */
         .header {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: white;
@@ -19,34 +20,46 @@
             position: relative;
             overflow: hidden;
         }
-        .header::before { content: "⚙️"; position: absolute; font-size: 300px; opacity: 0.05; bottom: -50px; right: -50px; }
+        .header::before { content: "⚙️"; position: absolute; font-size: 300px; opacity: 0.03; bottom: -50px; right: -50px; }
         .logo-icon { font-size: 3rem; margin-bottom: 16px; }
-        .header h1 { font-size: 3rem; font-weight: 700; margin-bottom: 8px; }
-        .header h1 span { font-weight: 300; opacity: 0.9; }
-        .header p { font-size: 1.2rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
-        .badge-clientes {
-            display: inline-block; background: rgba(255,255,255,0.2); padding: 6px 16px;
-            border-radius: 50px; font-size: 0.8rem; margin-bottom: 24px;
+        .header h1 { font-size: 3rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+        .header h1 span { font-weight: 400; opacity: 0.9; }
+        .header .tagline { font-size: 1.2rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+        .badge {
+            display: inline-block; background: rgba(255,255,255,0.15); padding: 6px 16px;
+            border-radius: 50px; font-size: 0.75rem; margin-bottom: 24px; font-weight: 500;
         }
         .cta-button {
             display: inline-block; background: #0077b6; color: white; padding: 14px 32px;
             border-radius: 50px; font-weight: 600; text-decoration: none; margin-top: 32px;
-            transition: all 0.3s; cursor: pointer; border: none;
+            transition: all 0.3s; cursor: pointer; border: none; font-size: 1rem;
         }
-        .cta-button:hover { background: #005f8c; transform: translateY(-3px); }
+        .cta-button:hover { background: #005f8c; transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); }
         
+        /* Secciones */
         .section { padding: 60px 0; border-bottom: 1px solid #e2e8f0; }
         .section:last-child { border-bottom: none; }
-        .section-title { font-size: 2rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 16px; }
+        .section-title { font-size: 2rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 16px; letter-spacing: -0.01em; }
         .section-subtitle { text-align: center; color: #5b6e8c; max-width: 700px; margin: 0 auto 48px auto; font-size: 1.1rem; }
         
+        /* Tarjetas de valor (arriba del todo) */
+        .valor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
+        .valor-card { background: white; border-radius: 20px; padding: 28px; text-align: center; border: 1px solid #e2e8f0; transition: all 0.3s; }
+        .valor-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); border-color: #cbd5e1; }
+        .valor-icon { font-size: 2.5rem; margin-bottom: 16px; }
+        .valor-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+        .valor-desc { font-size: 0.85rem; color: #5b6e8c; }
+        
+        /* Acordeón */
         .accordion-item {
             margin-bottom: 20px;
             border-radius: 16px;
             overflow: hidden;
             background: white;
             border: 1px solid #e2e8f0;
+            transition: all 0.2s;
         }
+        .accordion-item:hover { border-color: #cbd5e1; }
         .accordion-header {
             display: flex;
             justify-content: space-between;
@@ -58,69 +71,55 @@
         }
         .accordion-header:hover { background: #f8fafc; }
         .accordion-header.active { background: #f0f9ff; border-bottom: 1px solid #e2e8f0; }
-        .accordion-title { font-weight: 600; font-size: 1.15rem; display: flex; align-items: center; gap: 12px; }
-        .accordion-icon { font-size: 1.5rem; }
-        .accordion-indicator { color: #0077b6; transition: transform 0.2s; }
+        .accordion-title { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 12px; }
+        .accordion-icon { font-size: 1.4rem; }
+        .accordion-indicator { color: #0077b6; transition: transform 0.2s; font-size: 0.9rem; }
         .accordion-header.active .accordion-indicator { transform: rotate(180deg); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
-        .accordion-content-inner { padding: 24px; }
+        .accordion-content-inner { padding: 24px; border-top: 1px solid #f1f5f9; }
         
-        .step-card { display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start; }
-        .step-number {
-            background: #eef2ff; width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; color: #0077b6; flex-shrink: 0;
-        }
-        .step-title { font-weight: 600; margin-bottom: 6px; }
-        .step-desc { font-size: 0.9rem; color: #5b6e8c; margin-bottom: 8px; }
+        /* Listas */
+        .feature-list { list-style: none; }
+        .feature-list li { padding: 10px 0; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        .feature-list li:last-child { border-bottom: none; }
+        .check { color: #0077b6; font-weight: bold; font-size: 1.1rem; }
+        
+        .highlight-box { background: #f0f9ff; padding: 20px; border-radius: 14px; margin: 20px 0; border-left: 4px solid #0077b6; }
+        .highlight-title { font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+        
         .example-box {
-            background: #f1f5f9; padding: 10px 14px; border-radius: 10px;
-            font-size: 0.75rem; font-family: monospace; border-left: 3px solid #0077b6;
+            background: #f1f5f9; padding: 12px 16px; border-radius: 12px;
+            font-size: 0.8rem; font-family: monospace; color: #1e293b; margin: 16px 0;
         }
         
-        .info-panel { background: #f8fafc; padding: 20px; border-radius: 14px; margin-bottom: 24px; }
-        .info-panel-title { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 12px; }
-        .info-list { list-style: none; }
-        .info-list li { padding: 8px 0; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e2e8f0; }
-        .info-list li:last-child { border-bottom: none; }
-        
-        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-        .comparison-bad { background: #fee2e2; padding: 16px; border-radius: 14px; }
-        .comparison-bad-title { font-weight: 600; color: #991b1b; margin-bottom: 10px; }
-        .comparison-bad ul { padding-left: 20px; color: #7f1d1d; font-size: 0.8rem; }
-        .comparison-good { background: #dcfce7; padding: 16px; border-radius: 14px; }
-        .comparison-good-title { font-weight: 600; color: #166534; margin-bottom: 10px; }
-        .comparison-good ul { padding-left: 20px; color: #14532d; font-size: 0.8rem; }
-        
-        .faq-box { background: #fff7ed; padding: 16px; border-radius: 14px; margin-bottom: 20px; }
+        .faq-box { background: #fff7ed; padding: 16px; border-radius: 14px; margin-top: 20px; }
         .faq-question { font-weight: 600; font-size: 0.85rem; display: flex; gap: 8px; }
         .faq-answer { font-size: 0.8rem; color: #5b6e8c; margin-top: 6px; margin-left: 28px; }
         
-        .btn-demo { background: #0077b6; color: white; padding: 10px 28px; border-radius: 50px; border: none; cursor: pointer; }
-        .btn-demo:hover { background: #005f8c; }
+        .btn-demo { background: #0077b6; color: white; padding: 10px 28px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .btn-demo:hover { background: #005f8c; transform: translateY(-2px); }
         
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .card { background: white; border-radius: 24px; padding: 28px; border: 1px solid #e2e8f0; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
-        .card-icon { font-size: 2.5rem; margin-bottom: 20px; }
-        .card-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; }
-        .card-list { list-style: none; }
-        .card-list li { padding: 8px 0; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; }
-        .check { color: #0077b6; font-weight: bold; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
+        .card { background: white; border-radius: 20px; padding: 28px; border: 1px solid #e2e8f0; transition: all 0.3s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); }
+        .card-icon { font-size: 2.2rem; margin-bottom: 16px; }
+        .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
         
+        /* Footer */
         .footer { background: #0f172a; color: white; padding: 40px 0 20px 0; margin-top: 40px; }
         .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
-        .footer-col h4 { color: #0077b6; margin-bottom: 16px; }
-        .footer-col p, .footer-col a { color: #94a3b8; font-size: 0.8rem; text-decoration: none; cursor: pointer; }
+        .footer-col h4 { color: #0077b6; margin-bottom: 16px; font-size: 1rem; }
+        .footer-col p, .footer-col a { color: #94a3b8; font-size: 0.8rem; text-decoration: none; cursor: pointer; line-height: 1.8; }
         .footer-col a:hover { color: white; }
-        .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #334155; font-size: 0.7rem; }
+        .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #334155; font-size: 0.7rem; color: #64748b; }
         
+        /* Cookie banner */
         .cookie-banner {
-            position: fixed; bottom: 0; background: #0f172a; color: white;
-            padding: 16px 24px; display: flex; flex-wrap: wrap;
-            justify-content: space-between; align-items: center; z-index: 1000;
+            position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white;
+            padding: 14px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; gap: 16px; z-index: 1000; font-size: 0.8rem;
         }
-        .cookie-btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; }
+        .cookie-btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; }
         .cookie-accept { background: #0077b6; color: white; }
         .cookie-decline { background: #475569; color: white; }
         
@@ -128,262 +127,397 @@
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center;
         }
-        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 800px; width: 90%; }
-        .modal-header { font-size: 1.5rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
+        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { font-size: 1.4rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
         .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; }
         
         @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
             .section-title { font-size: 1.5rem; }
-            .comparison-grid { grid-template-columns: 1fr; }
-            .step-card { flex-direction: column; }
-            .cookie-banner { flex-direction: column; text-align: center; }
+            .valor-grid { grid-template-columns: 1fr; gap: 16px; }
+            .accordion-header { padding: 16px 20px; }
+            .accordion-title { font-size: 0.95rem; }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="container">
-            <div class="badge-clientes">🎯 Para empresas de mantenimiento</div>
+            <div class="badge">⚡ SaaS para empresas de mantenimiento</div>
             <div class="logo-icon">⚙️</div>
             <h1>Comu<span>Tech</span></h1>
-            <p>El software que tu empresa de mantenimiento necesita</p>
-            <p style="font-size: 1rem; margin-top: 16px; opacity: 0.8;">Piscinas · Jardines · Limpieza</p>
+            <p class="tagline">El software que profesionaliza tu empresa de mantenimiento</p>
+            <p style="font-size: 0.9rem; margin-top: 16px; opacity: 0.7;">Piscinas · Jardines · Limpieza · Comunidades</p>
             <button class="cta-button" onclick="solicitarDemo()">📞 Solicitar demo</button>
         </div>
     </div>
 
     <div class="container">
-        <!-- GESTIÓN DE TÉCNICOS -->
+        <!-- TRES PILARES DE VALOR (destacados arriba) -->
+        <div style="margin-top: -30px; margin-bottom: 20px;">
+            <div class="valor-grid">
+                <div class="valor-card">
+                    <div class="valor-icon">🏆</div>
+                    <div class="valor-title">Valor para tus clientes</div>
+                    <div class="valor-desc">Portal transparente e informes automáticos. Fideliza y diferencia tu empresa.</div>
+                </div>
+                <div class="valor-card">
+                    <div class="valor-icon">⚙️</div>
+                    <div class="valor-title">Control del flujo de trabajo</div>
+                    <div class="valor-desc">Sabes qué hace cada técnico, dónde y cuánto tiempo.</div>
+                </div>
+                <div class="valor-card">
+                    <div class="valor-icon">🏢</div>
+                    <div class="valor-title">Gestión integral + facturación</div>
+                    <div class="valor-desc">Clientes, técnicos, facturas, gastos y rentabilidad.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 1: VALOR PARA TUS CLIENTES (lo más importante) -->
         <div class="section">
-            <div class="section-title">🔧 Gestión de técnicos</div>
-            <div class="section-subtitle">Cómo funciona el día a día de tus empleados con ComuTech</div>
+            <div class="section-title">🏆 Lo que ven tus clientes</div>
+            <div class="section-subtitle">
+                El verdadero valor de ComuTech es lo que tú ofreces a tus clientes<br>
+                <span style="font-size: 0.85rem;">Transparencia = confianza = renovación</span>
+            </div>
             
             <div class="accordion-item">
                 <div class="accordion-header">
                     <div class="accordion-title">
-                        <span class="accordion-icon">📱</span>
-                        <span>¿Cómo trabajan los técnicos con la app?</span>
+                        <span class="accordion-icon">🔑</span>
+                        <span>Portal del cliente con acceso privado</span>
                     </div>
                     <div class="accordion-indicator">▼</div>
                 </div>
                 <div class="accordion-content">
                     <div class="accordion-content-inner">
-                        <div style="background: linear-gradient(135deg, #0077b6 0%, #005f8c 100%); color: white; padding: 20px; border-radius: 16px; margin-bottom: 28px;">
-                            <div style="font-size: 0.75rem; opacity: 0.9;">📱 FLUJO DE TRABAJO</div>
-                            <div style="font-weight: 600; margin: 6px 0;">El técnico solo necesita su móvil</div>
-                            <div style="font-size: 0.85rem;">Sin papeleo, sin llamadas, sin confusiones</div>
+                        <p style="margin-bottom: 16px;"><strong>Cada comunidad o cliente tiene su propio código de acceso.</strong> Solo ven su información.</p>
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Acceso con código único por cliente</li>
+                            <li><span class="check">✓</span> Histórico completo de trabajos realizados</li>
+                            <li><span class="check">✓</span> Informes descargables en PDF</li>
+                            <li><span class="check">✓</span> Sin ver datos de otros clientes</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <div class="highlight-title">💡 Por qué es importante para ti</div>
+                            <div style="font-size: 0.85rem;">Las comunidades que reciben informes transparentes renuevan contrato un 70% más. Dejas de recibir llamadas preguntando "¿han venido hoy?".</div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="step-card">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <div class="step-title">📍 Fichaje con geolocalización</div>
-                                <div class="step-desc">El técnico abre la app y pulsa "Comenzar jornada". Registra hora y ubicación exacta.</div>
-                                <div class="example-box">📍 09:15 - Juan Pérez ha iniciado jornada en Calle Mayor 23, Madrid</div>
-                            </div>
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">📧</span>
+                        <span>Informes automáticos por email</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <p style="margin-bottom: 16px;"><strong>Después de cada trabajo, el cliente recibe un email automático.</strong> Sin que tú hagas nada.</p>
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Qué se ha hecho (ej: limpieza skimmers, control pH)</li>
+                            <li><span class="check">✓</span> Quién lo ha hecho (nombre del técnico)</li>
+                            <li><span class="check">✓</span> Cuándo se ha hecho (fecha y hora exacta)</li>
+                            <li><span class="check">✓</span> Próximo mantenimiento programado</li>
+                        </ul>
+                        <div class="example-box">
+                            📧 "Estimado administrador, el técnico Juan Pérez ha realizado hoy: limpieza de skimmers, control de pH (7.2 correcto), adición de cloro (2kg). Próxima visita: viernes 25/10."
                         </div>
-
-                        <div class="step-card">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <div class="step-title">🏊 Registro de trabajos en cada cliente</div>
-                                <div class="step-desc">Selecciona tareas realizadas, añade mediciones y fotos antes/después.</div>
-                                <div class="example-box">🏊 Cliente: Urbanización Los Pinos · Tareas: Cloro + pH + Limpieza skimmers · 📸 2 fotos · ⏱️ 35 min</div>
-                            </div>
-                        </div>
-
-                        <div class="step-card">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <div class="step-title">📧 Fin de jornada y reporte automático</div>
-                                <div class="step-desc">Al cerrar jornada, tú recibes el resumen y el cliente su informe por email.</div>
-                                <div class="example-box">📧 Reporte enviado a administrador@urbanizacion.com - 5 trabajos - 6.2 horas</div>
-                            </div>
-                        </div>
-
-                        <div class="info-panel">
-                            <div class="info-panel-title"><span>👔</span><span>Lo que ves desde tu panel</span></div>
-                            <ul class="info-list">
-                                <li>📍 <strong>Mapa en tiempo real</strong> - Sabes dónde está cada técnico</li>
-                                <li>⏱️ <strong>Tiempo real por trabajo</strong> - Controlas productividad</li>
-                                <li>🚨 <strong>Incidencias al momento</strong> - Alertas de problemas</li>
-                                <li>📊 <strong>Histórico descargable</strong> - Para facturación</li>
-                            </ul>
-                        </div>
-
-                        <div class="comparison-grid">
-                            <div class="comparison-bad">
-                                <div class="comparison-bad-title">❌ Antes (papel/Excel)</div>
-                                <ul><li>Partes perdidas</li><li>Letra ilegible</li><li>Horas no registradas</li><li>Clientes sin info</li></ul>
-                            </div>
-                            <div class="comparison-good">
-                                <div class="comparison-good-title">✅ Con ComuTech</div>
-                                <ul><li>Todo digital</li><li>Informes automáticos</li><li>Control total</li><li>Clientes fidelizados</li></ul>
-                            </div>
-                        </div>
-
-                        <div class="faq-box">
-                            <div class="faq-question"><span>❓</span><span>¿Y si el técnico no tiene cobertura?</span></div>
-                            <div class="faq-answer">La app funciona offline. Los trabajos se guardan y sincronizan automáticamente al recuperar conexión.</div>
-                        </div>
-
-                        <div style="text-align: center;"><button class="btn-demo" onclick="solicitarDemo()">📞 Ver demo en directo →</button></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SECTORES -->
+        <!-- SECCIÓN 2: CONTROL DEL FLUJO DE TRABAJO -->
+        <div class="section">
+            <div class="section-title">⚙️ Control del flujo de trabajo</div>
+            <div class="section-subtitle">
+                Sabes lo que hace cada técnico, dónde y cuánto tiempo
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">📱</span>
+                        <span>App para técnicos (iOS y Android)</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> App gratuita para móviles</li>
+                            <li><span class="check">✓</span> El técnico registra cada trabajo: cliente → tarea → tiempo</li>
+                            <li><span class="check">✓</span> Tú lo ves al instante en tu panel</li>
+                            <li><span class="check">✓</span> Histórico por técnico descargable a Excel</li>
+                            <li><span class="check">✓</span> Funciona offline (sincroniza al tener conexión)</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <div class="highlight-title">📊 ¿Qué control tienes?</div>
+                            <div style="font-size: 0.85rem;">Sabes quién ha trabajado, cuánto tiempo, en qué cliente y qué ha hecho. Ideal para calcular costes por servicio y productividad de cada técnico.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">🗂️</span>
+                        <span>Organización de clientes y rutas</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Asigna técnicos a cada cliente</li>
+                            <li><span class="check">✓</span> Planifica frecuencias (diario, semanal, quincenal)</li>
+                            <li><span class="check">✓</span> Control de incidencias y avisos</li>
+                            <li><span class="check">✓</span> Calendario compartido de tareas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: GESTIÓN INTEGRAL + FACTURACIÓN -->
+        <div class="section">
+            <div class="section-title">🏢 Gestión integral + Facturación</div>
+            <div class="section-subtitle">
+                Todo tu negocio en un solo lugar. Toma decisiones con datos reales.
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">💰</span>
+                        <span>Facturación y control de gastos</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Registro de facturas emitidas por cliente</li>
+                            <li><span class="check">✓</span> Control de cobros (pagado / pendiente)</li>
+                            <li><span class="check">✓</span> Gastos por técnico (material, desplazamientos)</li>
+                            <li><span class="check">✓</span> Informe de rentabilidad por cliente y servicio</li>
+                            <li><span class="check">✓</span> Exportación a Excel para tu asesoría</li>
+                        </ul>
+                        <div class="example-box">
+                            📊 Ejemplo: "Cliente Urbanización Los Pinos: facturado 450€ este mes, gastos 120€ (productos + viaje), beneficio 330€ | Rentabilidad: 73%"
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">📈</span>
+                        <span>Dashboard y KPIs en tiempo real</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> <strong>Ingresos del mes</strong> - Facturación total y por cliente</li>
+                            <li><span class="check">✓</span> <strong>Horas trabajadas</strong> - Totales y por técnico</li>
+                            <li><span class="check">✓</span> <strong>Clientes activos</strong> - Cuántos tienes y su estado</li>
+                            <li><span class="check">✓</span> <strong>Renovaciones próximas</strong> - Contratos que vencen este mes</li>
+                            <li><span class="check">✓</span> <strong>Rentabilidad por servicio</strong> - ¿Qué te deja más margen?</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <div class="highlight-title">🎯 Toma decisiones con datos</div>
+                            <div style="font-size: 0.85rem;">¿Qué clientes son más rentables? ¿Qué técnicos son más productivos? ¿Dónde pierdes tiempo o dinero? El dashboard te lo dice.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTORES QUE CUBRIMOS (simple) -->
         <div class="section">
             <div class="section-title">🏊 Sectores que cubrimos</div>
             <div class="cards-grid">
                 <div class="card">
                     <div class="card-icon">🏊</div>
-                    <div class="card-title">Mantenimiento de piscinas</div>
-                    <ul class="card-list"><li><span class="check">✓</span> Control cloro, pH y temperatura</li><li><span class="check">✓</span> Alertas calidad agua</li><li><span class="check">✓</span> Gestión productos químicos</li></ul>
+                    <div class="card-title">Piscinas</div>
+                    <ul class="feature-list" style="margin-top: 12px;">
+                        <li><span class="check">✓</span> Control de productos químicos</li>
+                        <li><span class="check">✓</span> Registro de mediciones</li>
+                        <li><span class="check">✓</span> Alertas de calidad</li>
+                    </ul>
                 </div>
                 <div class="card">
                     <div class="card-icon">🌿</div>
-                    <div class="card-title">Mantenimiento de jardines</div>
-                    <ul class="card-list"><li><span class="check">✓</span> Planificación riegos y podas</li><li><span class="check">✓</span> Control de plagas</li><li><span class="check">✓</span> Registro tratamientos</li></ul>
+                    <div class="card-title">Jardines</div>
+                    <ul class="feature-list" style="margin-top: 12px;">
+                        <li><span class="check">✓</span> Planificación de riegos</li>
+                        <li><span class="check">✓</span> Control de podas y tratamientos</li>
+                        <li><span class="check">✓</span> Registro de productos</li>
+                    </ul>
                 </div>
                 <div class="card">
                     <div class="card-icon">🧹</div>
-                    <div class="card-title">Limpieza de comunidades</div>
-                    <ul class="card-list"><li><span class="check">✓</span> Control de frecuencias</li><li><span class="check">✓</span> Registro tareas realizadas</li><li><span class="check">✓</span> Informes para clientes</li></ul>
+                    <div class="card-title">Limpieza</div>
+                    <ul class="feature-list" style="margin-top: 12px;">
+                        <li><span class="check">✓</span> Control de frecuencias</li>
+                        <li><span class="check">✓</span> Checklists por zona</li>
+                        <li><span class="check">✓</span> Informes para comunidades</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- REPORTES A CLIENTES -->
-        <div class="section">
-            <div class="section-title">📋 Reportes a clientes</div>
-            <div class="section-subtitle">Lo que ven tus clientes y cómo reciben la información</div>
-            
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title"><span class="accordion-icon">📧</span><span>¿Qué información reciben tus clientes?</span></div>
-                    <div class="accordion-indicator">▼</div>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <div class="info-panel">
-                            <ul class="info-list">
-                                <li><strong>📧 Informe semanal por email</strong> - Resumen de todos los trabajos</li>
-                                <li><strong>📸 Fotos antes/después</strong> - Evidencia visual</li>
-                                <li><strong>📈 Gráficos de calidad</strong> - Evolución pH, cloro</li>
-                                <li><strong>✅ Checklist completado</strong> - Tareas marcadas</li>
-                            </ul>
-                        </div>
-                        <div class="example-box">📧 "Estimado administrador, esta semana: limpieza skimmers (2 veces), pH 7.4, cloro 2kg. Adjuntamos 5 fotos."</div>
-                        <div class="faq-box">
-                            <div class="faq-question"><span>❓</span><span>¿Puedo personalizar los informes con mi logo?</span></div>
-                            <div class="faq-answer">Sí. Todos los informes salen con tu logo. Parece que los has hecho tú, pero se generan automáticamente.</div>
-                        </div>
-                        <div style="text-align: center;"><button class="btn-demo" onclick="solicitarDemo()">📞 Ver ejemplo de reporte →</button></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CENTRALIZA TU NEGOCIO -->
-        <div class="section">
-            <div class="section-title">🏢 Centraliza tu negocio</div>
-            <div class="section-subtitle">Todo lo que necesitas en un solo lugar</div>
-            
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title"><span class="accordion-icon">📊</span><span>¿Qué control tienes desde el panel?</span></div>
-                    <div class="accordion-indicator">▼</div>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <div class="comparison-grid">
-                            <div class="comparison-bad"><div class="comparison-bad-title">📋 Sin ComuTech</div><ul><li>Excel para clientes</li><li>WhatsApp para técnicos</li><li>5 herramientas diferentes</li></ul></div>
-                            <div class="comparison-good"><div class="comparison-good-title">🚀 Con ComuTech</div><ul><li>Todo centralizado</li><li>Datos en tiempo real</li><li>1 herramienta para todo</li></ul></div>
-                        </div>
-                        <div class="info-panel">
-                            <div class="info-panel-title"><span>📈</span><span>KPIs que ves al instante</span></div>
-                            <ul class="info-list">
-                                <li><strong>💰 Ingresos del mes</strong> - Facturación real</li>
-                                <li><strong>👥 Clientes activos</strong> - Cuántos y su estado</li>
-                                <li><strong>⏱️ Horas trabajadas</strong> - Por técnico y total</li>
-                                <li><strong>⚠️ Incidencias abiertas</strong> - Atención urgente</li>
-                            </ul>
-                        </div>
-                        <div style="text-align: center;"><button class="btn-demo" onclick="solicitarDemo()">📞 Ver panel en acción →</button></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTACTO -->
+        <!-- CONTACTO FINAL -->
         <div class="section" id="contacto">
             <div class="section-title">📞 ¿Hablamos?</div>
-            <div class="section-subtitle">Cuéntanos tu negocio y te mostramos cómo ComuTech puede ayudarte.</div>
+            <div class="section-subtitle">
+                Cuéntanos tu negocio y te mostramos cómo ComuTech puede ayudarte.
+            </div>
             <div style="text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 16px;">📞</div>
-                <p style="margin-bottom: 24px;">¿Listo para profesionalizar tu empresa de mantenimiento?</p>
+                <div style="font-size: 2.5rem; margin-bottom: 16px;">📞</div>
+                <p style="margin-bottom: 24px; font-size: 1.1rem;">¿Listo para profesionalizar tu empresa de mantenimiento?</p>
                 <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
                     <button class="cta-button" onclick="solicitarDemo()">📞 Solicitar demo</button>
                     <button class="cta-button" style="background: #25D366;" onclick="contactarWhatsApp()">💬 Contactar por WhatsApp</button>
                 </div>
-                <p style="margin-top: 30px; font-size: 0.85rem;">📧 info@comutech.com | 📞 +34 600 000 000</p>
+                <p style="margin-top: 30px; font-size: 0.85rem; color: #5b6e8c;">
+                    📧 info@comutech.com | 📞 +34 600 000 000
+                </p>
             </div>
         </div>
     </div>
 
+    <!-- FOOTER -->
     <div class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-col"><h4>ComuTech</h4><p>Software para empresas de mantenimiento</p><p>© 2025 ComuTech</p></div>
-                <div class="footer-col"><h4>Legal</h4><a onclick="mostrarModal('aviso-legal')">Aviso legal</a><br><a onclick="mostrarModal('politica-privacidad')">Política de privacidad</a><br><a onclick="mostrarModal('politica-cookies')">Política de cookies</a></div>
-                <div class="footer-col"><h4>Contacto</h4><p>📧 info@comutech.com</p><p>📞 +34 600 000 000</p><p>📍 Madrid, España</p></div>
+                <div class="footer-col">
+                    <h4>ComuTech</h4>
+                    <p>Software para empresas de mantenimiento de piscinas, jardines y limpieza</p>
+                    <p>© 2025 ComuTech</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a onclick="mostrarModal('aviso-legal')">Aviso legal</a><br>
+                    <a onclick="mostrarModal('politica-privacidad')">Política de privacidad</a><br>
+                    <a onclick="mostrarModal('politica-cookies')">Política de cookies</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <p>📧 info@comutech.com</p>
+                    <p>📞 +34 600 000 000</p>
+                    <p>📍 Madrid, España</p>
+                </div>
             </div>
-            <div class="footer-bottom"><p>ComuTech cumple con el RGPD y la LSSI-CE.</p></div>
+            <div class="footer-bottom">
+                <p>ComuTech cumple con el RGPD y la LSSI-CE.</p>
+            </div>
         </div>
     </div>
 
+    <!-- COOKIE BANNER -->
     <div id="cookieBanner" class="cookie-banner">
-        <p>🍪 Usamos cookies para mejorar tu experiencia.</p>
-        <div><button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar</button><button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar</button></div>
+        <p>🍪 Usamos cookies técnicas y analíticas para mejorar tu experiencia.</p>
+        <div style="display: flex; gap: 12px;">
+            <button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar</button>
+            <button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar</button>
+        </div>
     </div>
 
-    <div id="modalPoliticas" class="modal"><div class="modal-content"><div class="modal-header" id="modalTitulo">Aviso legal</div><div id="modalBody"></div><button class="modal-close" onclick="cerrarModal()">Cerrar</button></div></div>
+    <!-- MODAL LEGAL -->
+    <div id="modalPoliticas" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitulo">Aviso legal</div>
+            <div id="modalBody"></div>
+            <button class="modal-close" onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
 
     <script>
+        // Acordeón: solo uno abierto a la vez
         function inicializarAcordeon() {
-            document.querySelectorAll('.accordion-header').forEach(header => {
+            const headers = document.querySelectorAll('.accordion-header');
+            headers.forEach(header => {
                 header.addEventListener('click', function() {
                     const content = this.closest('.accordion-item').querySelector('.accordion-content');
                     const isActive = this.classList.contains('active');
+                    
+                    // Cerrar todos
                     document.querySelectorAll('.accordion-header').forEach(h => {
-                        if (h !== header) { h.classList.remove('active'); h.closest('.accordion-item').querySelector('.accordion-content').style.maxHeight = null; }
+                        if (h !== header) {
+                            h.classList.remove('active');
+                            const otherContent = h.closest('.accordion-item').querySelector('.accordion-content');
+                            if (otherContent) otherContent.style.maxHeight = null;
+                        }
                     });
+                    
+                    // Abrir/cerrar actual
                     this.classList.toggle('active');
                     content.style.maxHeight = isActive ? null : content.scrollHeight + 'px';
                 });
             });
         }
-        function solicitarDemo() { alert('✅ Solicitud enviada. Te contactaremos en menos de 24 horas.'); }
-        function contactarWhatsApp() { window.open('https://wa.me/34600000000', '_blank'); }
-        function aceptarCookies() { localStorage.setItem('cookies_aceptadas', 'true'); document.getElementById('cookieBanner').style.display = 'none'; }
-        function rechazarCookies() { localStorage.setItem('cookies_aceptadas', 'false'); document.getElementById('cookieBanner').style.display = 'none'; }
+
+        function solicitarDemo() {
+            alert('✅ Solicitud enviada. Te contactaremos en menos de 24 horas.');
+        }
+
+        function contactarWhatsApp() {
+            window.open('https://wa.me/34600000000', '_blank');
+        }
+
+        function aceptarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'true');
+            document.getElementById('cookieBanner').style.display = 'none';
+        }
+
+        function rechazarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'false');
+            document.getElementById('cookieBanner').style.display = 'none';
+        }
+
         function mostrarModal(tipo) {
             const modal = document.getElementById('modalPoliticas');
             const titulo = document.getElementById('modalTitulo');
             const body = document.getElementById('modalBody');
-            if (tipo === 'aviso-legal') { titulo.textContent = 'Aviso legal'; body.innerHTML = '<h4>ComuTech</h4><p>Software B2B para empresas de mantenimiento.</p><p>info@comutech.com</p>'; }
-            else if (tipo === 'politica-privacidad') { titulo.textContent = 'Política de privacidad'; body.innerHTML = '<h4>Protección de datos</h4><p>Cumplimos con el RGPD.</p>'; }
-            else { titulo.textContent = 'Política de cookies'; body.innerHTML = '<h4>Uso de cookies</h4><p>Usamos cookies técnicas y analíticas.</p>'; }
+            
+            if (tipo === 'aviso-legal') {
+                titulo.textContent = 'Aviso legal';
+                body.innerHTML = '<h4>ComuTech</h4><p>Software B2B para empresas de mantenimiento.</p><p>info@comutech.com</p><p>Madrid, España</p>';
+            } else if (tipo === 'politica-privacidad') {
+                titulo.textContent = 'Política de privacidad';
+                body.innerHTML = '<h4>Protección de datos</h4><p>Cumplimos con el RGPD. Tus datos están seguros y no los compartimos con terceros.</p>';
+            } else {
+                titulo.textContent = 'Política de cookies';
+                body.innerHTML = '<h4>Uso de cookies</h4><p>Usamos cookies técnicas y analíticas para mejorar el servicio. No almacenamos datos personales.</p>';
+            }
             modal.style.display = 'flex';
         }
-        function cerrarModal() { document.getElementById('modalPoliticas').style.display = 'none'; }
+
+        function cerrarModal() {
+            document.getElementById('modalPoliticas').style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
-            if (localStorage.getItem('cookies_aceptadas') !== null) document.getElementById('cookieBanner').style.display = 'none';
-            window.onclick = (e) => { if (e.target === document.getElementById('modalPoliticas')) cerrarModal(); };
+            
+            if (localStorage.getItem('cookies_aceptadas') !== null) {
+                document.getElementById('cookieBanner').style.display = 'none';
+            }
+            
+            window.onclick = (event) => {
+                const modal = document.getElementById('modalPoliticas');
+                if (event.target === modal) modal.style.display = 'none';
+            };
         });
     </script>
 </body>
