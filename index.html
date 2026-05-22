@@ -87,13 +87,6 @@
             font-size: 0.8rem; font-family: monospace; color: #1e293b; margin: 16px 0;
         }
         
-        .faq-box { background: #fff7ed; padding: 16px; border-radius: 14px; margin-top: 20px; }
-        .faq-question { font-weight: 600; font-size: 0.85rem; display: flex; gap: 8px; }
-        .faq-answer { font-size: 0.8rem; color: #5b6e8c; margin-top: 6px; margin-left: 28px; }
-        
-        .btn-demo { background: #0077b6; color: white; padding: 10px 28px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-        .btn-demo:hover { background: #005f8c; transform: translateY(-2px); }
-        
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
         .card { background: white; border-radius: 20px; padding: 28px; border: 1px solid #e2e8f0; transition: all 0.3s; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); }
@@ -532,16 +525,22 @@
 
     <script>
         // ========== CONFIGURACIÓN ==========
-        // CAMBIA ESTOS DATOS POR LOS TUYOS:
         const EMAIL_DESTINO = "info@comutech.com";
-        const TELEFONO_WHATSAPP = "34601231068"; // Solo números, sin + ni espacios
+        const TELEFONO_WHATSAPP = "34601231068";
         const MENSAJE_ESTANDAR = "Hola, me interesa conocer más sobre ComuTech para mi empresa de mantenimiento. ¿Podéis darme información?";
         
         // ========== FUNCIONES DE CONTACTO ==========
         function abrirEmail() {
             const asunto = encodeURIComponent("Información sobre ComuTech");
             const cuerpo = encodeURIComponent(MENSAJE_ESTANDAR);
+            // Para móvil, usamos window.location.href que funciona mejor
             window.location.href = `mailto:${EMAIL_DESTINO}?subject=${asunto}&body=${cuerpo}`;
+            // Fallback: si no funciona, mostramos un mensaje
+            setTimeout(() => {
+                if (document.hidden === false) {
+                    alert("Si no se abre tu correo, escríbenos a " + EMAIL_DESTINO);
+                }
+            }, 500);
         }
         
         function abrirWhatsApp() {
@@ -563,16 +562,14 @@
             localStorage.setItem('whatsapp_float_cerrado', 'true');
         }
         
-        // Mostrar el botón flotante después de 5 segundos
         setTimeout(() => { mostrarWhatsAppFloat(); }, 5000);
         
-        // Al hacer clic en el botón flotante
         document.getElementById('whatsappFloat').onclick = function(e) {
             if (e.target.classList.contains('cerrar-float')) return;
             abrirWhatsApp();
         };
         
-        // ========== REDIRECCIÓN A DEMOS ==========
+        // ========== REDIRECCIÓN A DEMOS (con tus rutas exactas) ==========
         function abrirDemoCliente() {
             window.location.href = 'democlientes.html';
         }
@@ -613,7 +610,6 @@
             localStorage.setItem('cookies_analiticas', 'true');
             localStorage.setItem('legal_aceptado', 'true');
             document.getElementById('cookieBanner').style.display = 'none';
-            console.log('✅ Usuario ha aceptado todas las políticas y cookies');
         }
         
         function mostrarModal(tipo) {
@@ -625,35 +621,16 @@
                 titulo.textContent = '📜 Aviso legal';
                 body.innerHTML = `
                     <h4>COMUTECH SOLUCIONES TÉCNICAS, S.L.</h4>
-                    <p>En cumplimiento de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se exponen a continuación los datos identificativos de la empresa titular del dominio comutech.com</p>
-                    <p><strong>Denominación Social:</strong> COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
-                    <strong>CIF:</strong> B12345678 (en trámites)<br>
-                    <strong>Domicilio:</strong> Calle del Mar, 28, Orihuela Costa, 03189, Alicante<br>
+                    <p><strong>Domicilio:</strong> Calle del Mar, 28, Orihuela Costa, 03189, Alicante<br>
                     <strong>Email:</strong> info@comutech.com</p>
                     <p><em>Última actualización: Mayo de 2026</em></p>
                 `;
             } else if (tipo === 'politica-privacidad') {
                 titulo.textContent = '🔒 Política de privacidad';
-                body.innerHTML = `
-                    <h4>Protección de datos personales</h4>
-                    <p>Cumplimos con el RGPD y la LOPDGDD. Tus datos están seguros.</p>
-                    <p><strong>Responsable:</strong> COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
-                    <strong>Finalidad:</strong> Gestionar solicitudes de información.<br>
-                    <strong>Derechos:</strong> Acceso, rectificación, supresión.</p>
-                    <p><em>Última revisión: Mayo de 2026</em></p>
-                `;
+                body.innerHTML = `<h4>Protección de datos</h4><p>Cumplimos con el RGPD. Tus datos están seguros.</p>`;
             } else if (tipo === 'politica-cookies') {
                 titulo.textContent = '🍪 Política de cookies';
-                body.innerHTML = `
-                    <h4>Uso de cookies en ComuTech</h4>
-                    <p>Usamos cookies técnicas (obligatorias) y analíticas (opcionales) para mejorar tu experiencia.</p>
-                    <div style="background: #f0f9ff; padding: 15px; border-radius: 12px; margin: 20px 0;">
-                        <strong>⚙️ Configuración rápida:</strong><br>
-                        <button onclick="aceptarTodo(); cerrarModal();" style="background:#0077b6; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; cursor:pointer;">✅ Aceptar todas</button>
-                        <button onclick="rechazarCookies(); cerrarModal();" style="background:#475569; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; margin-left:10px; cursor:pointer;">❌ Solo técnicas</button>
-                    </div>
-                    <p><em>Última actualización: Mayo de 2026</em></p>
-                `;
+                body.innerHTML = `<h4>Uso de cookies</h4><p>Usamos cookies técnicas y analíticas para mejorar tu experiencia.</p>`;
             }
             modal.style.display = 'flex';
         }
@@ -673,11 +650,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
             
-            // Botón "Contacta" del header → Abre EMAIL
+            // Botón "Contacta" del header
             const btnHeader = document.getElementById('btnContactaHeader');
             if (btnHeader) btnHeader.onclick = abrirEmail;
             
-            // Botones de contacto de la sección
+            // Botones de contacto
             const btnEmail = document.getElementById('btnContactarEmail');
             if (btnEmail) btnEmail.onclick = abrirEmail;
             
