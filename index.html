@@ -61,21 +61,9 @@
             box-shadow: 0 20px 30px -15px rgba(0,0,0,0.15);
             border-color: #0077b6;
         }
-        .demo-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-        .demo-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #0f172a;
-        }
-        .demo-desc {
-            font-size: 0.85rem;
-            color: #5b6e8c;
-            margin-bottom: 20px;
-        }
+        .demo-icon { font-size: 3rem; margin-bottom: 20px; }
+        .demo-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; color: #0f172a; }
+        .demo-desc { font-size: 0.85rem; color: #5b6e8c; margin-bottom: 20px; }
         .demo-btn {
             background: #0077b6;
             color: white;
@@ -86,10 +74,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .demo-btn:hover {
-            background: #005f8c;
-            transform: translateY(-2px);
-        }
+        .demo-btn:hover { background: #005f8c; transform: translateY(-2px); }
         
         .valor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
         .valor-card { background: white; border-radius: 20px; padding: 28px; text-align: center; border: 1px solid #e2e8f0; transition: all 0.3s; }
@@ -170,12 +155,12 @@
             <h1>Comu<span>Tech</span></h1>
             <p class="tagline">El software que profesionaliza tu empresa de mantenimiento</p>
             <p style="font-size: 0.9rem; margin-top: 16px; opacity: 0.7;">Piscinas · Jardines · Limpieza · Comunidades</p>
-            <button class="cta-button" onclick="solicitarDemo()">📞 Solicitar demo</button>
+            <button class="cta-button" id="btnProbarDemo">🎮 Probar demo</button>
         </div>
     </div>
 
     <div class="container">
-        <!-- SECCIÓN DE DEMOS INTERACTIVAS (NUEVA) -->
+        <!-- SECCIÓN DE DEMOS INTERACTIVAS -->
         <div class="section">
             <div class="section-title">🎮 Prueba ComuTech sin instalar nada</div>
             <div class="section-subtitle">
@@ -184,7 +169,6 @@
             </div>
             
             <div class="demo-grid">
-                <!-- Demo Cliente -->
                 <div class="demo-card" onclick="irDemo('cliente')">
                     <div class="demo-icon">🏘️</div>
                     <div class="demo-title">Portal del Cliente</div>
@@ -194,7 +178,6 @@
                     <button class="demo-btn">👆 Ver demo cliente</button>
                 </div>
                 
-                <!-- Demo Técnico -->
                 <div class="demo-card" onclick="irDemo('tecnico')">
                     <div class="demo-icon">👨‍🔧</div>
                     <div class="demo-title">Panel del Técnico</div>
@@ -204,7 +187,6 @@
                     <button class="demo-btn">📱 Ver demo técnico</button>
                 </div>
                 
-                <!-- Demo Gerente -->
                 <div class="demo-card" onclick="irDemo('gerente')">
                     <div class="demo-icon">📊</div>
                     <div class="demo-title">Panel del Gerente</div>
@@ -270,6 +252,30 @@
                     </div>
                 </div>
             </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">📧</span>
+                        <span>Informes automáticos por email</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <p style="margin-bottom: 16px;"><strong>Después de cada trabajo, el cliente recibe un email automático.</strong> Sin que tú hagas nada.</p>
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Qué se ha hecho (ej: limpieza skimmers, control pH)</li>
+                            <li><span class="check">✓</span> Quién lo ha hecho (nombre del técnico)</li>
+                            <li><span class="check">✓</span> Cuándo se ha hecho (fecha y hora exacta)</li>
+                            <li><span class="check">✓</span> Próximo mantenimiento programado</li>
+                        </ul>
+                        <div class="example-box" style="background:#f1f5f9; padding:12px; border-radius:12px; margin-top:16px; font-family:monospace; font-size:0.8rem;">
+                            📧 "Estimado administrador, el técnico Juan Pérez ha realizado hoy: limpieza de skimmers, control de pH (7.2 correcto), adición de cloro (2kg)."
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- CONTACTO -->
@@ -282,7 +288,7 @@
                 <div style="font-size: 2.5rem; margin-bottom: 16px;">📞</div>
                 <p style="margin-bottom: 24px; font-size: 1.1rem;">¿Listo para profesionalizar tu empresa de mantenimiento?</p>
                 <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                    <button class="cta-button" onclick="solicitarDemo()">📞 Solicitar demo real</button>
+                    <button class="cta-button" id="btnProbarDemo2">🎮 Probar demo</button>
                     <button class="cta-button" style="background: #25D366;" onclick="contactarWhatsApp()">💬 Contactar por WhatsApp</button>
                 </div>
                 <p style="margin-top: 30px; font-size: 0.85rem; color: #5b6e8c;">
@@ -339,12 +345,17 @@
         // ========== REDIRECCIÓN A DEMOS ==========
         function irDemo(tipo) {
             if (tipo === 'cliente') {
-                window.location.href = 'democliente.html';
+                window.location.href = 'democlientes.html';
             } else if (tipo === 'tecnico') {
-                window.location.href = 'demotecnico.html';
+                window.location.href = 'demotecnicos.html';
             } else if (tipo === 'gerente') {
                 window.location.href = 'demogerente.html';
             }
+        }
+        
+        // Botones "Probar demo" abren la demo del cliente
+        function abrirDemoCliente() {
+            window.location.href = 'democliente.html';
         }
         
         // ========== ACORDEÓN ==========
@@ -367,10 +378,6 @@
                     content.style.maxHeight = isActive ? null : content.scrollHeight + 'px';
                 });
             });
-        }
-        
-        function solicitarDemo() {
-            alert('✅ Solicitud enviada. Te contactaremos en menos de 24 horas.');
         }
         
         function contactarWhatsApp() {
@@ -411,6 +418,12 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
+            
+            // Asignar eventos a los botones "Probar demo"
+            const btnsProbar = document.querySelectorAll('#btnProbarDemo, #btnProbarDemo2');
+            btnsProbar.forEach(btn => {
+                btn.onclick = abrirDemoCliente;
+            });
             
             if (localStorage.getItem('cookies_aceptadas') !== null) {
                 document.getElementById('cookieBanner').style.display = 'none';
