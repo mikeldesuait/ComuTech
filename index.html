@@ -11,7 +11,6 @@
         body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.5; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         
-        /* Header */
         .header {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: white;
@@ -36,13 +35,11 @@
         }
         .cta-button:hover { background: #005f8c; transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); }
         
-        /* Secciones */
         .section { padding: 60px 0; border-bottom: 1px solid #e2e8f0; }
         .section:last-child { border-bottom: none; }
         .section-title { font-size: 2rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 16px; letter-spacing: -0.01em; }
         .section-subtitle { text-align: center; color: #5b6e8c; max-width: 700px; margin: 0 auto 48px auto; font-size: 1.1rem; }
         
-        /* Tarjetas de valor (arriba del todo) */
         .valor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
         .valor-card { background: white; border-radius: 20px; padding: 28px; text-align: center; border: 1px solid #e2e8f0; transition: all 0.3s; }
         .valor-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); border-color: #cbd5e1; }
@@ -50,7 +47,6 @@
         .valor-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
         .valor-desc { font-size: 0.85rem; color: #5b6e8c; }
         
-        /* Acordeón */
         .accordion-item {
             margin-bottom: 20px;
             border-radius: 16px;
@@ -78,7 +74,6 @@
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
         .accordion-content-inner { padding: 24px; border-top: 1px solid #f1f5f9; }
         
-        /* Listas */
         .feature-list { list-style: none; }
         .feature-list li { padding: 10px 0; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
         .feature-list li:last-child { border-bottom: none; }
@@ -105,7 +100,6 @@
         .card-icon { font-size: 2.2rem; margin-bottom: 16px; }
         .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
         
-        /* Footer */
         .footer { background: #0f172a; color: white; padding: 40px 0 20px 0; margin-top: 40px; }
         .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
         .footer-col h4 { color: #0077b6; margin-bottom: 16px; font-size: 1rem; }
@@ -113,7 +107,6 @@
         .footer-col a:hover { color: white; }
         .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #334155; font-size: 0.7rem; color: #64748b; }
         
-        /* Cookie banner */
         .cookie-banner {
             position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white;
             padding: 14px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
@@ -153,7 +146,7 @@
     </div>
 
     <div class="container">
-        <!-- TRES PILARES DE VALOR (destacados arriba) -->
+        <!-- TRES PILARES DE VALOR -->
         <div style="margin-top: -30px; margin-bottom: 20px;">
             <div class="valor-grid">
                 <div class="valor-card">
@@ -174,7 +167,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 1: VALOR PARA TUS CLIENTES (lo más importante) -->
+        <!-- SECCIÓN 1: VALOR PARA TUS CLIENTES -->
         <div class="section">
             <div class="section-title">🏆 Lo que ven tus clientes</div>
             <div class="section-subtitle">
@@ -243,22 +236,21 @@
                 <div class="accordion-header">
                     <div class="accordion-title">
                         <span class="accordion-icon">📱</span>
-                        <span>App para técnicos (iOS y Android)</span>
+                        <span>Panel para técnicos (vía web)</span>
                     </div>
                     <div class="accordion-indicator">▼</div>
                 </div>
                 <div class="accordion-content">
                     <div class="accordion-content-inner">
                         <ul class="feature-list">
-                            <li><span class="check">✓</span> App gratuita para móviles</li>
-                            <li><span class="check">✓</span> El técnico registra cada trabajo: cliente → tarea → tiempo</li>
-                            <li><span class="check">✓</span> Tú lo ves al instante en tu panel</li>
-                            <li><span class="check">✓</span> Histórico por técnico descargable a Excel</li>
-                            <li><span class="check">✓</span> Funciona offline (sincroniza al tener conexión)</li>
+                            <li><span class="check">✓</span> Acceso desde cualquier móvil, solo con un enlace</li>
+                            <li><span class="check">✓</span> Registra cada trabajo: cliente → tarea → tiempo</li>
+                            <li><span class="check">✓</span> Funciona sin internet (guarda los datos localmente)</li>
+                            <li><span class="check">✓</span> Sincroniza automáticamente cuando hay conexión</li>
                         </ul>
                         <div class="highlight-box">
-                            <div class="highlight-title">📊 ¿Qué control tienes?</div>
-                            <div style="font-size: 0.85rem;">Sabes quién ha trabajado, cuánto tiempo, en qué cliente y qué ha hecho. Ideal para calcular costes por servicio y productividad de cada técnico.</div>
+                            <div class="highlight-title">📱 Sin tiendas, sin instalaciones complicadas</div>
+                            <div style="font-size: 0.85rem;">El técnico solo necesita guardar el enlace en su móvil. La primera vez carga la app y ya funciona incluso sin cobertura.</div>
                         </div>
                     </div>
                 </div>
@@ -268,7 +260,7 @@
                 <div class="accordion-header">
                     <div class="accordion-title">
                         <span class="accordion-icon">🗂️</span>
-                        <span>Organización de clientes y rutas</span>
+                        <span>Organización de clientes y técnicos</span>
                     </div>
                     <div class="accordion-indicator">▼</div>
                 </div>
@@ -342,7 +334,7 @@
             </div>
         </div>
 
-        <!-- SECTORES QUE CUBRIMOS (simple) -->
+        <!-- SECTORES -->
         <div class="section">
             <div class="section-title">🏊 Sectores que cubrimos</div>
             <div class="cards-grid">
@@ -376,7 +368,7 @@
             </div>
         </div>
 
-        <!-- CONTACTO FINAL -->
+        <!-- CONTACTO -->
         <div class="section" id="contacto">
             <div class="section-title">📞 ¿Hablamos?</div>
             <div class="section-subtitle">
@@ -396,7 +388,6 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
     <div class="footer">
         <div class="container">
             <div class="footer-content">
@@ -424,7 +415,6 @@
         </div>
     </div>
 
-    <!-- COOKIE BANNER -->
     <div id="cookieBanner" class="cookie-banner">
         <p>🍪 Usamos cookies técnicas y analíticas para mejorar tu experiencia.</p>
         <div style="display: flex; gap: 12px;">
@@ -433,7 +423,6 @@
         </div>
     </div>
 
-    <!-- MODAL LEGAL -->
     <div id="modalPoliticas" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitulo">Aviso legal</div>
@@ -443,7 +432,6 @@
     </div>
 
     <script>
-        // Acordeón: solo uno abierto a la vez
         function inicializarAcordeon() {
             const headers = document.querySelectorAll('.accordion-header');
             headers.forEach(header => {
@@ -451,7 +439,6 @@
                     const content = this.closest('.accordion-item').querySelector('.accordion-content');
                     const isActive = this.classList.contains('active');
                     
-                    // Cerrar todos
                     document.querySelectorAll('.accordion-header').forEach(h => {
                         if (h !== header) {
                             h.classList.remove('active');
@@ -460,7 +447,6 @@
                         }
                     });
                     
-                    // Abrir/cerrar actual
                     this.classList.toggle('active');
                     content.style.maxHeight = isActive ? null : content.scrollHeight + 'px';
                 });
