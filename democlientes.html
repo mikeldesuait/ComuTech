@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ComuTech · Demo para clientes</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #eef2ff 0%, #d9e4f5 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Pantalla de inicio (botón único) */
+        .start-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .logo {
+            margin-bottom: 40px;
+        }
+        .logo h1 {
+            font-size: 2.5rem;
+            color: #0077b6;
+        }
+        .logo p {
+            color: #5b6e8c;
+            margin-top: 8px;
+        }
+        .big-button {
+            background: linear-gradient(135deg, #0077b6 0%, #00a8e8 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,119,182,0.3);
+            transition: all 0.3s;
+            margin: 30px 0;
+        }
+        .big-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,119,182,0.4);
+        }
+        .start-info {
+            color: #5b6e8c;
+            font-size: 0.85rem;
+            margin-top: 30px;
+        }
+        
+        /* Panel del cliente (simulado) */
+        .client-panel {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header-cliente {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border-radius: 32px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .nombre-urbanizacion {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .codigo-acceso {
+            background: rgba(255,255,255,0.2);
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            margin-top: 12px;
+        }
+        .btn-salir {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            margin-top: 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            border-left: 4px solid #0077b6;
+            padding-left: 14px;
+            color: #1e4663;
+        }
+        
+        .parametros-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .parametro {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+        }
+        .parametro-valor {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0077b6;
+        }
+        .parametro-label {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+            margin-top: 6px;
+        }
+        .estado-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-top: 8px;
+        }
+        .estado-ok { background: #d4edda; color: #155724; }
+        .estado-warning { background: #fff3cd; color: #856404; }
+        
+        .informe-ia {
+            background: #e8f4f8;
+            border-radius: 20px;
+            padding: 20px;
+            border-left: 4px solid #2c7a4d;
+            line-height: 1.6;
+        }
+        
+        .historico-item {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-left: 3px solid #0077b6;
+        }
+        .fecha {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+            margin-bottom: 6px;
+        }
+        
+        .incidencia-form {
+            background: #fff7ed;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 14px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            font-family: inherit;
+            resize: vertical;
+            margin: 12px 0;
+        }
+        .btn-reportar {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-reportar:hover { background: #d35400; }
+        
+        .respuesta-simulada {
+            background: #d4edda;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 16px;
+            display: none;
+            border-left: 4px solid #2c7a4d;
+        }
+        
+        .btn-volver-inicio {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 550px) {
+            .parametros-grid { grid-template-columns: repeat(2, 1fr); }
+            .nombre-urbanizacion { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- PANTALLA DE INICIO (SOLO UN BOTÓN) -->
+    <div id="startScreen" class="start-screen">
+        <div class="logo">
+            <div style="font-size: 4rem;">🏊</div>
+            <h1>ComuTech</h1>
+            <p>Portal de transparencia para comunidades</p>
+        </div>
+        <button class="big-button" id="startDemoBtn">
+            👆 Ver mi comunidad
+        </button>
+        <div class="start-info">
+            🔐 Demo simulada · Sin necesidad de instalar nada<br>
+            Así ven tus clientes el estado de su piscina/jardín
+        </div>
+    </div>
+
+    <!-- PANEL SIMULADO DEL CLIENTE -->
+    <div id="clientPanel" class="client-panel">
+        <!-- Cabecera -->
+        <div class="header-cliente">
+            <div class="nombre-urbanizacion">🏘️ Urbanización Los Pinos</div>
+            <div>Avda. del Mar, 45 · Orihuela Costa</div>
+            <div class="codigo-acceso">🔑 Código de acceso: PISC1234</div>
+            <button class="btn-salir" id="exitDemoBtn">← Volver al inicio</button>
+        </div>
+
+        <!-- ALERTA (simulada, a veces aparece) -->
+        <div id="alertaEmergente" style="display: none;" class="card" style="background: #fee2e2; border-left: 4px solid #dc2626;">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <span style="font-size: 2rem;">🚨</span>
+                <div>
+                    <div style="font-weight: 700;">ALERTA - PISCINA NO APTA</div>
+                    <div style="font-size: 0.85rem;">Se ha detectado un problema. No bañarse. El técnico ya ha sido avisado.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parámetros del agua -->
+        <div class="card">
+            <div class="card-title">📊 Parámetros del agua</div>
+            <div class="parametros-grid">
+                <div class="parametro">
+                    <div class="parametro-valor" id="cloroValor">1.2</div>
+                    <div class="parametro-label">🧪 Cloro (ppm)</div>
+                    <div class="estado-badge estado-ok" id="cloroEstado">✅ Óptimo</div>
+                </div>
+                <div class="parametro">
+                    <div class="parametro-valor" id="phValor">7.4</div>
+                    <div class="parametro-label">⚗️ pH</div>
+                    <div class="estado-badge estado-ok" id="phEstado">✅ Óptimo</div>
+                </div>
+                <div class="parametro">
+                    <div class="parametro-valor" id="tempValor">26°</div>
+                    <div class="parametro-label">🌡️ Temperatura</div>
+                    <div class="estado-badge estado-ok" id="tempEstado">✅ Ideal</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Última visita técnica -->
+        <div class="card">
+            <div class="card-title">📅 Última visita técnica</div>
+            <div id="ultimaVisita">15 de mayo de 2026 · 09:30 h</div>
+            <div style="font-size: 0.8rem; color: #5b6e8c; margin-top: 8px;">👨‍🔧 Técnico: Juan Pérez</div>
+        </div>
+
+        <!-- Informe generado por IA -->
+        <div class="card">
+            <div class="card-title">📋 Informe del técnico</div>
+            <div class="informe-ia" id="informeIA">
+                ✅ Todo en orden. Los niveles de cloro y pH están dentro de los parámetros recomendados. 
+                La temperatura del agua es agradable (26°C). Se ha realizado limpieza de skimmers y 
+                revisión de bombas. Pueden bañarse con total tranquilidad.
+            </div>
+        </div>
+
+        <!-- Histórico de informes -->
+        <div class="card">
+            <div class="card-title" style="cursor: pointer;" onclick="toggleHistorico()">
+                📜 Histórico de informes anteriores <span id="flechaHistorico" style="float: right;">▼</span>
+            </div>
+            <div id="historicoContenido" style="display: none; margin-top: 16px;">
+                <div class="historico-item">
+                    <div class="fecha">📅 8 de mayo de 2026</div>
+                    <div>Limpieza general y ajuste de cloro. Todo correcto.</div>
+                </div>
+                <div class="historico-item">
+                    <div class="fecha">📅 1 de mayo de 2026</div>
+                    <div>Control de pH y adición de floculante. Agua cristalina.</div>
+                </div>
+                <div class="historico-item">
+                    <div class="fecha">📅 24 de abril de 2026</div>
+                    <div>Revisión de filtros y limpieza de fondo. Funcionamiento correcto.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reportar incidencia (simulación) -->
+        <div class="card">
+            <div class="card-title">📢 ¿Problemas en la piscina?</div>
+            
+            <div id="formIncidencia">
+                <input type="text" id="nombreCliente" placeholder="Tu nombre (opcional)" style="width:100%; padding:12px; border-radius:50px; border:1px solid #e2e8f0; margin-bottom:12px;">
+                <textarea id="mensajeIncidencia" rows="3" placeholder="Describe el problema...&#10;Ej: El agua está verde, la bomba hace ruido, etc."></textarea>
+                <button class="btn-reportar" id="btnReportar">📨 Enviar reporte</button>
+            </div>
+            
+            <div id="respuestaIncidencia" class="respuesta-simulada"></div>
+        </div>
+
+        <!-- Botón para actualizar (simular nueva medición) -->
+        <button id="btnActualizar" style="background: #2c7a4d; color: white; border: none; padding: 12px; border-radius: 50px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px;">
+            🔄 Simular nueva medición
+        </button>
+        
+        <button class="btn-volver-inicio" id="exitDemoBtn2">← Volver al inicio</button>
+    </div>
+</div>
+
+<script>
+    // Elementos DOM
+    const startScreen = document.getElementById('startScreen');
+    const clientPanel = document.getElementById('clientPanel');
+    const startDemoBtn = document.getElementById('startDemoBtn');
+    const exitDemoBtns = document.querySelectorAll('#exitDemoBtn, #exitDemoBtn2');
+    
+    // Elementos dinámicos
+    const cloroValor = document.getElementById('cloroValor');
+    const phValor = document.getElementById('phValor');
+    const tempValor = document.getElementById('tempValor');
+    const cloroEstado = document.getElementById('cloroEstado');
+    const phEstado = document.getElementById('phEstado');
+    const tempEstado = document.getElementById('tempEstado');
+    const informeIA = document.getElementById('informeIA');
+    const ultimaVisita = document.getElementById('ultimaVisita');
+    const alertaEmergente = document.getElementById('alertaEmergente');
+    
+    // Estado simulado
+    let datosActuales = {
+        cloro: 1.2,
+        ph: 7.4,
+        temperatura: 26,
+        alerta: false
+    };
+    
+    let contadorVisitas = 0;
+    const tecnicos = ['Juan Pérez', 'Carlos López', 'Miguel Ángel', 'Laura García'];
+    
+    // Función para actualizar la interfaz según los datos
+    function actualizarInterfaz() {
+        // Actualizar valores
+        cloroValor.textContent = datosActuales.cloro.toFixed(1);
+        phValor.textContent = datosActuales.ph.toFixed(1);
+        tempValor.textContent = datosActuales.temperatura + '°';
+        
+        // Actualizar estados y colores
+        if (datosActuales.cloro >= 1 && datosActuales.cloro <= 3) {
+            cloroEstado.textContent = '✅ Óptimo';
+            cloroEstado.className = 'estado-badge estado-ok';
+        } else if (datosActuales.cloro < 1) {
+            cloroEstado.textContent = '⚠️ Bajo';
+            cloroEstado.className = 'estado-badge estado-warning';
+        } else {
+            cloroEstado.textContent = '⚠️ Alto';
+            cloroEstado.className = 'estado-badge estado-warning';
+        }
+        
+        if (datosActuales.ph >= 7.2 && datosActuales.ph <= 7.6) {
+            phEstado.textContent = '✅ Óptimo';
+            phEstado.className = 'estado-badge estado-ok';
+        } else if (datosActuales.ph < 7.2) {
+            phEstado.textContent = '⚠️ Ácido';
+            phEstado.className = 'estado-badge estado-warning';
+        } else {
+            phEstado.textContent = '⚠️ Alcalino';
+            phEstado.className = 'estado-badge estado-warning';
+        }
+        
+        if (datosActuales.temperatura >= 24 && datosActuales.temperatura <= 30) {
+            tempEstado.textContent = '✅ Ideal';
+            tempEstado.className = 'estado-badge estado-ok';
+        } else if (datosActuales.temperatura < 24) {
+            tempEstado.textContent = '🌡️ Fría';
+            tempEstado.className = 'estado-badge estado-warning';
+        } else {
+            tempEstado.textContent = '🌡️ Caliente';
+            tempEstado.className = 'estado-badge estado-warning';
+        }
+        
+        // Generar informe IA según los datos
+        let informe = '';
+        if (datosActuales.alerta) {
+            informe = '🚨 ATENCIÓN: Se ha detectado una incidencia. El equipo técnico ya está trabajando para solucionarla. Por favor, no utilicen la piscina hasta nuevo aviso.';
+            alertaEmergente.style.display = 'block';
+        } else if (datosActuales.cloro < 1) {
+            informe = '⚠️ El nivel de cloro está bajo. El técnico ha sido notificado y acudirá en las próximas horas para ajustarlo. Mientras tanto, se recomienda no bañarse.';
+            alertaEmergente.style.display = 'none';
+        } else if (datosActuales.cloro > 3) {
+            informe = '⚠️ El nivel de cloro está alto. Se recomienda no bañarse hasta que se normalice. El técnico está trabajando en ello.';
+            alertaEmergente.style.display = 'none';
+        } else if (datosActuales.ph < 7.2 || datosActuales.ph > 7.6) {
+            informe = '⚠️ El pH está fuera de los rangos recomendados. El agua puede irritar la piel. El técnico ajustará los niveles en la próxima visita.';
+            alertaEmergente.style.display = 'none';
+        } else {
+            informe = '✅ Todo en orden. Los niveles de cloro y pH están dentro de los parámetros recomendados. La temperatura del agua es ' + 
+                      (datosActuales.temperatura >= 24 && datosActuales.temperatura <= 30 ? 'agradable' : 
+                       (datosActuales.temperatura < 24 ? 'un poco fría' : 'bastante caliente')) + 
+                      '. Pueden bañarse con total tranquilidad. Seguimos trabajando para mantener la piscina en perfectas condiciones.';
+            alertaEmergente.style.display = 'none';
+        }
+        informeIA.innerHTML = informe;
+        
+        // Actualizar fecha de última visita (simulada)
+        const hoy = new Date();
+        const opciones = { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+        ultimaVisita.innerHTML = hoy.toLocaleDateString('es-ES', opciones);
+    }
+    
+    // Simular nueva medición (cambia valores aleatorios)
+    function simularNuevaMedicion() {
+        // Generar nuevos valores
+        const nuevoCloro = +(Math.random() * 3 + 0.5).toFixed(1);
+        const nuevoPh = +(Math.random() * 1.5 + 6.5).toFixed(1);
+        const nuevaTemp = Math.floor(Math.random() * 15 + 20);
+        
+        datosActuales = {
+            cloro: nuevoCloro,
+            ph: nuevoPh,
+            temperatura: nuevaTemp,
+            alerta: false
+        };
+        
+        // 20% de probabilidad de alerta
+        if (Math.random() < 0.2) {
+            datosActuales.alerta = true;
+        }
+        
+        actualizarInterfaz();
+        
+        // Mostrar notificación simulada
+        const respuestaDiv = document.getElementById('respuestaIncidencia');
+        respuestaDiv.style.display = 'block';
+        respuestaDiv.innerHTML = '🔄 Nueva medición registrada por el técnico. Los datos se han actualizado.';
+        respuestaDiv.style.background = '#d1ecf1';
+        respuestaDiv.style.borderLeftColor = '#17a2b8';
+        
+        setTimeout(() => {
+            respuestaDiv.style.display = 'none';
+        }, 3000);
+    }
+    
+    // Simular envío de incidencia
+    function enviarIncidencia() {
+        const mensaje = document.getElementById('mensajeIncidencia').value.trim();
+        const nombre = document.getElementById('nombreCliente').value.trim() || 'Anónimo';
+        
+        if (!mensaje) {
+            alert('Por favor, describe el problema');
+            return;
+        }
+        
+        const respuestaDiv = document.getElementById('respuestaIncidencia');
+        respuestaDiv.style.display = 'block';
+        respuestaDiv.innerHTML = `
+            <strong>✅ INCIDENCIA REGISTRADA</strong><br><br>
+            Gracias ${nombre}, tu reporte ha sido enviado al equipo técnico.<br>
+            Recibiremos una respuesta en menos de 24 horas.<br><br>
+            <strong>Mensaje enviado:</strong> "${mensaje.substring(0, 100)}"
+        `;
+        respuestaDiv.style.background = '#d4edda';
+        respuestaDiv.style.borderLeftColor = '#2c7a4d';
+        
+        // Limpiar formulario
+        document.getElementById('mensajeIncidencia').value = '';
+        document.getElementById('nombreCliente').value = '';
+        
+        // Ocultar respuesta después de 5 segundos
+        setTimeout(() => {
+            respuestaDiv.style.display = 'none';
+        }, 5000);
+    }
+    
+    function toggleHistorico() {
+        const contenido = document.getElementById('historicoContenido');
+        const flecha = document.getElementById('flechaHistorico');
+        if (contenido.style.display === 'none') {
+            contenido.style.display = 'block';
+            flecha.innerHTML = '▲';
+        } else {
+            contenido.style.display = 'none';
+            flecha.innerHTML = '▼';
+        }
+    }
+    
+    function iniciarDemo() {
+        // Resetear datos
+        datosActuales = {
+            cloro: 1.2,
+            ph: 7.4,
+            temperatura: 26,
+            alerta: false
+        };
+        actualizarInterfaz();
+        
+        // Ocultar pantalla de inicio, mostrar panel
+        startScreen.style.display = 'none';
+        clientPanel.style.display = 'block';
+        
+        // Scroll al inicio
+        window.scrollTo(0, 0);
+    }
+    
+    function salirDemo() {
+        clientPanel.style.display = 'none';
+        startScreen.style.display = 'block';
+        
+        // Limpiar formulario de incidencia
+        document.getElementById('mensajeIncidencia').value = '';
+        document.getElementById('nombreCliente').value = '';
+        document.getElementById('respuestaIncidencia').style.display = 'none';
+    }
+    
+    // Event listeners
+    startDemoBtn.addEventListener('click', iniciarDemo);
+    exitDemoBtns.forEach(btn => btn.addEventListener('click', salirDemo));
+    document.getElementById('btnReportar').addEventListener('click', enviarIncidencia);
+    document.getElementById('btnActualizar').addEventListener('click', simularNuevaMedicion);
+    
+    // Inicializar
+    actualizarInterfaz();
+</script>
+</body>
+</html>
