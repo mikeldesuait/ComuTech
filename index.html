@@ -11,44 +11,6 @@
         body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.5; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         
-        /* Selector de idioma mejorado */
-        .lang-selector {
-            position: fixed;
-            top: 20px;
-            right: 24px;
-            z-index: 1000;
-            background: white;
-            border-radius: 50px;
-            padding: 8px 16px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            backdrop-filter: blur(10px);
-            background: rgba(255,255,255,0.95);
-        }
-        .lang-btn {
-            background: none;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .lang-btn:hover {
-            background: #e2e8f0;
-            transform: translateY(-1px);
-        }
-        .lang-btn.active {
-            background: #0077b6;
-            color: white;
-        }
-        
         /* Header */
         .header {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -192,7 +154,7 @@
         .timeline-desc { font-size: 0.85rem; color: #5b6e8c; }
         
         /* Footer */
-        .footer { background: #0f172a; color: white; padding: 40px 0 20px 0; }
+        .footer { background: #0f172a; color: white; padding: 40px 0 20px 0; margin-top: 40px; }
         .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
         .footer-col h4 { font-size: 1rem; margin-bottom: 16px; color: #0077b6; }
         .footer-col p, .footer-col a { font-size: 0.8rem; color: #94a3b8; text-decoration: none; line-height: 1.8; }
@@ -223,40 +185,21 @@
         .modal-header { font-size: 1.5rem; font-weight: 700; color: #0077b6; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
         .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: 600; }
         
+        /* Ajuste para texto en ruso y chino */
+        [data-i18n] {
+            transition: opacity 0.2s;
+        }
+        
         @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
             .section-title { font-size: 1.5rem; }
             .timeline { flex-direction: column; align-items: center; }
             .timeline-step { max-width: 280px; }
             .cookie-banner { flex-direction: column; text-align: center; }
-            .lang-selector { 
-                top: 10px; 
-                right: 12px; 
-                left: 12px;
-                justify-content: center;
-                gap: 4px;
-            }
-            .lang-btn { padding: 4px 8px; font-size: 0.7rem; }
-        }
-        
-        [data-i18n] {
-            transition: opacity 0.2s;
         }
     </style>
 </head>
 <body>
-    <!-- Selector de idioma con 8 idiomas -->
-    <div class="lang-selector">
-        <button class="lang-btn" data-lang="es">🇪🇸 ES</button>
-        <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
-        <button class="lang-btn" data-lang="fr">🇫🇷 FR</button>
-        <button class="lang-btn" data-lang="de">🇩🇪 DE</button>
-        <button class="lang-btn" data-lang="pt">🇵🇹 PT</button>
-        <button class="lang-btn" data-lang="ru">🇷🇺 RU</button>
-        <button class="lang-btn" data-lang="pl">🇵🇱 PL</button>
-        <button class="lang-btn" data-lang="zh">🇨🇳 中文</button>
-    </div>
-
     <div class="header">
         <div class="container">
             <div class="badge-clientes" data-i18n="badge">🎯 Para empresas de mantenimiento</div>
@@ -269,7 +212,7 @@
     </div>
 
     <div class="container">
-        <!-- SECCIÓN 1 - ACORDEÓN -->
+        <!-- SECCIÓN 1 -->
         <div class="section">
             <div class="section-title" data-i18n="section1-title">Para ti, empresa de mantenimiento</div>
             <div class="section-subtitle" data-i18n="section1-subtitle">
@@ -337,7 +280,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 2 - ACORDEÓN -->
+        <!-- SECCIÓN 2 -->
         <div class="section">
             <div class="section-title" data-i18n="section2-title">Sectores que cubrimos</div>
             
@@ -399,7 +342,7 @@
             </div>
         </div>
 
-        <!-- Sección Plataforma -->
+        <!-- Plataforma -->
         <div class="section">
             <div class="section-title" data-i18n="platform-title">La plataforma</div>
             <div class="cards-grid">
@@ -435,7 +378,7 @@
             </div>
         </div>
 
-        <!-- Sección contacto -->
+        <!-- Contacto -->
         <div class="section" id="contacto">
             <div class="section-title" data-i18n="contact-title">¿Hablamos?</div>
             <div class="section-subtitle" data-i18n="contact-subtitle">
@@ -464,7 +407,7 @@
                 <div class="footer-col">
                     <h4>ComuTech</h4>
                     <p data-i18n="footer-desc">Software para empresas de mantenimiento de piscinas, jardines y limpieza</p>
-                    <p>© 2025 ComuTech. Todos los derechos reservados.</p>
+                    <p>© 2025 ComuTech.</p>
                 </div>
                 <div class="footer-col">
                     <h4 data-i18n="legal-title">Legal</h4>
@@ -505,7 +448,7 @@
     </div>
 
     <script>
-        // ========== TRADUCCIONES COMPLETAS PARA 8 IDIOMAS ==========
+        // ========== TRADUCCIONES COMPLETAS (8 IDIOMAS INCLUYENDO RUSO) ==========
         const translations = {
             es: {
                 "badge": "🎯 Para empresas de mantenimiento",
@@ -581,7 +524,7 @@
                 "sectors": "Pools · Gardens · Cleaning",
                 "demo-button": "📞 Request demo",
                 "section1-title": "For you, maintenance company",
-                "section1-subtitle": "You have the technicians and clients. We help you manage them.",
+                "section1-subtitle": "You have technicians and clients. We help you manage them.",
                 "accordion1-title": "Manage your technicians",
                 "accordion1-item1": "Workday control",
                 "accordion1-item2": "Record of completed work",
@@ -626,7 +569,7 @@
                 "card3-item2": "Telegram alerts",
                 "card3-item3": "Work confirmation",
                 "contact-title": "Let's talk?",
-                "contact-subtitle": "Tell us about your business and we'll show you how ComuTech can help you.",
+                "contact-subtitle": "Tell us about your business and we'll show you how ComuTech can help.",
                 "contact-text": "Ready to professionalize your maintenance company?",
                 "demo-button2": "📞 Request demo",
                 "whatsapp-button": "💬 Contact via WhatsApp",
@@ -848,306 +791,228 @@
                 "close": "Fechar"
             },
             ru: {
-                "badge": "🎯 Для обслуживающих компаний",
-                "header-subtitle": "Программное обеспечение, необходимое вашей обслуживающей компании",
+                "badge": "🎯 Для сервисных компаний",
+                "header-subtitle": "Программное обеспечение, необходимое вашей сервисной компании",
                 "sectors": "Бассейны · Сады · Уборка",
                 "demo-button": "📞 Запросить демо",
-                "section1-title": "Для вас, обслуживающая компания",
+                "section1-title": "Для вас, сервисная компания",
                 "section1-subtitle": "У вас есть технические специалисты и клиенты. Мы помогаем вам управлять ими.",
-                "accordion1-title": "Управляйте своими техническими специалистами",
+                "accordion1-title": "Управляйте своими специалистами",
                 "accordion1-item1": "Контроль рабочего времени",
-                "accordion1-item2": "Регистрация выполненных работ",
-                "accordion1-item3": "Отслеживание времени и продуктов",
+                "accordion1-item2": "Запись выполненных работ",
+                "accordion1-item3": "Отслеживание времени и материалов",
                 "accordion1-item4": "Доступность и отпуска",
                 "accordion2-title": "Отчитывайтесь перед клиентами",
-                "accordion2-item1": "Автоматические отчеты по email",
+                "accordion2-item1": "Автоматические отчёты по email",
                 "accordion2-item2": "Состояние бассейнов и садов",
                 "accordion2-item3": "Подтверждение выполненных работ",
-                "accordion2-item4": "История для каждого клиента",
+                "accordion2-item4": "История по каждому клиенту",
                 "accordion3-title": "Централизуйте свой бизнес",
                 "accordion3-item1": "Все клиенты в одном месте",
                 "accordion3-item2": "Полная видимость операций",
-                "accordion3-item3": "Отчеты и экспорт",
+                "accordion3-item3": "Отчёты и экспорт данных",
                 "accordion3-item4": "Без бумаги, полностью цифровой",
                 "section2-title": "Охватываемые секторы",
                 "accordion4-title": "Обслуживание бассейнов",
                 "accordion4-item1": "Контроль хлора, pH и температуры",
                 "accordion4-item2": "Оповещения о качестве воды",
-                "accordion4-item3": "Управление химическими продуктами",
+                "accordion4-item3": "Управление химикатами",
                 "accordion5-title": "Уход за садом",
                 "accordion5-item1": "Планирование полива и обрезки",
                 "accordion5-item2": "Борьба с вредителями",
-                "accordion5-item3": "Регистрация обработок",
+                "accordion5-item3": "Запись обработок",
                 "accordion6-title": "Уборка помещений",
-                "accordion6-item1": "Контроль частоты",
-                "accordion6-item2": "Регистрация выполненных задач",
-                "accordion6-item3": "Отчеты для клиентов",
+                "accordion6-item1": "Контроль периодичности",
+                "accordion6-item2": "Запись выполненных задач",
+                "accordion6-item3": "Отчёты для клиентов",
                 "platform-title": "Платформа",
-                "card1-title": "Приложение для техников",
+                "card1-title": "Приложение для специалистов",
                 "card1-item1": "Начать и завершить рабочий день",
-                "card1-item2": "Регистрировать работы с телефона",
+                "card1-item2": "Записывать работы с телефона",
                 "card1-item3": "Просмотр истории клиента",
-                "card1-item4": "Сообщать о чрезвычайных ситуациях",
+                "card1-item4": "Сообщать о срочных ситуациях",
                 "card2-title": "Панель управления",
-                "card2-item1": "Мониторинг в реальном времени",
+                "card2-item1": "Контроль в реальном времени",
                 "card2-item2": "Управление инцидентами",
                 "card2-item3": "Контроль персонала",
-                "card2-item4": "Отчеты и экспорт",
-                "card3-title": "Автоматическая связь",
-                "card3-item1": "Автоматические отчеты для клиентов",
+                "card2-item4": "Отчёты и экспорт",
+                "card3-title": "Автоматическая коммуникация",
+                "card3-item1": "Автоматические отчёты для клиентов",
                 "card3-item2": "Оповещения в Telegram",
                 "card3-item3": "Подтверждение работ",
                 "contact-title": "Поговорим?",
-                "contact-subtitle": "Расскажите о своем бизнесе, и мы покажем, как ComuTech может вам помочь.",
-                "contact-text": "Готовы профессионализировать вашу обслуживающую компанию?",
+                "contact-subtitle": "Расскажите о своём бизнесе, и мы покажем, как ComuTech может вам помочь.",
+                "contact-text": "Готовы сделать свою сервисную компанию профессиональнее?",
                 "demo-button2": "📞 Запросить демо",
                 "whatsapp-button": "💬 Связаться через WhatsApp",
                 "footer-desc": "Программное обеспечение для компаний по обслуживанию бассейнов, садов и уборке",
                 "legal-title": "Юридическая информация",
                 "legal-notice": "Правовая информация",
                 "privacy-policy": "Политика конфиденциальности",
-                "cookie-policy": "Политика использования файлов cookie",
+                "cookie-policy": "Политика использования cookie",
                 "contact-title-footer": "Контакты",
                 "location": "📍 Мадрид, Испания",
-                "footer-legal": "ComuTech соответствует GDPR и LSSI-CE.",
+                "footer-legal": "ComuTech соответствует требованиям GDPR и LSSI-CE.",
                 "cookie-text": "🍪 Мы используем файлы cookie для улучшения вашего опыта.",
                 "cookie-accept": "Принять",
                 "cookie-decline": "Отклонить",
                 "close": "Закрыть"
-            },
-            pl: {
-                "badge": "🎯 Dla firm serwisowych",
-                "header-subtitle": "Oprogramowanie, którego potrzebuje Twoja firma serwisowa",
-                "sectors": "Baseny · Ogrody · Sprzątanie",
-                "demo-button": "📞 Poproś o demo",
-                "section1-title": "Dla Ciebie, firmo serwisowa",
-                "section1-subtitle": "Masz techników i klientów. Pomagamy Ci nimi zarządzać.",
-                "accordion1-title": "Zarządzaj swoimi technikami",
-                "accordion1-item1": "Kontrola czasu pracy",
-                "accordion1-item2": "Rejestracja wykonanych prac",
-                "accordion1-item3": "Śledzenie czasu i produktów",
-                "accordion1-item4": "Dostępność i urlopy",
-                "accordion2-title": "Raportuj swoim klientom",
-                "accordion2-item1": "Automatyczne raporty email",
-                "accordion2-item2": "Stan basenów i ogrodów",
-                "accordion2-item3": "Potwierdzenie wykonanych prac",
-                "accordion2-item4": "Historia dla każdego klienta",
-                "accordion3-title": "Scentralizuj swoją działalność",
-                "accordion3-item1": "Wszyscy klienci w jednym miejscu",
-                "accordion3-item2": "Pełna widoczność operacji",
-                "accordion3-item3": "Raporty i eksport",
-                "accordion3-item4": "Bez papieru, w pełni cyfrowo",
-                "section2-title": "Sektory, które obsługujemy",
-                "accordion4-title": "Konserwacja basenów",
-                "accordion4-item1": "Kontrola chloru, pH i temperatury",
-                "accordion4-item2": "Alerty jakości wody",
-                "accordion4-item3": "Zarządzanie produktami chemicznymi",
-                "accordion5-title": "Pielęgnacja ogrodów",
-                "accordion5-item1": "Planowanie nawadniania i przycinania",
-                "accordion5-item2": "Kontrola szkodników",
-                "accordion5-item3": "Rejestracja zabiegów",
-                "accordion6-title": "Sprzątanie wspólnot",
-                "accordion6-item1": "Kontrola częstotliwości",
-                "accordion6-item2": "Rejestracja wykonanych zadań",
-                "accordion6-item3": "Raporty dla klientów",
-                "platform-title": "Platforma",
-                "card1-title": "Aplikacja dla techników",
-                "card1-item1": "Rozpocznij i zakończ dzień pracy",
-                "card1-item2": "Rejestruj prace z telefonu",
-                "card1-item3": "Przeglądaj historię klienta",
-                "card1-item4": "Zgłaszaj sytuacje awaryjne",
-                "card2-title": "Panel zarządzania",
-                "card2-item1": "Nadzór w czasie rzeczywistym",
-                "card2-item2": "Zarządzanie incydentami",
-                "card2-item3": "Kontrola personelu",
-                "card2-item4": "Raporty i eksport",
-                "card3-title": "Automatyczna komunikacja",
-                "card3-item1": "Automatyczne raporty dla klientów",
-                "card3-item2": "Alerty Telegram",
-                "card3-item3": "Potwierdzenie prac",
-                "contact-title": "Rozmawiamy?",
-                "contact-subtitle": "Opowiedz nam o swojej firmie, a pokażemy Ci, jak ComuTech może Ci pomóc.",
-                "contact-text": "Gotowy na profesjonalizację swojej firmy serwisowej?",
-                "demo-button2": "📞 Poproś o demo",
-                "whatsapp-button": "💬 Kontakt przez WhatsApp",
-                "footer-desc": "Oprogramowanie dla firm zajmujących się konserwacją basenów, ogrodów i sprzątaniem",
-                "legal-title": "Informacje prawne",
-                "legal-notice": "Informacja prawna",
-                "privacy-policy": "Polityka prywatności",
-                "cookie-policy": "Polityka cookie",
-                "contact-title-footer": "Kontakt",
-                "location": "📍 Madryt, Hiszpania",
-                "footer-legal": "ComuTech jest zgodny z RODO i LSSI-CE.",
-                "cookie-text": "🍪 Używamy plików cookie, aby poprawić Twoje doświadczenia.",
-                "cookie-accept": "Akceptuję",
-                "cookie-decline": "Odrzuć",
-                "close": "Zamknij"
-            },
-            zh: {
-                "badge": "🎯 适用于维护公司",
-                "header-subtitle": "您的维护公司需要的软件",
-                "sectors": "游泳池 · 花园 · 清洁",
-                "demo-button": "📞 请求演示",
-                "section1-title": "为您，维护公司",
-                "section1-subtitle": "您有技术人员和客户。我们帮助您管理他们。",
-                "accordion1-title": "管理您的技术人员",
-                "accordion1-item1": "工作日控制",
-                "accordion1-item2": "完成工作记录",
-                "accordion1-item3": "时间和产品跟踪",
-                "accordion1-item4": "可用性和假期",
-                "accordion2-title": "向客户报告",
-                "accordion2-item1": "自动邮件报告",
-                "accordion2-item2": "游泳池和花园状态",
-                "accordion2-item3": "工作完成确认",
-                "accordion2-item4": "每个客户的歷史记录",
-                "accordion3-title": "集中您的业务",
-                "accordion3-item1": "所有客户在一个地方",
-                "accordion3-item2": "全面运营可见性",
-                "accordion3-item3": "报告和导出",
-                "accordion3-item4": "无纸化，全数字化",
-                "section2-title": "我们覆盖的行业",
-                "accordion4-title": "游泳池维护",
-                "accordion4-item1": "氯、pH值和温度控制",
-                "accordion4-item2": "水质警报",
-                "accordion4-item3": "化学品管理",
-                "accordion5-title": "花园维护",
-                "accordion5-item1": "灌溉和修剪规划",
-                "accordion5-item2": "害虫控制",
-                "accordion5-item3": "处理记录",
-                "accordion6-title": "社区清洁",
-                "accordion6-item1": "频率控制",
-                "accordion6-item2": "完成任务记录",
-                "accordion6-item3": "客户报告",
-                "platform-title": "平台",
-                "card1-title": "技术人员应用",
-                "card1-item1": "开始和结束工作日",
-                "card1-item2": "从手机记录工作",
-                "card1-item3": "查看客户历史",
-                "card1-item4": "报告紧急情况",
-                "card2-title": "管理面板",
-                "card2-item1": "实时监督",
-                "card2-item2": "事件管理",
-                "card2-item3": "员工控制",
-                "card2-item4": "报告和导出",
-                "card3-title": "自动通信",
-                "card3-item1": "自动客户报告",
-                "card3-item2": "Telegram警报",
-                "card3-item3": "工作确认",
-                "contact-title": "我们谈谈？",
-                "contact-subtitle": "告诉我们您的业务，我们将向您展示ComuTech如何帮助您。",
-                "contact-text": "准备好专业化您的维护公司了吗？",
-                "demo-button2": "📞 请求演示",
-                "whatsapp-button": "💬 通过WhatsApp联系",
-                "footer-desc": "适用于游泳池、花园和清洁维护公司的软件",
-                "legal-title": "法律信息",
-                "legal-notice": "法律声明",
-                "privacy-policy": "隐私政策",
-                "cookie-policy": "Cookie政策",
-                "contact-title-footer": "联系方式",
-                "location": "📍 西班牙马德里",
-                "footer-legal": "ComuTech符合GDPR和LSSI-CE标准。",
-                "cookie-text": "🍪 我们使用cookie来改善您的体验。",
-                "cookie-accept": "接受",
-                "cookie-decline": "拒绝",
-                "close": "关闭"
             }
         };
 
-        // ========== DETECCIÓN DE IDIOMA DEL NAVEGADOR ==========
-        function detectarIdiomaNavegador() {
-            const idiomasNavegador = [];
-            
-            if (navigator.languages) {
-                idiomasNavegador.push(...navigator.languages);
-            }
-            if (navigator.language) {
-                idiomasNavegador.push(navigator.language);
-            }
-            if (navigator.userLanguage) {
-                idiomasNavegador.push(navigator.userLanguage);
-            }
-            
-            const idiomasSoportados = {
-                'es': ['es', 'es-ES', 'es-MX', 'es-AR', 'es-CO', 'es-CL', 'es-PE'],
-                'en': ['en', 'en-US', 'en-GB', 'en-AU', 'en-CA'],
-                'fr': ['fr', 'fr-FR', 'fr-BE', 'fr-CH', 'fr-CA'],
-                'de': ['de', 'de-DE', 'de-AT', 'de-CH'],
-                'pt': ['pt', 'pt-PT', 'pt-BR'],
-                'ru': ['ru', 'ru-RU'],
-                'pl': ['pl', 'pl-PL'],
-                'zh': ['zh', 'zh-CN', 'zh-TW', 'zh-HK']
-            };
-            
-            for (let idiomaNavegador of idiomasNavegador) {
-                idiomaNavegador = idiomaNavegador.toLowerCase();
-                
-                for (const [lang, codes] of Object.entries(idiomasSoportados)) {
-                    if (codes.includes(idiomaNavegador)) {
-                        return lang;
-                    }
-                }
-            }
-            
-            return 'es';
-        }
-
-        // ========== INICIALIZAR IDIOMA ==========
         let idiomaActual = 'es';
 
-        function inicializarIdioma() {
-            const idiomaGuardado = localStorage.getItem('comutech_idioma');
+        function detectarIdiomaNavegador() {
+            const idiomas = [];
             
-            if (idiomaGuardado && translations[idiomaGuardado]) {
-                idiomaActual = idiomaGuardado;
-            } else {
-                idiomaActual = detectarIdiomaNavegador();
-                localStorage.setItem('comutech_idioma', idiomaActual);
+            if (navigator.languages) {
+                idiomas.push(...navigator.languages);
+            }
+            if (navigator.language) {
+                idiomas.push(navigator.language);
             }
             
-            aplicarIdioma(idiomaActual);
-            actualizarBotonesIdioma(idiomaActual);
+            const soporte = {
+                'es': ['es', 'es-es', 'es-mx', 'es-ar', 'es-cl', 'es-co'],
+                'en': ['en', 'en-us', 'en-gb', 'en-au', 'en-ca'],
+                'fr': ['fr', 'fr-fr', 'fr-be', 'fr-ch', 'fr-ca'],
+                'de': ['de', 'de-de', 'de-at', 'de-ch'],
+                'pt': ['pt', 'pt-pt', 'pt-br'],
+                'ru': ['ru', 'ru-ru', 'ru-ua', 'ru-by', 'ru-kz']
+            };
+            
+            for (let lang of idiomas) {
+                lang = lang.toLowerCase();
+                for (const [key, values] of Object.entries(soporte)) {
+                    if (values.includes(lang)) return key;
+                }
+            }
+            return 'es';
         }
 
         function aplicarIdioma(idioma) {
             const elementos = document.querySelectorAll('[data-i18n]');
-            
-            elementos.forEach(elemento => {
-                const clave = elemento.getAttribute('data-i18n');
+            elementos.forEach(el => {
+                const clave = el.getAttribute('data-i18n');
                 if (translations[idioma] && translations[idioma][clave]) {
-                    if (elemento.children.length > 0 && elemento.children[0]?.tagName === 'UL') {
-                        continue;
+                    if (el.tagName === 'BUTTON' || el.tagName === 'A') {
+                        if (clave !== 'demo-button' && clave !== 'demo-button2') {
+                            el.innerHTML = translations[idioma][clave];
+                        } else {
+                            el.innerHTML = translations[idioma][clave];
+                        }
+                    } else {
+                        el.textContent = translations[idioma][clave];
                     }
-                    elemento.textContent = translations[idioma][clave];
                 }
             });
-            
             document.documentElement.setAttribute('lang', idioma);
         }
 
-        function cambiarIdioma(idioma) {
-            if (!translations[idioma]) return;
-            
-            idiomaActual = idioma;
-            localStorage.setItem('comutech_idioma', idioma);
-            aplicarIdioma(idioma);
-            actualizarBotonesIdioma(idioma);
+        function inicializarIdioma() {
+            const guardado = localStorage.getItem('comutech_idioma');
+            if (guardado && translations[guardado]) {
+                idiomaActual = guardado;
+            } else {
+                idiomaActual = detectarIdiomaNavegador();
+                localStorage.setItem('comutech_idioma', idiomaActual);
+            }
+            aplicarIdioma(idiomaActual);
         }
 
-        function actualizarBotonesIdioma(idiomaActivo) {
-            const botones = document.querySelectorAll('.lang-btn');
-            botones.forEach(btn => {
-                const lang = btn.getAttribute('data-lang');
-                if (lang === idiomaActivo) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+        function inicializarAcordeon() {
+            const headers = document.querySelectorAll('.accordion-header');
+            headers.forEach(header => {
+                header.addEventListener('click', function() {
+                    const item = this.closest('.accordion-item');
+                    const content = item.querySelector('.accordion-content');
+                    const isActive = this.classList.contains('active');
+                    
+                    document.querySelectorAll('.accordion-header').forEach(h => {
+                        if (h !== header) {
+                            h.classList.remove('active');
+                            h.closest('.accordion-item').querySelector('.accordion-content').style.maxHeight = null;
+                        }
+                    });
+                    
+                    this.classList.toggle('active');
+                    content.style.maxHeight = isActive ? null : content.scrollHeight + 'px';
+                });
             });
         }
 
-        // ========== ACORDEÓN PROFESIONAL ==========
-        function inicializarAcordeon() {
-            const headers = document.querySelectorAll('.accordion-header');
+        function solicitarDemo() {
+            const mensajes = {
+                es: '✅ Solicitud enviada. Te contactaremos en menos de 24 horas.',
+                en: '✅ Request sent. We will contact you within 24 hours.',
+                fr: '✅ Demande envoyée. Nous vous contacterons dans les 24 heures.',
+                de: '✅ Anfrage gesendet. Wir werden Sie innerhalb von 24 Stunden kontaktieren.',
+                pt: '✅ Solicitação enviada. Entraremos em contato em até 24 horas.',
+                ru: '✅ Запрос отправлен. Мы свяжемся с вами в течение 24 часов.'
+            };
+            alert(mensajes[idiomaActual] || mensajes.es);
+        }
+
+        function contactarWhatsApp() {
+            window.open('https://wa.me/34600000000', '_blank');
+        }
+
+        function aceptarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'true');
+            document.getElementById('cookieBanner').style.display = 'none';
+        }
+
+        function rechazarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'false');
+            document.getElementById('cookieBanner').style.display = 'none';
+        }
+
+        function mostrarModal(tipo) {
+            const modal = document.getElementById('modalPoliticas');
+            const titulo = document.getElementById('modalTitulo');
+            const body = document.getElementById('modalBody');
             
-            headers.forEach(header => {
-                header.addEventListener('click',
+            const textos = {
+                es: { aviso: 'Aviso legal', privacidad: 'Política de privacidad', cookies: 'Política de cookies', contenido: '<h4>ComuTech</h4><p>Software B2B para empresas de mantenimiento.</p><p>info@comutech.com</p>' },
+                en: { aviso: 'Legal notice', privacidad: 'Privacy policy', cookies: 'Cookie policy', contenido: '<h4>ComuTech</h4><p>B2B software for maintenance companies.</p><p>info@comutech.com</p>' },
+                fr: { aviso: 'Mentions légales', privacidad: 'Politique de confidentialité', cookies: 'Politique des cookies', contenido: '<h4>ComuTech</h4><p>Logiciel B2B pour entreprises de maintenance.</p><p>info@comutech.com</p>' },
+                de: { aviso: 'Impressum', privacidad: 'Datenschutzerklärung', cookies: 'Cookie-Richtlinie', contenido: '<h4>ComuTech</h4><p>B2B-Software für Wartungsunternehmen.</p><p>info@comutech.com</p>' },
+                pt: { aviso: 'Aviso legal', privacidad: 'Política de privacidade', cookies: 'Política de cookies', contenido: '<h4>ComuTech</h4><p>Software B2B para empresas de manutenção.</p><p>info@comutech.com</p>' },
+                ru: { aviso: 'Правовая информация', privacidad: 'Политика конфиденциальности', cookies: 'Политика cookie', contenido: '<h4>ComuTech</h4><p>B2B программное обеспечение для сервисных компаний.</p><p>info@comutech.com</p>' }
+            };
+            
+            const t = textos[idiomaActual] || textos.es;
+            
+            if (tipo === 'aviso-legal') {
+                titulo.textContent = t.aviso;
+                body.innerHTML = t.contenido;
+            } else if (tipo === 'politica-privacidad') {
+                titulo.textContent = t.privacidad;
+                body.innerHTML = '<h4>' + t.privacidad + '</h4><p>Cumplimos con el RGPD. Tus datos están seguros.</p>';
+            } else {
+                titulo.textContent = t.cookies;
+                body.innerHTML = '<h4>' + t.cookies + '</h4><p>Usamos cookies técnicas y analíticas para mejorar el servicio.</p>';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalPoliticas').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            inicializarIdioma();
+            inicializarAcordeon();
+            
+            if (localStorage.getItem('cookies_aceptadas') !== null) {
+                document.getElementById('cookieBanner').style.display = 'none';
+            }
+            
+            window.onclick = (event) => {
+                const modal = document.getElementById('modalPoliticas');
+                if (event.target === modal) modal.style.display = 'none';
+            };
+        });
+    </script>
+</body>
+</html>
