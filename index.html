@@ -11,7 +11,7 @@
         body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.5; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         
-        /* Selector de idioma */
+        /* Selector de idioma mejorado */
         .lang-selector {
             position: fixed;
             top: 20px;
@@ -19,11 +19,13 @@
             z-index: 1000;
             background: white;
             border-radius: 50px;
-            padding: 6px 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 8px 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
             display: flex;
-            gap: 8px;
-            cursor: pointer;
+            gap: 6px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95);
         }
         .lang-btn {
             background: none;
@@ -33,13 +35,18 @@
             cursor: pointer;
             font-weight: 500;
             transition: all 0.2s;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .lang-btn:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
         }
         .lang-btn.active {
             background: #0077b6;
             color: white;
-        }
-        .lang-btn:not(.active):hover {
-            background: #e2e8f0;
         }
         
         /* Header */
@@ -222,16 +229,32 @@
             .timeline { flex-direction: column; align-items: center; }
             .timeline-step { max-width: 280px; }
             .cookie-banner { flex-direction: column; text-align: center; }
-            .lang-selector { top: 10px; right: 12px; }
-            .lang-btn { padding: 4px 8px; font-size: 0.8rem; }
+            .lang-selector { 
+                top: 10px; 
+                right: 12px; 
+                left: 12px;
+                justify-content: center;
+                gap: 4px;
+            }
+            .lang-btn { padding: 4px 8px; font-size: 0.7rem; }
+        }
+        
+        [data-i18n] {
+            transition: opacity 0.2s;
         }
     </style>
 </head>
 <body>
-    <!-- Selector de idioma -->
+    <!-- Selector de idioma con 8 idiomas -->
     <div class="lang-selector">
-        <button class="lang-btn active" data-lang="es">🇪🇸 ES</button>
+        <button class="lang-btn" data-lang="es">🇪🇸 ES</button>
         <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+        <button class="lang-btn" data-lang="fr">🇫🇷 FR</button>
+        <button class="lang-btn" data-lang="de">🇩🇪 DE</button>
+        <button class="lang-btn" data-lang="pt">🇵🇹 PT</button>
+        <button class="lang-btn" data-lang="ru">🇷🇺 RU</button>
+        <button class="lang-btn" data-lang="pl">🇵🇱 PL</button>
+        <button class="lang-btn" data-lang="zh">🇨🇳 中文</button>
     </div>
 
     <div class="header">
@@ -246,7 +269,7 @@
     </div>
 
     <div class="container">
-        <!-- SECCIÓN 1 - ACORDEÓN: Para ti, empresa de mantenimiento -->
+        <!-- SECCIÓN 1 - ACORDEÓN -->
         <div class="section">
             <div class="section-title" data-i18n="section1-title">Para ti, empresa de mantenimiento</div>
             <div class="section-subtitle" data-i18n="section1-subtitle">
@@ -314,7 +337,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 2 - ACORDEÓN: Sectores que cubres -->
+        <!-- SECCIÓN 2 - ACORDEÓN -->
         <div class="section">
             <div class="section-title" data-i18n="section2-title">Sectores que cubrimos</div>
             
@@ -376,7 +399,7 @@
             </div>
         </div>
 
-        <!-- El resto del contenido se mantiene igual pero con traducciones -->
+        <!-- Sección Plataforma -->
         <div class="section">
             <div class="section-title" data-i18n="platform-title">La plataforma</div>
             <div class="cards-grid">
@@ -412,7 +435,7 @@
             </div>
         </div>
 
-        <!-- Sección de contacto final igual -->
+        <!-- Sección contacto -->
         <div class="section" id="contacto">
             <div class="section-title" data-i18n="contact-title">¿Hablamos?</div>
             <div class="section-subtitle" data-i18n="contact-subtitle">
@@ -464,7 +487,7 @@
         </div>
     </div>
 
-    <!-- Cookie banner y modal igual -->
+    <!-- Cookie banner -->
     <div id="cookieBanner" class="cookie-banner" style="display: flex;">
         <p data-i18n="cookie-text">🍪 Usamos cookies para mejorar tu experiencia.</p>
         <div class="cookie-buttons">
@@ -482,12 +505,12 @@
     </div>
 
     <script>
-        // ========== SISTEMA DE IDIOMAS ==========
+        // ========== TRADUCCIONES COMPLETAS PARA 8 IDIOMAS ==========
         const translations = {
             es: {
-                badge: "🎯 Para empresas de mantenimiento",
+                "badge": "🎯 Para empresas de mantenimiento",
                 "header-subtitle": "El software que tu empresa de mantenimiento necesita",
-                sectors: "Piscinas · Jardines · Limpieza",
+                "sectors": "Piscinas · Jardines · Limpieza",
                 "demo-button": "📞 Solicitar demo",
                 "section1-title": "Para ti, empresa de mantenimiento",
                 "section1-subtitle": "Tú tienes los técnicos y los clientes. Nosotros te ayudamos a gestionarlos.",
@@ -546,4 +569,585 @@
                 "cookie-policy": "Política de cookies",
                 "contact-title-footer": "Contacto",
                 "location": "📍 Madrid, España",
-               
+                "footer-legal": "ComuTech cumple con el RGPD y la LSSI-CE.",
+                "cookie-text": "🍪 Usamos cookies para mejorar tu experiencia.",
+                "cookie-accept": "Aceptar",
+                "cookie-decline": "Rechazar",
+                "close": "Cerrar"
+            },
+            en: {
+                "badge": "🎯 For maintenance companies",
+                "header-subtitle": "The software your maintenance company needs",
+                "sectors": "Pools · Gardens · Cleaning",
+                "demo-button": "📞 Request demo",
+                "section1-title": "For you, maintenance company",
+                "section1-subtitle": "You have the technicians and clients. We help you manage them.",
+                "accordion1-title": "Manage your technicians",
+                "accordion1-item1": "Workday control",
+                "accordion1-item2": "Record of completed work",
+                "accordion1-item3": "Time and product tracking",
+                "accordion1-item4": "Availability and vacations",
+                "accordion2-title": "Report to your clients",
+                "accordion2-item1": "Automatic email reports",
+                "accordion2-item2": "Pool and garden status",
+                "accordion2-item3": "Work completion confirmation",
+                "accordion2-item4": "History for each client",
+                "accordion3-title": "Centralize your business",
+                "accordion3-item1": "All your clients in one place",
+                "accordion3-item2": "Full operational visibility",
+                "accordion3-item3": "Reports and exports",
+                "accordion3-item4": "Paperless, fully digital",
+                "section2-title": "Sectors we cover",
+                "accordion4-title": "Pool maintenance",
+                "accordion4-item1": "Chlorine, pH and temperature control",
+                "accordion4-item2": "Water quality alerts",
+                "accordion4-item3": "Chemical products management",
+                "accordion5-title": "Garden maintenance",
+                "accordion5-item1": "Irrigation and pruning planning",
+                "accordion5-item2": "Pest control",
+                "accordion5-item3": "Treatment recording",
+                "accordion6-title": "Community cleaning",
+                "accordion6-item1": "Frequency control",
+                "accordion6-item2": "Completed tasks record",
+                "accordion6-item3": "Reports for clients",
+                "platform-title": "The platform",
+                "card1-title": "Technician App",
+                "card1-item1": "Start and end workday",
+                "card1-item2": "Record work from mobile",
+                "card1-item3": "View client history",
+                "card1-item4": "Report emergencies",
+                "card2-title": "Management Panel",
+                "card2-item1": "Real-time supervision",
+                "card2-item2": "Incident management",
+                "card2-item3": "Staff control",
+                "card2-item4": "Reports and exports",
+                "card3-title": "Automatic Communication",
+                "card3-item1": "Automatic client reports",
+                "card3-item2": "Telegram alerts",
+                "card3-item3": "Work confirmation",
+                "contact-title": "Let's talk?",
+                "contact-subtitle": "Tell us about your business and we'll show you how ComuTech can help you.",
+                "contact-text": "Ready to professionalize your maintenance company?",
+                "demo-button2": "📞 Request demo",
+                "whatsapp-button": "💬 Contact via WhatsApp",
+                "footer-desc": "Software for pool, garden and cleaning maintenance companies",
+                "legal-title": "Legal",
+                "legal-notice": "Legal notice",
+                "privacy-policy": "Privacy policy",
+                "cookie-policy": "Cookie policy",
+                "contact-title-footer": "Contact",
+                "location": "📍 Madrid, Spain",
+                "footer-legal": "ComuTech complies with GDPR and LSSI-CE.",
+                "cookie-text": "🍪 We use cookies to improve your experience.",
+                "cookie-accept": "Accept",
+                "cookie-decline": "Decline",
+                "close": "Close"
+            },
+            fr: {
+                "badge": "🎯 Pour entreprises de maintenance",
+                "header-subtitle": "Le logiciel dont votre entreprise de maintenance a besoin",
+                "sectors": "Piscines · Jardins · Nettoyage",
+                "demo-button": "📞 Demander une démo",
+                "section1-title": "Pour vous, entreprise de maintenance",
+                "section1-subtitle": "Vous avez les techniciens et les clients. Nous vous aidons à les gérer.",
+                "accordion1-title": "Gérez vos techniciens",
+                "accordion1-item1": "Contrôle des horaires de travail",
+                "accordion1-item2": "Enregistrement des travaux effectués",
+                "accordion1-item3": "Suivi des temps et produits",
+                "accordion1-item4": "Disponibilités et vacances",
+                "accordion2-title": "Rapportez à vos clients",
+                "accordion2-item1": "Rapports automatiques par email",
+                "accordion2-item2": "État des piscines et jardins",
+                "accordion2-item3": "Confirmation des travaux réalisés",
+                "accordion2-item4": "Historique pour chaque client",
+                "accordion3-title": "Centralisez votre activité",
+                "accordion3-item1": "Tous vos clients au même endroit",
+                "accordion3-item2": "Visibilité complète de votre opérationnel",
+                "accordion3-item3": "Rapports et exportations",
+                "accordion3-item4": "Sans papier, tout numérique",
+                "section2-title": "Secteurs couverts",
+                "accordion4-title": "Entretien de piscines",
+                "accordion4-item1": "Contrôle du chlore, pH et température",
+                "accordion4-item2": "Alertes qualité de l'eau",
+                "accordion4-item3": "Gestion des produits chimiques",
+                "accordion5-title": "Entretien de jardins",
+                "accordion5-item1": "Planification des arrosages et tailles",
+                "accordion5-item2": "Contrôle des nuisibles",
+                "accordion5-item3": "Enregistrement des traitements",
+                "accordion6-title": "Nettoyage de communautés",
+                "accordion6-item1": "Contrôle des fréquences",
+                "accordion6-item2": "Enregistrement des tâches effectuées",
+                "accordion6-item3": "Rapports pour les clients",
+                "platform-title": "La plateforme",
+                "card1-title": "Appli techniciens",
+                "card1-item1": "Démarrer et terminer la journée",
+                "card1-item2": "Enregistrer les travaux depuis mobile",
+                "card1-item3": "Voir l'historique client",
+                "card1-item4": "Signaler les urgences",
+                "card2-title": "Panneau de gestion",
+                "card2-item1": "Supervision en temps réel",
+                "card2-item2": "Gestion des incidents",
+                "card2-item3": "Contrôle du personnel",
+                "card2-item4": "Rapports et exportations",
+                "card3-title": "Communication automatique",
+                "card3-item1": "Rapports automatiques pour clients",
+                "card3-item2": "Alertes Telegram",
+                "card3-item3": "Confirmation des travaux",
+                "contact-title": "On parle ?",
+                "contact-subtitle": "Parlez-nous de votre entreprise et nous vous montrerons comment ComuTech peut vous aider.",
+                "contact-text": "Prêt à professionnaliser votre entreprise de maintenance ?",
+                "demo-button2": "📞 Demander une démo",
+                "whatsapp-button": "💬 Contacter via WhatsApp",
+                "footer-desc": "Logiciel pour entreprises d'entretien de piscines, jardins et nettoyage",
+                "legal-title": "Légal",
+                "legal-notice": "Mentions légales",
+                "privacy-policy": "Politique de confidentialité",
+                "cookie-policy": "Politique des cookies",
+                "contact-title-footer": "Contact",
+                "location": "📍 Madrid, Espagne",
+                "footer-legal": "ComuTech est conforme au RGPD et à la LSSI-CE.",
+                "cookie-text": "🍪 Nous utilisons des cookies pour améliorer votre expérience.",
+                "cookie-accept": "Accepter",
+                "cookie-decline": "Refuser",
+                "close": "Fermer"
+            },
+            de: {
+                "badge": "🎯 Für Wartungsunternehmen",
+                "header-subtitle": "Die Software, die Ihr Wartungsunternehmen benötigt",
+                "sectors": "Pools · Gärten · Reinigung",
+                "demo-button": "📞 Demo anfordern",
+                "section1-title": "Für Sie, Wartungsunternehmen",
+                "section1-subtitle": "Sie haben die Techniker und die Kunden. Wir helfen Ihnen bei der Verwaltung.",
+                "accordion1-title": "Verwalten Sie Ihre Techniker",
+                "accordion1-item1": "Arbeitszeitkontrolle",
+                "accordion1-item2": "Erfassung durchgeführter Arbeiten",
+                "accordion1-item3": "Zeit- und Produktverfolgung",
+                "accordion1-item4": "Verfügbarkeit und Urlaub",
+                "accordion2-title": "Berichten Sie Ihren Kunden",
+                "accordion2-item1": "Automatische E-Mail-Berichte",
+                "accordion2-item2": "Zustand von Pools und Gärten",
+                "accordion2-item3": "Bestätigung durchgeführter Arbeiten",
+                "accordion2-item4": "Verlauf für jeden Kunden",
+                "accordion3-title": "Zentralisieren Sie Ihr Geschäft",
+                "accordion3-item1": "Alle Kunden an einem Ort",
+                "accordion3-item2": "Volle Transparenz Ihrer Abläufe",
+                "accordion3-item3": "Berichte und Exporte",
+                "accordion3-item4": "Papierlos, komplett digital",
+                "section2-title": "Abgedeckte Branchen",
+                "accordion4-title": "Pool-Wartung",
+                "accordion4-item1": "Kontrolle von Chlor, pH-Wert und Temperatur",
+                "accordion4-item2": "Wasserqualitätswarnungen",
+                "accordion4-item3": "Verwaltung von Chemikalien",
+                "accordion5-title": "Gartenpflege",
+                "accordion5-item1": "Bewässerungs- und Schnittplanung",
+                "accordion5-item2": "Schädlingsbekämpfung",
+                "accordion5-item3": "Behandlungsdokumentation",
+                "accordion6-title": "Gemeinschaftsreinigung",
+                "accordion6-item1": "Frequenzkontrolle",
+                "accordion6-item2": "Erfassung erledigter Aufgaben",
+                "accordion6-item3": "Berichte für Kunden",
+                "platform-title": "Die Plattform",
+                "card1-title": "Techniker-App",
+                "card1-item1": "Arbeitstag beginnen und beenden",
+                "card1-item2": "Arbeiten von unterwegs erfassen",
+                "card1-item3": "Kundenhistorie einsehen",
+                "card1-item4": "Notfälle melden",
+                "card2-title": "Verwaltungs-Panel",
+                "card2-item1": "Echtzeit-Überwachung",
+                "card2-item2": "Zwischenfallmanagement",
+                "card2-item3": "Personalverwaltung",
+                "card2-item4": "Berichte und Exporte",
+                "card3-title": "Automatische Kommunikation",
+                "card3-item1": "Automatische Kundenberichte",
+                "card3-item2": "Telegram-Benachrichtigungen",
+                "card3-item3": "Arbeitsbestätigung",
+                "contact-title": "Reden wir?",
+                "contact-subtitle": "Erzählen Sie uns von Ihrem Unternehmen und wir zeigen Ihnen, wie ComuTech Ihnen helfen kann.",
+                "contact-text": "Bereit, Ihr Wartungsunternehmen zu professionalisieren?",
+                "demo-button2": "📞 Demo anfordern",
+                "whatsapp-button": "💬 Kontakt via WhatsApp",
+                "footer-desc": "Software für Pool-, Garten- und Reinigungswartungsunternehmen",
+                "legal-title": "Rechtliches",
+                "legal-notice": "Impressum",
+                "privacy-policy": "Datenschutzerklärung",
+                "cookie-policy": "Cookie-Richtlinie",
+                "contact-title-footer": "Kontakt",
+                "location": "📍 Madrid, Spanien",
+                "footer-legal": "ComuTech entspricht der DSGVO und der LSSI-CE.",
+                "cookie-text": "🍪 Wir verwenden Cookies, um Ihr Erlebnis zu verbessern.",
+                "cookie-accept": "Akzeptieren",
+                "cookie-decline": "Ablehnen",
+                "close": "Schließen"
+            },
+            pt: {
+                "badge": "🎯 Para empresas de manutenção",
+                "header-subtitle": "O software que sua empresa de manutenção precisa",
+                "sectors": "Piscinas · Jardins · Limpeza",
+                "demo-button": "📞 Solicitar demonstração",
+                "section1-title": "Para você, empresa de manutenção",
+                "section1-subtitle": "Você tem os técnicos e os clientes. Nós ajudamos você a gerenciá-los.",
+                "accordion1-title": "Gerencie seus técnicos",
+                "accordion1-item1": "Controle de jornada de trabalho",
+                "accordion1-item2": "Registro de trabalhos realizados",
+                "accordion1-item3": "Controle de tempos e produtos",
+                "accordion1-item4": "Disponibilidade e férias",
+                "accordion2-title": "Reporte aos seus clientes",
+                "accordion2-item1": "Relatórios automáticos por email",
+                "accordion2-item2": "Estado de piscinas e jardins",
+                "accordion2-item3": "Confirmação de trabalhos realizados",
+                "accordion2-item4": "Histórico para cada cliente",
+                "accordion3-title": "Centralize seu negócio",
+                "accordion3-item1": "Todos os seus clientes em um só lugar",
+                "accordion3-item2": "Visibilidade total da sua operação",
+                "accordion3-item3": "Relatórios e exportações",
+                "accordion3-item4": "Sem papel, tudo digital",
+                "section2-title": "Setores que cobrimos",
+                "accordion4-title": "Manutenção de piscinas",
+                "accordion4-item1": "Controle de cloro, pH e temperatura",
+                "accordion4-item2": "Alertas de qualidade da água",
+                "accordion4-item3": "Gestão de produtos químicos",
+                "accordion5-title": "Manutenção de jardins",
+                "accordion5-item1": "Planejamento de regas e podas",
+                "accordion5-item2": "Controle de pragas",
+                "accordion5-item3": "Registro de tratamentos",
+                "accordion6-title": "Limpeza de comunidades",
+                "accordion6-item1": "Controle de frequências",
+                "accordion6-item2": "Registro de tarefas realizadas",
+                "accordion6-item3": "Relatórios para clientes",
+                "platform-title": "A plataforma",
+                "card1-title": "App para técnicos",
+                "card1-item1": "Iniciar e finalizar jornada",
+                "card1-item2": "Registrar trabalhos pelo celular",
+                "card1-item3": "Ver histórico do cliente",
+                "card1-item4": "Avisar urgências",
+                "card2-title": "Painel de gestão",
+                "card2-item1": "Supervisão em tempo real",
+                "card2-item2": "Gestão de incidentes",
+                "card2-item3": "Controle de pessoal",
+                "card2-item4": "Relatórios e exportações",
+                "card3-title": "Comunicação automática",
+                "card3-item1": "Relatórios automáticos para clientes",
+                "card3-item2": "Alertas por Telegram",
+                "card3-item3": "Confirmação de trabalhos",
+                "contact-title": "Vamos conversar?",
+                "contact-subtitle": "Conte-nos sobre seu negócio e mostraremos como o ComuTech pode ajudá-lo.",
+                "contact-text": "Pronto para profissionalizar sua empresa de manutenção?",
+                "demo-button2": "📞 Solicitar demonstração",
+                "whatsapp-button": "💬 Contatar via WhatsApp",
+                "footer-desc": "Software para empresas de manutenção de piscinas, jardins e limpeza",
+                "legal-title": "Legal",
+                "legal-notice": "Aviso legal",
+                "privacy-policy": "Política de privacidade",
+                "cookie-policy": "Política de cookies",
+                "contact-title-footer": "Contato",
+                "location": "📍 Madrid, Espanha",
+                "footer-legal": "ComuTech cumpre o RGPD e a LSSI-CE.",
+                "cookie-text": "🍪 Usamos cookies para melhorar sua experiência.",
+                "cookie-accept": "Aceitar",
+                "cookie-decline": "Recusar",
+                "close": "Fechar"
+            },
+            ru: {
+                "badge": "🎯 Для обслуживающих компаний",
+                "header-subtitle": "Программное обеспечение, необходимое вашей обслуживающей компании",
+                "sectors": "Бассейны · Сады · Уборка",
+                "demo-button": "📞 Запросить демо",
+                "section1-title": "Для вас, обслуживающая компания",
+                "section1-subtitle": "У вас есть технические специалисты и клиенты. Мы помогаем вам управлять ими.",
+                "accordion1-title": "Управляйте своими техническими специалистами",
+                "accordion1-item1": "Контроль рабочего времени",
+                "accordion1-item2": "Регистрация выполненных работ",
+                "accordion1-item3": "Отслеживание времени и продуктов",
+                "accordion1-item4": "Доступность и отпуска",
+                "accordion2-title": "Отчитывайтесь перед клиентами",
+                "accordion2-item1": "Автоматические отчеты по email",
+                "accordion2-item2": "Состояние бассейнов и садов",
+                "accordion2-item3": "Подтверждение выполненных работ",
+                "accordion2-item4": "История для каждого клиента",
+                "accordion3-title": "Централизуйте свой бизнес",
+                "accordion3-item1": "Все клиенты в одном месте",
+                "accordion3-item2": "Полная видимость операций",
+                "accordion3-item3": "Отчеты и экспорт",
+                "accordion3-item4": "Без бумаги, полностью цифровой",
+                "section2-title": "Охватываемые секторы",
+                "accordion4-title": "Обслуживание бассейнов",
+                "accordion4-item1": "Контроль хлора, pH и температуры",
+                "accordion4-item2": "Оповещения о качестве воды",
+                "accordion4-item3": "Управление химическими продуктами",
+                "accordion5-title": "Уход за садом",
+                "accordion5-item1": "Планирование полива и обрезки",
+                "accordion5-item2": "Борьба с вредителями",
+                "accordion5-item3": "Регистрация обработок",
+                "accordion6-title": "Уборка помещений",
+                "accordion6-item1": "Контроль частоты",
+                "accordion6-item2": "Регистрация выполненных задач",
+                "accordion6-item3": "Отчеты для клиентов",
+                "platform-title": "Платформа",
+                "card1-title": "Приложение для техников",
+                "card1-item1": "Начать и завершить рабочий день",
+                "card1-item2": "Регистрировать работы с телефона",
+                "card1-item3": "Просмотр истории клиента",
+                "card1-item4": "Сообщать о чрезвычайных ситуациях",
+                "card2-title": "Панель управления",
+                "card2-item1": "Мониторинг в реальном времени",
+                "card2-item2": "Управление инцидентами",
+                "card2-item3": "Контроль персонала",
+                "card2-item4": "Отчеты и экспорт",
+                "card3-title": "Автоматическая связь",
+                "card3-item1": "Автоматические отчеты для клиентов",
+                "card3-item2": "Оповещения в Telegram",
+                "card3-item3": "Подтверждение работ",
+                "contact-title": "Поговорим?",
+                "contact-subtitle": "Расскажите о своем бизнесе, и мы покажем, как ComuTech может вам помочь.",
+                "contact-text": "Готовы профессионализировать вашу обслуживающую компанию?",
+                "demo-button2": "📞 Запросить демо",
+                "whatsapp-button": "💬 Связаться через WhatsApp",
+                "footer-desc": "Программное обеспечение для компаний по обслуживанию бассейнов, садов и уборке",
+                "legal-title": "Юридическая информация",
+                "legal-notice": "Правовая информация",
+                "privacy-policy": "Политика конфиденциальности",
+                "cookie-policy": "Политика использования файлов cookie",
+                "contact-title-footer": "Контакты",
+                "location": "📍 Мадрид, Испания",
+                "footer-legal": "ComuTech соответствует GDPR и LSSI-CE.",
+                "cookie-text": "🍪 Мы используем файлы cookie для улучшения вашего опыта.",
+                "cookie-accept": "Принять",
+                "cookie-decline": "Отклонить",
+                "close": "Закрыть"
+            },
+            pl: {
+                "badge": "🎯 Dla firm serwisowych",
+                "header-subtitle": "Oprogramowanie, którego potrzebuje Twoja firma serwisowa",
+                "sectors": "Baseny · Ogrody · Sprzątanie",
+                "demo-button": "📞 Poproś o demo",
+                "section1-title": "Dla Ciebie, firmo serwisowa",
+                "section1-subtitle": "Masz techników i klientów. Pomagamy Ci nimi zarządzać.",
+                "accordion1-title": "Zarządzaj swoimi technikami",
+                "accordion1-item1": "Kontrola czasu pracy",
+                "accordion1-item2": "Rejestracja wykonanych prac",
+                "accordion1-item3": "Śledzenie czasu i produktów",
+                "accordion1-item4": "Dostępność i urlopy",
+                "accordion2-title": "Raportuj swoim klientom",
+                "accordion2-item1": "Automatyczne raporty email",
+                "accordion2-item2": "Stan basenów i ogrodów",
+                "accordion2-item3": "Potwierdzenie wykonanych prac",
+                "accordion2-item4": "Historia dla każdego klienta",
+                "accordion3-title": "Scentralizuj swoją działalność",
+                "accordion3-item1": "Wszyscy klienci w jednym miejscu",
+                "accordion3-item2": "Pełna widoczność operacji",
+                "accordion3-item3": "Raporty i eksport",
+                "accordion3-item4": "Bez papieru, w pełni cyfrowo",
+                "section2-title": "Sektory, które obsługujemy",
+                "accordion4-title": "Konserwacja basenów",
+                "accordion4-item1": "Kontrola chloru, pH i temperatury",
+                "accordion4-item2": "Alerty jakości wody",
+                "accordion4-item3": "Zarządzanie produktami chemicznymi",
+                "accordion5-title": "Pielęgnacja ogrodów",
+                "accordion5-item1": "Planowanie nawadniania i przycinania",
+                "accordion5-item2": "Kontrola szkodników",
+                "accordion5-item3": "Rejestracja zabiegów",
+                "accordion6-title": "Sprzątanie wspólnot",
+                "accordion6-item1": "Kontrola częstotliwości",
+                "accordion6-item2": "Rejestracja wykonanych zadań",
+                "accordion6-item3": "Raporty dla klientów",
+                "platform-title": "Platforma",
+                "card1-title": "Aplikacja dla techników",
+                "card1-item1": "Rozpocznij i zakończ dzień pracy",
+                "card1-item2": "Rejestruj prace z telefonu",
+                "card1-item3": "Przeglądaj historię klienta",
+                "card1-item4": "Zgłaszaj sytuacje awaryjne",
+                "card2-title": "Panel zarządzania",
+                "card2-item1": "Nadzór w czasie rzeczywistym",
+                "card2-item2": "Zarządzanie incydentami",
+                "card2-item3": "Kontrola personelu",
+                "card2-item4": "Raporty i eksport",
+                "card3-title": "Automatyczna komunikacja",
+                "card3-item1": "Automatyczne raporty dla klientów",
+                "card3-item2": "Alerty Telegram",
+                "card3-item3": "Potwierdzenie prac",
+                "contact-title": "Rozmawiamy?",
+                "contact-subtitle": "Opowiedz nam o swojej firmie, a pokażemy Ci, jak ComuTech może Ci pomóc.",
+                "contact-text": "Gotowy na profesjonalizację swojej firmy serwisowej?",
+                "demo-button2": "📞 Poproś o demo",
+                "whatsapp-button": "💬 Kontakt przez WhatsApp",
+                "footer-desc": "Oprogramowanie dla firm zajmujących się konserwacją basenów, ogrodów i sprzątaniem",
+                "legal-title": "Informacje prawne",
+                "legal-notice": "Informacja prawna",
+                "privacy-policy": "Polityka prywatności",
+                "cookie-policy": "Polityka cookie",
+                "contact-title-footer": "Kontakt",
+                "location": "📍 Madryt, Hiszpania",
+                "footer-legal": "ComuTech jest zgodny z RODO i LSSI-CE.",
+                "cookie-text": "🍪 Używamy plików cookie, aby poprawić Twoje doświadczenia.",
+                "cookie-accept": "Akceptuję",
+                "cookie-decline": "Odrzuć",
+                "close": "Zamknij"
+            },
+            zh: {
+                "badge": "🎯 适用于维护公司",
+                "header-subtitle": "您的维护公司需要的软件",
+                "sectors": "游泳池 · 花园 · 清洁",
+                "demo-button": "📞 请求演示",
+                "section1-title": "为您，维护公司",
+                "section1-subtitle": "您有技术人员和客户。我们帮助您管理他们。",
+                "accordion1-title": "管理您的技术人员",
+                "accordion1-item1": "工作日控制",
+                "accordion1-item2": "完成工作记录",
+                "accordion1-item3": "时间和产品跟踪",
+                "accordion1-item4": "可用性和假期",
+                "accordion2-title": "向客户报告",
+                "accordion2-item1": "自动邮件报告",
+                "accordion2-item2": "游泳池和花园状态",
+                "accordion2-item3": "工作完成确认",
+                "accordion2-item4": "每个客户的歷史记录",
+                "accordion3-title": "集中您的业务",
+                "accordion3-item1": "所有客户在一个地方",
+                "accordion3-item2": "全面运营可见性",
+                "accordion3-item3": "报告和导出",
+                "accordion3-item4": "无纸化，全数字化",
+                "section2-title": "我们覆盖的行业",
+                "accordion4-title": "游泳池维护",
+                "accordion4-item1": "氯、pH值和温度控制",
+                "accordion4-item2": "水质警报",
+                "accordion4-item3": "化学品管理",
+                "accordion5-title": "花园维护",
+                "accordion5-item1": "灌溉和修剪规划",
+                "accordion5-item2": "害虫控制",
+                "accordion5-item3": "处理记录",
+                "accordion6-title": "社区清洁",
+                "accordion6-item1": "频率控制",
+                "accordion6-item2": "完成任务记录",
+                "accordion6-item3": "客户报告",
+                "platform-title": "平台",
+                "card1-title": "技术人员应用",
+                "card1-item1": "开始和结束工作日",
+                "card1-item2": "从手机记录工作",
+                "card1-item3": "查看客户历史",
+                "card1-item4": "报告紧急情况",
+                "card2-title": "管理面板",
+                "card2-item1": "实时监督",
+                "card2-item2": "事件管理",
+                "card2-item3": "员工控制",
+                "card2-item4": "报告和导出",
+                "card3-title": "自动通信",
+                "card3-item1": "自动客户报告",
+                "card3-item2": "Telegram警报",
+                "card3-item3": "工作确认",
+                "contact-title": "我们谈谈？",
+                "contact-subtitle": "告诉我们您的业务，我们将向您展示ComuTech如何帮助您。",
+                "contact-text": "准备好专业化您的维护公司了吗？",
+                "demo-button2": "📞 请求演示",
+                "whatsapp-button": "💬 通过WhatsApp联系",
+                "footer-desc": "适用于游泳池、花园和清洁维护公司的软件",
+                "legal-title": "法律信息",
+                "legal-notice": "法律声明",
+                "privacy-policy": "隐私政策",
+                "cookie-policy": "Cookie政策",
+                "contact-title-footer": "联系方式",
+                "location": "📍 西班牙马德里",
+                "footer-legal": "ComuTech符合GDPR和LSSI-CE标准。",
+                "cookie-text": "🍪 我们使用cookie来改善您的体验。",
+                "cookie-accept": "接受",
+                "cookie-decline": "拒绝",
+                "close": "关闭"
+            }
+        };
+
+        // ========== DETECCIÓN DE IDIOMA DEL NAVEGADOR ==========
+        function detectarIdiomaNavegador() {
+            const idiomasNavegador = [];
+            
+            if (navigator.languages) {
+                idiomasNavegador.push(...navigator.languages);
+            }
+            if (navigator.language) {
+                idiomasNavegador.push(navigator.language);
+            }
+            if (navigator.userLanguage) {
+                idiomasNavegador.push(navigator.userLanguage);
+            }
+            
+            const idiomasSoportados = {
+                'es': ['es', 'es-ES', 'es-MX', 'es-AR', 'es-CO', 'es-CL', 'es-PE'],
+                'en': ['en', 'en-US', 'en-GB', 'en-AU', 'en-CA'],
+                'fr': ['fr', 'fr-FR', 'fr-BE', 'fr-CH', 'fr-CA'],
+                'de': ['de', 'de-DE', 'de-AT', 'de-CH'],
+                'pt': ['pt', 'pt-PT', 'pt-BR'],
+                'ru': ['ru', 'ru-RU'],
+                'pl': ['pl', 'pl-PL'],
+                'zh': ['zh', 'zh-CN', 'zh-TW', 'zh-HK']
+            };
+            
+            for (let idiomaNavegador of idiomasNavegador) {
+                idiomaNavegador = idiomaNavegador.toLowerCase();
+                
+                for (const [lang, codes] of Object.entries(idiomasSoportados)) {
+                    if (codes.includes(idiomaNavegador)) {
+                        return lang;
+                    }
+                }
+            }
+            
+            return 'es';
+        }
+
+        // ========== INICIALIZAR IDIOMA ==========
+        let idiomaActual = 'es';
+
+        function inicializarIdioma() {
+            const idiomaGuardado = localStorage.getItem('comutech_idioma');
+            
+            if (idiomaGuardado && translations[idiomaGuardado]) {
+                idiomaActual = idiomaGuardado;
+            } else {
+                idiomaActual = detectarIdiomaNavegador();
+                localStorage.setItem('comutech_idioma', idiomaActual);
+            }
+            
+            aplicarIdioma(idiomaActual);
+            actualizarBotonesIdioma(idiomaActual);
+        }
+
+        function aplicarIdioma(idioma) {
+            const elementos = document.querySelectorAll('[data-i18n]');
+            
+            elementos.forEach(elemento => {
+                const clave = elemento.getAttribute('data-i18n');
+                if (translations[idioma] && translations[idioma][clave]) {
+                    if (elemento.children.length > 0 && elemento.children[0]?.tagName === 'UL') {
+                        continue;
+                    }
+                    elemento.textContent = translations[idioma][clave];
+                }
+            });
+            
+            document.documentElement.setAttribute('lang', idioma);
+        }
+
+        function cambiarIdioma(idioma) {
+            if (!translations[idioma]) return;
+            
+            idiomaActual = idioma;
+            localStorage.setItem('comutech_idioma', idioma);
+            aplicarIdioma(idioma);
+            actualizarBotonesIdioma(idioma);
+        }
+
+        function actualizarBotonesIdioma(idiomaActivo) {
+            const botones = document.querySelectorAll('.lang-btn');
+            botones.forEach(btn => {
+                const lang = btn.getAttribute('data-lang');
+                if (lang === idiomaActivo) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // ========== ACORDEÓN PROFESIONAL ==========
+        function inicializarAcordeon() {
+            const headers = document.querySelectorAll('.accordion-header');
+            
+            headers.forEach(header => {
+                header.addEventListener('click',
