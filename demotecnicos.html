@@ -14,7 +14,6 @@
         }
         .container { max-width: 900px; margin: 0 auto; }
         
-        /* Tarjeta principal */
         .card {
             background: white;
             border-radius: 28px;
@@ -30,13 +29,11 @@
             border-left: 5px solid #0077b6;
             padding-left: 18px;
             color: #1e4663;
-            cursor: pointer;
+            cursor: default;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .card-header .flecha { margin-left: auto; font-size: 1.2rem; transition: transform 0.2s; }
-        .card-content { padding-top: 16px; }
         
         button {
             background: #0077b6;
@@ -56,7 +53,6 @@
         .btn-naranja:hover { background: #d35400; }
         .btn-rojo { background: #c2410c; }
         .btn-rojo:hover { background: #9a3412; }
-        .btn-gris { background: #475569; }
         
         input, select, textarea {
             width: 100%;
@@ -142,9 +138,6 @@
         
         .resultados-area { max-height: 400px; overflow-y: auto; }
         
-        .row-flex { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-        .row-flex input { flex: 1; margin: 0; }
-        
         .oculto { display: none; }
         
         .badge-urgente { background: #dc2626; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; margin-left: 8px; }
@@ -175,16 +168,16 @@
 </head>
 <body>
 <div class="container">
-    <!-- Pantalla de inicio de la demo -->
+    <!-- Pantalla de inicio -->
     <div id="startScreen" class="card" style="text-align: center;">
         <div style="font-size: 4rem; margin-bottom: 16px;">👨‍🔧</div>
         <h2 style="color: #1e4663; margin-bottom: 12px;">Demo · Panel del Técnico</h2>
-        <p style="color: #5b6e8c; margin-bottom: 24px;">Simula cómo un técnico registra su jornada, realiza mediciones y genera informes para clientes.</p>
+        <p style="color: #5b6e8c; margin-bottom: 24px;">Simula cómo un técnico registra su jornada, realiza mediciones y genera informes.</p>
         <button id="startDemoBtn" style="background: #0077b6; padding: 14px 40px; font-size: 1.1rem;">▶️ Iniciar demo</button>
-        <p style="margin-top: 20px; font-size: 0.75rem; color: #94a3b8;">Sin registro · Sin conexión real · Simulación interactiva</p>
+        <p style="margin-top: 20px; font-size: 0.75rem; color: #94a3b8;">Sin registro · Simulación interactiva</p>
     </div>
 
-    <!-- Panel de demo (simulado) -->
+    <!-- Panel de demo -->
     <div id="demoPanel" style="display: none;">
         <!-- Header -->
         <div class="card" style="background: linear-gradient(135deg, #0077b6 0%, #00a8e8 100%); color: white;">
@@ -192,7 +185,7 @@
                 <div>
                     <div style="font-size: 0.8rem; opacity: 0.8;">👨‍🔧 Técnico</div>
                     <div style="font-size: 1.5rem; font-weight: 700;">Juan Pérez</div>
-                    <div style="font-size: 0.8rem; opacity: 0.8;">juan@aquagarden.com</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">juan@comutech.com</div>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 2rem;">🏊</div>
@@ -203,7 +196,7 @@
 
         <!-- Jornada laboral -->
         <div class="card">
-            <div class="card-header" style="cursor:default;">🕒 Jornada laboral</div>
+            <div class="card-header">🕒 Jornada laboral</div>
             <div id="estadoJornada" class="estado-jornada inactiva">⚠️ Jornada no iniciada</div>
             <div style="display: flex; gap: 16px;">
                 <button id="btnIniciarJornada" style="flex:1;" class="btn-verde">🟢 Iniciar jornada</button>
@@ -213,7 +206,7 @@
 
         <!-- Consola de trabajo -->
         <div class="card">
-            <div class="card-header" style="cursor:default;">🎮 Consola de trabajo</div>
+            <div class="card-header">🎮 Consola de trabajo</div>
             
             <div>
                 <input type="text" id="buscarPiscina" placeholder="Busca la piscina por nombre... (ej: Los Pinos, Zenia, Cabo Roig)" autocomplete="off">
@@ -265,7 +258,7 @@
 
         <!-- Mediciones de la jornada -->
         <div class="card">
-            <div class="card-header" style="cursor:default;">📜 Mediciones de esta jornada</div>
+            <div class="card-header">📜 Mediciones de esta jornada</div>
             <div id="listaMediciones" class="resultados-area"></div>
         </div>
 
@@ -275,7 +268,7 @@
 </div>
 
 <script>
-    // ========== DATOS SIMULADOS ==========
+    // DATOS SIMULADOS
     const piscinasSimuladas = [
         { id: 1, nombre: "Urbanización Los Pinos", direccion: "Avda. del Mar, 45", localidad: "Orihuela Costa" },
         { id: 2, nombre: "Centro Comercial Zenia", direccion: "Calle del Mar, 128", localidad: "Orihuela Costa" },
@@ -316,7 +309,6 @@
     const listaMediciones = document.getElementById('listaMediciones');
     const mensajeDiv = document.getElementById('mensaje');
     
-    // Funciones auxiliares
     function getHoraActual() {
         return new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     }
@@ -343,8 +335,7 @@
     }
     
     function cargarHistoricoRapido(piscinaId) {
-        const piscina = piscinasSimuladas.find(p => p.id == piscinaId);
-        if (!piscina) {
+        if (!piscinaId) {
             historicoRapidoDiv.style.display = 'none';
             return;
         }
@@ -352,7 +343,7 @@
         const actividades = historicoMedicionesSimulado.filter(m => m.piscina_id == piscinaId);
         
         if (actividades.length === 0) {
-            listaActividades.innerHTML = '<div style="background:#f1f5f9; padding:12px; border-radius:16px;">📋 No hay actividades previas en esta piscina</div>';
+            listaActividades.innerHTML = '<div style="background:#f1f5f9; padding:12px; border-radius:16px;">📋 No hay actividades previas</div>';
         } else {
             listaActividades.innerHTML = actividades.map(a => `
                 <div style="background:#f8fafc; border-radius:16px; padding:12px; margin-bottom:8px; border-left:4px solid ${a.urgente ? '#dc2626' : '#0077b6'}">
@@ -368,6 +359,22 @@
         historicoRapidoDiv.style.display = 'block';
     }
     
+    function actualizarListaMediciones() {
+        if (medicionesJornada.length === 0) {
+            listaMediciones.innerHTML = '<div class="medicion-card">No hay mediciones en esta jornada</div>';
+            return;
+        }
+        listaMediciones.innerHTML = medicionesJornada.map(m => `
+            <div class="medicion-card">
+                <strong>🏊 ${m.piscina_nombre}</strong>
+                ${m.urgente ? '<span class="badge-urgente">🚨 URGENTE</span>' : ''}
+                <br>🧪 Cloro: ${m.cloro} ppm | ⚗️ pH: ${m.ph} | 🌡️ ${m.temperatura}°C
+                <br>📝 Notas: ${m.notas}
+                <br><small>${m.fecha}</small>
+            </div>
+        `).join('');
+    }
+    
     function actualizarConsola() {
         botonesConsola.innerHTML = '';
         
@@ -377,6 +384,7 @@
             formularioMedicion.classList.add('oculto');
             btnFinalizarActividad.classList.add('oculto');
             mostrarDatosPiscina(null);
+            historicoRapidoDiv.style.display = 'none';
             return;
         }
         
@@ -385,6 +393,7 @@
             cargarHistoricoRapido(piscinaSeleccionada.id);
         } else {
             mostrarDatosPiscina(null);
+            historicoRapidoDiv.style.display = 'none';
         }
         
         if (trabajoActivo) {
@@ -406,7 +415,7 @@
             const btnActividad = document.createElement('button');
             btnActividad.textContent = "🏊 Iniciar actividad en piscina";
             btnActividad.className = "btn-verde";
-            btnActividad.onclick = iniciarActividad;
+            btnActividad.onclick = () => iniciarActividad();
             botonesConsola.appendChild(btnActividad);
         } else {
             estadoActual.innerHTML = "⚪ SELECCIONA UNA PISCINA";
@@ -437,12 +446,12 @@
         sugerenciasDiv.style.display = 'block';
     }
     
-    function seleccionarPiscina(id, nombre) {
+    window.seleccionarPiscina = function(id, nombre) {
         piscinaSeleccionada = piscinasSimuladas.find(p => p.id == id);
         buscarPiscina.value = nombre;
         sugerenciasDiv.style.display = 'none';
         actualizarConsola();
-    }
+    };
     
     function iniciarJornada() {
         if (jornadaActiva) return;
@@ -451,7 +460,7 @@
         piscinaSeleccionada = null;
         medicionesJornada = [];
         buscarPiscina.value = '';
-        estadoJornadaDiv.innerHTML = "✅ Jornada activa desde hoy " + new Date().toLocaleTimeString();
+        estadoJornadaDiv.innerHTML = "✅ Jornada activa desde " + new Date().toLocaleTimeString();
         estadoJornadaDiv.className = "estado-jornada activa";
         btnIniciarJornada.style.display = 'none';
         btnFinalizarJornada.style.display = 'block';
@@ -543,20 +552,17 @@
         });
         
         document.querySelectorAll('.producto-item').forEach((item, i) => {
-            item.querySelector('select:first-child').addEventListener('change', (e) => productosTemp[i].nombre = e.target.value);
-            item.querySelector('input').addEventListener('input', (e) => productosTemp[i].cantidad = parseFloat(e.target.value) || 0);
-            item.querySelectorAll('select')[1].addEventListener('change', (e) => productosTemp[i].unidad = e.target.value);
-            item.querySelector('.quitar-producto').addEventListener('click', () => {
-                productosTemp.splice(i, 1);
-                renderizarProductos();
-            });
+            if (productosTemp[i]) {
+                item.querySelector('select:first-child').addEventListener('change', (e) => productosTemp[i].nombre = e.target.value);
+                item.querySelector('input').addEventListener('input', (e) => productosTemp[i].cantidad = parseFloat(e.target.value) || 0);
+                item.querySelectorAll('select')[1].addEventListener('change', (e) => productosTemp[i].unidad = e.target.value);
+                item.querySelector('.quitar-producto').addEventListener('click', () => {
+                    productosTemp.splice(i, 1);
+                    renderizarProductos();
+                });
+            }
         });
     }
-    
-    document.getElementById('agregarProducto').onclick = () => {
-        productosTemp.push({ nombre: "Cloro granulado", cantidad: 0, unidad: "gramos" });
-        renderizarProductos();
-    };
     
     function generarInforme() {
         const cloro = parseFloat(document.getElementById('cloro').value);
@@ -569,17 +575,13 @@
         }
         
         let mensaje = "";
-        let estado = "";
         
         if (cloro >= 1 && cloro <= 3 && ph >= 7.2 && ph <= 7.6) {
-            estado = "óptimas";
-            mensaje = `✅ Buenas noticias. Los niveles de su piscina son correctos: Cloro ${cloro} ppm, pH ${ph}, Temperatura ${temp}°C. Pueden bañarse con total tranquilidad. El equipo técnico seguirá manteniendo la piscina en perfectas condiciones.`;
+            mensaje = `✅ Buenas noticias. Los niveles de su piscina son correctos: Cloro ${cloro} ppm, pH ${ph}, Temperatura ${temp}°C. Pueden bañarse con total tranquilidad.`;
         } else if (cloro < 1 || cloro > 3) {
-            estado = "fuera de rango";
-            mensaje = `⚠️ Atención. El nivel de cloro está ${cloro < 1 ? 'bajo' : 'alto'} (${cloro} ppm). Se recomienda no bañarse hasta que el técnico realice el ajuste necesario. Nos pondremos en ello de inmediato.`;
+            mensaje = `⚠️ Atención. El nivel de cloro está ${cloro < 1 ? 'bajo' : 'alto'} (${cloro} ppm). Se recomienda no bañarse hasta que el técnico realice el ajuste necesario.`;
         } else if (ph < 7.2 || ph > 7.6) {
-            estado = "fuera de rango";
-            mensaje = `⚠️ Atención. El nivel de pH está ${ph < 7.2 ? 'ácido' : 'alcalino'} (${ph}). Esto puede irritar la piel. El técnico ajustará los parámetros en la próxima visita.`;
+            mensaje = `⚠️ Atención. El nivel de pH está ${ph < 7.2 ? 'ácido' : 'alcalino'} (${ph}). Esto puede irritar la piel.`;
         }
         
         const preview = document.getElementById('informePreview');
@@ -626,9 +628,9 @@
         historicoMedicionesSimulado.unshift(nuevaMedicion);
         
         if (nuevaMedicion.urgente) {
-            mostrarMensaje("🚨 ALERTA URGENTE: Parámetros fuera de rango. Cliente notificado.", 'error');
+            mostrarMensaje("🚨 ALERTA URGENTE: Parámetros fuera de rango.", 'error');
         } else {
-            mostrarMensaje("✅ Medición guardada. Cliente recibirá informe.", 'exito');
+            mostrarMensaje("✅ Medición guardada.", 'exito');
         }
         
         limpiarFormulario();
@@ -637,22 +639,6 @@
         if (piscinaSeleccionada) {
             cargarHistoricoRapido(piscinaSeleccionada.id);
         }
-    }
-    
-    function actualizarListaMediciones() {
-        if (medicionesJornada.length === 0) {
-            listaMediciones.innerHTML = '<div class="medicion-card">No hay mediciones en esta jornada</div>';
-            return;
-        }
-        listaMediciones.innerHTML = medicionesJornada.map(m => `
-            <div class="medicion-card">
-                <strong>🏊 ${m.piscina_nombre}</strong>
-                ${m.urgente ? '<span class="badge-urgente">🚨 URGENTE</span>' : ''}
-                <br>🧪 Cloro: ${m.cloro} ppm | ⚗️ pH: ${m.ph} | 🌡️ ${m.temperatura}°C
-                <br>📝 Notas: ${m.notas}
-                <br><small>${m.fecha}</small>
-            </div>
-        `).join('');
     }
     
     // Eventos
@@ -677,4 +663,27 @@
         startScreen.style.display = 'block';
     };
     
-    btnIniciarJornada.on
+    btnIniciarJornada.onclick = iniciarJornada;
+    btnFinalizarJornada.onclick = finalizarJornada;
+    document.getElementById('agregarProducto').onclick = () => {
+        productosTemp.push({ nombre: "Cloro granulado", cantidad: 0, unidad: "gramos" });
+        renderizarProductos();
+    };
+    document.getElementById('btnGenerarIA').onclick = generarInforme;
+    document.getElementById('btnGuardar').onclick = guardarMedicion;
+    document.getElementById('btnFinalizarActividad').onclick = finalizarActividad;
+    
+    buscarPiscina.addEventListener('input', (e) => {
+        setTimeout(() => mostrarSugerencias(e.target.value), 100);
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#sugerenciasDiv') && e.target !== buscarPiscina) {
+            sugerenciasDiv.style.display = 'none';
+        }
+    });
+    
+    renderizarProductos();
+</script>
+</body>
+</html>
