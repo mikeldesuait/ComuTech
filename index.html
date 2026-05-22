@@ -40,41 +40,6 @@
         .section-title { font-size: 2rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 16px; letter-spacing: -0.01em; }
         .section-subtitle { text-align: center; color: #5b6e8c; max-width: 700px; margin: 0 auto 48px auto; font-size: 1.1rem; }
         
-        .demo-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            margin: 40px 0 20px;
-        }
-        .demo-card {
-            background: white;
-            border-radius: 24px;
-            padding: 32px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        .demo-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 30px -15px rgba(0,0,0,0.15);
-            border-color: #0077b6;
-        }
-        .demo-icon { font-size: 3rem; margin-bottom: 20px; }
-        .demo-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; color: #0f172a; }
-        .demo-desc { font-size: 0.85rem; color: #5b6e8c; margin-bottom: 20px; }
-        .demo-btn {
-            background: #0077b6;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 50px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .demo-btn:hover { background: #005f8c; transform: translateY(-2px); }
-        
         .valor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
         .valor-card { background: white; border-radius: 20px; padding: 28px; text-align: center; border: 1px solid #e2e8f0; transition: all 0.3s; }
         .valor-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); border-color: #cbd5e1; }
@@ -114,29 +79,33 @@
         .feature-list li:last-child { border-bottom: none; }
         .check { color: #0077b6; font-weight: bold; font-size: 1.1rem; }
         
+        .highlight-box { background: #f0f9ff; padding: 20px; border-radius: 14px; margin: 20px 0; border-left: 4px solid #0077b6; }
+        .highlight-title { font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+        
+        .example-box {
+            background: #f1f5f9; padding: 12px 16px; border-radius: 12px;
+            font-size: 0.8rem; font-family: monospace; color: #1e293b; margin: 16px 0;
+        }
+        
+        .faq-box { background: #fff7ed; padding: 16px; border-radius: 14px; margin-top: 20px; }
+        .faq-question { font-weight: 600; font-size: 0.85rem; display: flex; gap: 8px; }
+        .faq-answer { font-size: 0.8rem; color: #5b6e8c; margin-top: 6px; margin-left: 28px; }
+        
+        .btn-demo { background: #0077b6; color: white; padding: 10px 28px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .btn-demo:hover { background: #005f8c; transform: translateY(-2px); }
+        
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
+        .card { background: white; border-radius: 20px; padding: 28px; border: 1px solid #e2e8f0; transition: all 0.3s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1); }
+        .card-icon { font-size: 2.2rem; margin-bottom: 16px; }
+        .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
+        
         .footer { background: #0f172a; color: white; padding: 40px 0 20px 0; margin-top: 40px; }
         .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
         .footer-col h4 { color: #0077b6; margin-bottom: 16px; font-size: 1rem; }
         .footer-col p, .footer-col a { color: #94a3b8; font-size: 0.8rem; text-decoration: none; cursor: pointer; line-height: 1.8; }
         .footer-col a:hover { color: white; }
         .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #334155; font-size: 0.7rem; color: #64748b; }
-        
-        .cookie-banner {
-            position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white;
-            padding: 16px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
-            align-items: center; gap: 16px; z-index: 1000; font-size: 0.8rem;
-        }
-        .cookie-btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; }
-        .cookie-accept { background: #0077b6; color: white; }
-        .cookie-decline { background: #475569; color: white; }
-        
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center;
-        }
-        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal-header { font-size: 1.4rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
-        .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; }
         
         /* Botón flotante de WhatsApp */
         .whatsapp-float {
@@ -156,14 +125,7 @@
             z-index: 999;
             animation: fadeInUp 0.5s ease;
         }
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-        }
-        .whatsapp-float img {
-            width: 35px;
-            height: 35px;
-        }
+        .whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
         .whatsapp-float .cerrar-float {
             position: absolute;
             top: -8px;
@@ -180,28 +142,45 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .whatsapp-float .cerrar-float:hover {
-            background: #dc2626;
-        }
+        .whatsapp-float .cerrar-float:hover { background: #dc2626; }
         
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        @media (max-width: 900px) {
-            .demo-grid { grid-template-columns: 1fr; }
-            .valor-grid { grid-template-columns: 1fr; gap: 16px; }
+        .cookie-banner {
+            position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white;
+            padding: 20px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; gap: 16px; z-index: 1000; font-size: 0.85rem;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+        }
+        .cookie-banner p { flex: 1; }
+        .cookie-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+        .cookie-btn { padding: 10px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+        .cookie-accept { background: #0077b6; color: white; }
+        .cookie-accept:hover { background: #005f8c; transform: translateY(-2px); }
+        .cookie-config { background: transparent; color: #94a3b8; border: 1px solid #475569; }
+        .cookie-config:hover { background: #1e293b; color: white; }
+        
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1001; justify-content: center; align-items: center;
+        }
+        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .modal-header { font-size: 1.5rem; font-weight: 700; color: #0077b6; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
+        .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: 500; }
+        .modal-close:hover { background: #005f8c; }
+        
+        @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
             .section-title { font-size: 1.5rem; }
+            .valor-grid { grid-template-columns: 1fr; gap: 16px; }
+            .accordion-header { padding: 16px 20px; }
+            .accordion-title { font-size: 0.95rem; }
+            .cookie-banner { flex-direction: column; text-align: center; }
+            .cookie-buttons { justify-content: center; }
             .whatsapp-float { width: 50px; height: 50px; bottom: 20px; right: 20px; }
-            .whatsapp-float img { width: 28px; height: 28px; }
         }
     </style>
 </head>
@@ -212,53 +191,14 @@
             <div class="logo-icon">⚙️</div>
             <h1>Comu<span>Tech</span></h1>
             <p class="tagline">El software que profesionaliza tu empresa de mantenimiento</p>
-            <p style="font-size: 0.9rem; margin-top: 16px; opacity: 0.7;">Piscinas · Jardines · Limpieza</p>
-            <button class="cta-button" id="btnContacta">📧 Contacta</button>
+            <p style="font-size: 0.9rem; margin-top: 16px; opacity: 0.7;">Piscinas · Jardines · Limpieza · Comunidades</p>
+            <button class="cta-button" id="btnProbarDemoHeader">🎮 Probar demo</button>
         </div>
     </div>
 
     <div class="container">
-        <!-- SECCIÓN DE DEMOS INTERACTIVAS -->
-        <div class="section">
-            <div class="section-title">🎮 Prueba ComuTech sin instalar nada</div>
-            <div class="section-subtitle">
-                Haz clic en cualquier demo y descubre cómo funciona cada panel<br>
-                <span style="font-size: 0.85rem;">Simulaciones interactivas · Sin registro · Sin compromiso</span>
-            </div>
-            
-            <div class="demo-grid">
-                <div class="demo-card" onclick="irDemo('cliente')">
-                    <div class="demo-icon">🏘️</div>
-                    <div class="demo-title">Portal del Cliente</div>
-                    <div class="demo-desc">
-                        Lo que ven tus clientes: estado de la piscina, informes automáticos, historial y reporte de incidencias.
-                    </div>
-                    <button class="demo-btn">👆 Ver demo cliente</button>
-                </div>
-                
-                <div class="demo-card" onclick="irDemo('tecnico')">
-                    <div class="demo-icon">👨‍🔧</div>
-                    <div class="demo-title">Panel del Técnico</div>
-                    <div class="demo-desc">
-                        Cómo trabajan tus técnicos: registro de trabajos, control de tiempos, funciona sin internet.
-                    </div>
-                    <button class="demo-btn">📱 Ver demo técnico</button>
-                </div>
-                
-                <div class="demo-card" onclick="irDemo('gerente')">
-                    <div class="demo-icon">📊</div>
-                    <div class="demo-title">Panel del Gerente</div>
-                    <div class="demo-desc">
-                        Control total de tu negocio: facturación, gastos, KPIs y rentabilidad por cliente.
-                    </div>
-                    <button class="demo-btn">💼 Ver demo gerente</button>
-                </div>
-            </div>
-        </div>
-
         <!-- TRES PILARES DE VALOR -->
-        <div class="section">
-            <div class="section-title">🏆 ¿Qué aporta ComuTech a tu negocio?</div>
+        <div style="margin-top: -30px; margin-bottom: 20px;">
             <div class="valor-grid">
                 <div class="valor-card">
                     <div class="valor-icon">🏆</div>
@@ -278,7 +218,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN: VALOR PARA TUS CLIENTES -->
+        <!-- SECCIÓN 1: VALOR PARA TUS CLIENTES -->
         <div class="section">
             <div class="section-title">🏆 Lo que ven tus clientes</div>
             <div class="section-subtitle">
@@ -303,9 +243,9 @@
                             <li><span class="check">✓</span> Informes descargables en PDF</li>
                             <li><span class="check">✓</span> Sin ver datos de otros clientes</li>
                         </ul>
-                        <div style="background: #f0f9ff; padding: 16px; border-radius: 14px; margin-top: 16px; border-left: 4px solid #0077b6;">
-                            <div style="font-weight: 700; margin-bottom: 8px;">💡 Beneficio para ti</div>
-                            <div style="font-size: 0.85rem;">Las comunidades que reciben informes transparentes renuevan contrato un 70% más.</div>
+                        <div class="highlight-box">
+                            <div class="highlight-title">💡 Por qué es importante para ti</div>
+                            <div style="font-size: 0.85rem;">Las comunidades que reciben informes transparentes renuevan contrato un 70% más. Dejas de recibir llamadas preguntando "¿han venido hoy?".</div>
                         </div>
                     </div>
                 </div>
@@ -328,10 +268,153 @@
                             <li><span class="check">✓</span> Cuándo se ha hecho (fecha y hora exacta)</li>
                             <li><span class="check">✓</span> Próximo mantenimiento programado</li>
                         </ul>
-                        <div class="example-box" style="background:#f1f5f9; padding:12px; border-radius:12px; margin-top:16px; font-family:monospace; font-size:0.8rem;">
-                            📧 "Estimado administrador, el técnico Juan Pérez ha realizado hoy: limpieza de skimmers, control de pH (7.2 correcto), adición de cloro (2kg)."
+                        <div class="example-box">
+                            📧 "Estimado administrador, el técnico Juan Pérez ha realizado hoy: limpieza de skimmers, control de pH (7.2 correcto), adición de cloro (2kg). Próxima visita: viernes 25/10."
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: CONTROL DEL FLUJO DE TRABAJO -->
+        <div class="section">
+            <div class="section-title">⚙️ Control del flujo de trabajo</div>
+            <div class="section-subtitle">
+                Sabes lo que hace cada técnico, dónde y cuánto tiempo
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">📱</span>
+                        <span>Panel para técnicos (vía web)</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Acceso desde cualquier móvil, solo con un enlace</li>
+                            <li><span class="check">✓</span> Registra cada trabajo: cliente → tarea → tiempo</li>
+                            <li><span class="check">✓</span> Funciona sin internet (guarda los datos localmente)</li>
+                            <li><span class="check">✓</span> Sincroniza automáticamente cuando hay conexión</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <div class="highlight-title">📱 Sin tiendas, sin instalaciones complicadas</div>
+                            <div style="font-size: 0.85rem;">El técnico solo necesita guardar el enlace en su móvil. La primera vez carga la app y ya funciona incluso sin cobertura.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">🗂️</span>
+                        <span>Organización de clientes y técnicos</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Asigna técnicos a cada cliente</li>
+                            <li><span class="check">✓</span> Planifica frecuencias (diario, semanal, quincenal)</li>
+                            <li><span class="check">✓</span> Control de incidencias y avisos</li>
+                            <li><span class="check">✓</span> Calendario compartido de tareas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: GESTIÓN INTEGRAL + FACTURACIÓN -->
+        <div class="section">
+            <div class="section-title">🏢 Gestión integral + Facturación</div>
+            <div class="section-subtitle">
+                Todo tu negocio en un solo lugar. Toma decisiones con datos reales.
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">💰</span>
+                        <span>Facturación y control de gastos</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> Registro de facturas emitidas por cliente</li>
+                            <li><span class="check">✓</span> Control de cobros (pagado / pendiente)</li>
+                            <li><span class="check">✓</span> Gastos por técnico (material, desplazamientos)</li>
+                            <li><span class="check">✓</span> Informe de rentabilidad por cliente y servicio</li>
+                            <li><span class="check">✓</span> Exportación a Excel para tu asesoría</li>
+                        </ul>
+                        <div class="example-box">
+                            📊 Ejemplo: "Cliente Urbanización Los Pinos: facturado 450€ este mes, gastos 120€ (productos + viaje), beneficio 330€ | Rentabilidad: 73%"
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <span class="accordion-icon">📈</span>
+                        <span>Dashboard y KPIs en tiempo real</span>
+                    </div>
+                    <div class="accordion-indicator">▼</div>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <ul class="feature-list">
+                            <li><span class="check">✓</span> <strong>Ingresos del mes</strong> - Facturación total y por cliente</li>
+                            <li><span class="check">✓</span> <strong>Horas trabajadas</strong> - Totales y por técnico</li>
+                            <li><span class="check">✓</span> <strong>Clientes activos</strong> - Cuántos tienes y su estado</li>
+                            <li><span class="check">✓</span> <strong>Renovaciones próximas</strong> - Contratos que vencen este mes</li>
+                            <li><span class="check">✓</span> <strong>Rentabilidad por servicio</strong> - ¿Qué te deja más margen?</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <div class="highlight-title">🎯 Toma decisiones con datos</div>
+                            <div style="font-size: 0.85rem;">¿Qué clientes son más rentables? ¿Qué técnicos son más productivos? ¿Dónde pierdes tiempo o dinero? El dashboard te lo dice.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTORES -->
+        <div class="section">
+            <div class="section-title">🏊 Sectores que cubrimos</div>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🏊</div>
+                    <div class="card-title">Piscinas</div>
+                    <ul class="feature-list" style="margin-top: 12px;">
+                        <li><span class="check">✓</span> Control de productos químicos</li>
+                        <li><span class="check">✓</span> Registro de mediciones</li>
+                        <li><span class="check">✓</span> Alertas de calidad</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🌿</div>
+                    <div class="card-title">Jardines</div>
+                    <ul class="feature-list" style="margin-top: 12px;">
+                        <li><span class="check">✓</span> Planificación de riegos</li>
+                        <li><span class="check">✓</span> Control de podas y tratamientos</li>
+                        <li><span class="check">✓</span> Registro de productos</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🧹</div>
+                    <div class="card-title">Limpieza</div>
+                    <ul class="feature-list" style="margin-top: 12px;">
+                        <li><span class="check">✓</span> Control de frecuencias</li>
+                        <li><span class="check">✓</span> Checklists por zona</li>
+                        <li><span class="check">✓</span> Informes para comunidades</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -346,11 +429,11 @@
                 <div style="font-size: 2.5rem; margin-bottom: 16px;">📞</div>
                 <p style="margin-bottom: 24px; font-size: 1.1rem;">¿Listo para profesionalizar tu empresa de mantenimiento?</p>
                 <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                    <button class="cta-button" id="btnContacta2">📧 Contactar por email</button>
-                    <button class="cta-button" style="background: #25D366;" id="btnWhatsApp">💬 Contactar por WhatsApp</button>
+                    <button class="cta-button" id="btnContactarEmail">📧 Contactar por email</button>
+                    <button class="cta-button" style="background: #25D366;" id="btnContactarWhatsApp">💬 Contactar por WhatsApp</button>
                 </div>
                 <p style="margin-top: 30px; font-size: 0.85rem; color: #5b6e8c;">
-                    📧 info@comutech.com | 📞 +34 601 231 068
+                    📧 info@comutech.com | 📞 +34 600 000 000
                 </p>
             </div>
         </div>
@@ -373,7 +456,7 @@
                 <div class="footer-col">
                     <h4>Contacto</h4>
                     <p>📧 info@comutech.com</p>
-                    <p>📞 +34 600 000 000</p>
+                    <p>📞 +34 601 231 068</p>
                     <p>📍 Calle del Mar, 28, Orihuela Costa, 03189, Alicante</p>
                 </div>
             </div>
@@ -383,20 +466,22 @@
         </div>
     </div>
 
-    <!-- BOTÓN FLOTANTE DE WHATSAPP (aparece a los 5 segundos) -->
+    <!-- BOTÓN FLOTANTE DE WHATSAPP -->
     <div id="whatsappFloat" class="whatsapp-float" style="display: none;">
         <div class="cerrar-float" onclick="cerrarWhatsAppFloat()">✖</div>
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 35px; height: 35px;">
     </div>
 
+    <!-- COOKIE BANNER -->
     <div id="cookieBanner" class="cookie-banner">
-        <p>🍪 Usamos cookies técnicas y analíticas para mejorar tu experiencia.</p>
-        <div style="display: flex; gap: 12px;">
-            <button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar</button>
-            <button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar</button>
+        <p>🍪 En <strong>ComuTech</strong> usamos cookies técnicas y analíticas para mejorar tu experiencia. Al hacer clic en <strong>"Aceptar todo"</strong>, aceptas nuestra <a onclick="mostrarModal('politica-cookies')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Política de cookies</a>, <a onclick="mostrarModal('politica-privacidad')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Política de privacidad</a> y <a onclick="mostrarModal('aviso-legal')" style="color:#0077b6; text-decoration:underline; cursor:pointer;">Aviso legal</a>.</p>
+        <div class="cookie-buttons">
+            <button class="cookie-btn cookie-accept" onclick="aceptarTodo()">✅ Aceptar todo</button>
+            <button class="cookie-btn cookie-config" onclick="mostrarModal('politica-cookies')">⚙️ Configurar</button>
         </div>
     </div>
 
+    <!-- MODAL LEGAL -->
     <div id="modalPoliticas" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitulo">Aviso legal</div>
@@ -407,31 +492,24 @@
 
     <script>
         // ========== CONFIGURACIÓN ==========
-        // Cambia estos datos por los tuyos:
+        // CAMBIA ESTOS DATOS POR LOS TUYOS:
         const EMAIL_DESTINO = "info@comutech.com";
         const TELEFONO_WHATSAPP = "34601231068"; // Solo números, sin + ni espacios
-        
-        // Mensaje estándar para email y WhatsApp
         const MENSAJE_ESTANDAR = "Hola, me interesa conocer más sobre ComuTech para mi empresa de mantenimiento. ¿Podéis darme información?";
         
         // ========== FUNCIONES DE CONTACTO ==========
-        
-        // Abrir correo electrónico con mensaje predefinido
         function abrirEmail() {
             const asunto = encodeURIComponent("Información sobre ComuTech");
             const cuerpo = encodeURIComponent(MENSAJE_ESTANDAR);
             window.location.href = `mailto:${EMAIL_DESTINO}?subject=${asunto}&body=${cuerpo}`;
         }
         
-        // Abrir WhatsApp con mensaje predefinido
         function abrirWhatsApp() {
             const mensaje = encodeURIComponent(MENSAJE_ESTANDAR);
             window.open(`https://wa.me/${TELEFONO_WHATSAPP}?text=${mensaje}`, '_blank');
         }
         
         // ========== BOTÓN FLOTANTE DE WHATSAPP ==========
-        let floatTimeout;
-        
         function mostrarWhatsAppFloat() {
             const floatBtn = document.getElementById('whatsappFloat');
             if (floatBtn && !localStorage.getItem('whatsapp_float_cerrado')) {
@@ -446,11 +524,9 @@
         }
         
         // Mostrar el botón flotante después de 5 segundos
-        setTimeout(() => {
-            mostrarWhatsAppFloat();
-        }, 5000);
+        setTimeout(() => { mostrarWhatsAppFloat(); }, 5000);
         
-        // Al hacer clic en el botón flotante, abre WhatsApp
+        // Al hacer clic en el botón flotante
         document.getElementById('whatsappFloat').onclick = function(e) {
             if (e.target.classList.contains('cerrar-float')) return;
             abrirWhatsApp();
@@ -465,6 +541,10 @@
             } else if (tipo === 'gerente') {
                 window.location.href = 'demogerente.html';
             }
+        }
+        
+        function abrirDemoCliente() {
+            window.location.href = 'democliente.html';
         }
         
         // ========== ACORDEÓN ==========
@@ -489,15 +569,13 @@
             });
         }
         
-        // ========== COOKIES Y MODALES ==========
-        function aceptarCookies() {
+        // ========== COOKIES Y LEGAL ==========
+        function aceptarTodo() {
             localStorage.setItem('cookies_aceptadas', 'true');
+            localStorage.setItem('cookies_analiticas', 'true');
+            localStorage.setItem('legal_aceptado', 'true');
             document.getElementById('cookieBanner').style.display = 'none';
-        }
-        
-        function rechazarCookies() {
-            localStorage.setItem('cookies_aceptadas', 'false');
-            document.getElementById('cookieBanner').style.display = 'none';
+            console.log('✅ Usuario ha aceptado todas las políticas y cookies');
         }
         
         function mostrarModal(tipo) {
@@ -506,14 +584,38 @@
             const body = document.getElementById('modalBody');
             
             if (tipo === 'aviso-legal') {
-                titulo.textContent = 'Aviso legal';
-                body.innerHTML = '<h4>ComuTech Soluciones Técnicas, S.L.</h4><p>Calle del Mar, 28, Orihuela Costa, 03189, Alicante</p><p>info@comutech.com</p>';
+                titulo.textContent = '📜 Aviso legal';
+                body.innerHTML = `
+                    <h4>COMUTECH SOLUCIONES TÉCNICAS, S.L.</h4>
+                    <p>En cumplimiento de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se exponen a continuación los datos identificativos de la empresa titular del dominio comutech.com</p>
+                    <p><strong>Denominación Social:</strong> COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
+                    <strong>CIF:</strong> B12345678 (en trámites)<br>
+                    <strong>Domicilio:</strong> Calle del Mar, 28, Orihuela Costa, 03189, Alicante<br>
+                    <strong>Email:</strong> info@comutech.com</p>
+                    <p><em>Última actualización: Mayo de 2026</em></p>
+                `;
             } else if (tipo === 'politica-privacidad') {
-                titulo.textContent = 'Política de privacidad';
-                body.innerHTML = '<h4>Protección de datos</h4><p>Cumplimos con el RGPD. Tus datos están seguros.</p>';
-            } else {
-                titulo.textContent = 'Política de cookies';
-                body.innerHTML = '<h4>Uso de cookies</h4><p>Usamos cookies técnicas y analíticas para mejorar el servicio.</p>';
+                titulo.textContent = '🔒 Política de privacidad';
+                body.innerHTML = `
+                    <h4>Protección de datos personales</h4>
+                    <p>Cumplimos con el RGPD y la LOPDGDD. Tus datos están seguros.</p>
+                    <p><strong>Responsable:</strong> COMUTECH SOLUCIONES TÉCNICAS, S.L.<br>
+                    <strong>Finalidad:</strong> Gestionar solicitudes de información.<br>
+                    <strong>Derechos:</strong> Acceso, rectificación, supresión.</p>
+                    <p><em>Última revisión: Mayo de 2026</em></p>
+                `;
+            } else if (tipo === 'politica-cookies') {
+                titulo.textContent = '🍪 Política de cookies';
+                body.innerHTML = `
+                    <h4>Uso de cookies en ComuTech</h4>
+                    <p>Usamos cookies técnicas (obligatorias) y analíticas (opcionales) para mejorar tu experiencia.</p>
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 12px; margin: 20px 0;">
+                        <strong>⚙️ Configuración rápida:</strong><br>
+                        <button onclick="aceptarTodo(); cerrarModal();" style="background:#0077b6; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; cursor:pointer;">✅ Aceptar todas</button>
+                        <button onclick="rechazarCookies(); cerrarModal();" style="background:#475569; color:white; border:none; padding:8px 20px; border-radius:50px; margin-top:10px; margin-left:10px; cursor:pointer;">❌ Solo técnicas</button>
+                    </div>
+                    <p><em>Última actualización: Mayo de 2026</em></p>
+                `;
             }
             modal.style.display = 'flex';
         }
@@ -522,22 +624,29 @@
             document.getElementById('modalPoliticas').style.display = 'none';
         }
         
+        function rechazarCookies() {
+            localStorage.setItem('cookies_aceptadas', 'false');
+            localStorage.setItem('cookies_analiticas', 'false');
+            localStorage.setItem('legal_aceptado', 'true');
+            document.getElementById('cookieBanner').style.display = 'none';
+        }
+        
         // ========== INICIALIZAR ==========
         document.addEventListener('DOMContentLoaded', () => {
             inicializarAcordeon();
             
-            // Asignar eventos a los botones de contacto
-            const btnsContacta = document.querySelectorAll('#btnContacta, #btnContacta2');
-            btnsContacta.forEach(btn => {
-                btn.onclick = abrirEmail;
-            });
+            // Botón "Probar demo" del header
+            const btnHeader = document.getElementById('btnProbarDemoHeader');
+            if (btnHeader) btnHeader.onclick = abrirDemoCliente;
             
-            const btnWhatsApp = document.getElementById('btnWhatsApp');
-            if (btnWhatsApp) {
-                btnWhatsApp.onclick = abrirWhatsApp;
-            }
+            // Botones de contacto
+            const btnEmail = document.getElementById('btnContactarEmail');
+            if (btnEmail) btnEmail.onclick = abrirEmail;
             
-            if (localStorage.getItem('cookies_aceptadas') !== null) {
+            const btnWhatsApp = document.getElementById('btnContactarWhatsApp');
+            if (btnWhatsApp) btnWhatsApp.onclick = abrirWhatsApp;
+            
+            if (localStorage.getItem('legal_aceptado') !== null) {
                 document.getElementById('cookieBanner').style.display = 'none';
             }
             
