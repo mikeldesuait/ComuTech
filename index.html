@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>UNED Exam Generator - Con verificación</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #1a472a;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitulo {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+            border-radius: 10px;
+            transition: all 0.3s;
+            width: auto;
+            margin-top: 0;
+        }
+
+        .tab-btn.activo {
+            background: #1a472a;
+            color: white;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.activo {
+            display: block;
+        }
+
+        .api-config {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .api-config label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #856404;
+        }
+
+        .api-config input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .api-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .borrar-clave {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+        }
+
+        .estado-clave {
+            font-size: 12px;
+            color: #28a745;
+            margin-left: auto;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #1a472a;
+        }
+
+        button {
+            background-color: #1a472a;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            margin-top: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #2d5a3b;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .resultado-box {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+            border-left: 4px solid #1a472a;
+        }
+
+        .resultado-contenido {
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        .pregunta-card {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1a472a;
+            transition: all 0.2s;
+        }
+
+        .pregunta-header {
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1a472a;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .marcador-error {
+            background-color: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .pregunta-texto {
+            font-size: 16px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .opcion {
+            display: block;
+            margin: 8px 0;
+            padding: 12px 15px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .opcion:hover {
+            background-color: #e8f5e9;
+            border-color: #1a472a;
+        }
+
+        .opcion.seleccionada {
+            background-color: #1a472a;
+            color: white;
+            border-color: #1a472a;
+        }
+
+        .opcion.correcta-resaltada {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .opcion.incorrecta-resaltada {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .feedback {
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .botones-control {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .botones-control button {
+            width: auto;
+            padding: 12px 24px;
+            margin-top: 0;
+        }
+
+        .resultado-final {
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .nota-final {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .cargando {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1a472a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sobresaliente { background: linear-gradient(135deg, #28a745, #20c997); color: white; }
+        .notable { background: linear-gradient(135deg, #17a2b8, #5bc0de); color: white; }
+        .aprobado { background: linear-gradient(135deg, #ffc107, #fd7e14); color: #333; }
+        .suspenso { background: linear-gradient(135deg, #dc3545, #c82333); color: white; }
+
+        .copiar-btn {
+            background-color: #28a745;
+            padding: 8px 16px;
+            width: auto;
+            margin-top: 10px;
+            font-size: 14px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .articulo-ref {
+            font-size: 12px;
+            color: #1a472a;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .info-texto {
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #0d47a1;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .correccion-badge {
+            background-color: #17a2b8;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 10px;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .contenedor { padding: 20px; }
+            .tab-btn { padding: 8px 16px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="contenedor">
+    <h1>📚 UNED Exam Generator</h1>
+    <div class="subtitulo">Genera resúmenes y exámenes tipo test con verificación automática</div>
+
+    <div class="api-config">
+        <label>🔑 API Key de DeepSeek</label>
+        <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
+        <div class="api-actions">
+            <button type="button" class="borrar-clave" id="borrarKeyBtn">🗑️ Borrar clave guardada</button>
+            <span class="estado-clave" id="estadoClave"></span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn activo" data-tab="texto">📝 Texto a resumir</button>
+        <button class="tab-btn" data-tab="resumen">📋 Mi resumen (directo)</button>
+        <button class="tab-btn" data-tab="examen">🎯 Examen Tipo Test</button>
+    </div>
+
+    <!-- Panel 1: Texto a resumir -->
+    <div id="tab-texto" class="tab-panel activo">
+        <label>📖 Texto original (apuntes, artículos, etc.)</label>
+        <textarea id="textoOriginal" rows="12" placeholder="Pega aquí el texto que quieres resumir..."></textarea>
+        <div class="info-texto">
+            💡 La IA generará un resumen conceptual de nivel UNED con todas las ideas clave.
+        </div>
+        <button id="generarResumenBtn">📝 Generar resumen desde este texto</button>
+        <div id="resultadoResumenDesdeTexto" class="resultado-box" style="display: none;">
+            <h3>📋 Resumen generado</h3>
+            <div id="resumenGeneradoContenido" class="resultado-contenido"></div>
+            <button class="copiar-btn" onclick="copiarResumenGenerado()">📋 Copiar resumen</button>
+            <button class="copiar-btn" style="background-color: #1a472a;" onclick="irAExamenDesdeResumen()">🎯 Ir al examen</button>
+        </div>
+    </div>
+
+    <!-- Panel 2: Resumen manual (directo) -->
+    <div id="tab-resumen" class="tab-panel">
+        <label>📋 Pega aquí tu resumen ya hecho</label>
+        <textarea id="resumenManual" rows="12" placeholder="Si ya tienes un resumen, pégalo aquí directamente..."></textarea>
+        <div class="info-texto">
+            ✅ Este resumen se usará para generar el examen tipo test. No necesita pasar por IA de nuevo.
+        </div>
+        <div class="botones-control" style="margin-top: 10px;">
+            <button onclick="usarResumenManual()" style="background-color: #17a2b8; width: auto;">📥 Usar este resumen</button>
+            <button onclick="limpiarResumenManual()" style="background-color: #6c757d; width: auto;">🗑️ Limpiar</button>
+        </div>
+        <div id="resumenGuardadoInfo" style="display: none; background:#e8f5e9; padding:15px; border-radius:10px; margin-top:20px;">
+            ✅ Resumen cargado correctamente. Ve a la pestaña "Examen Tipo Test" para generar preguntas.
+        </div>
+    </div>
+
+    <!-- Panel 3: Examen -->
+    <div id="tab-examen" class="tab-panel">
+        <div id="examenInfo" style="background:#e8f5e9; padding:15px; border-radius:10px; margin-bottom:20px; display:none;">
+            ⚠️ Aún no hay resumen. Genera uno en la primera pestaña o pega un resumen en la segunda.
+        </div>
+        <button id="generarExamenBtn" onclick="generarExamenDesdeResumen()" style="background-color: #1a472a;">🎯 Generar Examen Tipo Test UNED</button>
+        <div id="examenContainer"></div>
+    </div>
+
+    <footer>💡 La IA genera el examen y luego lo verifica automáticamente para corregir errores de fechas o conceptos.</footer>
+</div>
+
+<script>
+    // ========== VARIABLES GLOBALES ==========
+    let resumenActual = null;
+    let examenActual = null;
+    let respuestasUsuario = [];
+    let preguntasTotales = 20;
+
+    // ========== PESTAÑAS ==========
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.getAttribute('data-tab');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+            this.classList.add('activo');
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('activo'));
+            document.getElementById(`tab-${tab}`).classList.add('activo');
+        });
+    });
+
+    // ========== API KEY ==========
+    (function() {
+        const inputKey = document.getElementById('apiKey');
+        const estadoSpan = document.getElementById('estadoClave');
+        const borrarBtn = document.getElementById('borrarKeyBtn');
+        const savedKey = localStorage.getItem('deepseek_api_key');
+        if (savedKey) { inputKey.value = savedKey; estadoSpan.innerHTML = '✅ Clave guardada'; }
+        else estadoSpan.innerHTML = '⚪ Sin clave guardada';
+        inputKey.addEventListener('input', function() {
+            const key = this.value.trim();
+            if (key) { localStorage.setItem('deepseek_api_key', key); estadoSpan.innerHTML = '✅ Clave guardada'; }
+            else { localStorage.removeItem('deepseek_api_key'); estadoSpan.innerHTML = '⚪ Sin clave guardada'; }
+        });
+        borrarBtn.addEventListener('click', function() {
+            localStorage.removeItem('deepseek_api_key');
+            inputKey.value = '';
+            estadoSpan.innerHTML = '⚪ Clave borrada';
+        });
+    })();
+
+    // ========== GENERAR RESUMEN DESDE TEXTO ORIGINAL ==========
+    document.getElementById('generarResumenBtn').addEventListener('click', async function() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        if (!apiKey) { alert('❌ Introduce tu API Key de DeepSeek'); return; }
+        const textoOriginal = document.getElementById('textoOriginal').value.trim();
+        if (!textoOriginal) { alert('❌ Escribe o pega algún texto para resumir'); return; }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = '🔄 Generando resumen...';
+        const resultadoDiv = document.getElementById('resultadoResumenDesdeTexto');
+        resultadoDiv.style.display = 'block';
+        document.getElementById('resumenGeneradoContenido').innerHTML = '<div class="cargando"><div class="spinner"></div><p>La IA está procesando el texto...</p></div>';
+
+        try {
+            const resumen = await llamarResumenDeepSeek(apiKey, textoOriginal);
+            resumenActual = resumen;
+            document.getElementById('resumenGeneradoContenido').innerHTML = escapeHtml(resumen).replace(/\n/g, '<br>');
+            localStorage.setItem('ultimoResumen', resumen);
+            document.getElementById('examenInfo').style.display = 'none';
+        } catch (error) {
+            document.getElementById('resumenGeneradoContenido').innerHTML = `<div class="resultado-final suspenso">❌ Error: ${error.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '📝 Generar resumen desde este texto';
+        }
+    });
+
+    async function llamarResumenDeepSeek(apiKey, texto) {
+        const prompt = `Actúa como profesor universitario UNED. Realiza un resumen conceptual COMPLETO del siguiente texto.
+
+REGLAS:
+1. NO inventes información. Usa SOLO el texto proporcionado.
+2. Extrae todas las ideas clave, definiciones, fechas, conceptos.
+3. Organízalo lógicamente en párrafos claros.
+4. Devuelve solo el resumen, sin introducciones adicionales.
+
+--- TEXTO ---
+${texto}`;
+
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.3,
+                max_tokens: 4000
+            })
+        });
+        if (!response.ok) throw new Error(`Error ${response.status}`);
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    function copiarResumenGenerado() {
+        const contenido = document.getElementById('resumenGeneradoContenido').innerText;
+        navigator.clipboard.writeText(contenido);
+        alert('✅ Resumen copiado');
+    }
+
+    function irAExamenDesdeResumen() {
+        if (!resumenActual) { alert('❌ Primero genera un resumen'); return; }
+        document.querySelector('.tab-btn[data-tab="examen"]').click();
+        document.getElementById('examenInfo').style.display = 'none';
+    }
+
+    // ========== RESUMEN MANUAL ==========
+    function usarResumenManual() {
+        const resumen = document.getElementById('resumenManual').value.trim();
+        if (!resumen) { alert('❌ Pega un resumen'); return; }
+        resumenActual = resumen;
+        document.getElementById('resumenGuardadoInfo').style.display = 'block';
+        document.getElementById('examenInfo').style.display = 'none';
+        alert('✅ Resumen cargado. Ve a la pestaña "Examen Tipo Test" para generar preguntas.');
+    }
+
+    function limpiarResumenManual() {
+        document.getElementById('resumenManual').value = '';
+        document.getElementById('resumenGuardadoInfo').style.display = 'none';
+        alert('🧹 Resumen manual limpiado');
+    }
+
+    // ========== GENERAR EXAMEN CON VERIFICACIÓN ==========
+    async function generarExamenDesdeResumen() {
+        if (!resumenActual) {
+            document.getElementById('examenInfo').style.display = 'block';
+            document.getElementById('examenInfo').innerHTML = '⚠️ No hay resumen. Genera uno en la primera pestaña o pega un resumen manual.';
+            document.querySelector('.tab-btn[data-tab="texto"]').click();
+            return;
+        }
+        const apiKey = document.getElementById('apiKey').value.trim();
+        if (!apiKey) { alert('❌ Introduce API Key'); return; }
+
+        const btn = document.getElementById('generarExamenBtn');
+        const container = document.getElementById('examenContainer');
+        btn.disabled = true;
+        btn.textContent = '🔄 Generando examen (fase 1/2)...';
+        container.innerHTML = '<div class="cargando"><div class="spinner"></div><p>Generando preguntas estilo UNED... (esto puede tomar 20-30 segundos)</p></div>';
+
+        try {
+            // FASE 1: Generar examen
+            const examenGenerado = await generarTestUNED(apiKey, resumenActual);
+            
+            // FASE 2: Verificar y corregir (si hay segunda clave o usamos la misma)
+            btn.textContent = '🔍 Verificando coherencia (fase 2/2)...';
+            container.innerHTML = '<div class="cargando"><div class="spinner"></div><p>Verificando fechas, artículos y opciones correctas... (unos segundos más)</p></div>';
+            
+            const examenCorregido = await verificarExamen(apiKey, examenGenerado, resumenActual);
+            
+            examenActual = examenCorregido;
+            respuestasUsuario = new Array(examenActual.preguntas.length).fill(null);
+            preguntasTotales = examenActual.preguntas.length;
+            mostrarTestUNED(examenActual);
+            
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = `<div class="resultado-final suspenso">❌ Error: ${error.message}<br><br>🔍 Revisa que tu resumen tenga suficiente contenido y que la API Key sea correcta.</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🎯 Generar Examen Tipo Test UNED';
+        }
+    }
+
+    async function generarTestUNED(apiKey, resumen) {
+        const prompt = `Actúa como un profesor de la UNED (Universidad Nacional de Educación a Distancia) que prepara un examen de tipo test para la asignatura de Derecho Civil: Familia.
+
+Basándote EXCLUSIVAMENTE en el siguiente resumen, genera un examen de 20 preguntas tipo test que imite FIELMENTE el estilo de los exámenes oficiales de la UNED.
+
+REGLAS DE FORMATO Y ESTILO (OBLIGATORIO SEGUIR):
+1. Cada pregunta debe tener TRES opciones de respuesta: a), b), c)
+2. Las opciones deben tener una longitud similar (frases cortas, máx. 2 líneas)
+3. Usa estos tipos de pregunta de forma variada:
+   - Preguntas directas: "El deber de fidelidad entre cónyuges significa:"
+   - "Seleccione la afirmación CORRECTA:" (para preguntas donde hay varias afirmaciones)
+   - Casos prácticos breves: "Antonio (16 años), Bruno (17) y Carlos (18)..."
+   - Preguntas de artículo: "De acuerdo con el art. XX del Código Civil..."
+   - "Diga cuál es la alternativa FALSA:"
+4. Cuando sea relevante, incluye entre paréntesis o al final la referencia al artículo del Código Civil: (Artículo XX CC) o ARTÍCULO XX CC
+5. La opción correcta debe ser indiscutible según el resumen proporcionado
+6. Las dos opciones incorrectas deben ser plausibles pero claramente erróneas para alguien que ha estudiado
+7. El nivel de dificultad debe ser medio-alto, similar al de los exámenes UNED
+
+ESTRUCTURA DE CADA PREGUNTA EN EL JSON:
+{
+  "numero": 1,
+  "pregunta": "enunciado de la pregunta", 
+  "opciones": ["texto opción a", "texto opción b", "texto opción c"],
+  "correcta": 0,
+  "explicacion": "breve explicación de por qué es correcta (1 línea)",
+  "articulo": "Artículo XX CC" (si aplica, si no, cadena vacía)
+}
+
+ADEMÁS, GENERA 3 PREGUNTAS DE RESERVA (numeradas 21, 22, 23) con el mismo formato.
+
+TITULO DEL EXAMEN: "Derecho Civil 1.2: Familia"
+
+DEVUELVE SOLO UN JSON VÁLIDO con esta estructura:
+{
+  "titulo": "Derecho Civil 1.2: Familia",
+  "preguntas": [ ... 20 preguntas ... ],
+  "reserva": [ ... 3 preguntas ... ]
+}
+
+--- RESUMEN A UTILIZAR ---
+${resumen}`;
+
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                    { role: 'system', content: 'Eres profesor universitario de Derecho Civil de la UNED. Respondes solo con JSON válido, siguiendo exactamente el formato solicitado.' },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.5,
+                max_tokens: 8000,
+                response_format: { type: 'json_object' }
+            })
+        });
+        
+        if (!response.ok) throw new Error(`Error en generación: ${response.status}`);
+        const data = await response.json();
+        let contenido = data.choices[0].message.content;
+        contenido = contenido.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const parsed = JSON.parse(contenido);
+        if (!parsed.preguntas || parsed.preguntas.length !== 20) {
+            throw new Error(`Número incorrecto de preguntas: ${parsed.preguntas?.length || 0}`);
+        }
+        return parsed;
+    }
+
+    async function verificarExamen(apiKey, examen, resumen) {
+        const promptVerificacion = `Eres un revisor experto en Derecho Civil. Revisa el siguiente examen tipo test y detecta posibles errores (fechas incorrectas, artículos erróneos, opciones mal asignadas, contradicciones). Corrige cada error que encuentres y devuelve el JSON completo del examen corregido.
+
+EXAMEN GENERADO (puede contener errores):
+${JSON.stringify(examen, null, 2)}
+
+RESUMEN ORIGINAL (fuente verdadera):
+${resumen}
+
+INSTRUCCIONES:
+1. Para cada pregunta, verifica que la opción correcta sea la única verdadera según el resumen.
+2. Si una fecha, artículo o afirmación es incorrecta, cámbiala por el valor correcto según el resumen.
+3. Si una opción es ambigua, ajústala para que sea clara.
+4. Mantén exactamente la misma estructura JSON (20 preguntas + 3 reserva).
+5. NO añadas texto fuera del JSON. Devuelve SOLO el JSON corregido.
+
+EJEMPLO DE CORRECCIÓN:
+- Si la pregunta dice "La reforma de 1981 suprimió el sistema causal" y el resumen dice que fue la Ley 15/2005, cambia la pregunta o la opción correcta para que refleje fielmente el resumen.
+- Si una respuesta correcta no se corresponde con el resumen, cambia el índice "correcta" al valor adecuado.
+
+DEVUELVE ÚNICAMENTE EL JSON CORREGIDO, sin introducciones ni comentarios.`;
+
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                    { role: 'system', content: 'Eres un revisor objetivo. Solo corriges errores factuales basándote en el resumen. Respondes únicamente con JSON.' },
+                    { role: 'user', content: promptVerificacion }
+                ],
+                temperature: 0.2,
+                max_tokens: 8000,
+                response_format: { type: 'json_object' }
+            })
+        });
+        
+        if (!response.ok) throw new Error(`Error en verificación: ${response.status}`);
+        const data = await response.json();
+        let contenido = data.choices[0].message.content;
+        contenido = contenido.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const corregido = JSON.parse(contenido);
+        
+        if (!corregido.preguntas || corregido.preguntas.length !== 20) {
+            console.warn("La verificación no devolvió 20 preguntas, usando examen original");
+            return examen;
+        }
+        return corregido;
+    }
+
+    function mostrarTestUNED(examen) {
+        const container = document.getElementById('examenContainer');
+        let html = `<h2 style="color:#1a472a;">📝 ${escapeHtml(examen.titulo)}</h2>
+        <div style="background:#e8f5e9; padding:10px; border-radius:8px; margin-bottom:20px;">
+            📊 ${examen.preguntas.length} preguntas ordinarias. Puntuación: <strong>+0,5 acierto / -0,25 fallo / 0 en blanco</strong>. 
+            Total sobre 10 puntos.<br>
+            <small>✅ Las preguntas han sido verificadas automáticamente para evitar errores de fechas o conceptos.</small>
+        </div>`;
+        
+        examen.preguntas.forEach((p, idx) => {
+            const letras = ['A', 'B', 'C'];
+            let opcionesHtml = '';
+            p.opciones.forEach((op, optIdx) => {
+                opcionesHtml += `<div class="opcion" onclick="seleccionarRespuesta(${idx}, ${optIdx})">${letras[optIdx]}. ${escapeHtml(op)}</div>`;
+            });
+            html += `<div class="pregunta-card" id="pregunta-${idx}">
+                        <div class="pregunta-header">
+                            Pregunta ${idx+1}
+                            ${p.corregida ? '<span class="correccion-badge">✏️ Corregida</span>' : ''}
+                        </div>
+                        <div class="pregunta-texto">${escapeHtml(p.pregunta)}</div>
+                        <div id="opciones-${idx}">${opcionesHtml}</div>
+                        ${p.articulo ? `<div class="articulo-ref">📌 ${escapeHtml(p.articulo)}</div>` : ''}
+                        <div class="feedback" id="feedback-${idx}"></div>
+                    </div>`;
+        });
+        
+        if (examen.reserva && examen.reserva.length > 0) {
+            html += `<details style="margin-top: 30px; background: #f0f0f0; padding: 15px; border-radius: 12px;">
+                        <summary style="cursor: pointer; font-weight: bold; color: #1a472a;">📌 Preguntas de reserva (se usarían si alguna ordinaria se anula)</summary>
+                        <div style="margin-top: 15px;">`;
+            examen.reserva.forEach((p, idx) => {
+                const letras = ['A', 'B', 'C'];
+                let opcionesHtml = '';
+                p.opciones.forEach((op, optIdx) => {
+                    opcionesHtml += `<div>${letras[optIdx]}. ${escapeHtml(op)}</div>`;
+                });
+                html += `<div style="margin-bottom: 20px; border-left: 2px solid #ffc107; padding-left: 15px;">
+                            <strong>Reserva ${idx+21}</strong><br>
+                            <em>${escapeHtml(p.pregunta)}</em><br>
+                            ${opcionesHtml}
+                            ${p.articulo ? `<div class="articulo-ref">📌 ${escapeHtml(p.articulo)}</div>` : ''}
+                            <small>✅ Correcta: ${letras[p.correcta]}. ${escapeHtml(p.explicacion)}</small>
+                         </div>`;
+            });
+            html += `</div></details>`;
+        }
+        
+        html += `<div class="botones-control">
+                    <button onclick="corregirExamen()" style="background-color:#28a745;">✅ Corregir</button>
+                    <button onclick="reiniciarExamen()" style="background-color:#6c757d;">🔄 Reiniciar</button>
+                 </div>
+                 <div id="resultadoFinal"></div>`;
+        
+        container.innerHTML = html;
+        window.examenActual = examen;
+        window.totalPreguntas = examen.preguntas.length;
+    }
+
+    function seleccionarRespuesta(preguntaIdx, opcionIdx) {
+        if (!window.examenActual) return;
+        respuestasUsuario[preguntaIdx] = opcionIdx;
+        const opcionesDiv = document.getElementById(`opciones-${preguntaIdx}`);
+        if (!opcionesDiv) return;
+        const opciones = opcionesDiv.querySelectorAll('.opcion');
+        opciones.forEach((op, i) => {
+            op.classList.remove('seleccionada');
+            if (i === opcionIdx) op.classList.add('seleccionada');
+        });
+    }
+
+    function corregirExamen() {
+        const examen = window.examenActual;
+        if (!examen) return;
+        
+        let aciertos = 0, fallos = 0, noRespondidas = 0;
+        const PUNTO_ACIERTO = 0.5;
+        const PENALIZACION_FALLO = 0.25;
+        
+        examen.preguntas.forEach((pregunta, idx) => {
+            const respuestaUser = respuestasUsuario[idx];
+            const feedbackDiv = document.getElementById(`feedback-${idx}`);
+            const opcionesDiv = document.getElementById(`opciones-${idx}`);
+            if (!opcionesDiv) return;
+            
+            const opciones = opcionesDiv.querySelectorAll('.opcion');
+            opciones.forEach(op => op.classList.remove('correcta-resaltada', 'incorrecta-resaltada', 'seleccionada'));
+            
+            if (respuestaUser === null || respuestaUser === undefined) {
+                noRespondidas++;
+                if (feedbackDiv) feedbackDiv.innerHTML = '<span style="color:#fd7e14;">⚠️ No respondida (0 puntos)</span>';
+            } else if (respuestaUser === pregunta.correcta) {
+                aciertos++;
+                opciones[respuestaUser].classList.add('correcta-resaltada');
+                if (feedbackDiv) feedbackDiv.innerHTML = `<span style="color:#28a745;">✅ Correcto (+${PUNTO_ACIERTO})</span><br><small>${escapeHtml(pregunta.explicacion)}</small>`;
+            } else {
+                fallos++;
+                opciones[respuestaUser].classList.add('incorrecta-resaltada');
+                opciones[pregunta.correcta].classList.add('correcta-resaltada');
+                const letraCorrecta = String.fromCharCode(65 + pregunta.correcta);
+                if (feedbackDiv) feedbackDiv.innerHTML = `<span style="color:#dc3545;">❌ Incorrecto (${PENALIZACION_FALLO})</span><br><small>Correcta: ${letraCorrecta}. ${escapeHtml(pregunta.explicacion)}</small>`;
+            }
+        });
+        
+        const notaSobreTotal = (aciertos * PUNTO_ACIERTO) - (fallos * PENALIZACION_FALLO);
+        const notaFinal = Math.max(0, Math.round(notaSobreTotal * 100) / 100);
+        const maxima = examen.preguntas.length * PUNTO_ACIERTO;
+        
+        let clase = notaFinal >= 9 ? 'sobresaliente' : notaFinal >= 7 ? 'notable' : notaFinal >= 5 ? 'aprobado' : 'suspenso';
+        document.getElementById('resultadoFinal').innerHTML = `<div class="resultado-final ${clase}">
+            <div>✅ Aciertos: ${aciertos} (${aciertos * PUNTO_ACIERTO} pts) | ❌ Fallos: ${fallos} (${fallos * PENALIZACION_FALLO} pts restados) | ⚠️ No respondidas: ${noRespondidas}</div>
+            <div class="nota-final">${notaFinal} / ${maxima}</div>
+            <div>${notaFinal >= 5 ? '🎉 APTO' : '📚 NO APTO'}</div>
+        </div>`;
+    }
+
+    function reiniciarExamen() {
+        if (!window.totalPreguntas) return;
+        respuestasUsuario = new Array(window.totalPreguntas).fill(null);
+        for (let i = 0; i < window.totalPreguntas; i++) {
+            const opcionesDiv = document.getElementById(`opciones-${i}`);
+            if (opcionesDiv) opcionesDiv.querySelectorAll('.opcion').forEach(op => op.classList.remove('seleccionada', 'correcta-resaltada', 'incorrecta-resaltada'));
+            const feedbackDiv = document.getElementById(`feedback-${i}`);
+            if (feedbackDiv) feedbackDiv.innerHTML = '';
+        }
+        document.getElementById('resultadoFinal').innerHTML = '';
+    }
+
+    function escapeHtml(texto) {
+        if (!texto) return '';
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>
