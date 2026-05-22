@@ -3,29 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ComuTech · Tecnología para piscinas y jardines</title>
-    <meta name="description" content="Soluciones tecnológicas integrales para el mantenimiento de piscinas y jardines. Gestión inteligente, alertas automáticas y control total para comunidades y empresas.">
-    <meta name="author" content="ComuTech">
+    <title>ComuTech · SaaS para empresas de mantenimiento</title>
+    <meta name="description" content="Plataforma SaaS para empresas de mantenimiento de piscinas y jardines. Gestiona tus técnicos, comunícate con tus clientes y reporta todos los trabajos.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
             color: #1e293b;
             line-height: 1.5;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         
         /* Header */
         .header {
@@ -36,611 +25,212 @@
             position: relative;
             overflow: hidden;
         }
-        
-        .header::before {
-            content: "💧";
-            position: absolute;
-            font-size: 300px;
-            opacity: 0.08;
-            bottom: -50px;
-            right: -50px;
-        }
-        
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
-        }
-        
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
-        }
-        
-        .header h1 span {
-            font-weight: 300;
-            opacity: 0.9;
-        }
-        
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
+        .header::before { content: "💧"; position: absolute; font-size: 300px; opacity: 0.08; bottom: -50px; right: -50px; }
+        .logo-icon { font-size: 3rem; margin-bottom: 16px; }
+        .header h1 { font-size: 3rem; font-weight: 700; margin-bottom: 8px; }
+        .header h1 span { font-weight: 300; opacity: 0.9; }
+        .header p { font-size: 1.2rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
         .cta-button {
-            display: inline-block;
-            background: white;
-            color: #0077b6;
-            padding: 14px 32px;
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            margin-top: 32px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: inline-block; background: white; color: #0077b6; padding: 14px 32px;
+            border-radius: 50px; font-weight: 600; text-decoration: none; margin-top: 32px;
+            transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
+        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        /* Secciones comunes */
-        .section {
-            padding: 60px 0;
-            border-bottom: 1px solid rgba(0,119,182,0.1);
-        }
-        
-        .section:last-child {
-            border-bottom: none;
-        }
-        
-        .section-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0077b6;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        
-        .section-subtitle {
-            text-align: center;
-            color: #5b6e8c;
-            max-width: 700px;
-            margin: 0 auto 48px auto;
-            font-size: 1.1rem;
-        }
+        /* Secciones */
+        .section { padding: 60px 0; border-bottom: 1px solid rgba(0,119,182,0.1); }
+        .section:last-child { border-bottom: none; }
+        .section-title { font-size: 2rem; font-weight: 700; color: #0077b6; text-align: center; margin-bottom: 16px; }
+        .section-subtitle { text-align: center; color: #5b6e8c; max-width: 700px; margin: 0 auto 48px auto; font-size: 1.1rem; }
         
         /* Tarjetas */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 20px;
-        }
-        
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 20px; }
         .card {
-            background: white;
-            border-radius: 24px;
-            padding: 28px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            transition: all 0.3s;
+            background: white; border-radius: 24px; padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: all 0.3s;
             border: 1px solid rgba(0,119,182,0.1);
         }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-        }
-        
-        .card-icon {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
-        
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #1e4663;
-        }
-        
-        .card-list {
-            list-style: none;
-            margin-top: 16px;
-        }
-        
-        .card-list li {
-            padding: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            color: #475569;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        
-        .card-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .check {
-            color: #2c7a4d;
-            font-weight: bold;
-        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+        .card-icon { font-size: 2.5rem; margin-bottom: 20px; }
+        .card-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; color: #1e4663; }
+        .card-list { list-style: none; margin-top: 16px; }
+        .card-list li { padding: 8px 0; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #475569; border-bottom: 1px solid #f1f5f9; }
+        .card-list li:last-child { border-bottom: none; }
+        .check { color: #2c7a4d; font-weight: bold; }
         
         /* Beneficios */
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
+        .benefits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .benefit-item { text-align: center; padding: 20px; }
+        .benefit-icon { font-size: 2rem; background: #eef2ff; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; }
+        .benefit-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 8px; }
+        .benefit-desc { font-size: 0.85rem; color: #5b6e8c; }
         
-        .benefit-item {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .benefit-icon {
-            font-size: 2rem;
-            background: #eef2ff;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px auto;
-        }
-        
-        .benefit-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-        }
-        
-        .benefit-desc {
-            font-size: 0.85rem;
-            color: #5b6e8c;
-        }
-        
-        /* Tabla de precios */
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-top: 20px;
-        }
-        
+        /* Pricing */
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
         .pricing-card {
-            background: white;
-            border-radius: 24px;
-            padding: 32px;
-            text-align: center;
-            border: 1px solid rgba(0,119,182,0.1);
-            transition: all 0.3s;
+            background: white; border-radius: 24px; padding: 32px; text-align: center;
+            border: 1px solid rgba(0,119,182,0.1); transition: all 0.3s;
         }
-        
-        .pricing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-        }
-        
-        .pricing-card.featured {
-            border: 2px solid #0077b6;
-            position: relative;
-        }
-        
-        .pricing-badge {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #0077b6;
-            color: white;
-            padding: 4px 16px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        
-        .pricing-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-        
-        .pricing-price {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #0077b6;
-            margin-bottom: 16px;
-        }
-        
-        .pricing-price span {
-            font-size: 1rem;
-            font-weight: 400;
-            color: #5b6e8c;
-        }
-        
-        .pricing-features {
-            list-style: none;
-            margin: 24px 0;
-            text-align: left;
-        }
-        
-        .pricing-features li {
-            padding: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
-        }
-        
+        .pricing-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+        .pricing-card.featured { border: 2px solid #0077b6; position: relative; }
+        .pricing-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #0077b6; color: white; padding: 4px 16px; border-radius: 50px; font-size: 0.7rem; font-weight: 600; }
+        .pricing-name { font-size: 1.5rem; font-weight: 700; margin-bottom: 16px; }
+        .pricing-price { font-size: 2.5rem; font-weight: 800; color: #0077b6; margin-bottom: 16px; }
+        .pricing-price span { font-size: 1rem; font-weight: 400; color: #5b6e8c; }
+        .pricing-features { list-style: none; margin: 24px 0; text-align: left; }
+        .pricing-features li { padding: 8px 0; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
         .pricing-button {
-            display: inline-block;
-            background: #0077b6;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            width: 100%;
+            display: inline-block; background: #0077b6; color: white; padding: 12px 24px;
+            border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.3s; width: 100%;
         }
-        
-        .pricing-button:hover {
-            background: #005f8c;
-        }
+        .pricing-button:hover { background: #005f8c; }
         
         /* Timeline */
-        .timeline {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 20px;
-            margin-top: 40px;
-        }
-        
-        .timeline-step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-        }
-        
-        .timeline-number {
-            width: 50px;
-            height: 50px;
-            background: #0077b6;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin: 0 auto 16px auto;
-        }
-        
-        .timeline-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .timeline-desc {
-            font-size: 0.85rem;
-            color: #5b6e8c;
-        }
+        .timeline { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; margin-top: 40px; }
+        .timeline-step { flex: 1; text-align: center; }
+        .timeline-number { width: 50px; height: 50px; background: #0077b6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; margin: 0 auto 16px auto; }
+        .timeline-title { font-weight: 600; margin-bottom: 8px; }
+        .timeline-desc { font-size: 0.85rem; color: #5b6e8c; }
         
         /* Footer */
-        .footer {
-            background: #1e293b;
-            color: white;
-            padding: 40px 0 20px 0;
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-        
-        .footer-col h4 {
-            font-size: 1rem;
-            margin-bottom: 16px;
-            color: #00a8e8;
-        }
-        
-        .footer-col p, .footer-col a {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            text-decoration: none;
-            line-height: 1.8;
-        }
-        
-        .footer-col a:hover {
-            color: white;
-        }
-        
-        .footer-bottom {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid #334155;
-            font-size: 0.7rem;
-            color: #64748b;
-        }
-        
-        .legal-links {
-            display: flex;
-            gap: 20px;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-        }
-        
-        .legal-links a {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.75rem;
-        }
-        
-        .legal-links a:hover {
-            color: white;
-        }
+        .footer { background: #1e293b; color: white; padding: 40px 0 20px 0; }
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
+        .footer-col h4 { font-size: 1rem; margin-bottom: 16px; color: #00a8e8; }
+        .footer-col p, .footer-col a { font-size: 0.8rem; color: #94a3b8; text-decoration: none; line-height: 1.8; }
+        .footer-col a:hover { color: white; }
+        .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #334155; font-size: 0.7rem; color: #64748b; }
+        .legal-links { display: flex; gap: 20px; justify-content: flex-start; flex-wrap: wrap; }
+        .legal-links a { color: #94a3b8; text-decoration: none; font-size: 0.75rem; }
+        .legal-links a:hover { color: white; }
         
         /* Cookie banner */
         .cookie-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e293b;
-            color: white;
-            padding: 16px 24px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            z-index: 1000;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; color: white;
+            padding: 16px 24px; display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; gap: 16px; z-index: 1000; box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
         }
-        
-        .cookie-banner p {
-            font-size: 0.8rem;
-            flex: 1;
-        }
-        
-        .cookie-banner a {
-            color: #00a8e8;
-            text-decoration: none;
-        }
-        
-        .cookie-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .cookie-btn {
-            padding: 8px 20px;
-            border-radius: 50px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.8rem;
-        }
-        
-        .cookie-accept {
-            background: #0077b6;
-            color: white;
-        }
-        
-        .cookie-decline {
-            background: #475569;
-            color: white;
-        }
-        
-        .cookie-accept:hover {
-            background: #005f8c;
-        }
-        
-        .cookie-decline:hover {
-            background: #334155;
-        }
+        .cookie-banner p { font-size: 0.8rem; flex: 1; }
+        .cookie-banner a { color: #00a8e8; text-decoration: none; }
+        .cookie-buttons { display: flex; gap: 12px; }
+        .cookie-btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 500; font-size: 0.8rem; }
+        .cookie-accept { background: #0077b6; color: white; }
+        .cookie-decline { background: #475569; color: white; }
         
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            .section-title {
-                font-size: 1.5rem;
-            }
-            .timeline {
-                flex-direction: column;
-                align-items: center;
-            }
-            .timeline-step {
-                max-width: 280px;
-            }
-            .cookie-banner {
-                flex-direction: column;
-                text-align: center;
-            }
-            .legal-links {
-                justify-content: center;
-            }
+            .header h1 { font-size: 2rem; }
+            .section-title { font-size: 1.5rem; }
+            .timeline { flex-direction: column; align-items: center; }
+            .timeline-step { max-width: 280px; }
+            .cookie-banner { flex-direction: column; text-align: center; }
+            .legal-links { justify-content: center; }
         }
         
-        /* Modal de políticas */
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1001;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center;
         }
-        
         .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 32px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            color: #1e293b;
+            background: white; border-radius: 24px; padding: 32px; max-width: 800px;
+            width: 90%; max-height: 80vh; overflow-y: auto; color: #1e293b;
         }
-        
-        .modal-header {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0077b6;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .modal-body h4 {
-            margin-top: 20px;
-            margin-bottom: 8px;
-            color: #1e4663;
-        }
-        
-        .modal-body p {
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: #475569;
-            margin-bottom: 12px;
-        }
-        
-        .modal-close {
-            background: #0077b6;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 50px;
-            cursor: pointer;
-            margin-top: 20px;
-            font-weight: 600;
-        }
-        
-        .contact-button {
-            display: inline-block;
-            background: #0077b6;
-            color: white;
-            padding: 12px 32px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: all 0.3s;
-        }
-        
-        .contact-button:hover {
-            background: #005f8c;
-        }
+        .modal-header { font-size: 1.5rem; font-weight: 700; color: #0077b6; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+        .modal-body h4 { margin-top: 20px; margin-bottom: 8px; color: #1e4663; }
+        .modal-body p { font-size: 0.85rem; line-height: 1.6; color: #475569; margin-bottom: 12px; }
+        .modal-close { background: #0077b6; color: white; border: none; padding: 10px 24px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="container">
-            <div class="logo-icon">💧🌿</div>
+            <div class="logo-icon">⚙️💧🌿</div>
             <h1>Comu<span>Tech</span></h1>
-            <p>Tecnología para el mantenimiento de piscinas y jardines</p>
-            <a href="#contacto" class="cta-button">📞 Solicitar demo gratuita</a>
+            <p>SaaS para empresas de mantenimiento de piscinas y jardines</p>
+            <p style="font-size: 1rem; margin-top: 16px; opacity: 0.8;">Gestiona tus técnicos, reporta trabajos y comunícate con tus clientes</p>
+            <a href="#contacto" class="cta-button">📞 Solicitar demo</a>
         </div>
     </div>
 
     <div class="container">
-        <!-- Qué es -->
+        <!-- Para quién es -->
         <div class="section">
-            <div class="section-title">¿Qué es ComuTech?</div>
-            <div class="section-subtitle">
-                Una plataforma tecnológica integral que centraliza la gestión y mantenimiento de piscinas y jardines.
-                Olvídate del caos de llamadas, WhatsApps perdidos y seguimiento manual.
+            <div class="section-title">¿Para quién es?</div>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🏢</div>
+                    <div class="card-title">Empresas de mantenimiento</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Organiza a tus técnicos y rutas</li>
+                        <li><span class="check">✓</span> Registra todo el trabajo realizado</li>
+                        <li><span class="check">✓</span> Control de tiempos y productos</li>
+                        <li><span class="check">✓</span> Informes profesionales automáticos</li>
+                        <li><span class="check">✓</span> Diferenciación frente a la competencia</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🏘️</div>
+                    <div class="card-title">Comunidades de propietarios</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Acceso con código personalizado</li>
+                        <li><span class="check">✓</span> Estado de piscina y jardín en tiempo real</li>
+                        <li><span class="check">✓</span> Reporte de incidencias</li>
+                        <li><span class="check">✓</span> Confirmación de trabajos realizados</li>
+                        <li><span class="check">✓</span> Histórico completo de servicios</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">👨‍💼</div>
+                    <div class="card-title">Administradores de fincas</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Control de múltiples comunidades</li>
+                        <li><span class="check">✓</span> Visibilidad completa del servicio</li>
+                        <li><span class="check">✓</span> Estado de pagos y documentación</li>
+                        <li><span class="check">✓</span> Reportes descargables</li>
+                    </ul>
+                </div>
             </div>
+        </div>
+
+        <!-- Qué resuelve -->
+        <div class="section">
+            <div class="section-title">¿Qué problemas resuelve?</div>
             <div class="benefits-grid">
                 <div class="benefit-item">
-                    <div class="benefit-icon">🎯</div>
-                    <div class="benefit-title">Todo centralizado</div>
-                    <div class="benefit-desc">Incidencias, mediciones y comunicación en un solo lugar</div>
+                    <div class="benefit-icon">📞</div>
+                    <div class="benefit-title">Fin a las llamadas</div>
+                    <div class="benefit-desc">Los clientes reportan incidencias desde la app, no por teléfono</div>
                 </div>
                 <div class="benefit-item">
-                    <div class="benefit-icon">🤖</div>
-                    <div class="benefit-title">Automatización inteligente</div>
-                    <div class="benefit-desc">El sistema redacta informes profesionales automáticamente</div>
+                    <div class="benefit-icon">📋</div>
+                    <div class="benefit-title">Sin papeles</div>
+                    <div class="benefit-desc">Todo el trabajo queda registrado digitalmente</div>
                 </div>
                 <div class="benefit-item">
                     <div class="benefit-icon">🔔</div>
-                    <div class="benefit-title">Alertas instantáneas</div>
-                    <div class="benefit-desc">Notificaciones a responsables cuando hay un problema grave</div>
+                    <div class="benefit-title">Alertas automáticas</div>
+                    <div class="benefit-desc">Notificaciones cuando hay problemas graves</div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">📊</div>
+                    <div class="benefit-title">Transparencia total</div>
+                    <div class="benefit-desc">El cliente sabe lo que se ha hecho y cuándo</div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">✅</div>
+                    <div class="benefit-title">Trazabilidad</div>
+                    <div class="benefit-desc">Todo queda registrado y auditable</div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🏆</div>
+                    <div class="benefit-title">Profesionalidad</div>
+                    <div class="benefit-desc">Comunicación profesional que genera confianza</div>
                 </div>
             </div>
         </div>
 
-        <!-- Servicios principales -->
-        <div class="section">
-            <div class="section-title">Nuestros servicios</div>
-            <div class="cards-grid">
-                <div class="card">
-                    <div class="card-icon">🏊</div>
-                    <div class="card-title">Mantenimiento de piscinas</div>
-                    <ul class="card-list">
-                        <li><span class="check">✓</span> Control de cloro, pH y temperatura</li>
-                        <li><span class="check">✓</span> Alertas automáticas de calidad del agua</li>
-                        <li><span class="check">✓</span> Histórico de mediciones</li>
-                        <li><span class="check">✓</span> Gestión de productos químicos</li>
-                        <li><span class="check">✓</span> Informes automáticos para comunidades</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🌿</div>
-                    <div class="card-title">Mantenimiento de jardines</div>
-                    <ul class="card-list">
-                        <li><span class="check">✓</span> Planificación de riegos y podas</li>
-                        <li><span class="check">✓</span> Control de plagas y enfermedades</li>
-                        <li><span class="check">✓</span> Calendario de abonados y tratamientos</li>
-                        <li><span class="check">✓</span> Registro de productos fitosanitarios</li>
-                        <li><span class="check">✓</span> Informes de estado del jardín</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🏢</div>
-                    <div class="card-title">Para comunidades</div>
-                    <ul class="card-list">
-                        <li><span class="check">✓</span> Acceso con código personalizado</li>
-                        <li><span class="check">✓</span> Reporte de incidencias 24/7</li>
-                        <li><span class="check">✓</span> Estado en tiempo real de piscina y jardín</li>
-                        <li><span class="check">✓</span> Histórico completo de servicios</li>
-                        <li><span class="check">✓</span> Comunicación directa con el técnico</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lo que incluye la plataforma -->
+        <!-- La plataforma -->
         <div class="section">
             <div class="section-title">La plataforma</div>
             <div class="cards-grid">
-                <div class="card">
-                    <div class="card-icon">👤</div>
-                    <div class="card-title">Panel del cliente</div>
-                    <ul class="card-list">
-                        <li><span class="check">✓</span> Acceso con código personalizado</li>
-                        <li><span class="check">✓</span> Estado de piscina y jardín con alertas visuales</li>
-                        <li><span class="check">✓</span> Reporte de incidencias</li>
-                        <li><span class="check">✓</span> Confirmación cuando se soluciona</li>
-                        <li><span class="check">✓</span> Histórico de informes</li>
-                    </ul>
-                </div>
                 <div class="card">
                     <div class="card-icon">👨‍🔧</div>
                     <div class="card-title">Panel del técnico</div>
@@ -648,13 +238,13 @@
                         <li><span class="check">✓</span> Control de jornada laboral</li>
                         <li><span class="check">✓</span> Registro de mediciones y tratamientos</li>
                         <li><span class="check">✓</span> Informes automáticos para clientes</li>
-                        <li><span class="check">✓</span> Histórico rápido de la piscina/jardín</li>
+                        <li><span class="check">✓</span> Histórico rápido de cada cliente</li>
                         <li><span class="check">✓</span> Aviso de urgencia con un clic</li>
                     </ul>
                 </div>
                 <div class="card">
                     <div class="card-icon">👔</div>
-                    <div class="card-title">Panel del administrador</div>
+                    <div class="card-title">Panel del gestor</div>
                     <ul class="card-list">
                         <li><span class="check">✓</span> Supervisión en tiempo real</li>
                         <li><span class="check">✓</span> Gestión de incidencias por gravedad</li>
@@ -663,89 +253,57 @@
                         <li><span class="check">✓</span> Exportación de informes a PDF</li>
                     </ul>
                 </div>
+                <div class="card">
+                    <div class="card-icon">👤</div>
+                    <div class="card-title">Panel del cliente</div>
+                    <ul class="card-list">
+                        <li><span class="check">✓</span> Acceso con código personalizado</li>
+                        <li><span class="check">✓</span> Estado de piscina y jardín</li>
+                        <li><span class="check">✓</span> Reporte de incidencias</li>
+                        <li><span class="check">✓</span> Confirmación de trabajos realizados</li>
+                        <li><span class="check">✓</span> Histórico de informes</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
-        <!-- Sistema de alertas -->
+        <!-- Valor añadido -->
         <div class="section">
-            <div class="section-title">Sistema de alertas</div>
-            <div class="section-subtitle">
-                Cuando ocurre un problema, todos los responsables se enteran al instante
-            </div>
+            <div class="section-title">El valor para tu empresa</div>
             <div class="cards-grid">
-                <div class="card" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white;">
-                    <div class="card-icon" style="color: white;">🚨</div>
-                    <div class="card-title" style="color: white;">Alerta GRAVE</div>
+                <div class="card" style="background: linear-gradient(135deg, #0077b6 0%, #00a8e8 100%); color: white;">
+                    <div class="card-icon" style="color: white;">📈</div>
+                    <div class="card-title" style="color: white;">Diferenciación competitiva</div>
                     <ul class="card-list">
-                        <li style="color: #fee2e2;">✓ Riesgo para la salud (agua contaminada)</li>
-                        <li style="color: #fee2e2;">✓ Plaga o enfermedad en el jardín</li>
-                        <li style="color: #fee2e2;">✓ Cloro o pH extremos</li>
-                        <li style="color: #fee2e2;">✓ Acción inmediata requerida</li>
-                    </ul>
-                </div>
-                <div class="card" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white;">
-                    <div class="card-icon" style="color: white;">⚠️</div>
-                    <div class="card-title" style="color: white;">Alerta URGENTE</div>
-                    <ul class="card-list">
-                        <li style="color: #fef3c7;">✓ Avería importante (bomba rota, fuga)</li>
-                        <li style="color: #fef3c7;">✓ Sistema de riego averiado</li>
-                        <li style="color: #fef3c7;">✓ Desbordamiento o falta de agua</li>
-                        <li style="color: #fef3c7;">✓ Atención prioritaria</li>
+                        <li style="color: #e0f2fe;">✓ Ofreces a tus clientes una experiencia digital</li>
+                        <li style="color: #e0f2fe;">✓ Tus clientes reciben informes automáticos</li>
+                        <li style="color: #e0f2fe;">✓ Te posicionas como empresa moderna y profesional</li>
                     </ul>
                 </div>
                 <div class="card" style="background: linear-gradient(135deg, #2c7a4d 0%, #1e5a3a 100%); color: white;">
-                    <div class="card-icon" style="color: white;">✅</div>
-                    <div class="card-title" style="color: white;">Incidencia resuelta</div>
+                    <div class="card-icon" style="color: white;">💰</div>
+                    <div class="card-title" style="color: white;">Ahorro de costes</div>
                     <ul class="card-list">
-                        <li style="color: #d4edda;">✓ Mensaje automático de cierre</li>
-                        <li style="color: #d4edda;">✓ Confirmación a todos los responsables</li>
-                        <li style="color: #d4edda;">✓ Registro de la solución aplicada</li>
-                        <li style="color: #d4edda;">✓ Tranquilidad para el cliente</li>
+                        <li style="color: #d4edda;">✓ Menos llamadas = menos tiempo perdido</li>
+                        <li style="color: #d4edda;">✓ Todo registrado = menos reclamaciones</li>
+                        <li style="color: #d4edda;">✓ Mayor eficiencia operativa</li>
+                    </ul>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white;">
+                    <div class="card-icon" style="color: white;">🤝</div>
+                    <div class="card-title" style="color: white;">Fidelización de clientes</div>
+                    <ul class="card-list">
+                        <li style="color: #fef3c7;">✓ Tus clientes reciben informes profesionales</li>
+                        <li style="color: #fef3c7;">✓ La comunicación es clara y trazable</li>
+                        <li style="color: #fef3c7;">✓ Tus clientes te recomendarán</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Beneficios para la empresa -->
+        <!-- Planes -->
         <div class="section">
-            <div class="section-title">Beneficios para tu negocio</div>
-            <div class="benefits-grid">
-                <div class="benefit-item">
-                    <div class="benefit-icon">💰</div>
-                    <div class="benefit-title">Ahorro de tiempo</div>
-                    <div class="benefit-desc">Elimina llamadas y seguimiento manual</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">📈</div>
-                    <div class="benefit-title">Transparencia</div>
-                    <div class="benefit-desc">El cliente sabe el estado de su piscina y jardín</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🔒</div>
-                    <div class="benefit-title">Seguridad</div>
-                    <div class="benefit-desc">Alertas inmediatas cuando hay riesgo para la salud</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🤝</div>
-                    <div class="benefit-title">Confianza</div>
-                    <div class="benefit-desc">Comunicación profesional que genera credibilidad</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">📱</div>
-                    <div class="benefit-title">Accesibilidad</div>
-                    <div class="benefit-desc">Funciona en cualquier dispositivo</div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">📋</div>
-                    <div class="benefit-title">Trazabilidad</div>
-                    <div class="benefit-desc">Todo queda registrado y auditable</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Precios -->
-        <div class="section">
-            <div class="section-title">Planes y precios</div>
+            <div class="section-title">Planes para empresas de mantenimiento</div>
             <div class="section-subtitle">
                 Sin permanencia. Cancelación flexible. Soporte incluido.
             </div>
@@ -754,38 +312,34 @@
                     <div class="pricing-name">Básico</div>
                     <div class="pricing-price">49€<span>/mes</span></div>
                     <ul class="pricing-features">
-                        <li>✓ Hasta 5 piscinas/jardines</li>
+                        <li>✓ Hasta 5 clientes (piscinas/jardines)</li>
                         <li>✓ 1 técnico</li>
                         <li>✓ Panel de cliente</li>
                         <li>✓ Panel de técnico</li>
                         <li>✓ Panel de administrador</li>
                         <li>✓ Alertas por Telegram</li>
                     </ul>
-                    <a href="#contacto" class="pricing-button">Elegir plan</a>
+                    <a href="#contacto" class="pricing-button">Empieza ahora</a>
                 </div>
                 <div class="pricing-card featured">
                     <div class="pricing-badge">Más popular</div>
                     <div class="pricing-name">Profesional</div>
                     <div class="pricing-price">99€<span>/mes</span></div>
                     <ul class="pricing-features">
-                        <li>✓ Hasta 20 piscinas/jardines</li>
+                        <li>✓ Hasta 20 clientes</li>
                         <li>✓ 3 técnicos</li>
-                        <li>✓ Panel de cliente</li>
-                        <li>✓ Panel de técnico</li>
-                        <li>✓ Panel de administrador</li>
-                        <li>✓ Alertas por Telegram</li>
+                        <li>✓ Todas las funcionalidades</li>
                         <li>✓ Exportación a PDF</li>
                         <li>✓ Prioridad en soporte</li>
                     </ul>
-                    <a href="#contacto" class="pricing-button">Elegir plan</a>
+                    <a href="#contacto" class="pricing-button">Empieza ahora</a>
                 </div>
                 <div class="pricing-card">
                     <div class="pricing-name">Enterprise</div>
                     <div class="pricing-price">A consultar</div>
                     <ul class="pricing-features">
-                        <li>✓ Piscinas/jardines ilimitados</li>
+                        <li>✓ Clientes ilimitados</li>
                         <li>✓ Técnicos ilimitados</li>
-                        <li>✓ Todas las funcionalidades</li>
                         <li>✓ Soporte prioritario 24/7</li>
                         <li>✓ Formación personalizada</li>
                         <li>✓ API para integraciones</li>
@@ -795,29 +349,29 @@
             </div>
         </div>
 
-        <!-- Proceso -->
+        <!-- Cómo funciona para el cliente (empresa de mantenimiento) -->
         <div class="section">
-            <div class="section-title">¿Cómo empezamos?</div>
+            <div class="section-title">¿Cómo funciona para tu empresa?</div>
             <div class="timeline">
                 <div class="timeline-step">
                     <div class="timeline-number">1</div>
-                    <div class="timeline-title">Demostración</div>
-                    <div class="timeline-desc">30 minutos mostrando el sistema con tus datos</div>
+                    <div class="timeline-title">Te damos acceso</div>
+                    <div class="timeline-desc">Panel de administrador para tu empresa</div>
                 </div>
                 <div class="timeline-step">
                     <div class="timeline-number">2</div>
-                    <div class="timeline-title">Prueba gratuita</div>
-                    <div class="timeline-desc">15 días con una de tus piscinas reales</div>
+                    <div class="timeline-title">Das de alta a tus clientes</div>
+                    <div class="timeline-desc">Cada comunidad recibe su código de acceso</div>
                 </div>
                 <div class="timeline-step">
                     <div class="timeline-number">3</div>
-                    <div class="timeline-title">Implementación</div>
-                    <div class="timeline-desc">2-3 días para cargar tus datos y usuarios</div>
+                    <div class="timeline-title">Tus técnicos registran el trabajo</div>
+                    <div class="timeline-desc">Desde su móvil o tablet</div>
                 </div>
                 <div class="timeline-step">
                     <div class="timeline-number">4</div>
-                    <div class="timeline-title">Formación</div>
-                    <div class="timeline-desc">2 horas para que tu equipo empiece a usarlo</div>
+                    <div class="timeline-title">Tus clientes ven el trabajo realizado</div>
+                    <div class="timeline-desc">Informes automáticos y transparencia total</div>
                 </div>
             </div>
         </div>
@@ -826,12 +380,12 @@
         <div class="section" id="contacto">
             <div class="section-title">¿Hablamos?</div>
             <div class="section-subtitle">
-                30 días para probarlo sin compromiso. Si no estás convencido, te devolvemos el dinero.
+                Solicita una demo gratuita y descubre cómo ComuTech puede ayudar a tu empresa de mantenimiento.
             </div>
             <div style="text-align: center; margin-top: 40px;">
                 <div style="font-size: 3rem; margin-bottom: 20px;">🏆</div>
                 <p style="font-size: 1.1rem; margin-bottom: 20px;">
-                    ¿Listo para mejorar la gestión de piscinas y jardines?
+                    ¿Listo para profesionalizar tu empresa de mantenimiento?
                 </p>
                 <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
                     <a href="#" class="cta-button" style="background: #0077b6; color: white;">📞 Solicitar demo</a>
@@ -844,13 +398,13 @@
         </div>
     </div>
 
-    <!-- Footer con políticas legales -->
+    <!-- Footer -->
     <div class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-col">
                     <h4>ComuTech</h4>
-                    <p>Tecnología para el mantenimiento de piscinas y jardines</p>
+                    <p>SaaS para empresas de mantenimiento de piscinas y jardines</p>
                     <p>© 2025 ComuTech. Todos los derechos reservados.</p>
                 </div>
                 <div class="footer-col">
@@ -870,160 +424,64 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>ComuTech cumple con el RGPD (Reglamento General de Protección de Datos) y la LSSI-CE (Ley de Servicios de la Sociedad de la Información).</p>
+                <p>ComuTech cumple con el RGPD y la LSSI-CE.</p>
             </div>
         </div>
     </div>
 
     <!-- Cookie banner -->
     <div id="cookieBanner" class="cookie-banner" style="display: flex;">
-        <p>🍪 Utilizamos cookies propias y de terceros para mejorar tu experiencia y analizar el tráfico. Puedes aceptar todas, rechazar las no esenciales o configurarlas. Más información en nuestra <a href="#" onclick="mostrarModal('politica-cookies')">política de cookies</a>.</p>
+        <p>🍪 Utilizamos cookies para mejorar tu experiencia. Más info en nuestra <a href="#" onclick="mostrarModal('politica-cookies')">política de cookies</a>.</p>
         <div class="cookie-buttons">
-            <button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar todas</button>
-            <button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar no esenciales</button>
+            <button class="cookie-btn cookie-accept" onclick="aceptarCookies()">Aceptar</button>
+            <button class="cookie-btn cookie-decline" onclick="rechazarCookies()">Rechazar</button>
         </div>
     </div>
 
-    <!-- Modal de políticas -->
+    <!-- Modal -->
     <div id="modalPoliticas" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitulo">Aviso legal</div>
-            <div class="modal-body" id="modalBody">
-                <p>Cargando...</p>
-            </div>
+            <div class="modal-body" id="modalBody"></div>
             <button class="modal-close" onclick="cerrarModal()">Cerrar</button>
         </div>
     </div>
 
     <script>
-        // Cookie management
-        function aceptarCookies() {
-            localStorage.setItem('cookies_aceptadas', 'true');
-            document.getElementById('cookieBanner').style.display = 'none';
-        }
+        function aceptarCookies() { localStorage.setItem('cookies_aceptadas', 'true'); document.getElementById('cookieBanner').style.display = 'none'; }
+        function rechazarCookies() { localStorage.setItem('cookies_aceptadas', 'false'); document.getElementById('cookieBanner').style.display = 'none'; }
+        if (localStorage.getItem('cookies_aceptadas') !== null) document.getElementById('cookieBanner').style.display = 'none';
         
-        function rechazarCookies() {
-            localStorage.setItem('cookies_aceptadas', 'false');
-            document.getElementById('cookieBanner').style.display = 'none';
-        }
-        
-        // Verificar cookies al cargar
-        if (localStorage.getItem('cookies_aceptadas') !== null) {
-            document.getElementById('cookieBanner').style.display = 'none';
-        }
-        
-        // Modal functions
         function mostrarModal(tipo) {
             const modal = document.getElementById('modalPoliticas');
             const titulo = document.getElementById('modalTitulo');
             const body = document.getElementById('modalBody');
-            
             let contenido = '';
-            
             if (tipo === 'aviso-legal') {
                 titulo.innerHTML = '📄 Aviso legal';
-                contenido = `
-                    <h4>1. Identificación del responsable</h4>
-                    <p><strong>ComuTech</strong> es una plataforma tecnológica para la gestión de mantenimiento de piscinas y jardines.</p>
-                    <p><strong>Email:</strong> info@comutech.com</p>
-                    <p><strong>Teléfono:</strong> +34 600 000 000</p>
-                    <p><strong>Domicilio:</strong> Madrid, España</p>
-                    
-                    <h4>2. Objeto</h4>
-                    <p>El presente aviso legal regula el uso del sitio web de ComuTech.</p>
-                    
-                    <h4>3. Propiedad intelectual</h4>
-                    <p>Todo el contenido de este sitio web está protegido por derechos de propiedad intelectual.</p>
-                    
-                    <h4>4. Condiciones de uso</h4>
-                    <p>El uso del sitio web implica la aceptación plena de las condiciones establecidas.</p>
-                    
-                    <h4>5. Ley aplicable</h4>
-                    <p>Las presentes condiciones se rigen por la legislación española.</p>
-                `;
+                contenido = `<h4>1. Identificación</h4><p>ComuTech es una plataforma SaaS para empresas de mantenimiento.</p><h4>2. Contacto</h4><p>info@comutech.com | +34 600 000 000</p>`;
             } else if (tipo === 'politica-privacidad') {
                 titulo.innerHTML = '🔒 Política de privacidad';
-                contenido = `
-                    <h4>1. Responsable del tratamiento</h4>
-                    <p>ComuTech es responsable del tratamiento de sus datos personales.</p>
-                    
-                    <h4>2. Datos que recopilamos</h4>
-                    <p>Recopilamos información necesaria para la gestión del servicio: nombre, email, teléfono, datos de la comunidad, etc.</p>
-                    
-                    <h4>3. Base legal del tratamiento</h4>
-                    <p>La base legal es la ejecución del contrato de prestación de servicios.</p>
-                    
-                    <h4>4. Conservación de datos</h4>
-                    <p>Conservamos sus datos mientras dure la relación contractual.</p>
-                    
-                    <h4>5. Derechos del usuario</h4>
-                    <p>Puede ejercer sus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad en info@comutech.com.</p>
-                    
-                    <h4>6. Medidas de seguridad</h4>
-                    <p>Aplicamos medidas técnicas y organizativas para proteger sus datos.</p>
-                `;
+                contenido = `<h4>1. Datos recopilados</h4><p>Recopilamos los datos necesarios para la prestación del servicio.</p><h4>2. Derechos</h4><p>Puede ejercer sus derechos en info@comutech.com</p>`;
             } else if (tipo === 'politica-cookies') {
                 titulo.innerHTML = '🍪 Política de cookies';
-                contenido = `
-                    <h4>1. ¿Qué son las cookies?</h4>
-                    <p>Las cookies son pequeños archivos que se almacenan en su dispositivo al navegar por nuestro sitio web.</p>
-                    
-                    <h4>2. Tipos de cookies que utilizamos</h4>
-                    <p><strong>Cookies técnicas:</strong> Necesarias para el funcionamiento del sitio.</p>
-                    <p><strong>Cookies analíticas:</strong> Nos ayudan a analizar el tráfico y mejorar el sitio.</p>
-                    
-                    <h4>3. Gestionar las cookies</h4>
-                    <p>Puede aceptar, rechazar o configurar las cookies desde su navegador.</p>
-                    
-                    <h4>4. Cookies de terceros</h4>
-                    <p>Utilizamos servicios de análisis web que pueden instalar cookies.</p>
-                `;
-            } else if (tipo === 'condiciones-uso') {
+                contenido = `<h4>1. ¿Qué son las cookies?</h4><p>Las cookies son pequeños archivos que se almacenan en su dispositivo.</p><h4>2. Tipos</h4><p>Usamos cookies técnicas y analíticas.</p>`;
+            } else {
                 titulo.innerHTML = '📋 Condiciones de uso';
-                contenido = `
-                    <h4>1. Aceptación de las condiciones</h4>
-                    <p>El uso de la plataforma implica la aceptación de estas condiciones.</p>
-                    
-                    <h4>2. Registro y acceso</h4>
-                    <p>Para acceder a ciertos servicios es necesario registrarse con datos veraces.</p>
-                    
-                    <h4>3. Obligaciones del usuario</h4>
-                    <p>El usuario se compromete a hacer un uso adecuado de la plataforma.</p>
-                    
-                    <h4>4. Suspensión del servicio</h4>
-                    <p>ComuTech puede suspender el servicio por incumplimiento de las condiciones.</p>
-                    
-                    <h4>5. Modificaciones</h4>
-                    <p>ComuTech se reserva el derecho de modificar estas condiciones.</p>
-                `;
+                contenido = `<h4>1. Aceptación</h4><p>El uso de la plataforma implica la aceptación de estas condiciones.</p><h4>2. Modificaciones</h4><p>ComuTech puede modificar estas condiciones.</p>`;
             }
-            
             body.innerHTML = contenido;
             modal.style.display = 'flex';
         }
-        
-        function cerrarModal() {
-            document.getElementById('modalPoliticas').style.display = 'none';
-        }
-        
-        // Cerrar modal al hacer clic fuera
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalPoliticas');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
-        
-        // Scroll suave para enlaces internos
+        function cerrarModal() { document.getElementById('modalPoliticas').style.display = 'none'; }
+        window.onclick = function(event) { const modal = document.getElementById('modalPoliticas'); if (event.target === modal) modal.style.display = 'none'; }
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 const href = this.getAttribute('href');
                 if (href !== '#' && href !== '#contacto') return;
                 e.preventDefault();
                 const target = document.querySelector('#contacto');
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
             });
         });
     </script>
