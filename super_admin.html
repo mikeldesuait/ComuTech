@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>COMUTECH · Panel Super Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #eef2ff;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .card-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-left: 4px solid #0077b6;
+            padding-left: 16px;
+            color: #1e4663;
+        }
+        .row-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .grupo {
+            flex: 1;
+            min-width: 180px;
+        }
+        label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+            display: block;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.85rem;
+        }
+        button {
+            background: #0077b6;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #005f8c; transform: translateY(-1px); }
+        .btn-success { background: #2c7a4d; }
+        .btn-danger { background: #c2410c; }
+        .btn-warning { background: #e67e22; }
+        .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1e4663;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-activo { background: #d4edda; color: #155724; }
+        .badge-inactivo { background: #f8d7da; color: #721c24; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .mensaje {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 40px;
+            color: white;
+            z-index: 1000;
+            animation: fadeOut 3s ease forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Login -->
+    <div id="loginPanel" class="card">
+        <div class="card-header" style="cursor:default;">👑 COMUTECH · Super Admin</div>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="btnLogin">Iniciar sesión</button>
+        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+    </div>
+
+    <div id="dashboardPanel" style="display: none;">
+        <!-- Header -->
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #0077b6 100%); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">👑 Super Admin</div>
+                    <div style="font-size: 1.5rem; font-weight: 700;" id="nombreAdmin">Cargando...</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailAdmin"></div>
+                </div>
+                <div style="font-size: 2rem;">🏢 COMUTECH</div>
+            </div>
+        </div>
+
+        <!-- Botones acción -->
+        <div class="card">
+            <div class="row-flex">
+                <button id="btnMostrarAlta" class="btn-success">➕ Nuevo cliente</button>
+                <button id="btnRefrescar" class="btn-warning">🔄 Refrescar lista</button>
+            </div>
+        </div>
+
+        <!-- Formulario alta cliente -->
+        <div id="formAlta" class="card" style="display: none;">
+            <div class="card-header">📝 Dar de alta nuevo cliente</div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🏢 Nombre empresa *</label>
+                    <input type="text" id="empresaNombre" placeholder="Ej: Gestión Norte S.L.">
+                </div>
+                <div class="grupo">
+                    <label>📧 Email contacto *</label>
+                    <input type="email" id="empresaEmail" placeholder="admin@empresa.com">
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>👤 Nombre contacto</label>
+                    <input type="text" id="contactoNombre" placeholder="Nombre del administrador">
+                </div>
+                <div class="grupo">
+                    <label>📞 Teléfono</label>
+                    <input type="text" id="empresaTelefono" placeholder="Teléfono de contacto">
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📋 NIF/CIF</label>
+                    <input type="text" id="empresaNif" placeholder="B12345678">
+                </div>
+                <div class="grupo">
+                    <label>🏷️ Plan</label>
+                    <select id="empresaPlan">
+                        <option value="BASICO">Básico (49€/mes)</option>
+                        <option value="PRO">Pro (99€/mes)</option>
+                        <option value="EMPRESA">Empresa (199€/mes)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📍 Dirección</label>
+                    <input type="text" id="empresaDireccion" placeholder="Dirección completa">
+                </div>
+            </div>
+            <div class="row-flex">
+                <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+                <button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Lista de clientes -->
+        <div class="card">
+            <div class="card-header">👥 Clientes registrados</div>
+            <div id="listaClientes">
+                <div style="text-align: center; padding: 40px;">🔄 Cargando clientes...</div>
+            </div>
+        </div>
+
+        <button id="btnLogout" style="background:#475569; margin-top:16px;">🚪 Cerrar sesión</button>
+    </div>
+</div>
+
+<script>
+    // ========== CONFIGURACIÓN ==========
+    const SUPABASE_URL = "https://vvdyofbapqttcvczokiw.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_MwuazhcxSJGc04eS2vttZA_SEcGjhVT";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
+    let currentUserRol = null;
+
+    // ========== FUNCIONES ==========
+    function mostrarMensaje(texto, tipo = 'exito') {
+        const msg = document.createElement('div');
+        msg.className = 'mensaje';
+        msg.style.background = tipo === 'exito' ? '#2c7a4d' : '#c2410c';
+        msg.innerHTML = texto;
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
+    }
+
+    // ========== LOGIN ==========
+    async function hacerLogin() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!email || !password) {
+            document.getElementById('errorMsg').innerText = "Introduce email y contraseña";
+            return false;
+        }
+        
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+            document.getElementById('errorMsg').innerText = error.message;
+            return false;
+        }
+        
+        // Verificar que es super_admin
+        const { data: perfil, error: perfilError } = await sb
+            .from('perfiles')
+            .select('rol, nombre')
+            .eq('id', data.user.id)
+            .single();
+        
+        if (perfilError || perfil.rol !== 'super_admin') {
+            await sb.auth.signOut();
+            document.getElementById('errorMsg').innerText = "Acceso no autorizado";
+            return false;
+        }
+        
+        currentUser = data.user;
+        currentUserRol = perfil.rol;
+        document.getElementById('nombreAdmin').innerHTML = perfil.nombre || 'Super Admin';
+        document.getElementById('emailAdmin').innerHTML = currentUser.email;
+        
+        return true;
+    }
+
+    // ========== CARGAR CLIENTES ==========
+    async function cargarClientes() {
+        const container = document.getElementById('listaClientes');
+        container.innerHTML = '<div style="text-align: center; padding: 40px;">🔄 Cargando clientes...</div>';
+        
+        // Obtener empresas (clientes de COMUTECH)
+        const { data: empresas, error } = await sb
+            .from('empresas')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            container.innerHTML = `<div style="color: red; padding: 20px;">❌ Error: ${error.message}</div>`;
+            return;
+        }
+        
+        if (!empresas || empresas.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px;">📋 No hay clientes registrados</div>';
+            return;
+        }
+        
+        // Crear tabla
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Empresa</th>
+                        <th>Contacto</th>
+                        <th>Email</th>
+                        <th>Plan</th>
+                        <th>Estado</th>
+                        <th>Fecha alta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        for (const emp of empresas) {
+            // Buscar el perfil asociado
+            const { data: perfil } = await sb
+                .from('perfiles')
+                .select('nombre, email')
+                .eq('empresa_id', emp.id)
+                .eq('rol', 'gerente')
+                .maybeSingle();
+            
+            html += `
+                <tr>
+                    <td><strong>${emp.nombre}</strong><br><small>${emp.nif || 'Sin NIF'}</small></td>
+                    <td>${perfil?.nombre || '-'}</td>
+                    <td>${perfil?.email || emp.email || '-'}</td>
+                    <td><span class="badge" style="background:#e0e7ff;">${emp.plan || 'BASICO'}</span></td>
+                    <td><span class="badge ${emp.activo ? 'badge-activo' : 'badge-inactivo'}">${emp.activo ? 'Activo' : 'Inactivo'}</span></td>
+                    <td>${new Date(emp.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}" style="background:#e67e22;">${emp.activo ? '❌ Desactivar' : '✅ Activar'}</button>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        
+        // Eventos para botones toggle
+        document.querySelectorAll('.toggle-cliente').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.dataset.id;
+                const activo = btn.dataset.activo === 'true';
+                await sb.from('empresas').update({ activo: !activo }).eq('id', id);
+                mostrarMensaje(activo ? '❌ Cliente desactivado' : '✅ Cliente activado');
+                await cargarClientes();
+            };
+        });
+    }
+
+    // ========== CREAR NUEVO CLIENTE ==========
+    async function crearCliente() {
+        const nombre = document.getElementById('empresaNombre').value.trim();
+        const email = document.getElementById('empresaEmail').value.trim();
+        const contactoNombre = document.getElementById('contactoNombre').value.trim();
+        const telefono = document.getElementById('empresaTelefono').value.trim();
+        const nif = document.getElementById('empresaNif').value.trim();
+        const plan = document.getElementById('empresaPlan').value;
+        const direccion = document.getElementById('empresaDireccion').value.trim();
+        
+        if (!nombre || !email) {
+            mostrarMensaje("❌ Nombre y email son obligatorios", 'error');
+            return;
+        }
+        
+        const btn = document.getElementById('btnGuardarCliente');
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner"></span> Creando...';
+        btn.disabled = true;
+        
+        try {
+            // 1. Crear la empresa
+            const { data: empresa, error: empError } = await sb
+                .from('empresas')
+                .insert({
+                    nombre: nombre,
+                    nif: nif || null,
+                    direccion: direccion || null,
+                    telefono: telefono || null,
+                    email: email,
+                    plan: plan,
+                    activo: true
+                })
+                .select()
+                .single();
+            
+            if (empError) throw empError;
+            
+            // 2. Crear usuario en Auth (generamos password temporal)
+            const passwordTemp = Math.random().toString(36).substring(2, 10) + "A1!";
+            
+            const { data: authUser, error: authError } = await sb.auth.admin.createUser({
+                email: email,
+                password: passwordTemp,
+                email_confirm: true
+            });
+            
+            if (authError) throw authError;
+            
+            // 3. Crear perfil del gerente
+            const { error: perfilError } = await sb
+                .from('perfiles')
+                .insert({
+                    id: authUser.user.id,
+                    empresa_id: empresa.id,
+                    email: email,
+                    nombre: contactoNombre || nombre,
+                    rol: 'gerente',
+                    activo: true
+                });
+            
+            if (perfilError) throw perfilError;
+            
+            // 4. Mostrar credenciales
+            mostrarMensaje(`✅ Cliente creado. Email: ${email} | Password temporal: ${passwordTemp}`, 'exito');
+            alert(`✅ CLIENTE CREADO\n\nEmpresa: ${nombre}\nEmail: ${email}\nPassword temporal: ${passwordTemp}\n\n⚠️ Envía estas credenciales al cliente.`);
+            
+            // Limpiar formulario
+            document.getElementById('empresaNombre').value = '';
+            document.getElementById('empresaEmail').value = '';
+            document.getElementById('contactoNombre').value = '';
+            document.getElementById('empresaTelefono').value = '';
+            document.getElementById('empresaNif').value = '';
+            document.getElementById('empresaDireccion').value = '';
+            document.getElementById('formAlta').style.display = 'none';
+            
+            // Recargar lista
+            await cargarClientes();
+            
+        } catch (error) {
+            console.error("Error:", error);
+            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+        } finally {
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        }
+    }
+
+    // ========== EVENTOS ==========
+    document.getElementById('btnLogin').onclick = async () => {
+        if (await hacerLogin()) {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('dashboardPanel').style.display = 'block';
+            await cargarClientes();
+        }
+    };
+    
+    document.getElementById('btnMostrarAlta').onclick = () => {
+        document.getElementById('formAlta').style.display = 'block';
+    };
+    
+    document.getElementById('btnCancelarAlta').onclick = () => {
+        document.getElementById('formAlta').style.display = 'none';
+    };
+    
+    document.getElementById('btnGuardarCliente').onclick = crearCliente;
+    document.getElementById('btnRefrescar').onclick = cargarClientes;
+    
+    document.getElementById('btnLogout').onclick = async () => {
+        await sb.auth.signOut();
+        location.reload();
+    };
+</script>
+</body>
+</html>
