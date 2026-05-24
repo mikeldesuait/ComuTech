@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>COMUTECH · Panel Gerente</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            background: #f0f4f8;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .card-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-left: 4px solid #2c7a4d;
+            padding-left: 16px;
+            color: #2c7a4d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .stat-number { font-size: 1.8rem; font-weight: 700; color: #2c7a4d; }
+        .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+        
+        .browser-tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 8px 12px 0 12px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 4px;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+        .browser-tab {
+            padding: 10px 20px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #475569;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .browser-tab:hover { background: #cbd5e1; }
+        .browser-tab.active {
+            background: white;
+            color: #2c7a4d;
+            border-top: 2px solid #2c7a4d;
+        }
+        .browser-content {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 20px;
+        }
+        
+        .sub-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .sub-tab {
+            background: none;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #64748b;
+            border-radius: 20px;
+        }
+        .sub-tab.active {
+            background: #e8f4e8;
+            color: #2c7a4d;
+            font-weight: 600;
+        }
+        
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .search-bar input, .search-bar select {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            background: white;
+            min-width: 150px;
+        }
+        
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .tabla th, .tabla td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+        }
+        .tabla th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #2c7a4d;
+            position: sticky;
+            top: 0;
+        }
+        .tabla tr:hover { background: #f8fafc; }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-pendiente { background: #fff3cd; color: #856404; }
+        .badge-curso { background: #cce5ff; color: #004085; }
+        .badge-completada { background: #d4edda; color: #155724; }
+        .badge-urgente { background: #dc2626; color: white; }
+        .badge-alta { background: #f39c12; color: white; }
+        .badge-normal { background: #2c7a4d; color: white; }
+        .badge-baja { background: #64748b; color: white; }
+        .badge-aprobado { background: #d4edda; color: #155724; }
+        .badge-rechazado { background: #f8d7da; color: #721c24; }
+        
+        button {
+            background: #2c7a4d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        button:hover { background: #1e5a3a; transform: translateY(-1px); }
+        .btn-success { background: #2c7a4d; }
+        .btn-danger { background: #c2410c; }
+        .btn-warning { background: #e67e22; }
+        .btn-info { background: #0284c7; }
+        .btn-sm { padding: 6px 10px; font-size: 0.7rem; }
+        
+        .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: flex-end; }
+        .grupo { flex: 1; min-width: 180px; }
+        label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; }
+        textarea { resize: vertical; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            max-width: 850px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-header { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; border-left: 4px solid #2c7a4d; padding-left: 16px; color: #2c7a4d; }
+        
+        .mensaje {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 40px;
+            color: white;
+            z-index: 1000;
+            animation: fadeOut 3s ease forwards;
+        }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            background: #e2e8f0;
+            color: #2c7a4d;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        .pagination button.active { background: #2c7a4d; color: white; }
+        
+        .btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-group button { flex: 1; }
+        
+        .gasto-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+        .gasto-pendiente { border-left-color: #e67e22; }
+        .gasto-aprobado { border-left-color: #2c7a4d; }
+        .gasto-rechazado { border-left-color: #c2410c; }
+        
+        @media (max-width: 768px) {
+            .tabla th, .tabla td { padding: 6px; font-size: 0.7rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .modal-content { padding: 16px; }
+            .grupo { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Login -->
+    <div id="loginPanel" class="card">
+        <div class="card-header" style="cursor:default;">🏢 COMUTECH · Panel Gerente</div>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="btnLogin">Iniciar sesión</button>
+        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardPanel" style="display: none;">
+        <!-- Header -->
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c7a4d 100%); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">🏢 Mi empresa</div>
+                    <div style="font-size: 1.3rem; font-weight: 700;" id="nombreGerente">Cargando...</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailGerente"></div>
+                </div>
+                <div><button id="btnLogout" style="background: rgba(255,255,255,0.2);">🚪 Salir</button></div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsPanel"></div>
+
+        <!-- Navegador de consolas -->
+        <div class="card">
+            <div class="browser-tabs">
+                <button class="browser-tab active" data-consola="tareas">📋 TAREAS</button>
+                <button class="browser-tab" data-consola="clientes">👥 CLIENTES</button>
+                <button class="browser-tab" data-consola="personal">👨‍🔧 PERSONAL</button>
+                <button class="browser-tab" data-consola="gastos">💰 GASTOS</button>
+                <button class="browser-tab" data-consola="facturas">🧾 FACTURAS</button>
+                <button class="browser-tab" data-consola="exportar">📁 EXPORTAR</button>
+            </div>
+            <div class="browser-content">
+                
+                <!-- ==================== CONSOLA 1: TAREAS ==================== -->
+                <div id="consolaTareas">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub="panel">📋 Panel</button>
+                        <button class="sub-tab" data-sub="crear">➕ Crear tarea</button>
+                        <button class="sub-tab" data-sub="calendario">📅 Calendario</button>
+                    </div>
+                    
+                    <!-- Sub-pestaña: Panel de tareas -->
+                    <div id="subPanelTareas">
+                        <div class="search-bar">
+                            <select id="filtroEstadoTarea">
+                                <option value="">Todos los estados</option>
+                                <option value="PENDIENTE">📋 Pendientes</option>
+                                <option value="EN_CURSO">▶️ En curso</option>
+                                <option value="COMPLETADA">✅ Completadas</option>
+                            </select>
+                            <input type="date" id="filtroFechaTarea" placeholder="Filtrar por fecha">
+                            <button id="btnFiltrarTareas" class="btn-info">🔍 Filtrar</button>
+                            <button id="btnRefrescarTareas" class="btn-info">🔄 Refrescar</button>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead>
+                                    <tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
+                                </thead>
+                                <tbody id="tareasBody"><tr><td colspan="7">Cargando...</td></tr>
+                            </table>
+                        </div>
+                        <div id="paginacionTareas" class="pagination"></div>
+                    </div>
+                    
+                    <!-- Sub-pestaña: Crear tarea -->
+                    <div id="subCrearTarea" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>Tipo</label>
+                                <select id="tareaTipo">
+                                    <option value="MANTENIMIENTO">📋 Mantenimiento</option>
+                                    <option value="URGENCIA">🚨 Urgencia</option>
+                                    <option value="AVERIA">🔧 Avería</option>
+                                    <option value="REVISION">🔍 Revisión</option>
+                                </select>
+                            </div>
+                            <div class="grupo"><label>Servicio</label>
+                                <select id="tareaServicio">
+                                    <option value="PISCINA">🏊 PISCINA</option>
+                                    <option value="JARDIN">🌳 JARDIN</option>
+                                    <option value="FONTANERIA">🔧 FONTANERIA</option>
+                                    <option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option>
+                                    <option value="LIMPIEZA">🧹 LIMPIEZA</option>
+                                    <option value="OTRO">📋 OTRO</option>
+                                </select>
+                            </div>
+                            <div class="grupo"><label>Activo (lugar)</label>
+                                <select id="tareaActivo"></select>
+                            </div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>Técnico asignado</label>
+                                <select id="tareaTecnico"></select>
+                            </div>
+                            <div class="grupo"><label>Fecha asignación</label>
+                                <input type="date" id="tareaFecha" value="2026-05-25">
+                            </div>
+                        </div>
+                        <div class="grupo">
+                            <label>📋 Orden de trabajo</label>
+                            <textarea id="tareaOrden" rows="6" placeholder="Escribe la orden de trabajo o selecciona una plantilla..."></textarea>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📄 Plantilla rápida</label>
+                                <select id="plantillaOrden">
+                                    <option value="">-- Seleccionar plantilla --</option>
+                                </select>
+                            </div>
+                            <div><button id="btnCrearTarea" class="btn-success">✅ Crear tarea</button></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sub-pestaña: Calendario -->
+                    <div id="subCalendario" style="display: none;">
+                        <div id="calendarioContainer" style="text-align: center; padding: 40px; color: #64748b;">
+                            📅 Vista de calendario próximamente
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== CONSOLA 2: CLIENTES ==================== -->
+                <div id="consolaClientes" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub-clientes="lista">📋 Lista de clientes</button>
+                        <button class="sub-tab" data-sub-clientes="activos">🏊 Activos</button>
+                        <button class="sub-tab" data-sub-clientes="nuevo">➕ Nuevo cliente</button>
+                    </div>
+                    
+                    <div id="subListaClientes">
+                        <div class="search-bar">
+                            <input type="text" id="buscadorCliente" placeholder="🔍 Buscar cliente...">
+                            <select id="filtroTipoCliente">
+                                <option value="">Todos los tipos</option>
+                                <option value="administrador">Administrador</option>
+                                <option value="comunidad">Comunidad</option>
+                                <option value="empresa_piscinas">Empresa piscinas</option>
+                                <option value="autonomo">Autónomo</option>
+                            </select>
+                            <button id="btnBuscarCliente" class="btn-info">🔍 Buscar</button>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead><tr><th>Nombre</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Acciones</th></tr></thead>
+                                <tbody id="clientesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="subActivosClientes" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>🏢 Nombre activo</label><input type="text" id="activoNombre" placeholder="Ej: Piscina Municipal"></div>
+                            <div class="grupo"><label>📍 Dirección</label><input type="text" id="activoDireccion"></div>
+                            <div class="grupo"><label>🌆 Localidad</label><input type="text" id="activoLocalidad"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📞 Contacto</label><input type="text" id="activoContacto"></div>
+                            <div class="grupo"><label>🔑 Código acceso</label><input type="text" id="activoCodigo"></div>
+                            <div class="grupo"><label>🏷️ Tipo servicio</label>
+                                <select id="activoTipoServicio">
+                                    <option value="PISCINA">PISCINA</option>
+                                    <option value="JARDIN">JARDIN</option>
+                                    <option value="FONTANERIA">FONTANERIA</option>
+                                    <option value="ELECTRICIDAD">ELECTRICIDAD</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="btnGuardarActivo" class="btn-success">💾 Guardar activo</button>
+                        <hr>
+                        <div class="card-header" style="margin-top: 0;">📋 Mis activos</div>
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead><tr><th>Nombre</th><th>Dirección</th><th>Contacto</th><th>Tipo</th><th>Acciones</th></tr></thead>
+                                <tbody id="activosBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="subNuevoCliente" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>🏢 Nombre empresa *</label><input type="text" id="nuevoClienteNombre" placeholder="Razón social"></div>
+                            <div class="grupo"><label>📧 Email *</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="nuevoClienteTelefono"></div>
+                            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="nuevoClienteNif"></div>
+                            <div class="grupo"><label>👤 Contacto</label><input type="text" id="nuevoClienteContacto"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>🏢 Tipo cliente</label>
+                                <select id="nuevoClienteTipo">
+                                    <option value="administrador">Administrador comunidades</option>
+                                    <option value="comunidad">Comunidad propietarios</option>
+                                    <option value="empresa_piscinas">Empresa piscinas</option>
+                                    <option value="autonomo">Autónomo</option>
+                                </select>
+                            </div>
+                            <div class="grupo"><label>📍 Dirección</label><input type="text" id="nuevoClienteDireccion"></div>
+                        </div>
+                        <button id="btnCrearCliente" class="btn-success">✅ Crear cliente</button>
+                    </div>
+                </div>
+
+                <!-- ==================== CONSOLA 3: PERSONAL ==================== -->
+                <div id="consolaPersonal" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub-personal="tecnicos">👥 Mis técnicos</button>
+                        <button class="sub-tab" data-sub-personal="invitar">➕ Invitar técnico</button>
+                    </div>
+                    
+                    <div id="subTecnicos">
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>
+                                <tbody id="tecnicosBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="subInvitarTecnico" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>👤 Nombre</label><input type="text" id="invitarNombre" placeholder="Nombre del técnico"></div>
+                            <div class="grupo"><label>📧 Email</label><input type="email" id="invitarEmail" placeholder="email@tecnico.com"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="invitarTelefono"></div>
+                            <div class="grupo"><label>👨‍🔧 Especialidad</label>
+                                <select id="invitarEspecialidad">
+                                    <option value="PISCINA">Piscinas</option>
+                                    <option value="JARDIN">Jardinería</option>
+                                    <option value="ELECTRICIDAD">Electricidad</option>
+                                    <option value="FONTANERIA">Fontanería</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="btnInvitarTecnico" class="btn-success">📧 Enviar invitación</button>
+                    </div>
+                </div>
+
+                <!-- ==================== CONSOLA 4: GASTOS ==================== -->
+                <div id="consolaGastos" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub-gastos="pendientes">⏳ Pendientes</button>
+                        <button class="sub-tab" data-sub-gastos="aprobados">✅ Aprobados</button>
+                        <button class="sub-tab" data-sub-gastos="resumen">📊 Resumen</button>
+                    </div>
+                    
+                    <div id="subGastosPendientes">
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Descripción</th><th>Importe</th><th>Técnico</th><th>Acciones</th></tr></thead>
+                                <tbody id="gastosPendientesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="subGastosAprobados" style="display: none;">
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Descripción</th><th>Importe</th><th>Estado</th></tr></thead>
+                                <tbody id="gastosAprobadosBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="subGastosResumen" style="display: none;">
+                        <div id="resumenGastos" style="background: #f8fafc; border-radius: 16px; padding: 20px; text-align: center;">
+                            Cargando resumen...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== CONSOLA 5: FACTURAS ==================== -->
+                <div id="consolaFacturas" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub-facturas="emitidas">📄 Facturas emitidas</button>
+                        <button class="sub-tab" data-sub-facturas="pendientes">⏳ Pendientes cobro</button>
+                        <button class="sub-tab" data-sub-facturas="crear">➕ Crear factura</button>
+                    </div>
+                    
+                    <div id="subFacturasEmitidas">
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead><tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+                                <tbody id="facturasBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="subFacturasPendientes" style="display: none;">
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead><tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Días vencimiento</th><th>Acciones</th></tr></thead>
+                                <tbody id="facturasPendientesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="subFacturasCrear" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>🏢 Cliente</label><select id="facturaCliente"></select></div>
+                            <div class="grupo"><label>📅 Fecha</label><input type="date" id="facturaFecha"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📝 Concepto</label><input type="text" id="facturaConcepto" placeholder="Descripción del servicio"></div>
+                            <div class="grupo"><label>💰 Importe</label><input type="number" id="facturaImporte" step="0.01" placeholder="0.00"></div>
+                        </div>
+                        <button id="btnCrearFactura" class="btn-success">✅ Crear factura</button>
+                    </div>
+                </div>
+
+                <!-- ==================== CONSOLA 6: EXPORTAR ==================== -->
+                <div id="consolaExportar" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub-exportar="tareas">📋 Exportar tareas</button>
+                        <button class="sub-tab" data-sub-exportar="facturas">🧾 Exportar facturas</button>
+                        <button class="sub-tab" data-sub-exportar="backup">💾 Copia seguridad</button>
+                    </div>
+                    
+                    <div id="subExportarTareas">
+                        <div class="row-flex">
+                            <div class="grupo"><label>📅 Desde</label><input type="date" id="exportTareasDesde"></div>
+                            <div class="grupo"><label>📅 Hasta</label><input type="date" id="exportTareasHasta"></div>
+                            <div><button id="btnExportarTareasPDF" class="btn-warning">📄 Exportar PDF</button></div>
+                            <div><button id="btnExportarTareasCSV" class="btn-info">📊 Exportar CSV</button></div>
+                        </div>
+                    </div>
+                    
+                    <div id="subExportarFacturas" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>📅 Desde</label><input type="date" id="exportFacturasDesde"></div>
+                            <div class="grupo"><label>📅 Hasta</label><input type="date" id="exportFacturasHasta"></div>
+                            <div><button id="btnExportarFacturasPDF" class="btn-warning">📄 Exportar PDF</button></div>
+                        </div>
+                    </div>
+                    
+                    <div id="subExportarBackup" style="display: none;">
+                        <div style="text-align: center; padding: 40px;">
+                            <p style="margin-bottom: 20px;">📦 Generar copia de seguridad de todos los datos</p>
+                            <button id="btnGenerarBackup" class="btn-success">💾 Generar backup</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ver detalle tarea -->
+<div id="modalDetalleTarea" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">📋 Detalle de tarea</div>
+        <div id="detalleTareaContent"></div>
+        <div class="btn-group"><button id="btnCerrarDetalle" class="btn-info">Cerrar</button></div>
+    </div>
+</div>
+
+<!-- Modal aprobar/rechazar gasto -->
+<div id="modalGasto" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">💰 Revisar gasto</div>
+        <div id="gastoDetalle"></div>
+        <div class="btn-group">
+            <button id="btnAprobarGasto" class="btn-success">✅ Aprobar</button>
+            <button id="btnRechazarGasto" class="btn-danger">❌ Rechazar</button>
+            <button id="btnCerrarGasto" class="btn-info">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
+    let currentEmpresaId = null;
+    let tareasData = [];
+    let paginaTareas = 1;
+    const registrosPorPagina = 10;
+
+    function mostrarMensaje(texto, tipo = 'exito') {
+        const msg = document.createElement('div');
+        msg.className = 'mensaje';
+        msg.style.background = tipo === 'exito' ? '#2c7a4d' : '#c2410c';
+        msg.innerHTML = texto;
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
+    }
+
+    // ========== LOGIN ==========
+    async function hacerLogin() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        if (!email || !password) { document.getElementById('errorMsg').innerText = "Introduce email y contraseña"; return false; }
+        
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { document.getElementById('errorMsg').innerText = error.message; return false; }
+        
+        const { data: perfil } = await sb.from('perfiles').select('*, empresas!inner(*)').eq('id', data.user.id).maybeSingle();
+        if (!perfil || perfil.rol !== 'gerente') { 
+            await sb.auth.signOut(); 
+            document.getElementById('errorMsg').innerText = "Acceso no autorizado. Solo gerentes."; 
+            return false; 
+        }
+        
+        currentUser = data.user;
+        currentEmpresaId = perfil.empresa_id;
+        document.getElementById('nombreGerente').innerHTML = perfil.nombre || 'Gerente';
+        document.getElementById('emailGerente').innerHTML = currentUser.email;
+        return true;
+    }
+
+    // ========== CARGAR STATS ==========
+    async function cargarStats() {
+        const { data: tareas } = await sb.from('tareas').select('*').eq('cliente_id', currentEmpresaId);
+        const pendientes = tareas?.filter(t => t.estado === 'PENDIENTE').length || 0;
+        const enCurso = tareas?.filter(t => t.estado === 'EN_CURSO').length || 0;
+        const completadas = tareas?.filter(t => t.estado === 'COMPLETADA').length || 0;
+        
+        // Cargar gastos pendientes
+        const { data: gastos } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
+        const gastosPendientes = gastos?.length || 0;
+        
+        document.getElementById('statsPanel').innerHTML = `
+            <div class="stat-card"><div class="stat-number">${tareas?.length || 0}</div><div class="stat-label">Total Tareas</div></div>
+            <div class="stat-card"><div class="stat-number">${pendientes}</div><div class="stat-label">Pendientes</div></div>
+            <div class="stat-card"><div class="stat-number">${enCurso}</div><div class="stat-label">En curso</div></div>
+            <div class="stat-card"><div class="stat-number">${completadas}</div><div class="stat-label">Completadas</div></div>
+            <div class="stat-card"><div class="stat-number">${gastosPendientes}</div><div class="stat-label">Gastos pendientes</div></div>
+        `;
+    }
+
+    // ========== CARGAR TAREAS ==========
+    async function cargarTareas() {
+        const estadoFiltro = document.getElementById('filtroEstadoTarea')?.value || '';
+        const fechaFiltro = document.getElementById('filtroFechaTarea')?.value || '';
+        
+        let query = sb.from('tareas').select('*, activos(nombre, tipo_servicio), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId).order('created_at', { ascending: false });
+        if (estadoFiltro) query = query.eq('estado', estadoFiltro);
+        if (fechaFiltro) query = query.eq('fecha_asignacion', fechaFiltro);
+        
+        const { data, error } = await query;
+        if (error) { console.error(error); return; }
+        tareasData = data || [];
+        renderizarTareas();
+    }
+
+    function renderizarTareas() {
+        const start = (paginaTareas - 1) * registrosPorPagina;
+        const paginados = tareasData.slice(start, start + registrosPorPagina);
+        const tbody = document.getElementById('tareasBody');
+        
+        if (paginados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay tareas</td></tr>';
+            document.getElementById('paginacionTareas').innerHTML = '';
+            return;
+        }
+        
+        const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada' };
+        const estadoTexto = { 'PENDIENTE': 'Pendiente', 'EN_CURSO': 'En curso', 'COMPLETADA': 'Completada' };
+        const prioridadTexto = { 1: 'Urgente', 2: 'Alta', 3: 'Normal', 4: 'Baja' };
+        const prioridadClass = { 1: 'badge-urgente', 2: 'badge-alta', 3: 'badge-normal', 4: 'badge-baja' };
+        
+        tbody.innerHTML = paginados.map(t => `
+            <tr>
+                <td>${t.id.substring(0, 16)}...</td>
+                <td><span class="badge ${prioridadClass[t.prioridad]}">${prioridadTexto[t.prioridad]}</span> ${t.tipo}</td>
+                <td>${t.activos?.nombre || '-'}</td>
+                <td>${t.perfiles?.nombre || '-'}</td>
+                <td>${t.fecha_asignacion}</td>
+                <td><span class="badge ${estadoClass[t.estado]}">${estadoTexto[t.estado]}</span></td>
+                <td><button class="btn-sm btn-info ver-tarea" data-id="${t.id}" style="background:#0284c7;">👁️ Ver</button></td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.ver-tarea').forEach(btn => {
+            btn.onclick = () => verDetalleTarea(btn.dataset.id);
+        });
+        
+        const totalPaginas = Math.ceil(tareasData.length / registrosPorPagina);
+        let pagHtml = '';
+        for (let i = 1; i <= Math.min(totalPaginas, 10); i++) {
+            pagHtml += `<button class="${i === paginaTareas ? 'active' : ''}" onclick="cambiarPaginaTareas(${i})">${i}</button>`;
+        }
+        document.getElementById('paginacionTareas').innerHTML = pagHtml;
+    }
+    
+    function cambiarPaginaTareas(pagina) { paginaTareas = pagina; renderizarTareas(); }
+    window.cambiarPaginaTareas = cambiarPaginaTareas;
+
+    async function verDetalleTarea(id) {
+        const { data: tarea } = await sb.from('tareas').select('*, activos(*)').eq('id', id).single();
+        if (!tarea) return;
+        
+        document.getElementById('detalleTareaContent').innerHTML = `
+            <div class="info-row"><strong>ID:</strong> ${tarea.id}</div>
+            <div class="info-row"><strong>Tipo:</strong> ${tarea.tipo}</div>
+            <div class="info-row"><strong>Prioridad:</strong> ${tarea.prioridad}</div>
+            <div class="info-row"><strong>Activo:</strong> ${tarea.activos?.nombre || '-'}</div>
+            <div class="info-row"><strong>Dirección:</strong> ${tarea.activos?.direccion || '-'}</div>
+            <div class="info-row"><strong>Fecha asignación:</strong> ${tarea.fecha_asignacion}</div>
+            <div class="info-row"><strong>Estado:</strong> ${tarea.estado}</div>
+            <div class="info-row"><strong>Orden de trabajo:</strong></div>
+            <div style="background:#f8fafc; padding:12px; border-radius:12px; margin-top:8px; white-space:pre-wrap;">${tarea.orden_trabajo || 'No especificada'}</div>
+        `;
+        document.getElementById('modalDetalleTarea').style.display = 'flex';
+    }
+
+    // ========== CARGAR ACTIVOS ==========
+    async function cargarActivos() {
+        const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
+        const select = document.getElementById('tareaActivo');
+        if (select && data) {
+            select.innerHTML = '<option value="">-- Seleccionar activo --</option>' + 
+                data.map(a => `<option value="${a.id}">${a.nombre} (${a.tipo_servicio})</option>`).join('');
+        }
+        const tbody = document.getElementById('activosBody');
+        if (tbody) {
+            tbody.innerHTML = data?.map(a => `
+                <tr><td>${a.nome}</td><td>${a.direccion || '-'}</td><td>${a.persona_contacto || '-'}</td><td>${a.tipo_servicio}</td>
+                <td><button class="btn-sm btn-info">👁️</button></td></tr>
+            `).join('') || '<tr><td colspan="5">No hay activos</td></tr>';
+        }
+    }
+
+    // ========== CARGAR TÉCNICOS ==========
+    async function cargarTecnicos() {
+        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
+        const select = document.getElementById('tareaTecnico');
+        if (select && data) {
+            select.innerHTML = '<option value="">-- Seleccionar técnico --</option>' + 
+                data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
+        }
+        const tbody = document.getElementById('tecnicosBody');
+        if (tbody) {
+            tbody.innerHTML = data?.map(t => `
+                <tr><td>${t.nombre || t.nick}</td><td>${t.email}</td><td>${t.telefono || '-'}</td>
+                <td><span class="badge ${t.activo ? 'badge-completada' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
+                <td><button class="btn-sm btn-warning">✏️</button></td></tr>
+            `).join('') || '<tr><td colspan="5">No hay técnicos</td></tr>';
+        }
+    }
+
+    // ========== CARGAR PLANTILLAS ==========
+    async function cargarPlantillas() {
+        const { data } = await sb.from('plantillas_orden_trabajo').select('*').eq('empresa_id', currentEmpresaId);
+        const select = document.getElementById('plantillaOrden');
+        if (select && data) {
+            select.innerHTML = '<option value="">-- Seleccionar plantilla --</option>' + 
+                data.map(p => `<option value="${p.contenido.replace(/"/g, '&quot;')}">${p.nombre_plantilla} (${p.servicio_tipo})</option>`).join('');
+            select.onchange = () => {
+                if (select.value) {
+                    document.getElementById('tareaOrden').value = select.value;
+                }
+            };
+        }
+    }
+
+    // ========== CREAR TAREA ==========
+    async function crearTarea() {
+        const tipo = document.getElementById('tareaTipo').value;
+        const servicio = document.getElementById('tareaServicio').value;
+        const activoId = document.getElementById('tareaActivo').value;
+        const tecnicoId = document.getElementById('tareaTecnico').value;
+        const fecha = document.getElementById('tareaFecha').value;
+        const orden = document.getElementById('tareaOrden').value;
+        
+        if (!activoId) { mostrarMensaje("Selecciona un activo", 'error'); return; }
+        if (!tecnicoId) { mostrarMensaje("Selecciona un técnico", 'error'); return; }
+        
+        const prioridad = tipo === 'URGENCIA' ? 1 : tipo === 'AVERIA' ? 2 : 3;
+        
+        const { data, error } = await sb.from('tareas').insert({
+            id: `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`,
+            tipo: tipo,
+            prioridad: prioridad,
+            cliente_id: currentEmpresaId,
+            tecnico_id: tecnicoId,
+            activo_id: activoId,
+            servicio_tipo: servicio,
+            descripcion: `Tarea de ${tipo}`,
+            orden_trabajo: orden,
+            fecha_asignacion: fecha,
+            estado: 'PENDIENTE',
+            creada_por: currentUser.id
+        }).select();
+        
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Tarea creada correctamente");
+        document.getElementById('tareaOrden').value = '';
+        cargarTareas();
+        cargarStats();
+    }
+
+    // ========== CARGAR GASTOS ==========
+    async function cargarGastos() {
+        // Gastos pendientes
+        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
+        const tbodyPendientes = document.getElementById('gastosPendientesBody');
+        if (tbodyPendientes) {
+            tbodyPendientes.innerHTML = pendientes?.map(g => `
+                <tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td>
+                <td>${g.descripcion}</td><td>${g.importe_total}€</td><td>-</td>
+                <td><button class="btn-sm btn-info revisar-gasto" data-id="${g.id}">🔍 Revisar</button></td>
+            </tr>
+            `).join('') || '<tr><td colspan="7">No hay gastos pendientes</td></tr>';
+        }
+        
+        // Gastos aprobados
+        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
+        const tbodyAprobados = document.getElementById('gastosAprobadosBody');
+        if (tbodyAprobados) {
+            tbodyAprobados.innerHTML = aprobados?.map(g => `
+                <tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td>
+                <td>${g.descripcion}</td><td>${g.importe_total}€</td>
+                <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-aprobado' : 'badge-rechazado'}">${g.estado}</span></td>
+            </tr>
+            `).join('') || '<tr><td colspan="6">No hay gastos procesados</td></tr>';
+        }
+        
+        // Resumen
+        const { data: resumen } = await sb.from('gastos_tarea').select('tipo_gasto, importe_total, estado').eq('tareas.cliente_id', currentEmpresaId);
+        const totalPendiente = resumen?.filter(g => g.estado === 'PENDIENTE').reduce((s, g) => s + g.importe_total, 0) || 0;
+        const totalAprobado = resumen?.filter(g => g.estado === 'APROBADO').reduce((s, g) => s + g.importe_total, 0) || 0;
+        const porTipo = {};
+        resumen?.forEach(g => { if (g.estado === 'APROBADO') porTipo[g.tipo_gasto] = (porTipo[g.tipo_gasto] || 0) + g.importe_total; });
+        
+        document.getElementById('resumenGastos').innerHTML = `
+            <div class="row-flex">
+                <div class="stat-card"><div class="stat-number">${totalPendiente.toFixed(2)}€</div><div class="stat-label">Pendientes aprobación</div></div>
+                <div class="stat-card"><div class="stat-number">${totalAprobado.toFixed(2)}€</div><div class="stat-label">Aprobados</div></div>
+            </div>
+            <h4>📊 Por tipo de gasto</h4>
+            ${Object.entries(porTipo).map(([tipo, total]) => `<div class="info-row"><strong>${tipo}:</strong> ${total.toFixed(2)}€</div>`).join('')}
+        `;
+        
+        document.querySelectorAll('.revisar-gasto').forEach(btn => {
+            btn.onclick = () => revisarGasto(btn.dataset.id);
+        });
+    }
+    
+    let gastoSeleccionado = null;
+    async function revisarGasto(id) {
+        const { data: gasto } = await sb.from('gastos_tarea').select('*, tareas(activos(nombre))').eq('id', id).single();
+        if (!gasto) return;
+        gastoSeleccionado = gasto;
+        document.getElementById('gastoDetalle').innerHTML = `
+            <div class="info-row"><strong>Tarea:</strong> ${gasto.tareas?.activos?.nombre || '-'}</div>
+            <div class="info-row"><strong>Tipo:</strong> ${gasto.tipo_gasto}</div>
+            <div class="info-row"><strong>Descripción:</strong> ${gasto.descripcion}</div>
+            <div class="info-row"><strong>Importe sin IVA:</strong> ${gasto.importe_sin_iva}€</div>
+            <div class="info-row"><strong>IVA:</strong> ${gasto.importe_iva}€</div>
+            <div class="info-row"><strong>Importe total:</strong> ${gasto.importe_total}€</div>
+            <div class="info-row"><strong>Fecha:</strong> ${gasto.fecha_gasto}</div>
+        `;
+        document.getElementById('modalGasto').style.display = 'flex';
+    }
+    
+    async function aprobarGasto() {
+        if (!gastoSeleccionado) return;
+        const { error } = await sb.from('gastos_tarea').update({ estado: 'APROBADO', fecha_revision: new Date(), revisado_por: currentUser.id }).eq('id', gastoSeleccionado.id);
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Gasto aprobado");
+        document.getElementById('modalGasto').style.display = 'none';
+        cargarGastos();
+        cargarStats();
+    }
+    
+    async function rechazarGasto() {
+        if (!gastoSeleccionado) return;
+        const motivo = prompt("Motivo del rechazo:");
+        if (!motivo) return;
+        const { error } = await sb.from('gastos_tarea').update({ estado: 'RECHAZADO', fecha_revision: new Date(), revisado_por: currentUser.id, motivo_rechazo: motivo }).eq('id', gastoSeleccionado.id);
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("❌ Gasto rechazado");
+        document.getElementById('modalGasto').style.display = 'none';
+        cargarGastos();
+        cargarStats();
+    }
+
+    // ========== CARGAR FACTURAS ==========
+    async function cargarFacturas() {
+        const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId).order('created_at', { ascending: false });
+        const tbody = document.getElementById('facturasBody');
+        if (tbody) {
+            tbody.innerHTML = data?.map(f => `
+                <tr><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.total}€</td>
+                <td><span class="badge ${f.pagada ? 'badge-completada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td>
+                <td><button class="btn-sm btn-info">👁️</button></td>
+            </tr>
+            `).join('') || '<tr><td colspan="6">No hay facturas</td></tr>';
+        }
+    }
+
+    // ========== EXPORTAR ==========
+    async function exportarTareasPDF() {
+        const desde = document.getElementById('exportTareasDesde').value;
+        const hasta = document.getElementById('exportTareasHasta').value;
+        let query = sb.from('tareas').select('*, activos(nombre)').eq('cliente_id', currentEmpresaId);
+        if (desde) query = query.gte('fecha_asignacion', desde);
+        if (hasta) query = query.lte('fecha_asignacion', hasta);
+        const { data } = await query;
+        const html = `<html><body><h2>Reporte de Tareas</h2><pre>${JSON.stringify(data, null, 2)}</pre></body></html>`;
+        const blob = new Blob([html], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        window.open(url);
+    }
+
+    // ========== INICIALIZAR CONSOLAS ==========
+    function inicializarConsolas() {
+        document.querySelectorAll('.browser-tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.browser-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const consola = tab.dataset.consola;
+                document.querySelectorAll('[id^="consola"]').forEach(c => c.style.display = 'none');
+                document.getElementById(`consola${consola.charAt(0).toUpperCase() + consola.slice(1)}`).style.display = 'block';
+                if (consola === 'tareas') cargarTareas();
+                if (consola === 'gastos') cargarGastos();
+                if (consola === 'facturas') cargarFacturas();
+            };
+        });
+        
+        // Sub-tabs de Tareas
+        document.querySelectorAll('#consolaTareas .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#consolaTareas .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#consolaTareas [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                if (subId === 'panel') cargarTareas();
+                if (subId === 'crear') { cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+            };
+        });
+        
+        // Sub-tabs de Clientes
+        document.querySelectorAll('#consolaClientes .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#consolaClientes .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.subClientes;
+                document.querySelectorAll('#consolaClientes [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                if (subId === 'activos') cargarActivos();
+            };
+        });
+        
+        // Sub-tabs de Personal
+        document.querySelectorAll('#consolaPersonal .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#consolaPersonal .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.subPersonal;
+                document.querySelectorAll('#consolaPersonal [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            };
+        });
+        
+        // Sub-tabs de Gastos
+        document.querySelectorAll('#consolaGastos .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#consolaGastos .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.subGastos;
+                document.querySelectorAll('#consolaGastos [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`subGastos${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                cargarGastos();
+            };
+        });
+        
+        // Sub-tabs de Facturas
+        document.querySelectorAll('#consolaFacturas .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#consolaFacturas .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.subFacturas;
+                document.querySelectorAll('#consolaFacturas [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`subFacturas${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                cargarFacturas();
+            };
+        });
+        
+        // Sub-tabs de Exportar
+        document.querySelectorAll('#consolaExportar .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#consolaExportar .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.subExportar;
+                document.querySelectorAll('#consolaExportar [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`subExportar${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            };
+        });
+    }
+
+    // ========== EVENTOS ==========
+    document.getElementById('btnLogin').onclick = async () => {
+        if (await hacerLogin()) {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('dashboardPanel').style.display = 'block';
+            inicializarConsolas();
+            await cargarStats();
+            await cargarTareas();
+            await cargarActivos();
+            await cargarTecnicos();
+            await cargarPlantillas();
+            await cargarGastos();
+            await cargarFacturas();
+        }
+    };
+    
+    document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    document.getElementById('btnRefrescarTareas').onclick = cargarTareas;
+    document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
+    document.getElementById('btnCrearTarea').onclick = crearTarea;
+    document.getElementById('btnGuardarActivo').onclick = async () => {
+        const nombre = document.getElementById('activoNombre').value;
+        if (!nombre) { mostrarMensaje("Nombre del activo es obligatorio", 'error'); return; }
+        const { error } = await sb.from('activos').insert({
+            empresa_id: currentEmpresaId,
+            nombre: nombre,
+            direccion: document.getElementById('activoDireccion').value,
+            localidad: document.getElementById('activoLocalidad').value,
+            persona_contacto: document.getElementById('activoContacto').value,
+            codigo_acceso: document.getElementById('activoCodigo').value,
+            tipo_servicio: document.getElementById('activoTipoServicio').value
+        });
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Activo guardado");
+        cargarActivos();
+    };
+    document.getElementById('btnCrearCliente').onclick = async () => {
+        mostrarMensaje("Función en desarrollo", 'info');
+    };
+    document.getElementById('btnInvitarTecnico').onclick = async () => {
+        mostrarMensaje("Función en desarrollo", 'info');
+    };
+    document.getElementById('btnCrearFactura').onclick = async () => {
+        mostrarMensaje("Función en desarrollo", 'info');
+    };
+    document.getElementById('btnAprobarGasto').onclick = aprobarGasto;
+    document.getElementById('btnRechazarGasto').onclick = rechazarGasto;
+    document.getElementById('btnCerrarGasto').onclick = () => document.getElementById('modalGasto').style.display = 'none';
+    document.getElementById('btnCerrarDetalle').onclick = () => document.getElementById('modalDetalleTarea').style.display = 'none';
+    document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
+    document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
+    
+    // Cerrar modales con click fuera
+    window.onclick = (e) => {
+        if (e.target === document.getElementById('modalDetalleTarea')) document.getElementById('modalDetalleTarea').style.display = 'none';
+        if (e.target === document.getElementById('modalGasto')) document.getElementById('modalGasto').style.display = 'none';
+    };
+</script>
+</body>
+</html>
