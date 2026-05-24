@@ -241,14 +241,15 @@
 
     <!-- DASHBOARD PRINCIPAL -->
     <div id="dashboardPanel" style="display: none;">
-        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c7a4d 100%); color: white;">
-            <div style="display: flex; justify-content: space-between;">
-                <div>
-                    <div style="font-size: 0.8rem;">👨‍💼 Gerente</div>
-                    <div style="font-size: 1.3rem; font-weight: 700;" id="nombreGerente">Cargando...</div>
-                    <div style="font-size: 0.8rem;" id="emailGerente"></div>
-                </div>
-                <button id="btnLogout" style="background: rgba(255,255,255,0.2);">🚪 Salir</button>
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c7a4d 100%); color: white; text-align: center;">
+            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 8px;" id="nombreEmpresaBanner">Cargando...</div>
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 12px;">
+                👨‍💼 <span id="nombreGerente">Cargando...</span> &nbsp;|&nbsp;
+                📧 <span id="emailGerente"></span>
+            </div>
+            <button id="btnLogout" style="background: rgba(255,255,255,0.2); padding: 6px 20px; margin-bottom: 8px;">🚪 Cerrar sesión</button>
+            <div style="font-size: 0.7rem; opacity: 0.6; letter-spacing: 1px;">
+                ⚡ COMUTECH · Gestión inteligente
             </div>
         </div>
 
@@ -358,7 +359,7 @@
                                 <tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>NIF</th><th>Acciones</th>
                             </thead>
                             <tbody id="clientesBody"></tbody>
-                        </table>
+                        <tr>
                     </div>
                     
                     <div id="subNuevoCliente" style="display: none;">
@@ -670,7 +671,7 @@
         return false; 
     }
     
-    // Obtener perfil del usuario (sin la relación empresas!inner que daba error)
+    // Obtener perfil del usuario
     const { data: perfil, error: perfilError } = await sb.from('perfiles').select('*').eq('id', data.user.id).maybeSingle();
     
     if (perfilError || !perfil) { 
@@ -691,6 +692,14 @@
     currentEmpresaId = perfil.empresa_id;
     document.getElementById('nombreGerente').innerHTML = perfil.nombre || 'Gerente';
     document.getElementById('emailGerente').innerHTML = currentUser.email;
+    
+    // Cargar nombre de la empresa para el banner
+    if (currentEmpresaId) {
+        const { data: empresa } = await sb.from('empresas').select('nombre').eq('id', currentEmpresaId).single();
+        document.getElementById('nombreEmpresaBanner').innerHTML = empresa?.nombre || 'Mi Empresa';
+    } else {
+        document.getElementById('nombreEmpresaBanner').innerHTML = 'Mi Empresa';
+    }
     
     return true;
 }
@@ -725,7 +734,7 @@
         const start = (paginaTareas - 1) * registrosPorPagina;
         const paginados = tareasData.slice(start, start + registrosPorPagina);
         const tbody = document.getElementById('tareasBody');
-        if (!paginados.length) { tbody.innerHTML = '<td><td colspan="7">No hay tareas</td></tr>'; return; }
+        if (!paginados.length) { tbody.innerHTML = '<td><td colspan="7">No hay tareas\n\n……</td></tr>'; return; }
         
         const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada' };
         tbody.innerHTML = paginados.map(t => `
@@ -784,7 +793,7 @@
         const { data, error } = await query;
         if (error) return;
         const tbody = document.getElementById('clientesBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5">No hay clientes</td></tr>'; return; }
+        if (!data?.length) { tbody.innerHTML = '<td><td colspan="5">No hay clientes</td></tr>'; return; }
         const filtrados = search ? data.filter(c => c.nombre?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search)) : data;
         tbody.innerHTML = filtrados.map(c => `
             <tr>
@@ -865,7 +874,7 @@ async function guardarCliente() {
         if (select && data) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
         
         const tbody = document.getElementById('tecnicosBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6">No hay técnicos</td></tr>'; return; }
+        if (!data?.length) { tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td></tr>'; return; }
         tbody.innerHTML = data.map(t => `
             <tr>
                 <td>${t.nombre || t.nick}</td>
@@ -918,14 +927,28 @@ async function guardarCliente() {
     async function cargarGastos() {
         const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
         document.getElementById('gastosPendientesBody').innerHTML = pendientes?.map(g => `
-            <tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td>
-            <td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td>
+            <tr>
+                <td>${g.fecha_gasto}</td>
+                <td>${g.tareas?.activos?.nombre || '-'}</td>
+                <td>${g.tipo_gasto}</td>
+                <td>${g.descripcion}</td>
+                <td>${g.importe_total}€</td>
+                <td>${g.perfiles?.nombre || '-'}</td>
+                <td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td>
+            </tr>
         `).join('') || '<tr><td colspan="7">No hay gastos pendientes</td></tr>';
         
         const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
         document.getElementById('gastosAprobadosBody').innerHTML = aprobados?.map(g => `
-            <tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td>
-            <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
+            <tr>
+                <td>${g.fecha_gasto}</td>
+                <td>${g.tareas?.activos?.nombre || '-'}</td>
+                <td>${g.tipo_gasto}</td>
+                <td>${g.descripcion}</td>
+                <td>${g.importe_total}€</td>
+                <td>${g.perfiles?.nombre || '-'}</td>
+                <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
+            </tr>
         `).join('') || '<tr><td colspan="7">No hay gastos procesados</td></tr>';
         
         document.querySelectorAll('.aprobar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("✅ Gasto aprobado"); });
@@ -936,11 +959,17 @@ async function guardarCliente() {
     async function cargarFacturas() {
         const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId);
         const tbody = document.getElementById('facturasBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7">No hay facturas</td></tr>'; return; }
+        if (!data?.length) { tbody.innerHTML = '<td><td colspan="7">No hay facturas</td></tr>'; return; }
         tbody.innerHTML = data.map(f => `
-            <tr><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.concepto || '-'}</td><td>${f.total}€</td>
-            <td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td>
-            <td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td>
+            <tr>
+                <td>${f.numero}</td>
+                <td>${f.empresas?.nombre || '-'}</td>
+                <td>${f.fecha}</td>
+                <td>${f.concepto || '-'}</td>
+                <td>${f.total}€</td>
+                <td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td>
+                <td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td>
+            </tr>
         `).join('');
         document.querySelectorAll('.toggle-factura').forEach(btn => btn.onclick = async () => { const pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', btn.dataset.id); cargarFacturas(); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); });
     }
