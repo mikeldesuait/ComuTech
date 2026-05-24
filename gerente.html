@@ -327,6 +327,7 @@
                                     <option value="URGENCIA">🚨 Urgencia</option>
                                     <option value="AVERIA">🔧 Avería</option>
                                     <option value="REVISION">🔍 Revisión</option>
+                                    <option value="PRESUPUESTO">💰 Solicitud de presupuesto</option>
                                 </select>
                             </div>
                             <div class="grupo"><label>Servicio</label>
@@ -356,6 +357,13 @@
                             <label>📋 Orden de trabajo</label>
                             <textarea id="tareaOrden" rows="4" placeholder="Instrucciones para el técnico..."></textarea>
                         </div>
+                        <!-- Campos específicos para presupuesto (se muestran solo cuando se selecciona PRESUPUESTO) -->
+<div id="camposPresupuesto" style="display: none;">
+    <div class="row-flex">
+        <div class="grupo"><label>💰 Coste estimado (€)</label><input type="number" id="tareaCosteEstimado" step="0.01" placeholder="Presupuesto estimado"></div>
+        <div class="grupo"><label>📝 Notas para el técnico</label><input type="text" id="tareaNotasPresupuesto" placeholder="Ej: Revisar bomba, posible fuga..."></div>
+    </div>
+</div>
                         <div class="row-flex">
                             <div class="grupo"><label>📄 Plantilla rápida</label>
                                 <select id="plantillaOrden">
@@ -852,29 +860,92 @@
     window.cambiarPaginaTareas = (pagina) => { paginaTareas = pagina; renderizarTareas(); };
 
     async function crearTarea() {
-        const tipo = document.getElementById('tareaTipo').value;
-        const servicio = document.getElementById('tareaServicio').value;
-        const activoId = document.getElementById('tareaActivo').value;
-        const tecnicoId = document.getElementById('tareaTecnico').value;
-        const fecha = document.getElementById('tareaFecha').value;
-        const orden = document.getElementById('tareaOrden').value;
-        
-        if (!activoId) { mostrarMensaje("Selecciona un activo", 'error'); return; }
-        if (!tecnicoId) { mostrarMensaje("Selecciona un técnico", 'error'); return; }
-        
-        const prioridad = tipo === 'URGENCIA' ? 1 : tipo === 'AVERIA' ? 2 : 3;
-        const tareaId = `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        
-        const { error } = await sb.from('tareas').insert({
-            id: tareaId, tipo, prioridad, cliente_id: currentEmpresaId, tecnico_id: tecnicoId,
-            activo_id: activoId, servicio_tipo: servicio, descripcion: `Tarea de ${tipo}`,
-            orden_trabajo: orden, fecha_asignacion: fecha, estado: 'PENDIENTE', creada_por: currentUser.id
-        });
-        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
-        mostrarMensaje("✅ Tarea creada");
-        document.getElementById('tareaOrden').value = '';
-        cargarTareas(); cargarStats();
+    const tipo = document.getElementById('tareaTipo').value;
+    const servicio = document.getElementById('tareaServicio').value;
+    const activoId = document.getElementById('tareaActivo').value;
+    const tecnicoId = document.getElementById('tareaTecnico').value;
+    const fecha = document.getElementById('tareaFecha').value;
+    const orden = document.getElementById('tareaOrden').value;
+    
+    // Campos específicos para presupuesto
+    const costeEstimado = document.getElementById('tareaCosteEstimado')?.value || null;
+    const notasPresupuesto = document.getElementById('tareaNotasPresupuesto')?.value || null;
+    
+    if (!activoId) { mostrarMensaje("Selecciona un activo", 'error'); return; }
+    if (!tecnicoId) { mostrarMensaje("Selecciona un técnico", 'error'); return; }
+    
+    // Calcular prioridad
+    let prioridad = 3;
+    if (tipo === 'URGENCIA') prioridad = 1;
+    else if (tipo === 'AVERIA') prioridad = 2;
+    else if (tipo === 'PRESUPUESTO') prioridad = 4; // Prioridad baja para presupuestos
+    
+    const tareaId = `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    
+    // Construir orden de trabajo según el tipo
+    let ordenTrabajo = orden;
+    let descripcion = `Tarea de ${tipo}`;
+    
+    if (tipo === 'PRESUPUESTO') {
+        descripcion = `📋 SOLICITUD DE PRESUPUESTO - ${servicio}`;
+        if (!ordenTrabajo) {
+            ordenTrabajo = `📋 SOLICITUD DE PRESUPUESTO
+
+El cliente solicita presupuesto para:
+${notasPresupuesto || 'Revisar y diagnosticar el problema'}
+
+El técnico deberá:
+1. Visitar la instalación
+2. Diagnosticar el problema
+3. Tomar fotos y notas
+4. Elaborar presupuesto detallado
+5. Enviar presupuesto al gerente
+
+Presupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'}`;
+        }
     }
+    
+    // Datos base de la tarea
+    const nuevaTarea = {
+        id: tareaId,
+        tipo: tipo,
+        prioridad: prioridad,
+        cliente_id: currentEmpresaId,
+        tecnico_id: tecnicoId,
+        activo_id: activoId,
+        servicio_tipo: servicio,
+        descripcion: descripcion,
+        orden_trabajo: ordenTrabajo,
+        fecha_asignacion: fecha,
+        estado: 'PENDIENTE',
+        creada_por: currentUser.id,
+        tipo_tecnico: 'INTERNO'
+    };
+    
+    // Añadir campos específicos para presupuesto
+    if (tipo === 'PRESUPUESTO') {
+        nuevaTarea.presupuesto_solicitado = true;
+        nuevaTarea.presupuesto_aprobado = false;
+        nuevaTarea.presupuesto_rechazado = false;
+        if (costeEstimado) nuevaTarea.coste_estimado = parseFloat(costeEstimado);
+    }
+    
+    const { error } = await sb.from('tareas').insert(nuevaTarea);
+    
+    if (error) { 
+        mostrarMensaje("Error: " + error.message, 'error'); 
+        return; 
+    }
+    
+    mostrarMensaje("✅ Tarea creada correctamente");
+    document.getElementById('tareaOrden').value = '';
+    if (document.getElementById('tareaCosteEstimado')) 
+        document.getElementById('tareaCosteEstimado').value = '';
+    if (document.getElementById('tareaNotasPresupuesto')) 
+        document.getElementById('tareaNotasPresupuesto').value = '';
+    cargarTareas();
+    cargarStats();
+}
 
     // ========== CLIENTES ==========
     async function cargarClientes() {
@@ -1475,6 +1546,15 @@ window.cargarClientes = async function() {
     asignarEventosEditarCliente();
 };
 cargarClientes = window.cargarClientes;
+// Mostrar/ocultar campos de presupuesto según el tipo seleccionado
+document.getElementById('tareaTipo').addEventListener('change', function() {
+    const camposPresupuesto = document.getElementById('camposPresupuesto');
+    if (this.value === 'PRESUPUESTO') {
+        camposPresupuesto.style.display = 'block';
+    } else {
+        camposPresupuesto.style.display = 'none';
+    }
+});
 
 </script>
 </body>
