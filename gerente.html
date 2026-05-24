@@ -1006,47 +1006,129 @@
 
     // EXTERNOS
     async function cargarExternos() {
-        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'externo').order('nombre');
-        const tbody = document.getElementById('externosBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6">No hay personal externo</td></tr>'; return; }
-        tbody.innerHTML = data.map(e => `<tr><td>${e.nombre || '-'}</td><td>${e.nif || '-'}</td><td>${e.email || '-'}</td><td>${e.telefono || '-'}</td><td><span class="badge badge-externo">${e.tipo_externo === 'empresa' ? 'Empresa' : 'Autónomo'}</span></td><td><button class="btn-sm btn-warning editar-externo" data-id="${e.id}">✏️</button><button class="btn-sm btn-danger eliminar-externo" data-id="${e.id}" data-nombre="${e.nombre}">🗑️</button></td></tr>`).join('');
-        document.querySelectorAll('.editar-externo').forEach(btn => btn.onclick = () => abrirModalEditarExterno(btn.dataset.id));
-        document.querySelectorAll('.eliminar-externo').forEach(btn => btn.onclick = async () => { if(confirm(`¿Eliminar externo "${btn.dataset.nombre}"?`)) { await sb.from('perfiles').delete().eq('id', btn.dataset.id); cargarExternos(); mostrarMensaje("✅ Externo eliminado"); } });
+    const { data, error } = await sb.from('perfiles')
+        .select('*')
+        .eq('empresa_id', currentEmpresaId)
+        .eq('rol', 'tecnico')
+        .not('tipo_externo', 'is', null);
+    
+    if (error) {
+        console.error('Error cargando externos:', error);
+        return;
     }
+    
+    const tbody = document.getElementById('externosBody');
+    if (!data || data.length === 0) { 
+        tbody.innerHTML = '<tr><td colspan="6">No hay personal externo</td></tr>';
+        return; 
+    }
+    
+    tbody.innerHTML = data.map(e => `
+        <tr>
+            <td>${e.nombre || '-'}</td>
+            <td>${e.nif || '-'}</td>
+            <td>${e.email || '-'}</td>
+            <td>${e.telefono || '-'}</td>
+            <td><span class="badge badge-externo">${e.tipo_externo === 'empresa' ? '🏭 Empresa' : '👤 Autónomo'}</span></td>
+            <td>
+                <button class="btn-sm btn-warning editar-externo" data-id="${e.id}">✏️</button>
+                <button class="btn-sm btn-danger eliminar-externo" data-id="${e.id}" data-nombre="${e.nombre}">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+    
+    document.querySelectorAll('.editar-externo').forEach(btn => {
+        btn.onclick = () => abrirModalEditarExterno(btn.dataset.id);
+    });
+    
+    document.querySelectorAll('.eliminar-externo').forEach(btn => {
+        btn.onclick = async () => {
+            if (confirm(`¿Eliminar externo "${btn.dataset.nombre}"?`)) {
+                await sb.from('perfiles').delete().eq('id', btn.dataset.id);
+                cargarExternos();
+                mostrarMensaje("✅ Externo eliminado");
+            }
+        };
+    });
+}
 
     async function crearExterno() {
-        const nombre = document.getElementById('externoNombre').value.trim();
-        const email = document.getElementById('externoEmail').value.trim();
-        const password = document.getElementById('externoPassword').value;
-        if (!nombre || !email) { mostrarMensaje("Nombre y email obligatorios", 'error'); return; }
-        if (!password || password.length < 6) { mostrarMensaje("Contraseña (mínimo 6 caracteres)", 'error'); return; }
-        const btn = document.getElementById('btnCrearExterno');
-        btn.innerHTML = '<span class="spinner"></span> Creando...';
-        btn.disabled = true;
-        try {
-            const { data: { session } } = await sb.auth.getSession();
-            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                body: JSON.stringify({ email, password, nombre, empresa_id: currentEmpresaId, rol: 'externo' })
-            });
-            const resultado = await response.json();
-            if (!resultado.success) throw new Error(resultado.error);
-            const { error: updateError } = await sb.from('perfiles').update({
-                telefono: document.getElementById('externoTelefono').value || null,
-                nif: document.getElementById('externoNif').value || null,
-                direccion: document.getElementById('externoDireccion').value || null,
-                tipo_externo: document.getElementById('externoTipo').value,
-                especialidad: document.getElementById('externoEspecialidad').value,
-                iban: document.getElementById('externoIban').value || null,
-                banco: document.getElementById('externoBanco').value || null
-            }).eq('id', resultado.user_id);
-            if (updateError) throw updateError;
-            mostrarMensaje(`✅ Externo ${nombre} creado`);
-            ['externoNombre','externoEmail','externoPassword','externoTelefono','externoNif','externoDireccion','externoIban','externoBanco'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-            cargarExternos(); cargarStats();
-        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); }
-        finally { btn.innerHTML = '✅ Dar de alta externo'; btn.disabled = false; }
+    const nombre = document.getElementById('externoNombre').value.trim();
+    const email = document.getElementById('externoEmail').value.trim();
+    const password = document.getElementById('externoPassword').value;
+    const telefono = document.getElementById('externoTelefono').value.trim();
+    const nif = document.getElementById('externoNif').value.trim();
+    const direccion = document.getElementById('externoDireccion').value.trim();
+    const tipoExterno = document.getElementById('externoTipo').value;
+    const especialidad = document.getElementById('externoEspecialidad').value;
+    const iban = document.getElementById('externoIban').value.trim();
+    const banco = document.getElementById('externoBanco').value.trim();
+    
+    if (!nombre) { mostrarMensaje("❌ Nombre es obligatorio", 'error'); return; }
+    if (!email) { mostrarMensaje("❌ Email es obligatorio", 'error'); return; }
+    if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
+    
+    const btn = document.getElementById('btnCrearExterno');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Creando...';
+    btn.disabled = true;
+    
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        
+        // Crear usuario en Auth
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                nombre: nombre,
+                empresa_id: currentEmpresaId,
+                rol: 'externo'
+            })
+        });
+        
+        const resultado = await response.json();
+        if (!resultado.success) throw new Error(resultado.error);
+        
+        // Actualizar perfil con datos adicionales
+        const { error: updateError } = await sb.from('perfiles').update({
+            telefono: telefono || null,
+            nif: nif || null,
+            direccion: direccion || null,
+            tipo_externo: tipoExterno,
+            especialidad: especialidad,
+            iban: iban || null,
+            banco: banco || null
+        }).eq('id', resultado.user_id);
+        
+        if (updateError) throw updateError;
+        
+        mostrarMensaje(`✅ Externo ${nombre} creado correctamente`);
+        
+        // Limpiar formulario
+        const campos = ['externoNombre', 'externoEmail', 'externoPassword', 'externoTelefono',
+            'externoNif', 'externoDireccion', 'externoIban', 'externoBanco'];
+        campos.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        cargarExternos();
+        cargarStats();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+    } finally {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
     }
+}
 
     async function abrirModalEditarExterno(id) {
         const { data: e } = await sb.from('perfiles').select('*').eq('id', id).single();
@@ -1082,15 +1164,48 @@
     }
 
     async function cargarTecnicos() {
-        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
-        const tbody = document.getElementById('tecnicosBody');
-        if (!data?.length) { tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td></tr>'; return; }
-        tbody.innerHTML = data.map(t => `<tr><td>${t.nombre || t.nick}</td><td>${t.nif || '-'}</td><td>${t.email}</td><td>${t.telefono || '-'}</td><td><span class="badge badge-activo">Activo</span></td><td><button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button><button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td></tr>`).join('');
-        document.querySelectorAll('.btn-editar-tecnico').forEach(btn => btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id));
-        document.querySelectorAll('.btn-eliminar-tecnico').forEach(btn => btn.onclick = () => eliminarTecnico(btn.dataset.id, btn.dataset.nombre));
-        const select = document.getElementById('tareaTecnico');
-        if (select) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
+    const { data, error } = await sb.from('perfiles')
+        .select('*')
+        .eq('empresa_id', currentEmpresaId)
+        .eq('rol', 'tecnico')
+        .is('tipo_externo', null);  // 👈 Solo técnicos internos (sin tipo_externo)
+    
+    if (error) return;
+    
+    const tbody = document.getElementById('tecnicosBody');
+    if (!data?.length) { 
+        tbody.innerHTML = '<tr><td colspan="6">No hay técnicos</td>'; 
+        return; 
     }
+    
+    tbody.innerHTML = data.map(t => `
+        <tr>
+            <td>${t.nombre || t.nick}</td>
+            <td>${t.nif || '-'}</td>
+            <td>${t.email}</td>
+            <td>${t.telefono || '-'}</td>
+            <td><span class="badge badge-activo">Activo</span></td>
+            <td>
+                <button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button>
+                <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+    
+    document.querySelectorAll('.btn-editar-tecnico').forEach(btn => {
+        btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id);
+    });
+    
+    document.querySelectorAll('.btn-eliminar-tecnico').forEach(btn => {
+        btn.onclick = () => eliminarTecnico(btn.dataset.id, btn.dataset.nombre);
+    });
+    
+    const select = document.getElementById('tareaTecnico');
+    if (select) {
+        select.innerHTML = '<option value="">-- Seleccionar --</option>' + 
+            data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
+    }
+}
 
     async function abrirModalEditarTecnico(id) {
         const { data: t } = await sb.from('perfiles').select('*').eq('id', id).single();
