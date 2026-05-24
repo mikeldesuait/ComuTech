@@ -429,6 +429,30 @@
                         </form>
                     </div>
                 </div>
+                <!-- MODAL EDITAR CLIENTE -->
+<div id="modalEditarCliente" class="modal">
+    <div class="modal-content">
+        <div class="card-header">✏️ Editar cliente</div>
+        <input type="hidden" id="editClienteId">
+        <div class="row-flex">
+            <div class="grupo"><label>Nombre</label><input type="text" id="editClienteNombre"></div>
+            <div class="grupo"><label>Email</label><input type="email" id="editClienteEmail"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Teléfono</label><input type="text" id="editClienteTelefono"></div>
+            <div class="grupo"><label>NIF</label><input type="text" id="editClienteNif"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Dirección</label><input type="text" id="editClienteDireccion"></div>
+            <div class="grupo"><label>Contacto</label><input type="text" id="editClienteContacto"></div>
+        </div>
+        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
+            <button id="btnGuardarEdicionCliente" class="btn-success">💾 Guardar</button>
+            <button id="btnCancelarEdicionCliente" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
 
                 <!-- ==================== TAB PERSONAL ==================== -->
                 <div id="tabPersonal" style="display: none;">
@@ -556,10 +580,6 @@
                 </select>
             </div>
         </div>
-        <div class="row-flex">
-            <div class="grupo"><label>🔐 Nueva contraseña (dejar vacío para no cambiar)</label><input type="password" id="editPasswordCompleto" placeholder="Nueva contraseña" autocomplete="new-password"></div>
-            <div class="grupo"><label>🔐 Repetir contraseña</label><input type="password" id="editPasswordConfirmCompleto" placeholder="Repetir contraseña" autocomplete="new-password"></div>
-        </div>
         
         <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
             <button id="btnGuardarEdicionCompleta" class="btn-success">💾 Guardar cambios</button>
@@ -567,6 +587,7 @@
         </div>
     </div>
 </div>
+
 
                 <!-- ==================== TAB GASTOS ==================== -->
                 <div id="tabGastos" style="display: none;">
@@ -664,31 +685,6 @@
                 </div>
 
             </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- MODAL EDITAR CLIENTE -->
-<div id="modalEditarCliente" class="modal">
-    <div class="modal-content">
-        <div class="card-header">✏️ Editar cliente</div>
-        <input type="hidden" id="editClienteId">
-        <div class="row-flex">
-            <div class="grupo"><label>Nombre</label><input type="text" id="editClienteNombre"></div>
-            <div class="grupo"><label>Email</label><input type="email" id="editClienteEmail"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>Teléfono</label><input type="text" id="editClienteTelefono"></div>
-            <div class="grupo"><label>NIF</label><input type="text" id="editClienteNif"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>Dirección</label><input type="text" id="editClienteDireccion"></div>
-            <div class="grupo"><label>Contacto</label><input type="text" id="editClienteContacto"></div>
-        </div>
-        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
-            <button id="btnGuardarEdicionCliente" class="btn-success">💾 Guardar</button>
-            <button id="btnCancelarEdicionCliente" class="btn-danger">✖ Cancelar</button>
         </div>
     </div>
 </div>
@@ -972,91 +968,60 @@
 }
 
     async function abrirModalEditarTecnico(id) {
-        const { data: t, error } = await sb.from('perfiles').select('*').eq('id', id).single();
-        if (error) {
-            mostrarMensaje("Error al cargar datos", 'error');
-            return;
-        }
-        
-        document.getElementById('editTecnicoId').value = t.id;
-        document.getElementById('editNombreCompleto').value = t.nombre || '';
-        document.getElementById('editEmailCompleto').value = t.email || '';
-        document.getElementById('editTelefonoCompleto').value = t.telefono || '';
-        document.getElementById('editNifCompleto').value = t.nif || '';
-        document.getElementById('editDireccionCompleto').value = t.direccion || '';
-        document.getElementById('editFechaNacimientoCompleto').value = t.fecha_nacimiento || '';
-        document.getElementById('editSSCompleto').value = t.num_seguridad_social || '';
-        document.getElementById('editIbanCompleto').value = t.iban || '';
-        document.getElementById('editTipoContratoCompleto').value = t.tipo_contrato || 'INDEFINIDO';
-        document.getElementById('editJornadaCompleto').value = t.jornada || 'COMPLETA';
-        document.getElementById('editPuestoCompleto').value = t.puesto || 'TECNICO_BASE';
-        document.getElementById('editNickCompleto').value = t.nick || '';
-        document.getElementById('editFechaAltaCompleto').value = t.fecha_alta || '';
-        document.getElementById('editEstadoCompleto').value = t.activo ? 'true' : 'false';
-        document.getElementById('editPasswordCompleto').value = '';
-        document.getElementById('editPasswordConfirmCompleto').value = '';
-        
-        document.getElementById('modalEditarTecnicoCompleto').style.display = 'flex';
+    const { data: t, error } = await sb.from('perfiles').select('*').eq('id', id).single();
+    if (error) {
+        mostrarMensaje("Error al cargar datos", 'error');
+        return;
     }
+    
+    document.getElementById('editTecnicoId').value = t.id;
+    document.getElementById('editNombreCompleto').value = t.nombre || '';
+    document.getElementById('editEmailCompleto').value = t.email || '';
+    document.getElementById('editTelefonoCompleto').value = t.telefono || '';
+    document.getElementById('editNifCompleto').value = t.nif || '';
+    document.getElementById('editDireccionCompleto').value = t.direccion || '';
+    document.getElementById('editFechaNacimientoCompleto').value = t.fecha_nacimiento || '';
+    document.getElementById('editSSCompleto').value = t.num_seguridad_social || '';
+    document.getElementById('editIbanCompleto').value = t.iban || '';
+    document.getElementById('editTipoContratoCompleto').value = t.tipo_contrato || 'INDEFINIDO';
+    document.getElementById('editJornadaCompleto').value = t.jornada || 'COMPLETA';
+    document.getElementById('editPuestoCompleto').value = t.puesto || 'TECNICO_BASE';
+    document.getElementById('editNickCompleto').value = t.nick || '';
+    document.getElementById('editFechaAltaCompleto').value = t.fecha_alta || '';
+    document.getElementById('editEstadoCompleto').value = t.activo ? 'true' : 'false';
+    
+    document.getElementById('modalEditarTecnicoCompleto').style.display = 'flex';
+}
 
     async function guardarEdicionTecnico() {
-        const id = document.getElementById('editTecnicoId').value;
-        const nuevaPassword = document.getElementById('editPasswordCompleto').value;
-        const confirmPassword = document.getElementById('editPasswordConfirmCompleto').value;
-        
-        if (nuevaPassword && nuevaPassword !== confirmPassword) {
-            mostrarMensaje("❌ Las contraseñas no coinciden", 'error');
-            return;
-        }
-        if (nuevaPassword && nuevaPassword.length < 6) {
-            mostrarMensaje("❌ La contraseña debe tener al menos 6 caracteres", 'error');
-            return;
-        }
-        
-        // Actualizar datos del perfil
-        const { error: updateError } = await sb.from('perfiles').update({
-            nombre: document.getElementById('editNombreCompleto').value,
-            email: document.getElementById('editEmailCompleto').value,
-            telefono: document.getElementById('editTelefonoCompleto').value || null,
-            nif: document.getElementById('editNifCompleto').value || null,
-            direccion: document.getElementById('editDireccionCompleto').value || null,
-            fecha_nacimiento: document.getElementById('editFechaNacimientoCompleto').value || null,
-            num_seguridad_social: document.getElementById('editSSCompleto').value || null,
-            iban: document.getElementById('editIbanCompleto').value || null,
-            tipo_contrato: document.getElementById('editTipoContratoCompleto').value,
-            jornada: document.getElementById('editJornadaCompleto').value,
-            puesto: document.getElementById('editPuestoCompleto').value,
-            nick: document.getElementById('editNickCompleto').value || null,
-            fecha_alta: document.getElementById('editFechaAltaCompleto').value || null,
-            activo: document.getElementById('editEstadoCompleto').value === 'true'
-        }).eq('id', id);
-        
-        if (updateError) {
-            mostrarMensaje("Error al actualizar: " + updateError.message, 'error');
-            return;
-        }
-        
-        // Cambiar contraseña si se proporcionó una nueva
-        if (nuevaPassword) {
-            try {
-                const { error: passError } = await sb.auth.admin.updateUserById(id, {
-                    password: nuevaPassword
-                });
-                
-                if (passError) {
-                    mostrarMensaje("Error al cambiar contraseña: " + passError.message, 'error');
-                } else {
-                    mostrarMensaje("✅ Contraseña actualizada correctamente", 'exito');
-                }
-            } catch (e) {
-                mostrarMensaje("Error al cambiar contraseña: " + e.message, 'error');
-            }
-        }
-        
-        mostrarMensaje("✅ Técnico actualizado correctamente");
-        document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
-        cargarTecnicos();
+    const id = document.getElementById('editTecnicoId').value;
+    
+    const { error: updateError } = await sb.from('perfiles').update({
+        nombre: document.getElementById('editNombreCompleto').value,
+        email: document.getElementById('editEmailCompleto').value,
+        telefono: document.getElementById('editTelefonoCompleto').value || null,
+        nif: document.getElementById('editNifCompleto').value || null,
+        direccion: document.getElementById('editDireccionCompleto').value || null,
+        fecha_nacimiento: document.getElementById('editFechaNacimientoCompleto').value || null,
+        num_seguridad_social: document.getElementById('editSSCompleto').value || null,
+        iban: document.getElementById('editIbanCompleto').value || null,
+        tipo_contrato: document.getElementById('editTipoContratoCompleto').value,
+        jornada: document.getElementById('editJornadaCompleto').value,
+        puesto: document.getElementById('editPuestoCompleto').value,
+        nick: document.getElementById('editNickCompleto').value || null,
+        fecha_alta: document.getElementById('editFechaAltaCompleto').value || null,
+        activo: document.getElementById('editEstadoCompleto').value === 'true'
+    }).eq('id', id);
+    
+    if (updateError) {
+        mostrarMensaje("Error al actualizar: " + updateError.message, 'error');
+        return;
     }
+    
+    mostrarMensaje("✅ Técnico actualizado correctamente");
+    document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
+    cargarTecnicos();
+}
 
     window.eliminarTecnico = async (id, nombre) => {
         if (confirm(`¿Eliminar técnico "${nombre}"?`)) {
