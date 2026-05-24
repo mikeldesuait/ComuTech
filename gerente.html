@@ -893,37 +893,97 @@ async function guardarCliente() {
     }
 
     async function crearTecnico() {
-        const nombre = document.getElementById('nuevoNombre').value.trim();
-        const email = document.getElementById('nuevoEmail').value.trim();
-        const password = document.getElementById('nuevoPassword').value;
-        if (!nombre || !email) { mostrarMensaje("Nombre y email obligatorios", 'error'); return; }
-        if (!password || password.length < 6) { mostrarMensaje("Contraseña mínimo 6 caracteres", 'error'); return; }
+    const nombre = document.getElementById('nuevoNombre').value.trim();
+    const email = document.getElementById('nuevoEmail').value.trim();
+    const password = document.getElementById('nuevoPassword').value;
+    const telefono = document.getElementById('nuevoTelefono').value.trim();
+    const nif = document.getElementById('nuevoNif').value.trim();
+    const fechaNacimiento = document.getElementById('nuevoFechaNacimiento').value;
+    const direccion = document.getElementById('nuevoDireccion').value.trim();
+    const numSS = document.getElementById('nuevoSS').value.trim();
+    const iban = document.getElementById('nuevoIban').value.trim();
+    const tipoContrato = document.getElementById('nuevoTipoContrato').value;
+    const jornada = document.getElementById('nuevoJornada').value;
+    const puesto = document.getElementById('nuevoPuesto').value;
+    const fechaAlta = document.getElementById('nuevoFechaAlta').value;
+    const nick = document.getElementById('nuevoNick').value.trim() || nombre.split(' ')[0].toLowerCase();
+    
+    if (!nombre) { mostrarMensaje("❌ Nombre completo obligatorio", 'error'); return; }
+    if (!email) { mostrarMensaje("❌ Email obligatorio", 'error'); return; }
+    if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
+    if (!nif) { mostrarMensaje("❌ NIF/NIE obligatorio", 'error'); return; }
+    if (!fechaNacimiento) { mostrarMensaje("❌ Fecha de nacimiento obligatoria", 'error'); return; }
+    if (!direccion) { mostrarMensaje("❌ Dirección obligatoria", 'error'); return; }
+    if (!numSS) { mostrarMensaje("❌ Nº Seguridad Social obligatorio", 'error'); return; }
+    if (!iban) { mostrarMensaje("❌ IBAN obligatorio", 'error'); return; }
+    
+    const btn = document.getElementById('btnCrearTecnico');
+    btn.innerHTML = '<span class="spinner"></span> Creando...';
+    btn.disabled = true;
+    
+    try {
+        // Llamar a la Edge Function crear-usuario
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                nombre: nombre,
+                empresa_id: currentEmpresaId,
+                empresa_nombre: 'Mi Empresa',
+                rol: 'tecnico'
+            })
+        });
         
-        const btn = document.getElementById('btnCrearTecnico');
-        btn.innerHTML = '<span class="spinner"></span> Creando...';
-        btn.disabled = true;
-        try {
-            const { data: authUser, error: authError } = await sb.auth.admin.createUser({
-                email, password, email_confirm: true,
-                user_metadata: { nombre, empresa_id: currentEmpresaId }
-            });
-            if (authError) throw authError;
-            const { error: perfilError } = await sb.from('perfiles').insert({
-                id: authUser.user.id, nombre, email, rol: 'tecnico', empresa_id: currentEmpresaId,
-                telefono: document.getElementById('nuevoTelefono').value, nif: document.getElementById('nuevoNif').value,
-                fecha_nacimiento: document.getElementById('nuevoFechaNacimiento').value,
-                direccion: document.getElementById('nuevoDireccion').value, num_seguridad_social: document.getElementById('nuevoSS').value,
-                iban: document.getElementById('nuevoIban').value, tipo_contrato: document.getElementById('nuevoTipoContrato').value,
-                jornada: document.getElementById('nuevoJornada').value, puesto: document.getElementById('nuevoPuesto').value,
-                fecha_alta: document.getElementById('nuevoFechaAlta').value, nick: document.getElementById('nuevoNick').value || nombre.split(' ')[0].toLowerCase()
-            });
-            if (perfilError) throw perfilError;
-            mostrarMensaje(`✅ Técnico ${nombre} creado`);
-            cargarTecnicos(); cargarStats();
-            document.querySelectorAll('#subCrearTecnico input').forEach(i => i.value = '');
-        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-        } finally { btn.innerHTML = '✅ Dar de alta técnico'; btn.disabled = false; }
+        const resultado = await response.json();
+        if (!resultado.success) throw new Error(resultado.error);
+        
+        // Actualizar el perfil con los datos adicionales
+        const { error: updateError } = await sb.from('perfiles').update({
+            telefono: telefono || null,
+            nif: nif,
+            direccion: direccion,
+            fecha_nacimiento: fechaNacimiento,
+            num_seguridad_social: numSS,
+            iban: iban,
+            tipo_contrato: tipoContrato,
+            jornada: jornada,
+            puesto: puesto,
+            fecha_alta: fechaAlta || new Date().toISOString().split('T')[0],
+            nick: nick
+        }).eq('id', resultado.user_id);
+        
+        if (updateError) throw updateError;
+        
+        mostrarMensaje(`✅ Técnico ${nombre} dado de alta`);
+        
+        // Limpiar formulario
+        document.getElementById('nuevoNombre').value = '';
+        document.getElementById('nuevoEmail').value = '';
+        document.getElementById('nuevoPassword').value = '';
+        document.getElementById('nuevoTelefono').value = '';
+        document.getElementById('nuevoNif').value = '';
+        document.getElementById('nuevoFechaNacimiento').value = '';
+        document.getElementById('nuevoDireccion').value = '';
+        document.getElementById('nuevoSS').value = '';
+        document.getElementById('nuevoIban').value = '';
+        document.getElementById('nuevoNick').value = '';
+        
+        cargarTecnicos();
+        cargarStats();
+        
+    } catch (error) {
+        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+        console.error(error);
+    } finally {
+        btn.innerHTML = '✅ Dar de alta técnico';
+        btn.disabled = false;
     }
+}
 
     // ========== GASTOS ==========
     async function cargarGastos() {
