@@ -398,6 +398,10 @@
                                 <div class="grupo"><label class="required">📮 Código postal</label><input type="text" id="nuevoClienteCp" placeholder="Código postal" autocomplete="postal-code"></div>
                             </div>
                             <div class="row-flex">
+    <div class="grupo"><label>🔢 Número</label><input type="text" id="nuevoClienteNumero" placeholder="Número"></div>
+    <div class="grupo"><label>🏢 Piso/Puerta</label><input type="text" id="nuevoClientePiso" placeholder="Piso/Puerta"></div>
+</div>
+                            <div class="row-flex">
                                 <div class="grupo"><label class="required">🌆 Ciudad</label><input type="text" id="nuevoClienteCiudad" placeholder="Ciudad" autocomplete="address-level2"></div>
                                 <div class="grupo"><label class="required">🗺️ Provincia</label><input type="text" id="nuevoClienteProvincia" placeholder="Provincia" autocomplete="address-level1"></div>
                             </div>
@@ -872,61 +876,72 @@
     }
 
     async function guardarCliente() {
-        const nombre = document.getElementById('nuevoClienteNombre').value.trim();
-        const nif = document.getElementById('nuevoClienteNif').value.trim();
-        const email = document.getElementById('nuevoClienteEmail').value.trim();
+    const nombre = document.getElementById('nuevoClienteNombre').value.trim();
+    const nif = document.getElementById('nuevoClienteNif').value.trim();
+    const email = document.getElementById('nuevoClienteEmail').value.trim();
+    
+    if (!nombre) { mostrarMensaje("❌ La razón social es obligatoria", 'error'); return; }
+    if (!nif) { mostrarMensaje("❌ El NIF/CIF es obligatorio", 'error'); return; }
+    if (!email) { mostrarMensaje("❌ El email es obligatorio", 'error'); return; }
+    
+    const btn = document.getElementById('btnGuardarCliente');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Guardando...';
+    btn.disabled = true;
+    
+    try {
+        const nuevoCliente = {
+            nombre: nombre,
+            nif: nif,
+            email: email,
+            telefono: document.getElementById('nuevoClienteTelefono').value || null,
+            calle: document.getElementById('nuevoClienteDireccion').value || null,
+            numero: document.getElementById('nuevoClienteNumero')?.value || null,
+            piso: document.getElementById('nuevoClientePiso')?.value || null,
+            codigo_postal: document.getElementById('nuevoClienteCp').value || null,
+            ciudad: document.getElementById('nuevoClienteCiudad').value || null,
+            provincia: document.getElementById('nuevoClienteProvincia').value || null,
+            contacto_nombre: document.getElementById('nuevoClienteContacto').value || null,
+            contacto_cargo: document.getElementById('nuevoClienteCargo').value || null,
+            iban: document.getElementById('nuevoClienteIban').value || null,
+            banco: document.getElementById('nuevoClienteBanco').value || null,
+            tipo_cliente: document.getElementById('nuevoClienteTipo').value,
+            fecha_alta: document.getElementById('nuevoClienteFechaAlta').value || new Date().toISOString().split('T')[0],
+            created_by: currentUser.id,
+            activo: true,
+            plan: 'BASICO'
+        };
         
-        if (!nombre) { mostrarMensaje("❌ La razón social es obligatoria", 'error'); return; }
-        if (!nif) { mostrarMensaje("❌ El NIF/CIF es obligatorio", 'error'); return; }
-        if (!email) { mostrarMensaje("❌ El email es obligatorio", 'error'); return; }
+        const { error } = await sb.from('empresas').insert(nuevoCliente);
         
-        const btn = document.getElementById('btnGuardarCliente');
-        const textoOriginal = btn.innerHTML;
-        btn.innerHTML = '<span class="spinner"></span> Guardando...';
-        btn.disabled = true;
+        if (error) throw error;
         
-        try {
-            const { error } = await sb.from('empresas').insert({
-                nombre: nombre,
-                nif: nif,
-                email: email,
-                telefono: document.getElementById('nuevoClienteTelefono').value,
-                direccion: document.getElementById('nuevoClienteDireccion').value,
-                codigo_postal: document.getElementById('nuevoClienteCp').value,
-                ciudad: document.getElementById('nuevoClienteCiudad').value,
-                provincia: document.getElementById('nuevoClienteProvincia').value,
-                contacto_nombre: document.getElementById('nuevoClienteContacto').value,
-                contacto_cargo: document.getElementById('nuevoClienteCargo').value,
-                iban: document.getElementById('nuevoClienteIban').value,
-                banco: document.getElementById('nuevoClienteBanco').value,
-                tipo_cliente: document.getElementById('nuevoClienteTipo').value,
-                fecha_alta: document.getElementById('nuevoClienteFechaAlta').value,
-                created_by: currentUser.id,
-                activo: true
-            });
-            
-            if (error) throw error;
-            
-            mostrarMensaje("✅ Cliente guardado correctamente");
-            
-            const campos = [
-                'nuevoClienteNombre', 'nuevoClienteNif', 'nuevoClienteEmail',
-                'nuevoClienteTelefono', 'nuevoClienteDireccion', 'nuevoClienteCp',
-                'nuevoClienteCiudad', 'nuevoClienteProvincia', 'nuevoClienteContacto',
-                'nuevoClienteCargo', 'nuevoClienteIban', 'nuevoClienteBanco'
-            ];
-            campos.forEach(id => document.getElementById(id).value = '');
-            
-            cargarClientes();
-            cargarStats();
-            
-        } catch (error) {
-            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-        } finally {
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        }
+        mostrarMensaje("✅ Cliente guardado correctamente");
+        
+        // Limpiar formulario
+        const campos = [
+            'nuevoClienteNombre', 'nuevoClienteNif', 'nuevoClienteEmail',
+            'nuevoClienteTelefono', 'nuevoClienteDireccion', 'nuevoClienteNumero',
+            'nuevoClientePiso', 'nuevoClienteCp', 'nuevoClienteCiudad',
+            'nuevoClienteProvincia', 'nuevoClienteContacto', 'nuevoClienteCargo',
+            'nuevoClienteIban', 'nuevoClienteBanco'
+        ];
+        campos.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        cargarClientes();
+        cargarStats();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+    } finally {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
     }
+}
 
     // ========== TÉCNICOS ==========
     async function cargarTecnicos() {
