@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>COMUTECH · Panel Super Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -98,6 +99,8 @@
         }
         .badge-activo { background: #d4edda; color: #155724; }
         .badge-inactivo { background: #f8d7da; color: #721c24; }
+        .badge-pagada { background: #d4edda; color: #155724; }
+        .badge-pendiente { background: #fff3cd; color: #856404; }
         .modal {
             display: none;
             position: fixed;
@@ -114,7 +117,7 @@
             background: white;
             border-radius: 24px;
             padding: 28px;
-            max-width: 550px;
+            max-width: 600px;
             width: 90%;
             max-height: 85vh;
             overflow-y: auto;
@@ -220,6 +223,25 @@
         .btn-group button {
             flex: 1;
         }
+        .factura-preview {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            font-family: monospace;
+        }
+        .factura-linea {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        .factura-total {
+            border-top: 2px solid #000;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -254,6 +276,7 @@
             <div class="row-flex">
                 <button id="btnMostrarAlta" class="btn-success">➕ Nuevo cliente</button>
                 <button id="btnRefrescar" class="btn-info">🔄 Refrescar</button>
+                <button id="btnExportarPDF" class="btn-warning">📄 Exportar clientes PDF</button>
             </div>
         </div>
 
@@ -261,49 +284,19 @@
         <div id="formAlta" class="card" style="display: none;">
             <div class="card-header">📝 Dar de alta nuevo cliente</div>
             <div class="row-flex">
-                <div class="grupo">
-                    <label>🏢 Nombre empresa *</label>
-                    <input type="text" id="empresaNombre" placeholder="Ej: Gestión Norte S.L.">
-                </div>
-                <div class="grupo">
-                    <label>📧 Email contacto *</label>
-                    <input type="email" id="empresaEmail" placeholder="admin@empresa.com">
-                </div>
+                <div class="grupo"><label>🏢 Nombre empresa *</label><input type="text" id="empresaNombre" placeholder="Ej: Gestión Norte S.L."></div>
+                <div class="grupo"><label>📧 Email contacto *</label><input type="email" id="empresaEmail" placeholder="admin@empresa.com"></div>
             </div>
             <div class="row-flex">
-                <div class="grupo">
-                    <label>👤 Nombre contacto</label>
-                    <input type="text" id="contactoNombre" placeholder="Nombre del administrador">
-                </div>
-                <div class="grupo">
-                    <label>📞 Teléfono</label>
-                    <input type="text" id="empresaTelefono" placeholder="Teléfono de contacto">
-                </div>
+                <div class="grupo"><label>👤 Nombre contacto</label><input type="text" id="contactoNombre" placeholder="Nombre del administrador"></div>
+                <div class="grupo"><label>📞 Teléfono</label><input type="text" id="empresaTelefono" placeholder="Teléfono de contacto"></div>
             </div>
             <div class="row-flex">
-                <div class="grupo">
-                    <label>📋 NIF/CIF</label>
-                    <input type="text" id="empresaNif" placeholder="B12345678">
-                </div>
-                <div class="grupo">
-                    <label>🏷️ Plan</label>
-                    <select id="empresaPlan">
-                        <option value="BASICO">Básico (49€/mes)</option>
-                        <option value="PRO">Pro (99€/mes)</option>
-                        <option value="EMPRESA">Empresa (199€/mes)</option>
-                    </select>
-                </div>
+                <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="empresaNif" placeholder="B12345678"></div>
+                <div class="grupo"><label>🏷️ Plan</label><select id="empresaPlan"><option value="BASICO">Básico (49€/mes)</option><option value="PRO">Pro (99€/mes)</option><option value="EMPRESA">Empresa (199€/mes)</option></select></div>
             </div>
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>📍 Dirección</label>
-                    <input type="text" id="empresaDireccion" placeholder="Dirección completa">
-                </div>
-            </div>
-            <div class="btn-group">
-                <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
-                <button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button>
-            </div>
+            <div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="empresaDireccion" placeholder="Dirección completa"></div></div>
+            <div class="btn-group"><button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button><button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button></div>
         </div>
 
         <!-- Tabs -->
@@ -315,36 +308,19 @@
 
             <!-- Tab Clientes -->
             <div id="tabClientes" class="tab-content active">
-                <div id="listaClientes">
-                    <div style="text-align: center; padding: 40px;">🔄 Cargando clientes...</div>
-                </div>
+                <div id="listaClientes"><div style="text-align: center; padding: 40px;">🔄 Cargando clientes...</div></div>
             </div>
 
             <!-- Tab Facturación -->
             <div id="tabFacturas" class="tab-content">
                 <div class="row-flex">
-                    <div class="grupo">
-                        <label>📅 Desde</label>
-                        <input type="date" id="facturaDesde">
-                    </div>
-                    <div class="grupo">
-                        <label>📅 Hasta</label>
-                        <input type="date" id="facturaHasta">
-                    </div>
-                    <div class="grupo">
-                        <label>🏢 Cliente</label>
-                        <select id="facturaCliente">
-                            <option value="">Todos</option>
-                        </select>
-                    </div>
+                    <div class="grupo"><label>📅 Desde</label><input type="date" id="facturaDesde"></div>
+                    <div class="grupo"><label>📅 Hasta</label><input type="date" id="facturaHasta"></div>
+                    <div class="grupo"><label>🏢 Cliente</label><select id="facturaCliente"><option value="">Todos</option></select></div>
                     <button id="btnFiltrarFacturas" class="btn-info">🔍 Filtrar</button>
                 </div>
-                <div id="listaFacturas">
-                    <div style="text-align: center; padding: 40px;">📋 No hay facturas registradas</div>
-                </div>
-                <div style="margin-top: 20px;">
-                    <button id="btnMostrarCrearFactura" class="btn-success">➕ Nueva factura</button>
-                </div>
+                <div id="listaFacturas"><div style="text-align: center; padding: 40px;">📋 No hay facturas registradas</div></div>
+                <div style="margin-top: 20px;"><button id="btnMostrarCrearFactura" class="btn-success">➕ Nueva factura</button></div>
             </div>
         </div>
 
@@ -357,60 +333,11 @@
     <div class="modal-content">
         <div class="modal-header">✏️ Editar cliente</div>
         <input type="hidden" id="editClienteId">
-        <div class="row-flex">
-            <div class="grupo">
-                <label>🏢 Nombre empresa</label>
-                <input type="text" id="editNombre">
-            </div>
-            <div class="grupo">
-                <label>📧 Email</label>
-                <input type="email" id="editEmail">
-            </div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo">
-                <label>📋 NIF/CIF</label>
-                <input type="text" id="editNif">
-            </div>
-            <div class="grupo">
-                <label>📞 Teléfono</label>
-                <input type="text" id="editTelefono">
-            </div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo">
-                <label>📍 Dirección</label>
-                <input type="text" id="editDireccion">
-            </div>
-            <div class="grupo">
-                <label>🏷️ Plan</label>
-                <select id="editPlan">
-                    <option value="BASICO">Básico (49€/mes)</option>
-                    <option value="PRO">Pro (99€/mes)</option>
-                    <option value="EMPRESA">Empresa (199€/mes)</option>
-                </select>
-            </div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo">
-                <label>👤 Contacto</label>
-                <input type="text" id="editContacto">
-            </div>
-            <div class="grupo">
-                <label>📱 WhatsApp</label>
-                <input type="text" id="editWhatsapp">
-            </div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo">
-                <label>💰 Saldo (€)</label>
-                <input type="number" step="0.01" id="editSaldo">
-            </div>
-        </div>
-        <div class="btn-group">
-            <button id="btnGuardarEdicion" class="btn-success">💾 Guardar</button>
-            <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
-        </div>
+        <div class="row-flex"><div class="grupo"><label>🏢 Nombre</label><input type="text" id="editNombre"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editEmail"></div></div>
+        <div class="row-flex"><div class="grupo"><label>📋 NIF</label><input type="text" id="editNif"></div><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefono"></div></div>
+        <div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="editDireccion"></div><div class="grupo"><label>🏷️ Plan</label><select id="editPlan"><option value="BASICO">Básico</option><option value="PRO">Pro</option><option value="EMPRESA">Empresa</option></select></div></div>
+        <div class="row-flex"><div class="grupo"><label>👤 Contacto</label><input type="text" id="editContacto"></div><div class="grupo"><label>📱 WhatsApp</label><input type="text" id="editWhatsapp"></div></div>
+        <div class="btn-group"><button id="btnGuardarEdicion" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button></div>
     </div>
 </div>
 
@@ -419,35 +346,38 @@
     <div class="modal-content">
         <div class="modal-header">📋 Detalle del cliente</div>
         <div id="detalleCliente"></div>
-        <div class="btn-group">
-            <button id="btnCerrarDetalle" class="btn-info">Cerrar</button>
-        </div>
+        <div class="btn-group"><button id="btnCerrarDetalle" class="btn-info">Cerrar</button></div>
     </div>
 </div>
 
-<!-- Modal Crear Factura -->
+<!-- Modal Crear Factura Estándar -->
 <div id="modalCrearFactura" class="modal">
     <div class="modal-content">
-        <div class="modal-header">💰 Nueva factura</div>
+        <div class="modal-header">💰 Nueva factura estándar</div>
         <input type="hidden" id="facturaClienteId">
         <div class="row-flex">
-            <div class="grupo">
-                <label>📅 Fecha</label>
-                <input type="date" id="facturaFecha">
-            </div>
-            <div class="grupo">
-                <label>💶 Importe (€)</label>
-                <input type="number" step="0.01" id="facturaImporte" placeholder="0.00">
-            </div>
+            <div class="grupo"><label>🏢 Cliente</label><input type="text" id="facturaClienteNombre" readonly style="background:#f1f5f9;"></div>
+            <div class="grupo"><label>📅 Fecha factura</label><input type="date" id="facturaFecha"></div>
         </div>
         <div class="row-flex">
-            <div class="grupo">
-                <label>📝 Concepto</label>
-                <input type="text" id="facturaConcepto" placeholder="Suscripción mensual">
-            </div>
+            <div class="grupo"><label>📅 Fecha vencimiento</label><input type="date" id="facturaVencimiento"></div>
+            <div class="grupo"><label>🔢 Número factura</label><input type="text" id="facturaNumero" placeholder="Autogenerado"></div>
         </div>
+        
+        <div class="card-header" style="margin-top: 16px;">📦 Líneas de factura</div>
+        <div id="facturaLineas"></div>
+        <button id="btnAgregarLinea" class="btn-sm btn-info" style="margin-bottom: 16px;">➕ Añadir línea</button>
+        
+        <div class="row-flex">
+            <div class="grupo"><label>📝 Notas / Observaciones</label><textarea id="facturaNotas" rows="2" placeholder="Gracias por confiar en COMUTECH"></textarea></div>
+        </div>
+        
+        <div id="facturaPreview" class="factura-preview"></div>
+        
         <div class="btn-group">
-            <button id="btnGuardarFactura" class="btn-success">💾 Crear factura</button>
+            <button id="btnGuardarFactura" class="btn-success">💾 Guardar factura</button>
+            <button id="btnEnviarFactura" class="btn-info">📧 Enviar por email</button>
+            <button id="btnDescargarFactura" class="btn-warning">📄 Descargar PDF</button>
             <button id="btnCancelarFactura" class="btn-danger">✖ Cancelar</button>
         </div>
     </div>
@@ -461,6 +391,7 @@
 
     let currentUser = null;
     let empresasData = [];
+    let lineasFactura = [{ descripcion: "Suscripción mensal", cantidad: 1, precio: 49 }];
 
     function mostrarMensaje(texto, tipo = 'exito') {
         const msg = document.createElement('div');
@@ -476,34 +407,29 @@
         return new Date(date).toLocaleDateString('es-ES');
     }
 
+    function formatFechaYMD(date) {
+        return date.toISOString().split('T')[0];
+    }
+
     // ========== LOGIN ==========
     async function hacerLogin() {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
-        
         if (!email || !password) {
             document.getElementById('errorMsg').innerText = "Introduce email y contraseña";
             return false;
         }
-        
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if (error) {
             document.getElementById('errorMsg').innerText = error.message;
             return false;
         }
-        
-        const { data: perfil } = await sb
-            .from('perfiles')
-            .select('rol, nombre')
-            .eq('id', data.user.id)
-            .maybeSingle();
-        
+        const { data: perfil } = await sb.from('perfiles').select('rol, nombre').eq('id', data.user.id).maybeSingle();
         if (!perfil || perfil.rol !== 'super_admin') {
             await sb.auth.signOut();
             document.getElementById('errorMsg').innerText = "Acceso no autorizado";
             return false;
         }
-        
         currentUser = data.user;
         document.getElementById('nombreAdmin').innerHTML = perfil.nombre || 'Super Admin';
         document.getElementById('emailAdmin').innerHTML = currentUser.email;
@@ -514,11 +440,9 @@
     async function cargarStats() {
         const { data: empresas } = await sb.from('empresas').select('*');
         const { data: facturas } = await sb.from('facturas').select('*');
-        
         const totalClientes = empresas?.length || 0;
         const clientesActivos = empresas?.filter(e => e.activo).length || 0;
         const ingresosTotales = facturas?.reduce((sum, f) => sum + (f.total || 0), 0) || 0;
-        
         document.getElementById('statsPanel').innerHTML = `
             <div class="stat-card"><div class="stat-number">${totalClientes}</div><div class="stat-label">Total Clientes</div></div>
             <div class="stat-card"><div class="stat-number">${clientesActivos}</div><div class="stat-label">Activos</div></div>
@@ -530,34 +454,14 @@
     async function cargarClientes() {
         const container = document.getElementById('listaClientes');
         container.innerHTML = '<div style="text-align: center; padding: 40px;">🔄 Cargando...</div>';
-        
-        const { data: empresas, error } = await sb
-            .from('empresas')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        if (error) {
-            container.innerHTML = `<div style="color: red; padding: 20px;">❌ Error: ${error.message}</div>`;
-            return;
-        }
-        
+        const { data: empresas, error } = await sb.from('empresas').select('*').order('created_at', { ascending: false });
+        if (error) { container.innerHTML = `<div style="color: red; padding: 20px;">❌ Error: ${error.message}</div>`; return; }
         empresasData = empresas || [];
-        
-        if (!empresas || empresas.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 40px;">📋 No hay clientes</div>';
-            return;
-        }
+        if (!empresas || empresas.length === 0) { container.innerHTML = '<div style="text-align: center; padding: 40px;">📋 No hay clientes</div>'; return; }
         
         let html = `<table><thead><tr><th>Empresa</th><th>Contacto</th><th>Email</th><th>Plan</th><th>Estado</th><th>Acciones</th></thead><tbody>`;
-        
         for (const emp of empresas) {
-            const { data: perfil } = await sb
-                .from('perfiles')
-                .select('nombre, email')
-                .eq('empresa_id', emp.id)
-                .eq('rol', 'gerente')
-                .maybeSingle();
-            
+            const { data: perfil } = await sb.from('perfiles').select('nombre, email').eq('empresa_id', emp.id).eq('rol', 'gerente').maybeSingle();
             html += `<tr>
                 <td><strong>${emp.nombre}</strong><br><small>${emp.nif || ''}</small></td>
                 <td>${perfil?.nombre || '-'}</td>
@@ -565,52 +469,28 @@
                 <td><span class="badge">${emp.plan || 'BASICO'}</span></td>
                 <td><span class="badge ${emp.activo ? 'badge-activo' : 'badge-inactivo'}">${emp.activo ? 'Activo' : 'Inactivo'}</span></td>
                 <td>
-                    <button class="btn-sm btn-view ver-cliente" data-id="${emp.id}" style="background:#0284c7;">👁️</button>
-                    <button class="btn-sm btn-edit editar-cliente" data-id="${emp.id}" style="background:#e67e22;">✏️</button>
+                    <button class="btn-sm ver-cliente" data-id="${emp.id}" style="background:#0284c7;">👁️</button>
+                    <button class="btn-sm editar-cliente" data-id="${emp.id}" style="background:#e67e22;">✏️</button>
                     <button class="btn-sm facturar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre}" style="background:#2c7a4d;">💰</button>
-                    <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}" style="background:#c2410c;">${emp.activo ? '❌' : '✅'}</button>
+                    <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}" style="background:#e67e22;">${emp.activo ? '❌' : '✅'}</button>
+                    <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre}" style="background:#c2410c;">🗑️</button>
                 </td>
             </tr>`;
         }
-        
         html += '</tbody></table>';
         container.innerHTML = html;
         
-        document.querySelectorAll('.toggle-cliente').forEach(btn => {
-            btn.onclick = async () => {
-                const id = btn.dataset.id;
-                const activo = btn.dataset.activo === 'true';
-                await sb.from('empresas').update({ activo: !activo }).eq('id', id);
-                mostrarMensaje(activo ? 'Desactivado' : 'Activado');
-                await cargarClientes();
-                await cargarStats();
-            };
-        });
-        
-        document.querySelectorAll('.editar-cliente').forEach(btn => {
-            btn.onclick = () => editarCliente(btn.dataset.id);
-        });
-        
-        document.querySelectorAll('.ver-cliente').forEach(btn => {
-            btn.onclick = () => verCliente(btn.dataset.id);
-        });
-        
-        document.querySelectorAll('.facturar-cliente').forEach(btn => {
-            btn.onclick = () => mostrarModalFactura(btn.dataset.id, btn.dataset.nombre);
-        });
+        document.querySelectorAll('.toggle-cliente').forEach(btn => { btn.onclick = async () => { const id = btn.dataset.id, activo = btn.dataset.activo === 'true'; await sb.from('empresas').update({ activo: !activo }).eq('id', id); mostrarMensaje(activo ? 'Desactivado' : 'Activado'); await cargarClientes(); await cargarStats(); }; });
+        document.querySelectorAll('.editar-cliente').forEach(btn => { btn.onclick = () => editarCliente(btn.dataset.id); });
+        document.querySelectorAll('.ver-cliente').forEach(btn => { btn.onclick = () => verCliente(btn.dataset.id); });
+        document.querySelectorAll('.facturar-cliente').forEach(btn => { btn.onclick = () => mostrarModalFactura(btn.dataset.id, btn.dataset.nombre); });
+        document.querySelectorAll('.eliminar-cliente').forEach(btn => { btn.onclick = () => eliminarCliente(btn.dataset.id, btn.dataset.nombre); });
     }
 
     async function editarCliente(id) {
         const empresa = empresasData.find(e => e.id === id);
         if (!empresa) return;
-        
-        const { data: perfil } = await sb
-            .from('perfiles')
-            .select('nombre, email, telefono')
-            .eq('empresa_id', id)
-            .eq('rol', 'gerente')
-            .maybeSingle();
-        
+        const { data: perfil } = await sb.from('perfiles').select('nombre, email, telefono').eq('empresa_id', id).eq('rol', 'gerente').maybeSingle();
         document.getElementById('editClienteId').value = id;
         document.getElementById('editNombre').value = empresa.nombre || '';
         document.getElementById('editEmail').value = perfil?.email || empresa.email || '';
@@ -620,14 +500,11 @@
         document.getElementById('editPlan').value = empresa.plan || 'BASICO';
         document.getElementById('editContacto').value = perfil?.nombre || '';
         document.getElementById('editWhatsapp').value = empresa.whatsapp_contacto || '';
-        document.getElementById('editSaldo').value = empresa.saldo_pendiente || 0;
-        
         document.getElementById('modalEditarCliente').style.display = 'flex';
     }
 
     async function guardarEdicionCliente() {
         const id = document.getElementById('editClienteId').value;
-        
         await sb.from('empresas').update({
             nombre: document.getElementById('editNombre').value,
             nif: document.getElementById('editNif').value,
@@ -635,65 +512,36 @@
             telefono: document.getElementById('editTelefono').value,
             email: document.getElementById('editEmail').value,
             plan: document.getElementById('editPlan').value,
-            whatsapp_contacto: document.getElementById('editWhatsapp').value,
-            saldo_pendiente: parseFloat(document.getElementById('editSaldo').value) || 0
+            whatsapp_contacto: document.getElementById('editWhatsapp').value
         }).eq('id', id);
-        
         const contacto = document.getElementById('editContacto').value;
-        if (contacto) {
-            await sb
-                .from('perfiles')
-                .update({ nombre: contacto, telefono: document.getElementById('editTelefono').value })
-                .eq('empresa_id', id)
-                .eq('rol', 'gerente');
-        }
-        
+        if (contacto) await sb.from('perfiles').update({ nombre: contacto }).eq('empresa_id', id).eq('rol', 'gerente');
         mostrarMensaje("✅ Cliente actualizado");
         document.getElementById('modalEditarCliente').style.display = 'none';
-        await cargarClientes();
-        await cargarStats();
+        await cargarClientes(); await cargarStats();
     }
 
     async function verCliente(id) {
         const empresa = empresasData.find(e => e.id === id);
         if (!empresa) return;
-        
-        const { data: perfil } = await sb
-            .from('perfiles')
-            .select('*')
-            .eq('empresa_id', id)
-            .eq('rol', 'gerente')
-            .maybeSingle();
-        
-        const { data: facturas } = await sb
-            .from('facturas')
-            .select('*')
-            .eq('empresa_id', id)
-            .order('created_at', { ascending: false })
-            .limit(5);
-        
+        const { data: perfil } = await sb.from('perfiles').select('*').eq('empresa_id', id).eq('rol', 'gerente').maybeSingle();
+        const { data: facturas } = await sb.from('facturas').select('*').eq('empresa_id', id).order('created_at', { ascending: false }).limit(5);
         const totalFacturado = facturas?.reduce((sum, f) => sum + (f.total || 0), 0) || 0;
-        
         document.getElementById('detalleCliente').innerHTML = `
-            <div class="detalle-info">
-                <p><strong>🏢 ${empresa.nombre}</strong></p>
-                <p>📋 NIF: ${empresa.nif || '-'}</p>
-                <p>📍 ${empresa.direccion || '-'}</p>
-                <p>📞 ${empresa.telefono || '-'}</p>
-                <p>📧 ${perfil?.email || empresa.email || '-'}</p>
-                <p>👤 Contacto: ${perfil?.nombre || '-'}</p>
-                <p>🏷️ Plan: ${empresa.plan || 'BASICO'}</p>
-                <p>💰 Saldo: ${(empresa.saldo_pendiente || 0).toFixed(2)}€</p>
-                <p>📅 Alta: ${formatDate(empresa.created_at)}</p>
-            </div>
-            <div class="detalle-info">
-                <p><strong>💰 Facturación</strong></p>
-                <p>📊 Total facturado: ${totalFacturado.toFixed(2)}€</p>
-                ${facturas?.length ? facturas.map(f => `<p>📄 ${formatDate(f.fecha)} - ${f.total?.toFixed(2)}€ - ${f.pagada ? '✅ Pagada' : '⏳ Pendiente'}</p>`).join('') : '<p>No hay facturas</p>'}
-            </div>
+            <div class="detalle-info"><p><strong>🏢 ${empresa.nombre}</strong></p><p>📋 NIF: ${empresa.nif || '-'}</p><p>📍 ${empresa.direccion || '-'}</p><p>📞 ${empresa.telefono || '-'}</p><p>📧 ${perfil?.email || empresa.email || '-'}</p><p>👤 Contacto: ${perfil?.nombre || '-'}</p><p>🏷️ Plan: ${empresa.plan || 'BASICO'}</p><p>📅 Alta: ${formatDate(empresa.created_at)}</p></div>
+            <div class="detalle-info"><p><strong>💰 Facturación</strong></p><p>📊 Total facturado: ${totalFacturado.toFixed(2)}€</p>${facturas?.length ? facturas.map(f => `<p>📄 ${formatDate(f.fecha)} - ${f.total?.toFixed(2)}€ - ${f.pagada ? '✅ Pagada' : '⏳ Pendiente'}</p>`).join('') : '<p>No hay facturas</p>'}</div>
         `;
-        
         document.getElementById('modalVerCliente').style.display = 'flex';
+    }
+
+    async function eliminarCliente(id, nombre) {
+        if (!confirm(`¿Eliminar "${nombre}"? Esta acción es irreversible.`)) return;
+        const perfil = await sb.from('perfiles').select('id').eq('empresa_id', id).eq('rol', 'gerente').maybeSingle();
+        await sb.from('facturas').delete().eq('empresa_id', id);
+        if (perfil) await sb.from('perfiles').delete().eq('id', perfil.id);
+        await sb.from('empresas').delete().eq('id', id);
+        mostrarMensaje(`✅ Cliente "${nombre}" eliminado`);
+        await cargarClientes(); await cargarStats();
     }
 
     // ========== NUEVO CLIENTE ==========
@@ -705,168 +553,183 @@
         const nif = document.getElementById('empresaNif').value.trim();
         const plan = document.getElementById('empresaPlan').value;
         const direccion = document.getElementById('empresaDireccion').value.trim();
-        
-        if (!nombre || !email) {
-            mostrarMensaje("❌ Nombre y email son obligatorios", 'error');
-            return;
-        }
-        
+        if (!nombre || !email) { mostrarMensaje("❌ Nombre y email son obligatorios", 'error'); return; }
         const passwordTemp = Math.random().toString(36).substring(2, 10) + "A1!";
-        
         const btn = document.getElementById('btnGuardarCliente');
         const textoOriginal = btn.innerHTML;
         btn.innerHTML = '<span class="spinner"></span> Creando...';
         btn.disabled = true;
-        
         try {
-            const { data: empresa, error: empError } = await sb
-                .from('empresas')
-                .insert({
-                    nombre: nombre,
-                    nif: nif || null,
-                    direccion: direccion || null,
-                    telefono: telefono || null,
-                    email: email,
-                    plan: plan,
-                    activo: true
-                })
-                .select()
-                .single();
-            
+            const { data: empresa, error: empError } = await sb.from('empresas').insert({ nombre, nif: nif || null, direccion: direccion || null, telefono: telefono || null, email: email, plan: plan, activo: true }).select().single();
             if (empError) throw empError;
-            
-            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    password: passwordTemp,
-                    nombre: contactoNombre || nombre,
-                    empresa_id: empresa.id,
-                    empresa_nombre: nombre
-                })
-            });
-            
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: passwordTemp, nombre: contactoNombre || nombre, empresa_id: empresa.id, empresa_nombre: nombre }) });
             const resultado = await response.json();
             if (!resultado.success) throw new Error(resultado.error);
-            
             alert(`✅ Cliente creado\n\nEmpresa: ${nombre}\nEmail: ${email}\nPassword temporal: ${passwordTemp}`);
-            
-            document.getElementById('empresaNombre').value = '';
-            document.getElementById('empresaEmail').value = '';
-            document.getElementById('contactoNombre').value = '';
-            document.getElementById('empresaTelefono').value = '';
-            document.getElementById('empresaNif').value = '';
-            document.getElementById('empresaDireccion').value = '';
-            document.getElementById('formAlta').style.display = 'none';
-            
-            await cargarClientes();
-            await cargarStats();
-            
-        } catch (error) {
-            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-        } finally {
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        }
+            document.getElementById('empresaNombre').value = ''; document.getElementById('empresaEmail').value = ''; document.getElementById('contactoNombre').value = ''; document.getElementById('empresaTelefono').value = ''; document.getElementById('empresaNif').value = ''; document.getElementById('empresaDireccion').value = ''; document.getElementById('formAlta').style.display = 'none';
+            await cargarClientes(); await cargarStats();
+        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); }
+        finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
     }
 
-    // ========== FACTURACIÓN ==========
-    async function cargarFacturas() {
-        const desde = document.getElementById('facturaDesde').value;
-        const hasta = document.getElementById('facturaHasta').value;
-        const clienteId = document.getElementById('facturaCliente').value;
+    // ========== FACTURACIÓN ESTÁNDAR ==========
+    function renderizarFacturaPreview() {
+        const clienteId = document.getElementById('facturaClienteId').value;
+        const cliente = empresasData.find(c => c.id === clienteId);
+        const fecha = document.getElementById('facturaFecha').value || formatFechaYMD(new Date());
+        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`;
         
-        let query = sb.from('facturas').select('*, empresas(nombre)').order('created_at', { ascending: false });
-        if (desde) query = query.gte('fecha', desde);
-        if (hasta) query = query.lte('fecha', hasta);
-        if (clienteId) query = query.eq('empresa_id', clienteId);
+        let subtotal = 0;
+        const lineasHtml = lineasFactura.map((linea, idx) => {
+            const importe = linea.cantidad * linea.precio;
+            subtotal += importe;
+            return `<div class="factura-linea"><span>${linea.descripcion} (${linea.cantidad} x ${linea.precio.toFixed(2)}€)</span><span>${importe.toFixed(2)}€</span></div>`;
+        }).join('');
         
-        const { data: facturas, error } = await query;
-        const container = document.getElementById('listaFacturas');
+        const iva = subtotal * 0.21;
+        const total = subtotal + iva;
+        const notas = document.getElementById('facturaNotas').value || "Gracias por confiar en COMUTECH";
         
-        if (error) {
-            container.innerHTML = `<div class="medicion-card">❌ Error: ${error.message}</div>`;
-            return;
-        }
+        document.getElementById('facturaPreview').innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>🏢 COMUTECH</h2>
+                <p>Tecnología para comunidades<br>C/ Tecnología 123, Madrid<br>CIF: B00000000</p>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div><strong>CLIENTE</strong><br>${cliente?.nombre || 'Cliente'}<br>${cliente?.nif || ''}<br>${cliente?.direccion || ''}</div>
+                <div><strong>FACTURA</strong><br>Nº: ${numero}<br>Fecha: ${fecha}<br>Vencimiento: ${document.getElementById('facturaVencimiento').value || fecha}</div>
+            </div>
+            <div style="border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 10px 0;">${lineasHtml}</div>
+            <div class="factura-linea"><span>Subtotal</span><span>${subtotal.toFixed(2)}€</span></div>
+            <div class="factura-linea"><span>IVA (21%)</span><span>${iva.toFixed(2)}€</span></div>
+            <div class="factura-linea factura-total"><span>TOTAL</span><span>${total.toFixed(2)}€</span></div>
+            <div style="margin-top: 20px; font-size: 0.8rem;">${notas}</div>
+        `;
+    }
+
+    function renderizarLineasFactura() {
+        const container = document.getElementById('facturaLineas');
+        container.innerHTML = '';
+        lineasFactura.forEach((linea, idx) => {
+            const div = document.createElement('div');
+            div.className = 'row-flex';
+            div.innerHTML = `
+                <div class="grupo"><input type="text" placeholder="Descripción" value="${linea.descripcion}" data-idx="${idx}" data-campo="descripcion" class="linea-input"></div>
+                <div class="grupo"><input type="number" placeholder="Cantidad" step="1" value="${linea.cantidad}" data-idx="${idx}" data-campo="cantidad" class="linea-input"></div>
+                <div class="grupo"><input type="number" placeholder="Precio (€)" step="0.01" value="${linea.precio}" data-idx="${idx}" data-campo="precio" class="linea-input"></div>
+                <div class="grupo"><button class="btn-sm btn-danger eliminar-linea" data-idx="${idx}" style="width: auto;">✖</button></div>
+            `;
+            container.appendChild(div);
+        });
         
-        if (!facturas || facturas.length === 0) {
-            container.innerHTML = '<div class="medicion-card">📋 No hay facturas</div>';
-            return;
-        }
+        document.querySelectorAll('.linea-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                const campo = e.target.dataset.campo;
+                const valor = campo === 'precio' ? parseFloat(e.target.value) : (campo === 'cantidad' ? parseInt(e.target.value) : e.target.value);
+                lineasFactura[idx][campo] = valor;
+                renderizarFacturaPreview();
+            });
+        });
         
-        container.innerHTML = `<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th>Importe</th><th>Estado</th><th>Acciones</th></thead><tbody>${
-            facturas.map(f => `<tr>
-                <td>${formatDate(f.fecha)}</td>
-                <td>${f.empresas?.nombre || '-'}</td>
-                <td>${f.concepto || 'Suscripción'}</td>
-                <td>${(f.total || f.importe || 0).toFixed(2)}€</td>
-                <td><span class="badge ${f.pagada ? 'badge-activo' : 'badge-inactivo'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td>
-                <td><button class="btn-sm toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}" style="background:#e67e22;">${f.pagada ? '❌' : '✅'}</button></td>
-            </tr>`).join('')
-        }</tbody>able`;
-        
-        document.querySelectorAll('.toggle-factura').forEach(btn => {
-            btn.onclick = async () => {
-                const id = btn.dataset.id;
-                const pagada = btn.dataset.pagada === 'true';
-                await sb.from('facturas').update({ pagada: !pagada }).eq('id', id);
-                mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada');
-                await cargarFacturas();
-                await cargarStats();
-            };
+        document.querySelectorAll('.eliminar-linea').forEach(btn => {
+            btn.onclick = () => { lineasFactura.splice(parseInt(btn.dataset.idx), 1); if (lineasFactura.length === 0) lineasFactura = [{ descripcion: "Suscripción mensual", cantidad: 1, precio: 49 }]; renderizarLineasFactura(); renderizarFacturaPreview(); };
         });
     }
 
-    async function crearFactura() {
+    async function mostrarModalFactura(id, nombre) {
+        lineasFactura = [{ descripcion: "Suscripción mensual", cantidad: 1, precio: 49 }];
+        renderizarLineasFactura();
+        document.getElementById('facturaClienteId').value = id;
+        document.getElementById('facturaClienteNombre').value = nombre;
+        document.getElementById('facturaFecha').value = formatFechaYMD(new Date());
+        document.getElementById('facturaVencimiento').value = '';
+        document.getElementById('facturaNumero').value = '';
+        document.getElementById('facturaNotas').value = "Gracias por confiar en COMUTECH";
+        renderizarFacturaPreview();
+        document.getElementById('modalCrearFactura').style.display = 'flex';
+    }
+
+    async function guardarFactura() {
         const empresaId = document.getElementById('facturaClienteId').value;
         const fecha = document.getElementById('facturaFecha').value;
-        const importe = parseFloat(document.getElementById('facturaImporte').value);
-        const concepto = document.getElementById('facturaConcepto').value;
+        const vencimiento = document.getElementById('facturaVencimiento').value;
+        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`;
+        const notas = document.getElementById('facturaNotas').value;
         
-        if (!empresaId || !importe) {
-            mostrarMensaje("❌ Complete los campos", 'error');
-            return;
-        }
-        
-        const numero = `F${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`;
+        let subtotal = 0;
+        const lineas = lineasFactura.map(linea => {
+            const importe = linea.cantidad * linea.precio;
+            subtotal += importe;
+            return { ...linea, importe };
+        });
+        const iva = subtotal * 0.21;
+        const total = subtotal + iva;
         
         const { error } = await sb.from('facturas').insert({
             empresa_id: empresaId,
             numero: numero,
-            fecha: fecha || new Date().toISOString().split('T')[0],
-            concepto: concepto || 'Suscripción',
-            subtotal: importe,
-            iva: importe * 0.21,
-            total: importe * 1.21,
+            fecha: fecha,
+            fecha_vencimiento: vencimiento || null,
+            concepto: lineas.map(l => `${l.descripcion} x${l.cantidad}`).join(', '),
+            lineas_detalle: lineas,
+            subtotal: subtotal,
+            iva: iva,
+            total: total,
+            notas: notas,
             pagada: false
         });
         
-        if (error) {
-            mostrarMensaje("❌ Error: " + error.message, 'error');
-        } else {
-            mostrarMensaje("✅ Factura creada");
-            document.getElementById('modalCrearFactura').style.display = 'none';
-            document.getElementById('facturaImporte').value = '';
-            await cargarFacturas();
-            await cargarStats();
-        }
+        if (error) { mostrarMensaje("❌ Error: " + error.message, 'error'); }
+        else { mostrarMensaje("✅ Factura creada"); document.getElementById('modalCrearFactura').style.display = 'none'; await cargarFacturas(); await cargarStats(); }
     }
 
-    function mostrarModalFactura(id, nombre) {
-        document.getElementById('facturaClienteId').value = id;
-        document.getElementById('facturaFecha').value = new Date().toISOString().split('T')[0];
-        document.getElementById('facturaImporte').value = '';
-        document.getElementById('facturaConcepto').value = 'Suscripción mensual';
-        document.getElementById('modalCrearFactura').style.display = 'flex';
+    async function descargarFacturaPDF() {
+        const element = document.getElementById('facturaPreview');
+        const cliente = empresasData.find(c => c.id === document.getElementById('facturaClienteId').value);
+        const fecha = document.getElementById('facturaFecha').value || formatFechaYMD(new Date());
+        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`;
+        const opt = { margin: 10, filename: `factura_${cliente?.nombre}_${numero}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    async function enviarFacturaEmail() {
+        const clienteId = document.getElementById('facturaClienteId').value;
+        const cliente = empresasData.find(c => c.id === clienteId);
+        const email = cliente?.email;
+        if (!email) { mostrarMensaje("❌ El cliente no tiene email configurado", 'error'); return; }
+        mostrarMensaje(`📧 Factura enviada a ${email} (simulado)`, 'exito');
+    }
+
+    // ========== LISTA FACTURAS ==========
+    async function cargarFacturas() {
+        const desde = document.getElementById('facturaDesde').value;
+        const hasta = document.getElementById('facturaHasta').value;
+        const clienteId = document.getElementById('facturaCliente').value;
+        let query = sb.from('facturas').select('*, empresas(nombre)').order('created_at', { ascending: false });
+        if (desde) query = query.gte('fecha', desde);
+        if (hasta) query = query.lte('fecha', hasta);
+        if (clienteId) query = query.eq('empresa_id', clienteId);
+        const { data: facturas, error } = await query;
+        const container = document.getElementById('listaFacturas');
+        if (error) { container.innerHTML = `<div class="medicion-card">❌ Error: ${error.message}</div>`; return; }
+        if (!facturas || facturas.length === 0) { container.innerHTML = '<div class="medicion-card">📋 No hay facturas</div>'; return; }
+        container.innerHTML = `<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th>Importe</th><th>Estado</th><th>Acciones</th></thead><tbody>${
+            facturas.map(f => `<tr><td>${formatDate(f.fecha)}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.concepto || '-'}</td><td>${(f.total || 0).toFixed(2)}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}" style="background:#e67e22;">${f.pagada ? '❌' : '✅'}</button></td></tr>`).join('')
+        }</tbody>able`;
+        document.querySelectorAll('.toggle-factura').forEach(btn => { btn.onclick = async () => { const id = btn.dataset.id, pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', id); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); await cargarFacturas(); await cargarStats(); }; });
     }
 
     async function cargarSelectores() {
         const { data: empresas } = await sb.from('empresas').select('id, nombre');
         const selectCliente = document.getElementById('facturaCliente');
-        if (selectCliente && empresas) {
-            selectCliente.innerHTML = '<option value="">Todos</option>' + empresas.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
-        }
+        if (selectCliente && empresas) { selectCliente.innerHTML = '<option value="">Todos</option>' + empresas.map(e => `<option value="${e.id}">${e.nombre}</option>`).join(''); }
+    }
+
+    async function exportarClientesPDF() {
+        const element = document.getElementById('listaClientes');
+        const opt = { margin: 10, filename: `clientes_comutech_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
+        html2pdf().set(opt).from(element).save();
     }
 
     // ========== EVENTOS ==========
@@ -874,43 +737,25 @@
         if (await hacerLogin()) {
             document.getElementById('loginPanel').style.display = 'none';
             document.getElementById('dashboardPanel').style.display = 'block';
-            await cargarStats();
-            await cargarClientes();
-            await cargarFacturas();
-            await cargarSelectores();
+            await cargarStats(); await cargarClientes(); await cargarFacturas(); await cargarSelectores();
         }
     };
-    
-    document.getElementById('btnMostrarAlta').onclick = () => {
-        document.getElementById('formAlta').style.display = 'block';
-    };
-    document.getElementById('btnCancelarAlta').onclick = () => {
-        document.getElementById('formAlta').style.display = 'none';
-    };
+    document.getElementById('btnMostrarAlta').onclick = () => { document.getElementById('formAlta').style.display = 'block'; };
+    document.getElementById('btnCancelarAlta').onclick = () => { document.getElementById('formAlta').style.display = 'none'; };
     document.getElementById('btnGuardarCliente').onclick = crearCliente;
-    document.getElementById('btnRefrescar').onclick = () => {
-        cargarClientes();
-        cargarStats();
-        cargarFacturas();
-    };
+    document.getElementById('btnRefrescar').onclick = () => { cargarClientes(); cargarStats(); cargarFacturas(); };
+    document.getElementById('btnExportarPDF').onclick = exportarClientesPDF;
     document.getElementById('btnFiltrarFacturas').onclick = cargarFacturas;
-    document.getElementById('btnMostrarCrearFactura').onclick = () => {
-        if (empresasData.length === 0) {
-            mostrarMensaje("No hay clientes para facturar", 'error');
-            return;
-        }
-        alert("Selecciona un cliente y haz clic en 💰 en la lista");
-    };
+    document.getElementById('btnMostrarCrearFactura').onclick = () => { if (empresasData.length === 0) { mostrarMensaje("No hay clientes para facturar", 'error'); return; } alert("Selecciona un cliente y haz clic en 💰 en la lista"); };
     document.getElementById('btnGuardarEdicion').onclick = guardarEdicionCliente;
     document.getElementById('btnCancelarEdicion').onclick = () => document.getElementById('modalEditarCliente').style.display = 'none';
     document.getElementById('btnCerrarDetalle').onclick = () => document.getElementById('modalVerCliente').style.display = 'none';
-    document.getElementById('btnGuardarFactura').onclick = crearFactura;
+    document.getElementById('btnGuardarFactura').onclick = guardarFactura;
+    document.getElementById('btnDescargarFactura').onclick = descargarFacturaPDF;
+    document.getElementById('btnEnviarFactura').onclick = enviarFacturaEmail;
     document.getElementById('btnCancelarFactura').onclick = () => document.getElementById('modalCrearFactura').style.display = 'none';
-    
-    document.getElementById('btnLogout').onclick = async () => {
-        await sb.auth.signOut();
-        location.reload();
-    };
+    document.getElementById('btnAgregarLinea').onclick = () => { lineasFactura.push({ descripcion: "Nuevo servicio", cantidad: 1, precio: 0 }); renderizarLineasFactura(); renderizarFacturaPreview(); };
+    document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
     
     document.querySelectorAll('.tab').forEach(tab => {
         tab.onclick = () => {
