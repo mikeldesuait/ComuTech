@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>COMUTECH · Panel Gerente</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,7 +13,7 @@
             background: #f0f4f8;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         .card {
             background: white;
             border-radius: 20px;
@@ -28,6 +29,10 @@
             border-left: 4px solid #2c7a4d;
             padding-left: 16px;
             color: #2c7a4d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
         .stats-grid {
             display: grid;
@@ -44,6 +49,7 @@
         }
         .stat-number { font-size: 1.8rem; font-weight: 700; color: #2c7a4d; }
         .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 5px; }
+        
         .tabs {
             display: flex;
             gap: 4px;
@@ -75,6 +81,7 @@
             border-radius: 0 0 12px 12px;
             padding: 20px;
         }
+        
         .sub-tabs {
             display: flex;
             gap: 8px;
@@ -97,8 +104,25 @@
             color: #2c7a4d;
             font-weight: 600;
         }
+        
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .search-bar input, .search-bar select {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            background: white;
+            min-width: 150px;
+        }
+        
         .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: flex-end; }
-        .grupo { flex: 1; min-width: 200px; }
+        .grupo { flex: 1; min-width: 180px; }
         label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; }
         .required::after { content: " *"; color: #c2410c; }
         input, select, textarea {
@@ -120,7 +144,9 @@
         button:hover { background: #1e5a3a; }
         .btn-danger { background: #c2410c; }
         .btn-info { background: #0284c7; }
+        .btn-warning { background: #e67e22; }
         .btn-sm { padding: 6px 12px; font-size: 0.7rem; }
+        
         .tabla {
             width: 100%;
             border-collapse: collapse;
@@ -132,6 +158,7 @@
             font-size: 0.85rem;
         }
         .tabla th { background: #f8fafc; color: #2c7a4d; }
+        
         .badge {
             display: inline-block;
             padding: 3px 10px;
@@ -143,6 +170,8 @@
         .badge-curso { background: #cce5ff; color: #004085; }
         .badge-completada { background: #d4edda; color: #155724; }
         .badge-activo { background: #d4edda; color: #155724; }
+        .badge-pagada { background: #d4edda; color: #155724; }
+        
         .mensaje {
             position: fixed;
             bottom: 20px;
@@ -155,6 +184,7 @@
             animation: fadeOut 3s ease forwards;
         }
         @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        
         .spinner {
             display: inline-block;
             width: 14px;
@@ -165,7 +195,29 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
         hr { margin: 16px 0; border: none; border-top: 1px solid #e2e8f0; }
+        
         @media (max-width: 768px) {
             .tabla th, .tabla td { padding: 6px; font-size: 0.7rem; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -175,7 +227,7 @@
 </head>
 <body>
 <div class="container">
-    <!-- BLOQUE LOGIN MEJORADO -->
+    <!-- LOGIN -->
     <div id="loginPanel" class="card">
         <div class="card-header">🏢 COMUTECH · Panel Gerente</div>
         <p style="font-size:0.8rem; margin-bottom:12px; color:#64748b;">Puedes usar email o nick para acceder</p>
@@ -205,61 +257,72 @@
         <div class="card">
             <div class="tabs">
                 <button class="tab active" data-tab="tareas">📋 TAREAS</button>
+                <button class="tab" data-tab="clientes">👥 CLIENTES</button>
                 <button class="tab" data-tab="personal">👨‍🔧 PERSONAL</button>
                 <button class="tab" data-tab="gastos">💰 GASTOS</button>
+                <button class="tab" data-tab="facturas">🧾 FACTURAS</button>
+                <button class="tab" data-tab="exportar">📁 EXPORTAR</button>
             </div>
             <div class="tab-content">
                 
-                <!-- TAB TAREAS -->
+                <!-- ==================== TAB TAREAS ==================== -->
                 <div id="tabTareas">
                     <div class="sub-tabs">
-                        <button class="sub-tab active" data-sub="lista">📋 Lista</button>
-                        <button class="sub-tab" data-sub="crear">➕ Crear tarea</button>
+                        <button class="sub-tab active" data-sub="listaTareas">📋 Lista</button>
+                        <button class="sub-tab" data-sub="crearTarea">➕ Crear tarea</button>
                     </div>
                     
-                    <div id="subLista">
-                        <div style="margin-bottom: 16px;">
-                            <select id="filtroEstado" style="width: auto; display: inline-block;">
-                                <option value="">Todos</option>
-                                <option value="PENDIENTE">Pendientes</option>
-                                <option value="EN_CURSO">En curso</option>
-                                <option value="COMPLETADA">Completadas</option>
+                    <div id="subListaTareas">
+                        <div class="search-bar">
+                            <select id="filtroEstadoTarea">
+                                <option value="">Todos los estados</option>
+                                <option value="PENDIENTE">📋 Pendientes</option>
+                                <option value="EN_CURSO">▶️ En curso</option>
+                                <option value="COMPLETADA">✅ Completadas</option>
                             </select>
-                            <button id="btnFiltrar" class="btn-sm btn-info">🔍 Filtrar</button>
-                            <button id="btnRefrescar" class="btn-sm btn-info">🔄 Refrescar</button>
+                            <input type="date" id="filtroFechaTarea" placeholder="Filtrar por fecha">
+                            <button id="btnFiltrarTareas" class="btn-sm btn-info">🔍 Filtrar</button>
+                            <button id="btnRefrescarTareas" class="btn-sm btn-info">🔄 Refrescar</button>
                         </div>
                         <table class="tabla">
                             <thead>
-                                <tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Estado</th><th>Acciones</th>
+                                <tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
                             </thead>
                             <tbody id="tareasBody"></tbody>
                         </table>
+                        <div id="paginacionTareas" class="pagination" style="margin-top:16px; text-align:center;"></div>
                     </div>
                     
-                    <div id="subCrear" style="display: none;">
+                    <div id="subCrearTarea" style="display: none;">
                         <div class="row-flex">
                             <div class="grupo"><label>Tipo</label>
                                 <select id="tareaTipo">
-                                    <option value="MANTENIMIENTO">Mantenimiento</option>
-                                    <option value="URGENCIA">Urgencia</option>
-                                    <option value="AVERIA">Avería</option>
+                                    <option value="MANTENIMIENTO">📋 Mantenimiento</option>
+                                    <option value="URGENCIA">🚨 Urgencia</option>
+                                    <option value="AVERIA">🔧 Avería</option>
+                                    <option value="REVISION">🔍 Revisión</option>
                                 </select>
                             </div>
                             <div class="grupo"><label>Servicio</label>
                                 <select id="tareaServicio">
-                                    <option value="PISCINA">PISCINA</option>
-                                    <option value="JARDIN">JARDIN</option>
+                                    <option value="PISCINA">🏊 PISCINA</option>
+                                    <option value="JARDIN">🌳 JARDIN</option>
+                                    <option value="FONTANERIA">🔧 FONTANERIA</option>
+                                    <option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option>
+                                    <option value="LIMPIEZA">🧹 LIMPIEZA</option>
+                                    <option value="OTRO">📋 OTRO</option>
                                 </select>
                             </div>
                             <div class="grupo"><label>Activo</label>
                                 <select id="tareaActivo"></select>
+                                <button id="btnRecargarActivos" class="btn-sm btn-info" style="margin-top:4px;">🔄 Recargar</button>
                             </div>
                         </div>
                         <div class="row-flex">
                             <div class="grupo"><label>Técnico</label>
                                 <select id="tareaTecnico"></select>
                             </div>
-                            <div class="grupo"><label>Fecha</label>
+                            <div class="grupo"><label>Fecha asignación</label>
                                 <input type="date" id="tareaFecha" value="2026-05-25">
                             </div>
                         </div>
@@ -267,150 +330,266 @@
                             <label>📋 Orden de trabajo</label>
                             <textarea id="tareaOrden" rows="4" placeholder="Instrucciones para el técnico..."></textarea>
                         </div>
-                        <button id="btnCrearTarea" class="btn-success">✅ Crear tarea</button>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📄 Plantilla rápida</label>
+                                <select id="plantillaOrden">
+                                    <option value="">-- Seleccionar plantilla --</option>
+                                </select>
+                            </div>
+                            <div><button id="btnCrearTarea" class="btn-success">✅ Crear tarea</button></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB PERSONAL -->
+                <!-- ==================== TAB CLIENTES ==================== -->
+                <div id="tabClientes" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub="listaClientes">📋 Lista de clientes</button>
+                        <button class="sub-tab" data-sub="nuevoCliente">➕ Nuevo cliente</button>
+                    </div>
+                    
+                    <div id="subListaClientes">
+                        <div class="search-bar">
+                            <input type="text" id="buscadorCliente" placeholder="🔍 Buscar cliente...">
+                            <button id="btnBuscarCliente" class="btn-sm btn-info">🔍 Buscar</button>
+                        </div>
+                        <table class="tabla">
+                            <thead>
+                                <tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>NIF</th><th>Acciones</th>
+                            </thead>
+                            <tbody id="clientesBody"></tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="subNuevoCliente" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label class="required">🏢 Nombre empresa</label><input type="text" id="nuevoClienteNombre" placeholder="Razón social"></div>
+                            <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>👤 Contacto</label><input type="text" id="nuevoClienteContacto" placeholder="Persona de contacto"></div>
+                            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="nuevoClienteTelefono" placeholder="Teléfono"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="nuevoClienteNif" placeholder="B12345678"></div>
+                            <div class="grupo"><label>📍 Dirección</label><input type="text" id="nuevoClienteDireccion" placeholder="Dirección"></div>
+                        </div>
+                        <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+                    </div>
+                </div>
+
+                <!-- ==================== TAB PERSONAL ==================== -->
                 <div id="tabPersonal" style="display: none;">
                     <div class="sub-tabs">
-                        <button class="sub-tab active" data-sub="tecnicos">👥 Técnicos</button>
+                        <button class="sub-tab active" data-sub="listaTecnicos">👥 Técnicos</button>
                         <button class="sub-tab" data-sub="crearTecnico">➕ Nuevo técnico</button>
                     </div>
                     
-                    <div id="subTecnicos">
-                        <div style="overflow-x: auto;">
-                            <table class="tabla">
-                                <thead>
-                                    <tr><th>Nombre</th><th>NIF/NIE</th><th>Email</th><th>Teléfono</th><th>Fecha alta</th><th>Estado</th><th>Acciones</th>
-                                </thead>
-                                <tbody id="tecnicosBody"></tbody>
-                            </table>
-                        </div>
+                    <div id="subListaTecnicos">
+                        <table class="tabla">
+                            <thead>
+                                <tr><th>Nombre</th><th>NIF/NIE</th><th>Email</th><th>Teléfono</th><th>Estado</th><th>Acciones</th>
+                            </thead>
+                            <tbody id="tecnicosBody"></tbody>
+                        </table>
                     </div>
                     
-                    <!-- FORMULARIO TÉCNICO COMPLETO CON AUTOCOMPLETE -->
                     <div id="subCrearTecnico" style="display: none;">
-                        <form id="formTecnico">
-                            <div class="row-flex">
-                                <div class="grupo">
-                                    <label class="required">👤 Nombre completo</label>
-                                    <input type="text" id="nuevoNombre" placeholder="Nombre y apellidos" autocomplete="name">
-                                </div>
-                                <div class="grupo">
-                                    <label class="required">📧 Email</label>
-                                    <input type="email" id="nuevoEmail" placeholder="email@tecnico.com" autocomplete="email">
-                                </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label class="required">👤 Nombre completo</label><input type="text" id="nuevoNombre" placeholder="Nombre y apellidos" autocomplete="name"></div>
+                            <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com" autocomplete="email"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password"></div>
+                            <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto" autocomplete="tel"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label class="required">🆔 NIF / NIE</label><input type="text" id="nuevoNif" placeholder="12345678A" autocomplete="off"></div>
+                            <div class="grupo"><label class="required">📅 Fecha nacimiento</label><input type="date" id="nuevoFechaNacimiento" autocomplete="bday"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoDireccion" placeholder="Dirección completa" autocomplete="street-address"></div>
+                            <div class="grupo"><label class="required">🔢 Nº Seguridad Social</label><input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX" autocomplete="off"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label class="required">🏦 IBAN</label><input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
+                            <div class="grupo"><label>🏷️ Tipo contrato</label>
+                                <select id="nuevoTipoContrato">
+                                    <option value="INDEFINIDO">Indefinido</option>
+                                    <option value="TEMPORAL">Temporal</option>
+                                    <option value="POR_OBRA">Por obra/servicio</option>
+                                </select>
                             </div>
-                            <div class="row-flex">
-                                <div class="grupo">
-                                    <label class="required">🔐 Contraseña</label>
-                                    <input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password">
-                                </div>
-                                <div class="grupo">
-                                    <label class="required">📞 Teléfono</label>
-                                    <input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto" autocomplete="tel">
-                                </div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>⏱️ Jornada</label>
+                                <select id="nuevoJornada">
+                                    <option value="COMPLETA">Completa (40h)</option>
+                                    <option value="PARCIAL_50">Parcial 50%</option>
+                                    <option value="PARCIAL_75">Parcial 75%</option>
+                                </select>
                             </div>
-                            <div class="row-flex">
-                                <div class="grupo">
-                                    <label class="required">🆔 NIF / NIE</label>
-                                    <input type="text" id="nuevoNif" placeholder="12345678A" autocomplete="off">
-                                </div>
-                                <div class="grupo">
-                                    <label class="required">📅 Fecha nacimiento</label>
-                                    <input type="date" id="nuevoFechaNacimiento" autocomplete="bday">
-                                </div>
+                            <div class="grupo"><label>🔧 Puesto</label>
+                                <select id="nuevoPuesto">
+                                    <option value="TECNICO_BASE">Técnico base</option>
+                                    <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
+                                    <option value="SUPERVISOR">Supervisor</option>
+                                </select>
                             </div>
-                            <div class="row-flex">
-                                <div class="grupo">
-                                    <label class="required">📍 Dirección</label>
-                                    <input type="text" id="nuevoDireccion" placeholder="Calle, número, piso, CP, ciudad" autocomplete="street-address">
-                                </div>
-                                <div class="grupo">
-                                    <label class="required">🔢 Nº Seguridad Social</label>
-                                    <input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX" autocomplete="off">
-                                </div>
-                            </div>
-                            <div class="row-flex">
-                                <div class="grupo">
-                                    <label class="required">🏦 IBAN</label>
-                                    <input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off">
-                                </div>
-                                <div class="grupo">
-                                    <label>🏷️ Tipo contrato</label>
-                                    <select id="nuevoTipoContrato" autocomplete="off">
-                                        <option value="INDEFINIDO">Indefinido</option>
-                                        <option value="TEMPORAL">Temporal</option>
-                                        <option value="POR_OBRA">Por obra/servicio</option>
-                                        <option value="FORMACION">Formación</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row-flex">
-                                <div class="grupo">
-                                    <label>⏱️ Jornada</label>
-                                    <select id="nuevoJornada" autocomplete="off">
-                                        <option value="COMPLETA">Completa (40h/semana)</option>
-                                        <option value="PARCIAL_50">Parcial 50%</option>
-                                        <option value="PARCIAL_75">Parcial 75%</option>
-                                        <option value="PARCIAL_25">Parcial 25%</option>
-                                    </select>
-                                </div>
-                                <div class="grupo">
-                                    <label>🔧 Puesto</label>
-                                    <select id="nuevoPuesto" autocomplete="off">
-                                        <option value="TECNICO_BASE">Técnico base</option>
-                                        <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
-                                        <option value="SUPERVISOR">Supervisor</option>
-                                        <option value="APRENDIZ">Aprendiz</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row-flex">
-                                <div class="grupo">
-                                    <label>📅 Fecha de alta</label>
-                                    <input type="date" id="nuevoFechaAlta" value="2026-05-24" autocomplete="off">
-                                </div>
-                                <div class="grupo">
-                                    <label>👤 Nick (alias)</label>
-                                    <input type="text" id="nuevoNick" placeholder="Usuario para login" autocomplete="username">
-                                </div>
-                            </div>
-                            <hr>
-                            <p style="font-size:0.7rem; color:#64748b; margin-bottom:16px;">* Campos obligatorios para el contrato laboral</p>
-                            <button id="btnCrearTecnico" class="btn-success">✅ Dar de alta técnico</button>
-                        </form>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="nuevoFechaAlta" value="2026-05-24" autocomplete="off"></div>
+                            <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="nuevoNick" placeholder="Usuario para login" autocomplete="username"></div>
+                        </div>
+                        <hr>
+                        <button id="btnCrearTecnico" class="btn-success">✅ Dar de alta técnico</button>
                     </div>
                 </div>
 
-                <!-- TAB GASTOS -->
+                <!-- ==================== TAB GASTOS ==================== -->
                 <div id="tabGastos" style="display: none;">
                     <div class="sub-tabs">
-                        <button class="sub-tab active" data-sub="pendientes">⏳ Pendientes</button>
-                        <button class="sub-tab" data-sub="aprobados">✅ Aprobados</button>
+                        <button class="sub-tab active" data-sub="pendientesGastos">⏳ Pendientes</button>
+                        <button class="sub-tab" data-sub="aprobadosGastos">✅ Aprobados</button>
                     </div>
                     
-                    <div id="subPendientes">
+                    <div id="subPendientesGastos">
                         <table class="tabla">
                             <thead>
-                                <tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Acciones</th>
+                                <tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Acciones</th>
                             </thead>
                             <tbody id="gastosPendientesBody"></tbody>
                         </table>
                     </div>
                     
-                    <div id="subAprobados" style="display: none;">
+                    <div id="subAprobadosGastos" style="display: none;">
                         <table class="tabla">
                             <thead>
-                                <tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Estado</th>
+                                <tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Estado</th>
                             </thead>
                             <tbody id="gastosAprobadosBody"></tbody>
                         </table>
                     </div>
                 </div>
 
+                <!-- ==================== TAB FACTURAS ==================== -->
+                <div id="tabFacturas" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub="listaFacturas">📄 Facturas emitidas</button>
+                        <button class="sub-tab" data-sub="crearFactura">➕ Crear factura</button>
+                    </div>
+                    
+                    <div id="subListaFacturas">
+                        <table class="tabla">
+                            <thead>
+                                <tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Concepto</th><th>Total</th><th>Estado</th><th>Acciones</th>
+                            </thead>
+                            <tbody id="facturasBody"></tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="subCrearFactura" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>🏢 Cliente</label>
+                                <select id="facturaCliente"></select>
+                            </div>
+                            <div class="grupo"><label>📅 Fecha</label>
+                                <input type="date" id="facturaFecha" value="2026-05-24">
+                            </div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>📝 Concepto</label>
+                                <input type="text" id="facturaConcepto" placeholder="Descripción del servicio">
+                            </div>
+                            <div class="grupo"><label>💰 Importe (€)</label>
+                                <input type="number" id="facturaImporte" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                        <button id="btnCrearFactura" class="btn-success">✅ Crear factura</button>
+                    </div>
+                </div>
+
+                <!-- ==================== TAB EXPORTAR ==================== -->
+                <div id="tabExportar" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub="exportarTareas">📋 Exportar tareas</button>
+                        <button class="sub-tab" data-sub="exportarFacturas">🧾 Exportar facturas</button>
+                        <button class="sub-tab" data-sub="backup">💾 Copia seguridad</button>
+                    </div>
+                    
+                    <div id="subExportarTareas">
+                        <div class="row-flex">
+                            <div class="grupo"><label>📅 Desde</label><input type="date" id="exportTareasDesde"></div>
+                            <div class="grupo"><label>📅 Hasta</label><input type="date" id="exportTareasHasta"></div>
+                            <div><button id="btnExportarTareasPDF" class="btn-warning">📄 Exportar PDF</button></div>
+                        </div>
+                    </div>
+                    
+                    <div id="subExportarFacturas" style="display: none;">
+                        <div class="row-flex">
+                            <div class="grupo"><label>📅 Desde</label><input type="date" id="exportFacturasDesde"></div>
+                            <div class="grupo"><label>📅 Hasta</label><input type="date" id="exportFacturasHasta"></div>
+                            <div><button id="btnExportarFacturasPDF" class="btn-warning">📄 Exportar PDF</button></div>
+                        </div>
+                    </div>
+                    
+                    <div id="subBackup" style="display: none;">
+                        <div style="text-align: center; padding: 30px;">
+                            <p>📦 Generar copia de seguridad de todos los datos</p>
+                            <button id="btnGenerarBackup" class="btn-success">💾 Generar backup</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR TÉCNICO -->
+<div id="modalEditarTecnico" class="modal">
+    <div class="modal-content">
+        <div class="card-header">✏️ Editar técnico</div>
+        <input type="hidden" id="editTecnicoId">
+        <div class="row-flex">
+            <div class="grupo"><label>Nombre</label><input type="text" id="editNombre"></div>
+            <div class="grupo"><label>Email</label><input type="email" id="editEmail"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Teléfono</label><input type="text" id="editTelefono"></div>
+            <div class="grupo"><label>NIF/NIE</label><input type="text" id="editNif"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Dirección</label><input type="text" id="editDireccion"></div>
+            <div class="grupo"><label>IBAN</label><input type="text" id="editIban"></div>
+        </div>
+        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
+            <button id="btnGuardarEdicionTecnico" class="btn-success">💾 Guardar</button>
+            <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR CLIENTE -->
+<div id="modalEditarCliente" class="modal">
+    <div class="modal-content">
+        <div class="card-header">✏️ Editar cliente</div>
+        <input type="hidden" id="editClienteId">
+        <div class="row-flex">
+            <div class="grupo"><label>Nombre</label><input type="text" id="editClienteNombre"></div>
+            <div class="grupo"><label>Email</label><input type="email" id="editClienteEmail"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Teléfono</label><input type="text" id="editClienteTelefono"></div>
+            <div class="grupo"><label>NIF</label><input type="text" id="editClienteNif"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Dirección</label><input type="text" id="editClienteDireccion"></div>
+            <div class="grupo"><label>Contacto</label><input type="text" id="editClienteContacto"></div>
+        </div>
+        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
+            <button id="btnGuardarEdicionCliente" class="btn-success">💾 Guardar</button>
+            <button id="btnCancelarEdicionCliente" class="btn-danger">✖ Cancelar</button>
         </div>
     </div>
 </div>
@@ -422,6 +601,9 @@
 
     let currentUser = null;
     let currentEmpresaId = null;
+    let paginaTareas = 1;
+    const registrosPorPagina = 10;
+    let tareasData = [];
 
     function mostrarMensaje(texto, tipo = 'exito') {
         const msg = document.createElement('div');
@@ -432,7 +614,7 @@
         setTimeout(() => msg.remove(), 3000);
     }
 
-    // LOGIN
+    // ========== LOGIN ==========
     async function hacerLogin() {
         const identificador = document.getElementById('identificador').value.trim();
         const password = document.getElementById('password').value;
@@ -441,10 +623,7 @@
         let email = identificador;
         if (!identificador.includes('@')) {
             const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
-            if (!perfil) {
-                document.getElementById('errorMsg').innerText = "Usuario no encontrado";
-                return false;
-            }
+            if (!perfil) { document.getElementById('errorMsg').innerText = "Usuario no encontrado"; return false; }
             email = perfil.email;
         }
         
@@ -465,51 +644,62 @@
         return true;
     }
 
+    // ========== STATS ==========
     async function cargarStats() {
         const { data: tareas } = await sb.from('tareas').select('*').eq('cliente_id', currentEmpresaId);
         const { data: tecnicos } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
+        const { data: clientes } = await sb.from('empresas').select('*').eq('created_by', currentUser.id);
         document.getElementById('statsPanel').innerHTML = `
             <div class="stat-card"><div class="stat-number">${tareas?.length || 0}</div><div class="stat-label">Total Tareas</div></div>
             <div class="stat-card"><div class="stat-number">${tareas?.filter(t => t.estado === 'PENDIENTE').length || 0}</div><div class="stat-label">Pendientes</div></div>
             <div class="stat-card"><div class="stat-number">${tecnicos?.length || 0}</div><div class="stat-label">Técnicos</div></div>
+            <div class="stat-card"><div class="stat-number">${clientes?.length || 0}</div><div class="stat-label">Clientes</div></div>
         `;
     }
 
+    // ========== TAREAS ==========
     async function cargarTareas() {
-        const estado = document.getElementById('filtroEstado')?.value || '';
+        const estado = document.getElementById('filtroEstadoTarea')?.value || '';
+        const fecha = document.getElementById('filtroFechaTarea')?.value || '';
         let query = sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId).order('created_at', { ascending: false });
         if (estado) query = query.eq('estado', estado);
+        if (fecha) query = query.eq('fecha_asignacion', fecha);
         const { data, error } = await query;
-        if (error) { console.error(error); return; }
-        
+        if (error) return;
+        tareasData = data || [];
+        renderizarTareas();
+    }
+
+    function renderizarTareas() {
+        const start = (paginaTareas - 1) * registrosPorPagina;
+        const paginados = tareasData.slice(start, start + registrosPorPagina);
         const tbody = document.getElementById('tareasBody');
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6">No hay tareas</td></tr>';
-            return;
-        }
+        if (!paginados.length) { tbody.innerHTML = '<td><td colspan="7">No hay tareas</td></tr>'; return; }
         
         const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada' };
-        tbody.innerHTML = data.map(t => `
+        tbody.innerHTML = paginados.map(t => `
             <tr>
                 <td>${t.id.substring(0, 12)}...</td>
                 <td>${t.tipo}</td>
                 <td>${t.activos?.nombre || '-'}</td>
                 <td>${t.perfiles?.nombre || '-'}</td>
+                <td>${t.fecha_asignacion}</td>
                 <td><span class="badge ${estadoClass[t.estado]}">${t.estado}</span></td>
-                <td><button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️ Ver</button></td>
+                <td>
+                    <button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️</button>
+                    <button class="btn-sm btn-warning editar-tarea" data-id="${t.id}">✏️</button>
+                    <button class="btn-sm btn-danger eliminar-tarea" data-id="${t.id}">🗑️</button>
+                </td>
             </tr>
         `).join('');
         
-        document.querySelectorAll('.ver-tarea').forEach(btn => {
-            btn.onclick = () => verDetalleTarea(btn.dataset.id);
-        });
+        const totalPaginas = Math.ceil(tareasData.length / registrosPorPagina);
+        let pagHtml = '';
+        for (let i = 1; i <= totalPaginas; i++) pagHtml += `<button class="${i === paginaTareas ? 'active' : ''}" onclick="cambiarPaginaTareas(${i})">${i}</button>`;
+        document.getElementById('paginacionTareas').innerHTML = pagHtml;
     }
-
-    async function verDetalleTarea(id) {
-        const { data: tarea } = await sb.from('tareas').select('*, activos(*)').eq('id', id).single();
-        if (!tarea) return;
-        alert(`📋 TAREA\nID: ${tarea.id}\nTipo: ${tarea.tipo}\nActivo: ${tarea.activos?.nombre}\nEstado: ${tarea.estado}\n\n📝 Orden:\n${tarea.orden_trabajo?.substring(0, 200)}...`);
-    }
+    
+    window.cambiarPaginaTareas = (pagina) => { paginaTareas = pagina; renderizarTareas(); };
 
     async function crearTarea() {
         const tipo = document.getElementById('tareaTipo').value;
@@ -526,192 +716,191 @@
         const tareaId = `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`;
         
         const { error } = await sb.from('tareas').insert({
-            id: tareaId,
-            tipo: tipo,
-            prioridad: prioridad,
-            cliente_id: currentEmpresaId,
-            tecnico_id: tecnicoId,
-            activo_id: activoId,
-            servicio_tipo: servicio,
-            descripcion: `Tarea de ${tipo}`,
-            orden_trabajo: orden,
-            fecha_asignacion: fecha,
-            estado: 'PENDIENTE',
-            creada_por: currentUser.id
+            id: tareaId, tipo, prioridad, cliente_id: currentEmpresaId, tecnico_id: tecnicoId,
+            activo_id: activoId, servicio_tipo: servicio, descripcion: `Tarea de ${tipo}`,
+            orden_trabajo: orden, fecha_asignacion: fecha, estado: 'PENDIENTE', creada_por: currentUser.id
         });
-        
         if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
-        mostrarMensaje("✅ Tarea creada correctamente");
+        mostrarMensaje("✅ Tarea creada");
         document.getElementById('tareaOrden').value = '';
-        cargarTareas();
-        cargarStats();
+        cargarTareas(); cargarStats();
     }
 
-    async function cargarActivos() {
-        const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
-        const select = document.getElementById('tareaActivo');
-        if (select && data) {
-            select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-        }
+    // ========== CLIENTES ==========
+    async function cargarClientes() {
+        const search = document.getElementById('buscadorCliente')?.value.toLowerCase() || '';
+        let query = sb.from('empresas').select('*').eq('created_by', currentUser.id).order('created_at', { ascending: false });
+        const { data, error } = await query;
+        if (error) return;
+        const tbody = document.getElementById('clientesBody');
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5">No hay clientes</td></tr>'; return; }
+        const filtrados = search ? data.filter(c => c.nombre?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search)) : data;
+        tbody.innerHTML = filtrados.map(c => `
+            <tr>
+                <td>${c.nombre || '-'}</td>
+                <td>${c.email || '-'}</td>
+                <td>${c.telefono || '-'}</td>
+                <td>${c.nif || '-'}</td>
+                <td>
+                    <button class="btn-sm btn-warning editar-cliente" data-id="${c.id}">✏️</button>
+                    <button class="btn-sm btn-danger eliminar-cliente" data-id="${c.id}" data-nombre="${c.nombre}">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
     }
 
+    async function guardarCliente() {
+        const nombre = document.getElementById('nuevoClienteNombre').value.trim();
+        const email = document.getElementById('nuevoClienteEmail').value.trim();
+        if (!nombre || !email) { mostrarMensaje("Nombre y email son obligatorios", 'error'); return; }
+        const { error } = await sb.from('empresas').insert({
+            nombre, email, telefono: document.getElementById('nuevoClienteTelefono').value,
+            nif: document.getElementById('nuevoClienteNif').value, direccion: document.getElementById('nuevoClienteDireccion').value,
+            contacto_nombre: document.getElementById('nuevoClienteContacto').value, created_by: currentUser.id
+        });
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Cliente guardado");
+        document.getElementById('nuevoClienteNombre').value = '';
+        document.getElementById('nuevoClienteEmail').value = '';
+        document.getElementById('nuevoClienteTelefono').value = '';
+        document.getElementById('nuevoClienteNif').value = '';
+        document.getElementById('nuevoClienteDireccion').value = '';
+        document.getElementById('nuevoClienteContacto').value = '';
+        cargarClientes(); cargarStats();
+    }
+
+    // ========== TÉCNICOS ==========
     async function cargarTecnicos() {
         const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
         const select = document.getElementById('tareaTecnico');
-        if (select && data) {
-            select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
-        }
+        if (select && data) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
         
         const tbody = document.getElementById('tecnicosBody');
-        if (tbody) {
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">No hay técnicos</td></tr>';
-                return;
-            }
-            tbody.innerHTML = data.map(t => `
-                <tr>
-                    <td>${t.nombre || t.nick}</td>
-                    <td>${t.nif || '-'}</td>
-                    <td>${t.email}</td>
-                    <td>${t.telefono || '-'}</td>
-                    <td>${t.fecha_alta || '-'}</td>
-                    <td><span class="badge ${t.activo ? 'badge-activo' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
-                    <td><button class="btn-sm btn-danger eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td>
-                </tr>
-            `).join('');
-        }
-        
-        document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
-            btn.onclick = async () => {
-                if (confirm(`¿Eliminar técnico "${btn.dataset.nombre}"?`)) {
-                    await sb.from('perfiles').delete().eq('id', btn.dataset.id);
-                    mostrarMensaje("✅ Técnico eliminado");
-                    cargarTecnicos();
-                }
-            };
-        });
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6">No hay técnicos</td></tr>'; return; }
+        tbody.innerHTML = data.map(t => `
+            <tr>
+                <td>${t.nombre || t.nick}</td>
+                <td>${t.nif || '-'}</td>
+                <td>${t.email}</td>
+                <td>${t.telefono || '-'}</td>
+                <td><span class="badge ${t.activo ? 'badge-activo' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
+                <td>
+                    <button class="btn-sm btn-warning editar-tecnico" data-id="${t.id}">✏️</button>
+                    <button class="btn-sm btn-danger eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
     }
 
     async function crearTecnico() {
         const nombre = document.getElementById('nuevoNombre').value.trim();
         const email = document.getElementById('nuevoEmail').value.trim();
         const password = document.getElementById('nuevoPassword').value;
-        const telefono = document.getElementById('nuevoTelefono').value.trim();
-        const nif = document.getElementById('nuevoNif').value.trim();
-        const fechaNacimiento = document.getElementById('nuevoFechaNacimiento').value;
-        const direccion = document.getElementById('nuevoDireccion').value.trim();
-        const numSS = document.getElementById('nuevoSS').value.trim();
-        const iban = document.getElementById('nuevoIban').value.trim();
-        const tipoContrato = document.getElementById('nuevoTipoContrato').value;
-        const jornada = document.getElementById('nuevoJornada').value;
-        const puesto = document.getElementById('nuevoPuesto').value;
-        const fechaAlta = document.getElementById('nuevoFechaAlta').value;
-        const nick = document.getElementById('nuevoNick').value.trim() || nombre.split(' ')[0].toLowerCase();
-        
-        if (!nombre) { mostrarMensaje("❌ Nombre completo obligatorio", 'error'); return; }
-        if (!email) { mostrarMensaje("❌ Email obligatorio", 'error'); return; }
-        if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
-        if (!nif) { mostrarMensaje("❌ NIF/NIE obligatorio", 'error'); return; }
-        if (!fechaNacimiento) { mostrarMensaje("❌ Fecha de nacimiento obligatoria", 'error'); return; }
-        if (!direccion) { mostrarMensaje("❌ Dirección obligatoria", 'error'); return; }
-        if (!numSS) { mostrarMensaje("❌ Nº Seguridad Social obligatorio", 'error'); return; }
-        if (!iban) { mostrarMensaje("❌ IBAN obligatorio", 'error'); return; }
+        if (!nombre || !email) { mostrarMensaje("Nombre y email obligatorios", 'error'); return; }
+        if (!password || password.length < 6) { mostrarMensaje("Contraseña mínimo 6 caracteres", 'error'); return; }
         
         const btn = document.getElementById('btnCrearTecnico');
         btn.innerHTML = '<span class="spinner"></span> Creando...';
         btn.disabled = true;
-        
         try {
             const { data: authUser, error: authError } = await sb.auth.admin.createUser({
-                email: email,
-                password: password,
-                email_confirm: true,
-                user_metadata: { nombre: nombre, empresa_id: currentEmpresaId, nick: nick }
+                email, password, email_confirm: true,
+                user_metadata: { nombre, empresa_id: currentEmpresaId }
             });
             if (authError) throw authError;
-            
             const { error: perfilError } = await sb.from('perfiles').insert({
-                id: authUser.user.id,
-                nombre: nombre,
-                nick: nick,
-                email: email,
-                telefono: telefono || null,
-                nif: nif,
-                direccion: direccion,
-                fecha_nacimiento: fechaNacimiento,
-                num_seguridad_social: numSS,
-                iban: iban,
-                fecha_alta: fechaAlta || new Date().toISOString().split('T')[0],
-                tipo_contrato: tipoContrato,
-                jornada: jornada,
-                puesto: puesto,
-                rol: 'tecnico',
-                empresa_id: currentEmpresaId,
-                activo: true
+                id: authUser.user.id, nombre, email, rol: 'tecnico', empresa_id: currentEmpresaId,
+                telefono: document.getElementById('nuevoTelefono').value, nif: document.getElementById('nuevoNif').value,
+                fecha_nacimiento: document.getElementById('nuevoFechaNacimiento').value,
+                direccion: document.getElementById('nuevoDireccion').value, num_seguridad_social: document.getElementById('nuevoSS').value,
+                iban: document.getElementById('nuevoIban').value, tipo_contrato: document.getElementById('nuevoTipoContrato').value,
+                jornada: document.getElementById('nuevoJornada').value, puesto: document.getElementById('nuevoPuesto').value,
+                fecha_alta: document.getElementById('nuevoFechaAlta').value, nick: document.getElementById('nuevoNick').value || nombre.split(' ')[0].toLowerCase()
             });
             if (perfilError) throw perfilError;
-            
-            mostrarMensaje(`✅ Técnico ${nombre} dado de alta`);
-            
-            document.getElementById('nuevoNombre').value = '';
-            document.getElementById('nuevoEmail').value = '';
-            document.getElementById('nuevoPassword').value = '';
-            document.getElementById('nuevoTelefono').value = '';
-            document.getElementById('nuevoNif').value = '';
-            document.getElementById('nuevoFechaNacimiento').value = '';
-            document.getElementById('nuevoDireccion').value = '';
-            document.getElementById('nuevoSS').value = '';
-            document.getElementById('nuevoIban').value = '';
-            document.getElementById('nuevoNick').value = '';
-            
-            cargarTecnicos();
-            cargarStats();
-        } catch (error) {
-            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-        } finally {
-            btn.innerHTML = '✅ Dar de alta técnico';
-            btn.disabled = false;
-        }
+            mostrarMensaje(`✅ Técnico ${nombre} creado`);
+            cargarTecnicos(); cargarStats();
+            document.querySelectorAll('#subCrearTecnico input').forEach(i => i.value = '');
+        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+        } finally { btn.innerHTML = '✅ Dar de alta técnico'; btn.disabled = false; }
     }
 
+    // ========== GASTOS ==========
     async function cargarGastos() {
-        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
-        const tbodyP = document.getElementById('gastosPendientesBody');
-        if (tbodyP) {
-            tbodyP.innerHTML = pendientes?.map(g => `
-                <tr>
-                    <td>${g.fecha_gasto}</td>
-                    <td>${g.tareas?.activos?.nombre || '-'}</td>
-                    <td>${g.descripcion}</td>
-                    <td>${g.importe_total}€</td>
-                    <td><button class="btn-sm btn-info aprobar-gasto" data-id="${g.id}">✅ Aprobar</button></td>
-                </tr>
-            `).join('') || '<tr><td colspan="5">No hay gastos pendientes</td></tr>';
-        }
+        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
+        document.getElementById('gastosPendientesBody').innerHTML = pendientes?.map(g => `
+            <tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td>
+            <td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td>
+        `).join('') || '<tr><td colspan="7">No hay gastos pendientes</td></tr>';
         
-        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
-        const tbodyA = document.getElementById('gastosAprobadosBody');
-        if (tbodyA) {
-            tbodyA.innerHTML = aprobados?.map(g => `
-                <tr>
-                    <td>${g.fecha_gasto}</td>
-                    <td>${g.tareas?.activos?.nombre || '-'}</td>
-                    <td>${g.descripcion}</td>
-                    <td>${g.importe_total}€</td>
-                    <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
-                </tr>
-            `).join('') || '<tr><td colspan="5">No hay gastos procesados</td></tr>';
-        }
+        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
+        document.getElementById('gastosAprobadosBody').innerHTML = aprobados?.map(g => `
+            <tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td>
+            <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
+        `).join('') || '<tr><td colspan="7">No hay gastos procesados</td></tr>';
         
-        document.querySelectorAll('.aprobar-gasto').forEach(btn => {
-            btn.onclick = async () => {
-                await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id);
-                mostrarMensaje("✅ Gasto aprobado");
-                cargarGastos();
-            };
-        });
+        document.querySelectorAll('.aprobar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("✅ Gasto aprobado"); });
+        document.querySelectorAll('.rechazar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'RECHAZADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("❌ Gasto rechazado"); });
     }
 
+    // ========== FACTURAS ==========
+    async function cargarFacturas() {
+        const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId);
+        const tbody = document.getElementById('facturasBody');
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7">No hay facturas</td></tr>'; return; }
+        tbody.innerHTML = data.map(f => `
+            <tr><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.concepto || '-'}</td><td>${f.total}€</td>
+            <td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td>
+            <td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td>
+        `).join('');
+        document.querySelectorAll('.toggle-factura').forEach(btn => btn.onclick = async () => { const pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', btn.dataset.id); cargarFacturas(); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); });
+    }
+
+    async function crearFactura() {
+        const clienteId = document.getElementById('facturaCliente').value;
+        const fecha = document.getElementById('facturaFecha').value;
+        const concepto = document.getElementById('facturaConcepto').value;
+        const importe = parseFloat(document.getElementById('facturaImporte').value);
+        if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
+        if (!concepto || isNaN(importe)) { mostrarMensaje("Concepto e importe obligatorios", 'error'); return; }
+        const { error } = await sb.from('facturas').insert({
+            empresa_id: clienteId, numero: `F${Date.now()}`, fecha, concepto, total: importe, subtotal: importe / 1.21, iva: importe - (importe / 1.21), pagada: false
+        });
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Factura creada");
+        cargarFacturas();
+    }
+
+    // ========== ACTIVOS ==========
+    async function cargarActivos() {
+        const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
+        const select = document.getElementById('tareaActivo');
+        if (select && data) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+    }
+
+    // ========== PLANTILLAS ==========
+    async function cargarPlantillas() {
+        const { data } = await sb.from('plantillas_orden_trabajo').select('*').eq('empresa_id', currentEmpresaId);
+        const select = document.getElementById('plantillaOrden');
+        if (select && data) {
+            select.innerHTML = '<option value="">-- Seleccionar plantilla --</option>' + data.map(p => `<option value="${p.contenido.replace(/"/g, '&quot;')}">${p.nombre_plantilla}</option>`).join('');
+            select.onchange = () => { if (select.value) document.getElementById('tareaOrden').value = select.value; };
+        }
+    }
+
+    // ========== EXPORTAR ==========
+    async function exportarTareasPDF() {
+        const desde = document.getElementById('exportTareasDesde').value;
+        const hasta = document.getElementById('exportTareasHasta').value;
+        let query = sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId);
+        if (desde) query = query.gte('fecha_asignacion', desde);
+        if (hasta) query = query.lte('fecha_asignacion', hasta);
+        const { data } = await query;
+        const html = `<html><body><h2>Reporte de Tareas</h2><pre>${JSON.stringify(data, null, 2)}</pre></body></html>`;
+        html2pdf().set({ margin: 10, filename: `tareas_${new Date().toISOString().split('T')[0]}.pdf` }).from(html).save();
+    }
+
+    // ========== INICIALIZACIÓN ==========
     function inicializarTabs() {
         document.querySelectorAll('.tab').forEach(tab => {
             tab.onclick = () => {
@@ -720,12 +909,13 @@
                 const tabId = tab.dataset.tab;
                 document.querySelectorAll('[id^="tab"]').forEach(t => t.style.display = 'none');
                 document.getElementById(`tab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).style.display = 'block';
-                if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); }
+                if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+                if (tabId === 'clientes') cargarClientes();
                 if (tabId === 'personal') cargarTecnicos();
                 if (tabId === 'gastos') cargarGastos();
+                if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); }
             };
         });
-        
         document.querySelectorAll('.sub-tab').forEach(sub => {
             sub.onclick = () => {
                 const parent = sub.closest('.tab-content');
@@ -734,29 +924,35 @@
                 const subId = sub.dataset.sub;
                 parent.querySelectorAll('[id^="sub"]').forEach(s => s.style.display = 'none');
                 parent.querySelector(`#sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-                if (subId === 'crear') { cargarActivos(); cargarTecnicos(); }
+                if (subId === 'crearTarea') { cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+                if (subId === 'crearFactura') cargarClientes();
             };
         });
     }
 
+    // ========== EVENTOS GLOBALES ==========
     document.getElementById('btnLogin').onclick = async () => {
         if (await hacerLogin()) {
             document.getElementById('loginPanel').style.display = 'none';
             document.getElementById('dashboardPanel').style.display = 'block';
             inicializarTabs();
-            await cargarStats();
-            await cargarTareas();
-            await cargarActivos();
-            await cargarTecnicos();
-            await cargarGastos();
+            await cargarStats(); await cargarTareas(); await cargarActivos(); await cargarTecnicos(); await cargarClientes(); await cargarGastos(); await cargarFacturas(); await cargarPlantillas();
         }
     };
-    
     document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
-    document.getElementById('btnFiltrar').onclick = cargarTareas;
-    document.getElementById('btnRefrescar').onclick = () => { cargarTareas(); cargarStats(); };
+    document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
+    document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
     document.getElementById('btnCrearTarea').onclick = crearTarea;
+    document.getElementById('btnRecargarActivos').onclick = cargarActivos;
+    document.getElementById('btnGuardarCliente').onclick = guardarCliente;
+    document.getElementById('btnBuscarCliente').onclick = cargarClientes;
     document.getElementById('btnCrearTecnico').onclick = crearTecnico;
+    document.getElementById('btnCrearFactura').onclick = crearFactura;
+    document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
+    document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
+    
+    // Cerrar modales
+    window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
 </script>
 </body>
 </html>
