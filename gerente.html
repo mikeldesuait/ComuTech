@@ -5,80 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>COMUTECH · Panel Gerente</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: #f0f4f8;
             padding: 20px;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; }
         .card {
             background: white;
             border-radius: 20px;
             padding: 24px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border: 1px solid #e2e8f0;
         }
         .card-header {
             font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border-left: 4px solid #2c7a4d;
             padding-left: 16px;
             color: #2c7a4d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         .stat-card {
             background: white;
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 16px;
             text-align: center;
             border: 1px solid #e2e8f0;
         }
         .stat-number { font-size: 1.8rem; font-weight: 700; color: #2c7a4d; }
-        .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+        .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 5px; }
         
-        .browser-tabs {
+        .tabs {
             display: flex;
+            gap: 4px;
             background: #f1f5f9;
             padding: 8px 12px 0 12px;
             border-radius: 12px 12px 0 0;
             border-bottom: 1px solid #e2e8f0;
-            gap: 4px;
-            overflow-x: auto;
             flex-wrap: wrap;
         }
-        .browser-tab {
+        .tab {
             padding: 10px 20px;
             background: #e2e8f0;
             border: none;
             border-radius: 10px 10px 0 0;
             cursor: pointer;
             font-weight: 500;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: #475569;
-            transition: all 0.2s;
-            white-space: nowrap;
         }
-        .browser-tab:hover { background: #cbd5e1; }
-        .browser-tab.active {
+        .tab.active {
             background: white;
             color: #2c7a4d;
             border-top: 2px solid #2c7a4d;
         }
-        .browser-content {
+        .tab-content {
             background: white;
             border: 1px solid #e2e8f0;
             border-top: none;
@@ -92,12 +83,11 @@
             margin-bottom: 20px;
             border-bottom: 1px solid #e2e8f0;
             padding-bottom: 8px;
-            flex-wrap: wrap;
         }
         .sub-tab {
             background: none;
             border: none;
-            padding: 8px 16px;
+            padding: 6px 14px;
             cursor: pointer;
             font-size: 0.8rem;
             color: #64748b;
@@ -109,58 +99,16 @@
             font-weight: 600;
         }
         
-        .search-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .search-bar input, .search-bar select {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            background: white;
-            min-width: 150px;
-        }
-        
-        .tabla {
+        .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+        .grupo { flex: 1; min-width: 180px; }
+        label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; }
+        input, select, textarea {
             width: 100%;
-            border-collapse: collapse;
-        }
-        .tabla th, .tabla td {
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
             font-size: 0.85rem;
         }
-        .tabla th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: #2c7a4d;
-            position: sticky;
-            top: 0;
-        }
-        .tabla tr:hover { background: #f8fafc; }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        .badge-pendiente { background: #fff3cd; color: #856404; }
-        .badge-curso { background: #cce5ff; color: #004085; }
-        .badge-completada { background: #d4edda; color: #155724; }
-        .badge-urgente { background: #dc2626; color: white; }
-        .badge-alta { background: #f39c12; color: white; }
-        .badge-normal { background: #2c7a4d; color: white; }
-        .badge-baja { background: #64748b; color: white; }
-        .badge-aprobado { background: #d4edda; color: #155724; }
-        .badge-rechazado { background: #f8d7da; color: #721c24; }
-        
         button {
             background: #2c7a4d;
             color: white;
@@ -169,29 +117,53 @@
             border-radius: 40px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+        }
+        button:hover { background: #1e5a3a; }
+        .btn-danger { background: #c2410c; }
+        .btn-info { background: #0284c7; }
+        .btn-sm { padding: 6px 12px; font-size: 0.7rem; }
+        
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .tabla th, .tabla td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
             font-size: 0.85rem;
         }
-        button:hover { background: #1e5a3a; transform: translateY(-1px); }
-        .btn-success { background: #2c7a4d; }
-        .btn-danger { background: #c2410c; }
-        .btn-warning { background: #e67e22; }
-        .btn-info { background: #0284c7; }
-        .btn-sm { padding: 6px 10px; font-size: 0.7rem; }
+        .tabla th { background: #f8fafc; color: #2c7a4d; }
         
-        .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: flex-end; }
-        .grupo { flex: 1; min-width: 180px; }
-        label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; }
-        textarea { resize: vertical; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-pendiente { background: #fff3cd; color: #856404; }
+        .badge-curso { background: #cce5ff; color: #004085; }
+        .badge-completada { background: #d4edda; color: #155724; }
+        
+        .mensaje {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2c7a4d;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            z-index: 1000;
+            animation: fadeOut 3s ease forwards;
+        }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
         
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
             z-index: 1000;
             justify-content: center;
@@ -200,57 +172,29 @@
         .modal-content {
             background: white;
             border-radius: 20px;
-            padding: 28px;
-            max-width: 850px;
+            padding: 24px;
+            max-width: 600px;
             width: 90%;
-            max-height: 85vh;
+            max-height: 80vh;
             overflow-y: auto;
         }
-        .modal-header { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; border-left: 4px solid #2c7a4d; padding-left: 16px; color: #2c7a4d; }
-        
-        .mensaje {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 40px;
-            color: white;
-            z-index: 1000;
-            animation: fadeOut 3s ease forwards;
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
         }
-        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        .pagination button {
-            background: #e2e8f0;
-            color: #2c7a4d;
-            padding: 6px 12px;
-            font-size: 0.8rem;
-        }
-        .pagination button.active { background: #2c7a4d; color: white; }
-        
-        .btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
-        .btn-group button { flex: 1; }
-        
-        @media (max-width: 768px) {
-            .tabla th, .tabla td { padding: 6px; font-size: 0.7rem; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .modal-content { padding: 16px; }
-            .grupo { min-width: 100%; }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 <div class="container">
     <!-- Login -->
     <div id="loginPanel" class="card">
-        <div class="card-header" style="cursor:default;">🏢 COMUTECH · Panel Gerente</div>
+        <div class="card-header">🏢 COMUTECH · Panel Gerente</div>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Contraseña">
         <button id="btnLogin">Iniciar sesión</button>
@@ -260,90 +204,90 @@
     <!-- Dashboard -->
     <div id="dashboardPanel" style="display: none;">
         <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c7a4d 100%); color: white;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; justify-content: space-between;">
                 <div>
-                    <div style="font-size: 0.8rem; opacity: 0.8;">🏢 Mi empresa</div>
+                    <div style="font-size: 0.8rem;">👨‍💼 Gerente</div>
                     <div style="font-size: 1.3rem; font-weight: 700;" id="nombreGerente">Cargando...</div>
-                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailGerente"></div>
+                    <div style="font-size: 0.8rem;" id="emailGerente"></div>
                 </div>
-                <div><button id="btnLogout" style="background: rgba(255,255,255,0.2);">🚪 Salir</button></div>
+                <button id="btnLogout" style="background: rgba(255,255,255,0.2);">🚪 Salir</button>
             </div>
         </div>
 
         <div class="stats-grid" id="statsPanel"></div>
 
         <div class="card">
-            <div class="browser-tabs">
-                <button class="browser-tab active" data-consola="tareas">📋 TAREAS</button>
-                <button class="browser-tab" data-consola="clientes">👥 CLIENTES</button>
-                <button class="browser-tab" data-consola="personal">👨‍🔧 PERSONAL</button>
-                <button class="browser-tab" data-consola="gastos">💰 GASTOS</button>
-                <button class="browser-tab" data-consola="facturas">🧾 FACTURAS</button>
-                <button class="browser-tab" data-consola="exportar">📁 EXPORTAR</button>
+            <div class="tabs">
+                <button class="tab active" data-tab="tareas">📋 TAREAS</button>
+                <button class="tab" data-tab="personal">👨‍🔧 PERSONAL</button>
+                <button class="tab" data-tab="gastos">💰 GASTOS</button>
             </div>
-            <div class="browser-content">
+            <div class="tab-content">
                 
-                <!-- CONSOLA 1: TAREAS -->
-                <div id="consolaTareas">
+                <!-- TAB TAREAS -->
+                <div id="tabTareas">
                     <div class="sub-tabs">
-                        <button class="sub-tab active" data-sub="panel">📋 Panel</button>
+                        <button class="sub-tab active" data-sub="lista">📋 Lista</button>
                         <button class="sub-tab" data-sub="crear">➕ Crear tarea</button>
                     </div>
                     
-                    <div id="subPanelTareas">
-                        <div class="search-bar">
-                            <select id="filtroEstadoTarea">
-                                <option value="">Todos los estados</option>
-                                <option value="PENDIENTE">📋 Pendientes</option>
-                                <option value="EN_CURSO">▶️ En curso</option>
-                                <option value="COMPLETADA">✅ Completadas</option>
+                    <div id="subLista">
+                        <div style="margin-bottom: 16px;">
+                            <select id="filtroEstado" style="width: auto; display: inline-block;">
+                                <option value="">Todos</option>
+                                <option value="PENDIENTE">Pendientes</option>
+                                <option value="EN_CURSO">En curso</option>
+                                <option value="COMPLETADA">Completadas</option>
                             </select>
-                            <button id="btnFiltrarTareas" class="btn-info">🔍 Filtrar</button>
-                            <button id="btnRefrescarTareas" class="btn-info">🔄 Refrescar</button>
+                            <button id="btnFiltrar" class="btn-sm btn-info">🔍 Filtrar</button>
+                            <button id="btnRefrescar" class="btn-sm btn-info">🔄 Refrescar</button>
                         </div>
                         <table class="tabla">
                             <thead><tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody id="tareasBody"></tbody>
                         </table>
-                        <div id="paginacionTareas" class="pagination"></div>
                     </div>
                     
-                    <div id="subCrearTarea" style="display: none;">
+                    <div id="subCrear" style="display: none;">
                         <div class="row-flex">
-                            <div class="grupo"><label>Tipo</label><select id="tareaTipo"><option value="MANTENIMIENTO">Mantenimiento</option><option value="URGENCIA">Urgencia</option><option value="AVERIA">Avería</option></select></div>
-                            <div class="grupo"><label>Servicio</label><select id="tareaServicio"><option value="PISCINA">PISCINA</option><option value="JARDIN">JARDIN</option></select></div>
-                            <div class="grupo"><label>Activo</label><select id="tareaActivo"></select></div>
+                            <div class="grupo"><label>Tipo</label>
+                                <select id="tareaTipo">
+                                    <option value="MANTENIMIENTO">Mantenimiento</option>
+                                    <option value="URGENCIA">Urgencia</option>
+                                    <option value="AVERIA">Avería</option>
+                                </select>
+                            </div>
+                            <div class="grupo"><label>Servicio</label>
+                                <select id="tareaServicio">
+                                    <option value="PISCINA">PISCINA</option>
+                                    <option value="JARDIN">JARDIN</option>
+                                </select>
+                            </div>
+                            <div class="grupo"><label>Activo</label>
+                                <select id="tareaActivo"></select>
+                            </div>
                         </div>
                         <div class="row-flex">
-                            <div class="grupo"><label>Técnico</label><select id="tareaTecnico"></select></div>
-                            <div class="grupo"><label>Fecha</label><input type="date" id="tareaFecha"></div>
+                            <div class="grupo"><label>Técnico</label>
+                                <select id="tareaTecnico"></select>
+                            </div>
+                            <div class="grupo"><label>Fecha</label>
+                                <input type="date" id="tareaFecha" value="2026-05-25">
+                            </div>
                         </div>
-                        <div class="grupo"><label>Orden de trabajo</label><textarea id="tareaOrden" rows="4"></textarea></div>
+                        <div class="grupo">
+                            <label>📋 Orden de trabajo</label>
+                            <textarea id="tareaOrden" rows="4" placeholder="Instrucciones para el técnico..."></textarea>
+                        </div>
                         <button id="btnCrearTarea" class="btn-success">✅ Crear tarea</button>
                     </div>
                 </div>
 
-                <!-- CONSOLA 2: CLIENTES (simplificada) -->
-                <div id="consolaClientes" style="display: none;">
+                <!-- TAB PERSONAL -->
+                <div id="tabPersonal" style="display: none;">
                     <div class="sub-tabs">
-                        <button class="sub-tab active" data-sub="lista">📋 Lista</button>
-                        <button class="sub-tab" data-sub="activos">🏊 Activos</button>
-                    </div>
-                    <div id="subLista">
-                        <table class="tabla"><thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th></tr></thead><tbody id="clientesBody"></tbody></table>
-                    </div>
-                    <div id="subActivos" style="display: none;">
-                        <div class="row-flex"><div class="grupo"><input type="text" id="activoNombre" placeholder="Nombre activo"></div><div class="grupo"><input type="text" id="activoDireccion" placeholder="Dirección"></div></div>
-                        <button id="btnGuardarActivo" class="btn-success">💾 Guardar activo</button>
-                        <table class="tabla"><thead><tr><th>Nombre</th><th>Dirección</th></tr></thead><tbody id="activosBody"></tbody></table>
-                    </div>
-                </div>
-
-                <!-- CONSOLA 3: PERSONAL - CON CRUD DE TÉCNICOS -->
-                <div id="consolaPersonal" style="display: none;">
-                    <div class="sub-tabs">
-                        <button class="sub-tab active" data-sub="tecnicos">👥 Mis técnicos</button>
-                        <button class="sub-tab" data-sub="crear">➕ Crear técnico</button>
+                        <button class="sub-tab active" data-sub="tecnicos">👥 Técnicos</button>
+                        <button class="sub-tab" data-sub="crearTecnico">➕ Nuevo técnico</button>
                     </div>
                     
                     <div id="subTecnicos">
@@ -355,38 +299,37 @@
                     
                     <div id="subCrearTecnico" style="display: none;">
                         <div class="row-flex">
-                            <div class="grupo"><label>👤 Nombre *</label><input type="text" id="nuevoTecnicoNombre" placeholder="Nombre del técnico"></div>
-                            <div class="grupo"><label>📧 Email *</label><input type="email" id="nuevoTecnicoEmail" placeholder="email@tecnico.com"></div>
+                            <div class="grupo"><label>👤 Nombre *</label><input type="text" id="nuevoNombre" placeholder="Nombre del técnico"></div>
+                            <div class="grupo"><label>📧 Email *</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com"></div>
                         </div>
                         <div class="row-flex">
-                            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="nuevoTecnicoTelefono" placeholder="Teléfono"></div>
-                            <div class="grupo"><label>🔐 Contraseña</label><input type="password" id="nuevoTecnicoPassword" placeholder="Contraseña"></div>
+                            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="nuevoTelefono" placeholder="Teléfono"></div>
+                            <div class="grupo"><label>🔐 Contraseña *</label><input type="password" id="nuevoPassword" placeholder="Contraseña"></div>
                         </div>
                         <button id="btnCrearTecnico" class="btn-success">✅ Crear técnico</button>
                     </div>
                 </div>
 
-                <!-- CONSOLA 4: GASTOS -->
-                <div id="consolaGastos" style="display: none;">
+                <!-- TAB GASTOS -->
+                <div id="tabGastos" style="display: none;">
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="pendientes">⏳ Pendientes</button>
                         <button class="sub-tab" data-sub="aprobados">✅ Aprobados</button>
                     </div>
-                    <div id="subPendientes"><table class="tabla"><thead><tr><th>Fecha</th><th>Descripción</th><th>Importe</th><th>Acciones</th></tr></thead><tbody id="gastosPendientesBody"></tbody></table></div>
-                    <div id="subAprobados" style="display: none;"><table class="tabla"><thead><tr><th>Fecha</th><th>Descripción</th><th>Importe</th><th>Estado</th></tr></thead><tbody id="gastosAprobadosBody"></tbody></table></div>
-                </div>
-
-                <!-- CONSOLA 5: FACTURAS -->
-                <div id="consolaFacturas" style="display: none;">
-                    <div class="sub-tabs">
-                        <button class="sub-tab active" data-sub="emitidas">📄 Facturas</button>
+                    
+                    <div id="subPendientes">
+                        <table class="tabla">
+                            <thead><tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Acciones</th></tr></thead>
+                            <tbody id="gastosPendientesBody"></tbody>
+                        </table>
                     </div>
-                    <div id="subEmitidas"><table class="tabla"><thead><tr><th>Nº</th><th>Fecha</th><th>Total</th><th>Estado</th></tr></thead><tbody id="facturasBody"></tbody></table></div>
-                </div>
-
-                <!-- CONSOLA 6: EXPORTAR -->
-                <div id="consolaExportar" style="display: none;">
-                    <button id="btnExportarTareasPDF" class="btn-warning">📄 Exportar tareas PDF</button>
+                    
+                    <div id="subAprobados" style="display: none;">
+                        <table class="tabla">
+                            <thead><tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Estado</th></tr></thead>
+                            <tbody id="gastosAprobadosBody"></tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>
@@ -401,9 +344,6 @@
 
     let currentUser = null;
     let currentEmpresaId = null;
-    let tareasData = [];
-    let paginaTareas = 1;
-    const registrosPorPagina = 10;
 
     function mostrarMensaje(texto, tipo = 'exito') {
         const msg = document.createElement('div');
@@ -449,25 +389,26 @@
 
     // ========== CARGAR TAREAS ==========
     async function cargarTareas() {
-        const { data, error } = await sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId).order('created_at', { ascending: false });
-        if (error) return;
-        tareasData = data || [];
-        renderizarTareas();
-    }
-
-    function renderizarTareas() {
-        const start = (paginaTareas - 1) * registrosPorPagina;
-        const paginados = tareasData.slice(start, start + registrosPorPagina);
-        const tbody = document.getElementById('tareasBody');
-        if (paginados.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay tareas</td></tr>'; return; }
+        const estado = document.getElementById('filtroEstado')?.value || '';
+        let query = sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId).order('created_at', { ascending: false });
+        if (estado) query = query.eq('estado', estado);
+        const { data, error } = await query;
+        if (error) { console.error(error); return; }
         
-        tbody.innerHTML = paginados.map(t => `
+        const tbody = document.getElementById('tareasBody');
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6">No hay tareas</td></tr>';
+            return;
+        }
+        
+        const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada' };
+        tbody.innerHTML = data.map(t => `
             <tr>
-                <td>${t.id.substring(0, 16)}...</td>
+                <td>${t.id.substring(0, 12)}...</td>
                 <td>${t.tipo}</td>
                 <td>${t.activos?.nombre || '-'}</td>
                 <td>${t.perfiles?.nombre || '-'}</td>
-                <td><span class="badge ${t.estado === 'PENDIENTE' ? 'badge-pendiente' : (t.estado === 'COMPLETADA' ? 'badge-completada' : 'badge-curso')}">${t.estado}</span></td>
+                <td><span class="badge ${estadoClass[t.estado]}">${t.estado}</span></td>
                 <td><button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️ Ver</button></td>
             </tr>
         `).join('');
@@ -480,105 +421,7 @@
     async function verDetalleTarea(id) {
         const { data: tarea } = await sb.from('tareas').select('*, activos(*)').eq('id', id).single();
         if (!tarea) return;
-        alert(`Tarea: ${tarea.id}\nTipo: ${tarea.tipo}\nActivo: ${tarea.activos?.nombre}\nOrden: ${tarea.orden_trabajo?.substring(0, 100)}...`);
-    }
-
-    // ========== CARGAR ACTIVOS ==========
-    async function cargarActivos() {
-        const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
-        const select = document.getElementById('tareaActivo');
-        if (select && data) {
-            select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-        }
-        const tbody = document.getElementById('activosBody');
-        if (tbody) {
-            tbody.innerHTML = data?.map(a => `<tr><td>${a.nombre}</td><td>${a.direccion || '-'}</td><td><button class="btn-sm btn-info">👁️</button></td></tr>`).join('') || '<tr><td colspan="3">No hay activos</td></tr>';
-        }
-    }
-
-    // ========== CARGAR TÉCNICOS ==========
-    async function cargarTecnicos() {
-        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
-        const select = document.getElementById('tareaTecnico');
-        if (select && data) {
-            select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
-        }
-        const tbody = document.getElementById('tecnicosBody');
-        if (tbody) {
-            tbody.innerHTML = data?.map(t => `
-                <tr>
-                    <td>${t.nombre || t.nick}</td>
-                    <td>${t.email}</td>
-                    <td>${t.telefono || '-'}</td>
-                    <td><span class="badge ${t.activo ? 'badge-completada' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
-                    <td><button class="btn-sm btn-danger eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td>
-                </tr>
-            `).join('') || '<tr><td colspan="5">No hay técnicos</td></tr>';
-        }
-        
-        document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
-            btn.onclick = async () => {
-                if (confirm(`¿Eliminar técnico "${btn.dataset.nombre}"?`)) {
-                    await sb.from('perfiles').delete().eq('id', btn.dataset.id);
-                    mostrarMensaje("✅ Técnico eliminado");
-                    cargarTecnicos();
-                }
-            };
-        });
-    }
-
-    // ========== CREAR TÉCNICO ==========
-    async function crearTecnico() {
-        const nombre = document.getElementById('nuevoTecnicoNombre').value.trim();
-        const email = document.getElementById('nuevoTecnicoEmail').value.trim();
-        const telefono = document.getElementById('nuevoTecnicoTelefono').value.trim();
-        const password = document.getElementById('nuevoTecnicoPassword').value;
-        
-        if (!nombre || !email) { mostrarMensaje("❌ Nombre y email son obligatorios", 'error'); return; }
-        if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
-        
-        const btn = document.getElementById('btnCrearTecnico');
-        btn.innerHTML = '<span class="spinner"></span> Creando...';
-        btn.disabled = true;
-        
-        try {
-            // Crear usuario en Auth
-            const { data: authUser, error: authError } = await sb.auth.admin.createUser({
-                email: email,
-                password: password,
-                email_confirm: true,
-                user_metadata: { nombre: nombre, empresa_id: currentEmpresaId }
-            });
-            
-            if (authError) throw authError;
-            
-            // Crear perfil del técnico
-            const { error: perfilError } = await sb.from('perfiles').insert({
-                id: authUser.user.id,
-                nombre: nombre,
-                email: email,
-                telefono: telefono || null,
-                rol: 'tecnico',
-                empresa_id: currentEmpresaId,
-                activo: true
-            });
-            
-            if (perfilError) throw perfilError;
-            
-            mostrarMensaje(`✅ Técnico ${nombre} creado correctamente`);
-            document.getElementById('nuevoTecnicoNombre').value = '';
-            document.getElementById('nuevoTecnicoEmail').value = '';
-            document.getElementById('nuevoTecnicoTelefono').value = '';
-            document.getElementById('nuevoTecnicoPassword').value = '';
-            
-            cargarTecnicos();
-            
-        } catch (error) {
-            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-        } finally {
-            btn.innerHTML = '✅ Crear técnico';
-            btn.disabled = false;
-        }
+        alert(`📋 TAREA\nID: ${tarea.id}\nTipo: ${tarea.tipo}\nActivo: ${tarea.activos?.nombre}\nEstado: ${tarea.estado}\n\n📝 Orden:\n${tarea.orden_trabajo?.substring(0, 200)}...`);
     }
 
     // ========== CREAR TAREA ==========
@@ -587,16 +430,17 @@
         const servicio = document.getElementById('tareaServicio').value;
         const activoId = document.getElementById('tareaActivo').value;
         const tecnicoId = document.getElementById('tareaTecnico').value;
-        const fecha = document.getElementById('tareaFecha').value || new Date().toISOString().split('T')[0];
+        const fecha = document.getElementById('tareaFecha').value;
         const orden = document.getElementById('tareaOrden').value;
         
         if (!activoId) { mostrarMensaje("Selecciona un activo", 'error'); return; }
         if (!tecnicoId) { mostrarMensaje("Selecciona un técnico", 'error'); return; }
         
         const prioridad = tipo === 'URGENCIA' ? 1 : tipo === 'AVERIA' ? 2 : 3;
+        const tareaId = `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`;
         
         const { error } = await sb.from('tareas').insert({
-            id: `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`,
+            id: tareaId,
             tipo: tipo,
             prioridad: prioridad,
             cliente_id: currentEmpresaId,
@@ -617,117 +461,165 @@
         cargarStats();
     }
 
+    // ========== CARGAR ACTIVOS ==========
+    async function cargarActivos() {
+        const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
+        const select = document.getElementById('tareaActivo');
+        if (select && data) {
+            select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+        }
+    }
+
+    // ========== CARGAR TÉCNICOS ==========
+    async function cargarTecnicos() {
+        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
+        const select = document.getElementById('tareaTecnico');
+        if (select && data) {
+            select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
+        }
+        
+        const tbody = document.getElementById('tecnicosBody');
+        if (tbody) {
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<td><td colspan="5">No hay técnicos</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(t => `
+                <tr>
+                    <td>${t.nombre || t.nick}</td>
+                    <td>${t.email}</td>
+                    <td>${t.telefono || '-'}</td>
+                    <td><span class="badge ${t.activo ? 'badge-completada' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
+                    <td><button class="btn-sm btn-danger eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td>
+                </tr>
+            `).join('');
+        }
+        
+        document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
+            btn.onclick = async () => {
+                if (confirm(`¿Eliminar técnico "${btn.dataset.nombre}"?`)) {
+                    await sb.from('perfiles').delete().eq('id', btn.dataset.id);
+                    mostrarMensaje("✅ Técnico eliminado");
+                    cargarTecnicos();
+                }
+            };
+        });
+    }
+
+    // ========== CREAR TÉCNICO ==========
+    async function crearTecnico() {
+        const nombre = document.getElementById('nuevoNombre').value.trim();
+        const email = document.getElementById('nuevoEmail').value.trim();
+        const telefono = document.getElementById('nuevoTelefono').value.trim();
+        const password = document.getElementById('nuevoPassword').value;
+        
+        if (!nombre || !email) { mostrarMensaje("❌ Nombre y email son obligatorios", 'error'); return; }
+        if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
+        
+        const btn = document.getElementById('btnCrearTecnico');
+        btn.innerHTML = '<span class="spinner"></span> Creando...';
+        btn.disabled = true;
+        
+        try {
+            const { data: authUser, error: authError } = await sb.auth.admin.createUser({
+                email: email,
+                password: password,
+                email_confirm: true,
+                user_metadata: { nombre: nombre, empresa_id: currentEmpresaId }
+            });
+            
+            if (authError) throw authError;
+            
+            const { error: perfilError } = await sb.from('perfiles').insert({
+                id: authUser.user.id,
+                nombre: nombre,
+                email: email,
+                telefono: telefono || null,
+                rol: 'tecnico',
+                empresa_id: currentEmpresaId,
+                activo: true
+            });
+            
+            if (perfilError) throw perfilError;
+            
+            mostrarMensaje(`✅ Técnico ${nombre} creado`);
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('nuevoEmail').value = '';
+            document.getElementById('nuevoTelefono').value = '';
+            document.getElementById('nuevoPassword').value = '';
+            cargarTecnicos();
+            
+        } catch (error) {
+            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+        } finally {
+            btn.innerHTML = '✅ Crear técnico';
+            btn.disabled = false;
+        }
+    }
+
     // ========== CARGAR GASTOS ==========
     async function cargarGastos() {
-        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
+        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
         const tbodyP = document.getElementById('gastosPendientesBody');
         if (tbodyP) {
-            tbodyP.innerHTML = pendientes?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td><button class="btn-sm btn-info">🔍</button></td></tr>`).join('') || '<tr><td colspan="4">No hay gastos</td></tr>';
+            tbodyP.innerHTML = pendientes?.map(g => `
+                <tr>
+                    <td>${g.fecha_gasto}</td>
+                    <td>${g.tareas?.activos?.nombre || '-'}</td>
+                    <td>${g.descripcion}</td>
+                    <td>${g.importe_total}€</td>
+                    <td><button class="btn-sm btn-info aprobar-gasto" data-id="${g.id}">✅ Aprobar</button></td>
+                </tr>
+            `).join('') || '<tr><td colspan="5">No hay gastos pendientes</td></tr>';
         }
         
-        const { data: aprobados } = await sb.from('gastos_tarea').select('*').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
+        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
         const tbodyA = document.getElementById('gastosAprobadosBody');
         if (tbodyA) {
-            tbodyA.innerHTML = aprobados?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td><span class="badge ${g.estado === 'APROBADO' ? 'badge-aprobado' : 'badge-rechazado'}">${g.estado}</span></td></tr>`).join('') || '<tr><td colspan="4">No hay gastos</td></tr>';
+            tbodyA.innerHTML = aprobados?.map(g => `
+                <tr>
+                    <td>${g.fecha_gasto}</td>
+                    <td>${g.tareas?.activos?.nombre || '-'}</td>
+                    <td>${g.descripcion}</td>
+                    <td>${g.importe_total}€</td>
+                    <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
+                </tr>
+            `).join('') || '<tr><td colspan="5">No hay gastos procesados</td></tr>';
         }
-    }
-
-    // ========== CARGAR FACTURAS ==========
-    async function cargarFacturas() {
-        const { data } = await sb.from('facturas').select('*').eq('empresa_id', currentEmpresaId);
-        const tbody = document.getElementById('facturasBody');
-        if (tbody) {
-            tbody.innerHTML = data?.map(f => `<tr><td>${f.numero}</td><td>${f.fecha}</td><td>${f.total}€</td><td><span class="badge ${f.pagada ? 'badge-completada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td></tr>`).join('') || '<tr><td colspan="4">No hay facturas</td></tr>';
-        }
-    }
-
-    // ========== EXPORTAR ==========
-    async function exportarTareasPDF() {
-        const { data } = await sb.from('tareas').select('*').eq('cliente_id', currentEmpresaId);
-        const html = `<html><body><h2>Reporte de Tareas</h2><pre>${JSON.stringify(data, null, 2)}</pre></body></html>`;
-        const blob = new Blob([html], { type: 'application/pdf' });
-        window.open(URL.createObjectURL(blob));
-    }
-
-    // ========== GUARDAR ACTIVO ==========
-    async function guardarActivo() {
-        const nombre = document.getElementById('activoNombre').value;
-        if (!nombre) { mostrarMensaje("Nombre del activo es obligatorio", 'error'); return; }
-        const { error } = await sb.from('activos').insert({
-            empresa_id: currentEmpresaId,
-            nombre: nombre,
-            direccion: document.getElementById('activoDireccion').value,
-            tipo_servicio: 'PISCINA'
-        });
-        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
-        mostrarMensaje("✅ Activo guardado");
-        document.getElementById('activoNombre').value = '';
-        document.getElementById('activoDireccion').value = '';
-        cargarActivos();
-    }
-
-    // ========== INICIALIZAR CONSOLAS ==========
-    function inicializarConsolas() {
-        document.querySelectorAll('.browser-tab').forEach(tab => {
-            tab.onclick = () => {
-                document.querySelectorAll('.browser-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const consola = tab.dataset.consola;
-                document.querySelectorAll('[id^="consola"]').forEach(c => c.style.display = 'none');
-                document.getElementById(`consola${consola.charAt(0).toUpperCase() + consola.slice(1)}`).style.display = 'block';
-                if (consola === 'tareas') { cargarTareas(); cargarStats(); }
-                if (consola === 'clientes') cargarActivos();
-                if (consola === 'personal') cargarTecnicos();
-                if (consola === 'gastos') cargarGastos();
-                if (consola === 'facturas') cargarFacturas();
-            };
-        });
         
-        // Sub-tabs de Tareas
-        document.querySelectorAll('#consolaTareas .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#consolaTareas .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#consolaTareas [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-                if (subId === 'crear') { cargarActivos(); cargarTecnicos(); }
-            };
-        });
-        
-        // Sub-tabs de Clientes
-        document.querySelectorAll('#consolaClientes .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#consolaClientes .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#consolaClientes [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-                if (subId === 'activos') cargarActivos();
-            };
-        });
-        
-        // Sub-tabs de Personal
-        document.querySelectorAll('#consolaPersonal .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#consolaPersonal .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#consolaPersonal [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-                if (subId === 'tecnicos') cargarTecnicos();
-            };
-        });
-        
-        // Sub-tabs de Gastos
-        document.querySelectorAll('#consolaGastos .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#consolaGastos .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#consolaGastos [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+        document.querySelectorAll('.aprobar-gasto').forEach(btn => {
+            btn.onclick = async () => {
+                await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id);
+                mostrarMensaje("✅ Gasto aprobado");
                 cargarGastos();
+            };
+        });
+    }
+
+    // ========== INICIALIZAR TABS ==========
+    function inicializarTabs() {
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const tabId = tab.dataset.tab;
+                document.querySelectorAll('[id^="tab"]').forEach(t => t.style.display = 'none');
+                document.getElementById(`tab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).style.display = 'block';
+                if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); }
+                if (tabId === 'personal') cargarTecnicos();
+                if (tabId === 'gastos') cargarGastos();
+            };
+        });
+        
+        document.querySelectorAll('.sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                const parent = sub.closest('.tab-content');
+                parent.querySelectorAll('.sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                parent.querySelectorAll('[id^="sub"]').forEach(s => s.style.display = 'none');
+                parent.querySelector(`#sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                if (subId === 'crear') { cargarActivos(); cargarTecnicos(); }
             };
         });
     }
@@ -737,23 +629,20 @@
         if (await hacerLogin()) {
             document.getElementById('loginPanel').style.display = 'none';
             document.getElementById('dashboardPanel').style.display = 'block';
-            inicializarConsolas();
+            inicializarTabs();
             await cargarStats();
             await cargarTareas();
             await cargarActivos();
             await cargarTecnicos();
             await cargarGastos();
-            await cargarFacturas();
         }
     };
     
     document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
-    document.getElementById('btnRefrescarTareas').onclick = cargarTareas;
-    document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
+    document.getElementById('btnFiltrar').onclick = cargarTareas;
+    document.getElementById('btnRefrescar').onclick = () => { cargarTareas(); cargarStats(); };
     document.getElementById('btnCrearTarea').onclick = crearTarea;
-    document.getElementById('btnGuardarActivo').onclick = guardarActivo;
     document.getElementById('btnCrearTecnico').onclick = crearTecnico;
-    document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
 </script>
 </body>
 </html>
