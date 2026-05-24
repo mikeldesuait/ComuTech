@@ -6,9 +6,6 @@
     <title>COMUTECH · Panel Gerente</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ============================================ */
-        /* CSS - BLOQUE 1: RESET Y BASE                 */
-        /* ============================================ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -16,10 +13,6 @@
             padding: 20px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 2: TARJETAS (CARDS)             */
-        /* ============================================ */
         .card {
             background: white;
             border-radius: 20px;
@@ -36,10 +29,6 @@
             padding-left: 16px;
             color: #2c7a4d;
         }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 3: ESTADÍSTICAS                 */
-        /* ============================================ */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -55,10 +44,6 @@
         }
         .stat-number { font-size: 1.8rem; font-weight: 700; color: #2c7a4d; }
         .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 5px; }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 4: TABS PRINCIPALES             */
-        /* ============================================ */
         .tabs {
             display: flex;
             gap: 4px;
@@ -90,10 +75,6 @@
             border-radius: 0 0 12px 12px;
             padding: 20px;
         }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 5: SUB-TABS                     */
-        /* ============================================ */
         .sub-tabs {
             display: flex;
             gap: 8px;
@@ -116,10 +97,6 @@
             color: #2c7a4d;
             font-weight: 600;
         }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 6: FORMULARIOS                  */
-        /* ============================================ */
         .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: flex-end; }
         .grupo { flex: 1; min-width: 200px; }
         label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; }
@@ -131,10 +108,6 @@
             border: 1px solid #cbd5e1;
             font-size: 0.85rem;
         }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 7: BOTONES                      */
-        /* ============================================ */
         button {
             background: #2c7a4d;
             color: white;
@@ -148,10 +121,6 @@
         .btn-danger { background: #c2410c; }
         .btn-info { background: #0284c7; }
         .btn-sm { padding: 6px 12px; font-size: 0.7rem; }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 8: TABLAS                      */
-        /* ============================================ */
         .tabla {
             width: 100%;
             border-collapse: collapse;
@@ -163,10 +132,6 @@
             font-size: 0.85rem;
         }
         .tabla th { background: #f8fafc; color: #2c7a4d; }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 9: BADGES                      */
-        /* ============================================ */
         .badge {
             display: inline-block;
             padding: 3px 10px;
@@ -178,10 +143,6 @@
         .badge-curso { background: #cce5ff; color: #004085; }
         .badge-completada { background: #d4edda; color: #155724; }
         .badge-activo { background: #d4edda; color: #155724; }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 10: MENSAJES Y MODALES          */
-        /* ============================================ */
         .mensaje {
             position: fixed;
             bottom: 20px;
@@ -194,7 +155,6 @@
             animation: fadeOut 3s ease forwards;
         }
         @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-        
         .spinner {
             display: inline-block;
             width: 14px;
@@ -205,12 +165,7 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
         hr { margin: 16px 0; border: none; border-top: 1px solid #e2e8f0; }
-        
-        /* ============================================ */
-        /* CSS - BLOQUE 11: RESPONSIVE                 */
-        /* ============================================ */
         @media (max-width: 768px) {
             .tabla th, .tabla td { padding: 6px; font-size: 0.7rem; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -220,24 +175,20 @@
 </head>
 <body>
 <div class="container">
-    <!-- ============================================ -->
-    <!-- HTML - BLOQUE 1: PANTALLA DE LOGIN           -->
-    <!-- ============================================ -->
+    <!-- BLOQUE LOGIN MEJORADO -->
     <div id="loginPanel" class="card">
         <div class="card-header">🏢 COMUTECH · Panel Gerente</div>
         <p style="font-size:0.8rem; margin-bottom:12px; color:#64748b;">Puedes usar email o nick para acceder</p>
-        <input type="text" id="identificador" placeholder="Email o Nick">
-        <input type="password" id="password" placeholder="Contraseña">
-        <button id="btnLogin">Iniciar sesión</button>
-        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+        <form id="loginForm" onsubmit="return false;">
+            <input type="text" id="identificador" placeholder="Email o Nick" autocomplete="username">
+            <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password">
+            <button id="btnLogin">Iniciar sesión</button>
+            <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+        </form>
     </div>
 
-    <!-- ============================================ -->
-    <!-- HTML - BLOQUE 2: DASHBOARD PRINCIPAL          -->
-    <!-- ============================================ -->
+    <!-- DASHBOARD PRINCIPAL -->
     <div id="dashboardPanel" style="display: none;">
-        
-        <!-- HTML - BLOQUE 2.1: HEADER DEL GERENTE -->
         <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c7a4d 100%); color: white;">
             <div style="display: flex; justify-content: space-between;">
                 <div>
@@ -249,33 +200,23 @@
             </div>
         </div>
 
-        <!-- HTML - BLOQUE 2.2: ESTADÍSTICAS -->
         <div class="stats-grid" id="statsPanel"></div>
 
-        <!-- HTML - BLOQUE 2.3: CARD PRINCIPAL CON TABS -->
         <div class="card">
-            
-            <!-- HTML - BLOQUE 2.3.1: TABS PRINCIPALES -->
             <div class="tabs">
                 <button class="tab active" data-tab="tareas">📋 TAREAS</button>
                 <button class="tab" data-tab="personal">👨‍🔧 PERSONAL</button>
                 <button class="tab" data-tab="gastos">💰 GASTOS</button>
             </div>
-            
-            <!-- HTML - BLOQUE 2.3.2: CONTENIDO DE TABS -->
             <div class="tab-content">
                 
-                <!-- ============================================ -->
-                <!-- HTML - BLOQUE 3: TAB TAREAS                   -->
-                <!-- ============================================ -->
+                <!-- TAB TAREAS -->
                 <div id="tabTareas">
-                    <!-- SUB-TABS DE TAREAS -->
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="lista">📋 Lista</button>
                         <button class="sub-tab" data-sub="crear">➕ Crear tarea</button>
                     </div>
                     
-                    <!-- BLOQUE 3.1: LISTA DE TAREAS -->
                     <div id="subLista">
                         <div style="margin-bottom: 16px;">
                             <select id="filtroEstado" style="width: auto; display: inline-block;">
@@ -288,12 +229,13 @@
                             <button id="btnRefrescar" class="btn-sm btn-info">🔄 Refrescar</button>
                         </div>
                         <table class="tabla">
-                            <thead><tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <thead>
+                                <tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Estado</th><th>Acciones</th>
+                            </thead>
                             <tbody id="tareasBody"></tbody>
                         </table>
                     </div>
                     
-                    <!-- BLOQUE 3.2: CREAR TAREA -->
                     <div id="subCrear" style="display: none;">
                         <div class="row-flex">
                             <div class="grupo"><label>Tipo</label>
@@ -329,56 +271,75 @@
                     </div>
                 </div>
 
-                <!-- ============================================ -->
-                <!-- HTML - BLOQUE 4: TAB PERSONAL                 -->
-                <!-- ============================================ -->
+                <!-- TAB PERSONAL -->
                 <div id="tabPersonal" style="display: none;">
-                    <!-- SUB-TABS DE PERSONAL -->
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="tecnicos">👥 Técnicos</button>
                         <button class="sub-tab" data-sub="crearTecnico">➕ Nuevo técnico</button>
                     </div>
                     
-                    <!-- BLOQUE 4.1: LISTA DE TÉCNICOS -->
                     <div id="subTecnicos">
                         <div style="overflow-x: auto;">
                             <table class="tabla">
                                 <thead>
-                                    <tr><th>Nombre</th><th>NIF/NIE</th><th>Email</th><th>Teléfono</th><th>Fecha alta</th><th>Estado</th><th>Acciones</th></tr>
+                                    <tr><th>Nombre</th><th>NIF/NIE</th><th>Email</th><th>Teléfono</th><th>Fecha alta</th><th>Estado</th><th>Acciones</th>
                                 </thead>
                                 <tbody id="tecnicosBody"></tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- BLOQUE 4.2: FORMULARIO CREAR TÉCNICO (DATOS LEGALES) -->
+                    <!-- FORMULARIO TÉCNICO COMPLETO CON AUTOCOMPLETE -->
                     <div id="subCrearTecnico" style="display: none;">
                         <form id="formTecnico">
-                            <!-- FILA 1: Nombre y Email -->
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">👤 Nombre completo</label><input type="text" id="nuevoNombre" placeholder="Nombre y apellidos"></div>
-                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com"></div>
+                                <div class="grupo">
+                                    <label class="required">👤 Nombre completo</label>
+                                    <input type="text" id="nuevoNombre" placeholder="Nombre y apellidos" autocomplete="name">
+                                </div>
+                                <div class="grupo">
+                                    <label class="required">📧 Email</label>
+                                    <input type="email" id="nuevoEmail" placeholder="email@tecnico.com" autocomplete="email">
+                                </div>
                             </div>
-                            <!-- FILA 2: Contraseña y Teléfono -->
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)"></div>
-                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto"></div>
+                                <div class="grupo">
+                                    <label class="required">🔐 Contraseña</label>
+                                    <input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password">
+                                </div>
+                                <div class="grupo">
+                                    <label class="required">📞 Teléfono</label>
+                                    <input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto" autocomplete="tel">
+                                </div>
                             </div>
-                            <!-- FILA 3: NIF y Fecha nacimiento -->
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">🆔 NIF / NIE</label><input type="text" id="nuevoNif" placeholder="12345678A"></div>
-                                <div class="grupo"><label class="required">📅 Fecha nacimiento</label><input type="date" id="nuevoFechaNacimiento"></div>
+                                <div class="grupo">
+                                    <label class="required">🆔 NIF / NIE</label>
+                                    <input type="text" id="nuevoNif" placeholder="12345678A" autocomplete="off">
+                                </div>
+                                <div class="grupo">
+                                    <label class="required">📅 Fecha nacimiento</label>
+                                    <input type="date" id="nuevoFechaNacimiento" autocomplete="bday">
+                                </div>
                             </div>
-                            <!-- FILA 4: Dirección y Nº Seguridad Social -->
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoDireccion" placeholder="Calle, número, piso, CP, ciudad"></div>
-                                <div class="grupo"><label class="required">🔢 Nº Seguridad Social</label><input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX"></div>
+                                <div class="grupo">
+                                    <label class="required">📍 Dirección</label>
+                                    <input type="text" id="nuevoDireccion" placeholder="Calle, número, piso, CP, ciudad" autocomplete="street-address">
+                                </div>
+                                <div class="grupo">
+                                    <label class="required">🔢 Nº Seguridad Social</label>
+                                    <input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX" autocomplete="off">
+                                </div>
                             </div>
-                            <!-- FILA 5: IBAN y Tipo contrato -->
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">🏦 IBAN</label><input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
-                                <div class="grupo"><label>🏷️ Tipo contrato</label>
-                                    <select id="nuevoTipoContrato">
+                                <div class="grupo">
+                                    <label class="required">🏦 IBAN</label>
+                                    <input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off">
+                                </div>
+                                <div class="grupo">
+                                    <label>🏷️ Tipo contrato</label>
+                                    <select id="nuevoTipoContrato" autocomplete="off">
                                         <option value="INDEFINIDO">Indefinido</option>
                                         <option value="TEMPORAL">Temporal</option>
                                         <option value="POR_OBRA">Por obra/servicio</option>
@@ -386,18 +347,19 @@
                                     </select>
                                 </div>
                             </div>
-                            <!-- FILA 6: Jornada y Puesto -->
                             <div class="row-flex">
-                                <div class="grupo"><label>⏱️ Jornada</label>
-                                    <select id="nuevoJornada">
+                                <div class="grupo">
+                                    <label>⏱️ Jornada</label>
+                                    <select id="nuevoJornada" autocomplete="off">
                                         <option value="COMPLETA">Completa (40h/semana)</option>
                                         <option value="PARCIAL_50">Parcial 50%</option>
                                         <option value="PARCIAL_75">Parcial 75%</option>
                                         <option value="PARCIAL_25">Parcial 25%</option>
                                     </select>
                                 </div>
-                                <div class="grupo"><label>🔧 Puesto</label>
-                                    <select id="nuevoPuesto">
+                                <div class="grupo">
+                                    <label>🔧 Puesto</label>
+                                    <select id="nuevoPuesto" autocomplete="off">
                                         <option value="TECNICO_BASE">Técnico base</option>
                                         <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
                                         <option value="SUPERVISOR">Supervisor</option>
@@ -405,10 +367,15 @@
                                     </select>
                                 </div>
                             </div>
-                            <!-- FILA 7: Fecha alta y Nick -->
                             <div class="row-flex">
-                                <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="nuevoFechaAlta" value="2026-05-24"></div>
-                                <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="nuevoNick" placeholder="Usuario para login"></div>
+                                <div class="grupo">
+                                    <label>📅 Fecha de alta</label>
+                                    <input type="date" id="nuevoFechaAlta" value="2026-05-24" autocomplete="off">
+                                </div>
+                                <div class="grupo">
+                                    <label>👤 Nick (alias)</label>
+                                    <input type="text" id="nuevoNick" placeholder="Usuario para login" autocomplete="username">
+                                </div>
                             </div>
                             <hr>
                             <p style="font-size:0.7rem; color:#64748b; margin-bottom:16px;">* Campos obligatorios para el contrato laboral</p>
@@ -417,42 +384,38 @@
                     </div>
                 </div>
 
-                <!-- ============================================ -->
-                <!-- HTML - BLOQUE 5: TAB GASTOS                   -->
-                <!-- ============================================ -->
+                <!-- TAB GASTOS -->
                 <div id="tabGastos" style="display: none;">
-                    <!-- SUB-TABS DE GASTOS -->
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="pendientes">⏳ Pendientes</button>
                         <button class="sub-tab" data-sub="aprobados">✅ Aprobados</button>
                     </div>
                     
-                    <!-- BLOQUE 5.1: GASTOS PENDIENTES -->
                     <div id="subPendientes">
                         <table class="tabla">
-                            <thead><tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Acciones</th></tr></thead>
+                            <thead>
+                                <tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Acciones</th>
+                            </thead>
                             <tbody id="gastosPendientesBody"></tbody>
                         </table>
                     </div>
                     
-                    <!-- BLOQUE 5.2: GASTOS APROBADOS -->
                     <div id="subAprobados" style="display: none;">
                         <table class="tabla">
-                            <thead><tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Estado</th></tr></thead>
+                            <thead>
+                                <tr><th>Fecha</th><th>Tarea</th><th>Concepto</th><th>Importe</th><th>Estado</th>
+                            </thead>
                             <tbody id="gastosAprobadosBody"></tbody>
                         </table>
                     </div>
                 </div>
 
-            </div> <!-- cierre tab-content -->
-        </div> <!-- cierre card -->
-    </div> <!-- cierre dashboardPanel -->
-</div> <!-- cierre container -->
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    // ============================================ //
-    // SCRIPT - BLOQUE 1: CONFIGURACIÓN INICIAL     //
-    // ============================================ //
     const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
     const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -460,9 +423,6 @@
     let currentUser = null;
     let currentEmpresaId = null;
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 2: FUNCIONES AUXILIARES      //
-    // ============================================ //
     function mostrarMensaje(texto, tipo = 'exito') {
         const msg = document.createElement('div');
         msg.className = 'mensaje';
@@ -472,9 +432,7 @@
         setTimeout(() => msg.remove(), 3000);
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 3: LOGIN                     //
-    // ============================================ //
+    // LOGIN
     async function hacerLogin() {
         const identificador = document.getElementById('identificador').value.trim();
         const password = document.getElementById('password').value;
@@ -507,9 +465,6 @@
         return true;
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 4: ESTADÍSTICAS              //
-    // ============================================ //
     async function cargarStats() {
         const { data: tareas } = await sb.from('tareas').select('*').eq('cliente_id', currentEmpresaId);
         const { data: tecnicos } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
@@ -520,9 +475,6 @@
         `;
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 5: TAREAS                    //
-    // ============================================ //
     async function cargarTareas() {
         const estado = document.getElementById('filtroEstado')?.value || '';
         let query = sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId).order('created_at', { ascending: false });
@@ -532,7 +484,7 @@
         
         const tbody = document.getElementById('tareasBody');
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6">No hay tareas</tr>';
+            tbody.innerHTML = '<tr><td colspan="6">No hay tareas</td></tr>';
             return;
         }
         
@@ -595,9 +547,6 @@
         cargarStats();
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 6: ACTIVOS                   //
-    // ============================================ //
     async function cargarActivos() {
         const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
         const select = document.getElementById('tareaActivo');
@@ -606,9 +555,6 @@
         }
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 7: TÉCNICOS                  //
-    // ============================================ //
     async function cargarTecnicos() {
         const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
         const select = document.getElementById('tareaTecnico');
@@ -619,7 +565,7 @@
         const tbody = document.getElementById('tecnicosBody');
         if (tbody) {
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<td><td colspan="7">No hay técnicos</tr>';
+                tbody.innerHTML = '<tr><td colspan="7">No hay técnicos</td></tr>';
                 return;
             }
             tbody.innerHTML = data.map(t => `
@@ -728,9 +674,6 @@
         }
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 8: GASTOS                    //
-    // ============================================ //
     async function cargarGastos() {
         const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
         const tbodyP = document.getElementById('gastosPendientesBody');
@@ -743,7 +686,7 @@
                     <td>${g.importe_total}€</td>
                     <td><button class="btn-sm btn-info aprobar-gasto" data-id="${g.id}">✅ Aprobar</button></td>
                 </tr>
-            `).join('') || '<tr><td colspan="5">No hay gastos pendientes</td>'；
+            `).join('') || '<tr><td colspan="5">No hay gastos pendientes</td></tr>';
         }
         
         const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
@@ -757,7 +700,7 @@
                     <td>${g.importe_total}€</td>
                     <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
                 </tr>
-            `).join('') || '<tr><td colspan="5">No hay gastos procesados</td>'；
+            `).join('') || '<tr><td colspan="5">No hay gastos procesados</td></tr>';
         }
         
         document.querySelectorAll('.aprobar-gasto').forEach(btn => {
@@ -769,9 +712,6 @@
         });
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 9: INICIALIZACIÓN TABS       //
-    // ============================================ //
     function inicializarTabs() {
         document.querySelectorAll('.tab').forEach(tab => {
             tab.onclick = () => {
@@ -799,9 +739,6 @@
         });
     }
 
-    // ============================================ //
-    // SCRIPT - BLOQUE 10: EVENTOS PRINCIPALES      //
-    // ============================================ //
     document.getElementById('btnLogin').onclick = async () => {
         if (await hacerLogin()) {
             document.getElementById('loginPanel').style.display = 'none';
