@@ -6,8 +6,7 @@
     <title>COMUTECH · Panel Gerente</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    <style>        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: #f0f4f8;
@@ -180,7 +179,7 @@
             color: white;
             padding: 12px 20px;
             border-radius: 40px;
-            z-index: 1000;
+            z-index: 9999;
             animation: fadeOut 3s ease forwards;
         }
         @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
@@ -196,24 +195,31 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         
+        /* MODALES - POSICIONAMIENTO CORREGIDO */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 100000 !important;
             justify-content: center;
             align-items: center;
+            overflow: auto;
         }
         .modal-content {
             background: white;
             border-radius: 20px;
             padding: 24px;
-            max-width: 700px;
+            max-width: 800px;
             width: 90%;
             max-height: 85vh;
             overflow-y: auto;
+            position: relative;
+            z-index: 100001 !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
         
         hr { margin: 16px 0; border: none; border-top: 1px solid #e2e8f0; }
@@ -223,7 +229,26 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .grupo { min-width: 100%; }
         }
-    </style>
+        /* Forzar que los modales estén sobre todo */
+.modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0,0,0,0.6) !important;
+    z-index: 999999 !important;
+}
+
+.modal-content {
+    position: relative !important;
+    margin: 50px auto !important;
+    z-index: 1000000 !important;
+}
+
+        </style>
 </head>
 <body>
 <div class="container">
@@ -474,6 +499,74 @@
                         </form>
                     </div>
                 </div>
+                <!-- MODAL EDITAR TÉCNICO COMPLETO -->
+<div id="modalEditarTecnicoCompleto" class="modal">
+    <div class="modal-content">
+        <div class="card-header">✏️ Editar técnico</div>
+        <input type="hidden" id="editTecnicoId">
+        
+        <div class="row-flex">
+            <div class="grupo"><label>👤 Nombre completo</label><input type="text" id="editNombreCompleto"></div>
+            <div class="grupo"><label>📧 Email</label><input type="email" id="editEmailCompleto"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefonoCompleto"></div>
+            <div class="grupo"><label>🆔 NIF/NIE</label><input type="text" id="editNifCompleto"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📍 Dirección</label><input type="text" id="editDireccionCompleto"></div>
+            <div class="grupo"><label>📅 Fecha nacimiento</label><input type="date" id="editFechaNacimientoCompleto"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🔢 Nº Seguridad Social</label><input type="text" id="editSSCompleto"></div>
+            <div class="grupo"><label>🏦 IBAN</label><input type="text" id="editIbanCompleto"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🏷️ Tipo contrato</label>
+                <select id="editTipoContratoCompleto">
+                    <option value="INDEFINIDO">Indefinido</option>
+                    <option value="TEMPORAL">Temporal</option>
+                    <option value="POR_OBRA">Por obra/servicio</option>
+                </select>
+            </div>
+            <div class="grupo"><label>⏱️ Jornada</label>
+                <select id="editJornadaCompleto">
+                    <option value="COMPLETA">Completa (40h)</option>
+                    <option value="PARCIAL_50">Parcial 50%</option>
+                    <option value="PARCIAL_75">Parcial 75%</option>
+                </select>
+            </div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🔧 Puesto</label>
+                <select id="editPuestoCompleto">
+                    <option value="TECNICO_BASE">Técnico base</option>
+                    <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
+                    <option value="SUPERVISOR">Supervisor</option>
+                </select>
+            </div>
+            <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="editNickCompleto"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="editFechaAltaCompleto"></div>
+            <div class="grupo"><label>🔘 Estado</label>
+                <select id="editEstadoCompleto">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🔐 Nueva contraseña (dejar vacío para no cambiar)</label><input type="password" id="editPasswordCompleto" placeholder="Nueva contraseña" autocomplete="new-password"></div>
+            <div class="grupo"><label>🔐 Repetir contraseña</label><input type="password" id="editPasswordConfirmCompleto" placeholder="Repetir contraseña" autocomplete="new-password"></div>
+        </div>
+        
+        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
+            <button id="btnGuardarEdicionCompleta" class="btn-success">💾 Guardar cambios</button>
+            <button id="btnCancelarEdicionCompleta" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
 
                 <!-- ==================== TAB GASTOS ==================== -->
                 <div id="tabGastos" style="display: none;">
@@ -494,7 +587,7 @@
                     <div id="subAprobadosGastos" style="display: none;">
                         <table class="tabla">
                             <thead>
-                                <td><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Estado</th>
+                                <tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Estado</th>
                             </thead>
                             <tbody id="gastosAprobadosBody"></tbody>
                         </table>
@@ -514,7 +607,7 @@
                                 <tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Concepto</th><th>Total</th><th>Estado</th><th>Acciones</th>
                             </thead>
                             <tbody id="facturasBody"></tbody>
-                        </table>
+                        </tr>
                     </div>
                     
                     <div id="subCrearFactura" style="display: none;">
@@ -575,29 +668,6 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR TÉCNICO -->
-<div id="modalEditarTecnico" class="modal">
-    <div class="modal-content">
-        <div class="card-header">✏️ Editar técnico</div>
-        <input type="hidden" id="editTecnicoId">
-        <div class="row-flex">
-            <div class="grupo"><label>Nombre</label><input type="text" id="editNombre"></div>
-            <div class="grupo"><label>Email</label><input type="email" id="editEmail"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>Teléfono</label><input type="text" id="editTelefono"></div>
-            <div class="grupo"><label>NIF/NIE</label><input type="text" id="editNif"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>Dirección</label><input type="text" id="editDireccion"></div>
-            <div class="grupo"><label>IBAN</label><input type="text" id="editIban"></div>
-        </div>
-        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
-            <button id="btnGuardarEdicionTecnico" class="btn-success">💾 Guardar</button>
-            <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
-        </div>
-    </div>
-</div>
 
 <!-- MODAL EDITAR CLIENTE -->
 <div id="modalEditarCliente" class="modal">
@@ -623,6 +693,8 @@
     </div>
 </div>
 
+
+
 <script>
     const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
     const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
@@ -645,64 +717,58 @@
 
     // ========== LOGIN ==========
     async function hacerLogin() {
-    const identificador = document.getElementById('identificador').value.trim();
-    const password = document.getElementById('password').value;
-    
-    if (!identificador || !password) { 
-        document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; 
-        return false; 
-    }
-    
-    // Determinar si es email o nick
-    let email = identificador;
-    if (!identificador.includes('@')) {
-        const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
-        if (!perfil) {
-            document.getElementById('errorMsg').innerText = "Usuario no encontrado";
-            return false;
+        const identificador = document.getElementById('identificador').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!identificador || !password) { 
+            document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; 
+            return false; 
         }
-        email = perfil.email;
+        
+        let email = identificador;
+        if (!identificador.includes('@')) {
+            const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
+            if (!perfil) {
+                document.getElementById('errorMsg').innerText = "Usuario no encontrado";
+                return false;
+            }
+            email = perfil.email;
+        }
+        
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { 
+            document.getElementById('errorMsg').innerText = error.message; 
+            return false; 
+        }
+        
+        const { data: perfil, error: perfilError } = await sb.from('perfiles').select('*').eq('id', data.user.id).maybeSingle();
+        
+        if (perfilError || !perfil) { 
+            await sb.auth.signOut(); 
+            document.getElementById('errorMsg').innerText = "Error al cargar perfil"; 
+            return false; 
+        }
+        
+        if (perfil.rol !== 'gerente') { 
+            await sb.auth.signOut(); 
+            document.getElementById('errorMsg').innerText = "Acceso no autorizado. Solo gerentes."; 
+            return false; 
+        }
+        
+        currentUser = data.user;
+        currentEmpresaId = perfil.empresa_id;
+        document.getElementById('nombreGerente').innerHTML = perfil.nombre || 'Gerente';
+        document.getElementById('emailGerente').innerHTML = currentUser.email;
+        
+        if (currentEmpresaId) {
+            const { data: empresa } = await sb.from('empresas').select('nombre').eq('id', currentEmpresaId).single();
+            document.getElementById('nombreEmpresaBanner').innerHTML = empresa?.nombre || 'Mi Empresa';
+        } else {
+            document.getElementById('nombreEmpresaBanner').innerHTML = 'Mi Empresa';
+        }
+        
+        return true;
     }
-    
-    // Autenticar con Supabase Auth
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) { 
-        document.getElementById('errorMsg').innerText = error.message; 
-        return false; 
-    }
-    
-    // Obtener perfil del usuario
-    const { data: perfil, error: perfilError } = await sb.from('perfiles').select('*').eq('id', data.user.id).maybeSingle();
-    
-    if (perfilError || !perfil) { 
-        await sb.auth.signOut(); 
-        document.getElementById('errorMsg').innerText = "Error al cargar perfil"; 
-        return false; 
-    }
-    
-    // Verificar rol
-    if (perfil.rol !== 'gerente') { 
-        await sb.auth.signOut(); 
-        document.getElementById('errorMsg').innerText = "Acceso no autorizado. Solo gerentes."; 
-        return false; 
-    }
-    
-    // Guardar datos globales
-    currentUser = data.user;
-    currentEmpresaId = perfil.empresa_id;
-    document.getElementById('nombreGerente').innerHTML = perfil.nombre || 'Gerente';
-    document.getElementById('emailGerente').innerHTML = currentUser.email;
-    
-    // Cargar nombre de la empresa para el banner
-    if (currentEmpresaId) {
-        const { data: empresa } = await sb.from('empresas').select('nombre').eq('id', currentEmpresaId).single();
-        document.getElementById('nombreEmpresaBanner').innerHTML = empresa?.nombre || 'Mi Empresa';
-    } else {
-        document.getElementById('nombreEmpresaBanner').innerHTML = 'Mi Empresa';
-    }
-    
-    return true;
-}
 
     // ========== STATS ==========
     async function cargarStats() {
@@ -734,7 +800,7 @@
         const start = (paginaTareas - 1) * registrosPorPagina;
         const paginados = tareasData.slice(start, start + registrosPorPagina);
         const tbody = document.getElementById('tareasBody');
-        if (!paginados.length) { tbody.innerHTML = '<tr><td colspan="7">No hay tareas</td></tr>'; return; }
+        if (!paginados.length) { tbody.innerHTML = '<tr><td colspan="7">No hay tareas</td></td>'; return; }
         
         const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada' };
         tbody.innerHTML = paginados.map(t => `
@@ -809,178 +875,288 @@
         `).join('');
     }
 
-async function guardarCliente() {
-    const nombre = document.getElementById('nuevoClienteNombre').value.trim();
-    const nif = document.getElementById('nuevoClienteNif').value.trim();
-    const email = document.getElementById('nuevoClienteEmail').value.trim();
-    
-    if (!nombre) { mostrarMensaje("❌ La razón social es obligatoria", 'error'); return; }
-    if (!nif) { mostrarMensaje("❌ El NIF/CIF es obligatorio", 'error'); return; }
-    if (!email) { mostrarMensaje("❌ El email es obligatorio", 'error'); return; }
-    
-    const btn = document.getElementById('btnGuardarCliente');
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner"></span> Guardando...';
-    btn.disabled = true;
-    
-    try {
-        const { error } = await sb.from('empresas').insert({
-            nombre: nombre,
-            nif: nif,
-            email: email,
-            telefono: document.getElementById('nuevoClienteTelefono').value,
-            direccion: document.getElementById('nuevoClienteDireccion').value,
-            codigo_postal: document.getElementById('nuevoClienteCp').value,
-            ciudad: document.getElementById('nuevoClienteCiudad').value,
-            provincia: document.getElementById('nuevoClienteProvincia').value,
-            contacto_nombre: document.getElementById('nuevoClienteContacto').value,
-            contacto_cargo: document.getElementById('nuevoClienteCargo').value,
-            iban: document.getElementById('nuevoClienteIban').value,
-            banco: document.getElementById('nuevoClienteBanco').value,
-            tipo_cliente: document.getElementById('nuevoClienteTipo').value,
-            fecha_alta: document.getElementById('nuevoClienteFechaAlta').value,
-            created_by: currentUser.id,
-            activo: true
-        });
+    async function guardarCliente() {
+        const nombre = document.getElementById('nuevoClienteNombre').value.trim();
+        const nif = document.getElementById('nuevoClienteNif').value.trim();
+        const email = document.getElementById('nuevoClienteEmail').value.trim();
         
-        if (error) throw error;
+        if (!nombre) { mostrarMensaje("❌ La razón social es obligatoria", 'error'); return; }
+        if (!nif) { mostrarMensaje("❌ El NIF/CIF es obligatorio", 'error'); return; }
+        if (!email) { mostrarMensaje("❌ El email es obligatorio", 'error'); return; }
         
-        mostrarMensaje("✅ Cliente guardado correctamente");
+        const btn = document.getElementById('btnGuardarCliente');
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner"></span> Guardando...';
+        btn.disabled = true;
         
-        // Limpiar formulario
-        const campos = [
-            'nuevoClienteNombre', 'nuevoClienteNif', 'nuevoClienteEmail',
-            'nuevoClienteTelefono', 'nuevoClienteDireccion', 'nuevoClienteCp',
-            'nuevoClienteCiudad', 'nuevoClienteProvincia', 'nuevoClienteContacto',
-            'nuevoClienteCargo', 'nuevoClienteIban', 'nuevoClienteBanco'
-        ];
-        campos.forEach(id => document.getElementById(id).value = '');
-        
-        cargarClientes();
-        cargarStats();
-        
-    } catch (error) {
-        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-    } finally {
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
+        try {
+            const { error } = await sb.from('empresas').insert({
+                nombre: nombre,
+                nif: nif,
+                email: email,
+                telefono: document.getElementById('nuevoClienteTelefono').value,
+                direccion: document.getElementById('nuevoClienteDireccion').value,
+                codigo_postal: document.getElementById('nuevoClienteCp').value,
+                ciudad: document.getElementById('nuevoClienteCiudad').value,
+                provincia: document.getElementById('nuevoClienteProvincia').value,
+                contacto_nombre: document.getElementById('nuevoClienteContacto').value,
+                contacto_cargo: document.getElementById('nuevoClienteCargo').value,
+                iban: document.getElementById('nuevoClienteIban').value,
+                banco: document.getElementById('nuevoClienteBanco').value,
+                tipo_cliente: document.getElementById('nuevoClienteTipo').value,
+                fecha_alta: document.getElementById('nuevoClienteFechaAlta').value,
+                created_by: currentUser.id,
+                activo: true
+            });
+            
+            if (error) throw error;
+            
+            mostrarMensaje("✅ Cliente guardado correctamente");
+            
+            const campos = [
+                'nuevoClienteNombre', 'nuevoClienteNif', 'nuevoClienteEmail',
+                'nuevoClienteTelefono', 'nuevoClienteDireccion', 'nuevoClienteCp',
+                'nuevoClienteCiudad', 'nuevoClienteProvincia', 'nuevoClienteContacto',
+                'nuevoClienteCargo', 'nuevoClienteIban', 'nuevoClienteBanco'
+            ];
+            campos.forEach(id => document.getElementById(id).value = '');
+            
+            cargarClientes();
+            cargarStats();
+            
+        } catch (error) {
+            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+        } finally {
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        }
     }
-}
 
     // ========== TÉCNICOS ==========
     async function cargarTecnicos() {
-        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
-        const select = document.getElementById('tareaTecnico');
-        if (select && data) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
-        
-        const tbody = document.getElementById('tecnicosBody');
-        if (!data?.length) { tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td></tr>'; return; }
-        tbody.innerHTML = data.map(t => `
-            <tr>
-                <td>${t.nombre || t.nick}</td>
-                <td>${t.nif || '-'}</td>
-                <td>${t.email}</td>
-                <td>${t.telefono || '-'}</td>
-                <td><span class="badge ${t.activo ? 'badge-activo' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
-                <td>
-                    <button class="btn-sm btn-warning editar-tecnico" data-id="${t.id}">✏️</button>
-                    <button class="btn-sm btn-danger eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button>
-                 </td>
-            </tr>
-        `).join('');
+    const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
+    const tbody = document.getElementById('tecnicosBody');
+    
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td></tr>';
+        return;
     }
-
-    async function crearTecnico() {
-    const nombre = document.getElementById('nuevoNombre').value.trim();
-    const email = document.getElementById('nuevoEmail').value.trim();
-    const password = document.getElementById('nuevoPassword').value;
-    const telefono = document.getElementById('nuevoTelefono').value.trim();
-    const nif = document.getElementById('nuevoNif').value.trim();
-    const fechaNacimiento = document.getElementById('nuevoFechaNacimiento').value;
-    const direccion = document.getElementById('nuevoDireccion').value.trim();
-    const numSS = document.getElementById('nuevoSS').value.trim();
-    const iban = document.getElementById('nuevoIban').value.trim();
-    const tipoContrato = document.getElementById('nuevoTipoContrato').value;
-    const jornada = document.getElementById('nuevoJornada').value;
-    const puesto = document.getElementById('nuevoPuesto').value;
-    const fechaAlta = document.getElementById('nuevoFechaAlta').value;
-    const nick = document.getElementById('nuevoNick').value.trim() || nombre.split(' ')[0].toLowerCase();
     
-    if (!nombre) { mostrarMensaje("❌ Nombre completo obligatorio", 'error'); return; }
-    if (!email) { mostrarMensaje("❌ Email obligatorio", 'error'); return; }
-    if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
-    if (!nif) { mostrarMensaje("❌ NIF/NIE obligatorio", 'error'); return; }
-    if (!fechaNacimiento) { mostrarMensaje("❌ Fecha de nacimiento obligatoria", 'error'); return; }
-    if (!direccion) { mostrarMensaje("❌ Dirección obligatoria", 'error'); return; }
-    if (!numSS) { mostrarMensaje("❌ Nº Seguridad Social obligatorio", 'error'); return; }
-    if (!iban) { mostrarMensaje("❌ IBAN obligatorio", 'error'); return; }
+    tbody.innerHTML = data.map(t => `
+        <tr>
+            <td>${t.nombre || t.nick}</td>
+            <td>${t.nif || '-'}</td>
+            <td>${t.email}</td>
+            <td>${t.telefono || '-'}</td>
+            <td><span class="badge badge-activo">Activo</span></td>
+            <td>
+                <button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button>
+                <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
     
-    const btn = document.getElementById('btnCrearTecnico');
-    btn.innerHTML = '<span class="spinner"></span> Creando...';
-    btn.disabled = true;
+    // Asignar eventos después de crear los botones
+    document.querySelectorAll('.btn-editar-tecnico').forEach(btn => {
+        btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id);
+    });
     
-    try {
-        const { data: { session } } = await sb.auth.getSession();
-        
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-                nombre: nombre,
-                empresa_id: currentEmpresaId,
-                empresa_nombre: 'Mi Empresa',
-                rol: 'tecnico'
-            })
-        });
-        
-        const resultado = await response.json();
-        if (!resultado.success) throw new Error(resultado.error);
-        
-        const { error: updateError } = await sb.from('perfiles').update({
-            telefono: telefono || null,
-            nif: nif,
-            direccion: direccion,
-            fecha_nacimiento: fechaNacimiento,
-            num_seguridad_social: numSS,
-            iban: iban,
-            tipo_contrato: tipoContrato,
-            jornada: jornada,
-            puesto: puesto,
-            fecha_alta: fechaAlta || new Date().toISOString().split('T')[0],
-            nick: nick
-        }).eq('id', resultado.user_id);
-        
-        if (updateError) throw updateError;
-        
-        mostrarMensaje(`✅ Técnico ${nombre} dado de alta`);
-        
-        document.getElementById('nuevoNombre').value = '';
-        document.getElementById('nuevoEmail').value = '';
-        document.getElementById('nuevoPassword').value = '';
-        document.getElementById('nuevoTelefono').value = '';
-        document.getElementById('nuevoNif').value = '';
-        document.getElementById('nuevoFechaNacimiento').value = '';
-        document.getElementById('nuevoDireccion').value = '';
-        document.getElementById('nuevoSS').value = '';
-        document.getElementById('nuevoIban').value = '';
-        document.getElementById('nuevoNick').value = '';
-        
-        cargarTecnicos();
-        cargarStats();
-        
-    } catch (error) {
-        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-        console.error(error);
-    } finally {
-        btn.innerHTML = '✅ Dar de alta técnico';
-        btn.disabled = false;
+    document.querySelectorAll('.btn-eliminar-tecnico').forEach(btn => {
+        btn.onclick = () => eliminarTecnico(btn.dataset.id, btn.dataset.nombre);
+    });
+    
+    const select = document.getElementById('tareaTecnico');
+    if (select) {
+        select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
     }
 }
+
+    async function abrirModalEditarTecnico(id) {
+        const { data: t, error } = await sb.from('perfiles').select('*').eq('id', id).single();
+        if (error) {
+            mostrarMensaje("Error al cargar datos", 'error');
+            return;
+        }
+        
+        document.getElementById('editTecnicoId').value = t.id;
+        document.getElementById('editNombreCompleto').value = t.nombre || '';
+        document.getElementById('editEmailCompleto').value = t.email || '';
+        document.getElementById('editTelefonoCompleto').value = t.telefono || '';
+        document.getElementById('editNifCompleto').value = t.nif || '';
+        document.getElementById('editDireccionCompleto').value = t.direccion || '';
+        document.getElementById('editFechaNacimientoCompleto').value = t.fecha_nacimiento || '';
+        document.getElementById('editSSCompleto').value = t.num_seguridad_social || '';
+        document.getElementById('editIbanCompleto').value = t.iban || '';
+        document.getElementById('editTipoContratoCompleto').value = t.tipo_contrato || 'INDEFINIDO';
+        document.getElementById('editJornadaCompleto').value = t.jornada || 'COMPLETA';
+        document.getElementById('editPuestoCompleto').value = t.puesto || 'TECNICO_BASE';
+        document.getElementById('editNickCompleto').value = t.nick || '';
+        document.getElementById('editFechaAltaCompleto').value = t.fecha_alta || '';
+        document.getElementById('editEstadoCompleto').value = t.activo ? 'true' : 'false';
+        document.getElementById('editPasswordCompleto').value = '';
+        document.getElementById('editPasswordConfirmCompleto').value = '';
+        
+        document.getElementById('modalEditarTecnicoCompleto').style.display = 'flex';
+    }
+
+    async function guardarEdicionTecnico() {
+        const id = document.getElementById('editTecnicoId').value;
+        const nuevaPassword = document.getElementById('editPasswordCompleto').value;
+        const confirmPassword = document.getElementById('editPasswordConfirmCompleto').value;
+        
+        if (nuevaPassword && nuevaPassword !== confirmPassword) {
+            mostrarMensaje("❌ Las contraseñas no coinciden", 'error');
+            return;
+        }
+        if (nuevaPassword && nuevaPassword.length < 6) {
+            mostrarMensaje("❌ La contraseña debe tener al menos 6 caracteres", 'error');
+            return;
+        }
+        
+        // Actualizar datos del perfil
+        const { error: updateError } = await sb.from('perfiles').update({
+            nombre: document.getElementById('editNombreCompleto').value,
+            email: document.getElementById('editEmailCompleto').value,
+            telefono: document.getElementById('editTelefonoCompleto').value || null,
+            nif: document.getElementById('editNifCompleto').value || null,
+            direccion: document.getElementById('editDireccionCompleto').value || null,
+            fecha_nacimiento: document.getElementById('editFechaNacimientoCompleto').value || null,
+            num_seguridad_social: document.getElementById('editSSCompleto').value || null,
+            iban: document.getElementById('editIbanCompleto').value || null,
+            tipo_contrato: document.getElementById('editTipoContratoCompleto').value,
+            jornada: document.getElementById('editJornadaCompleto').value,
+            puesto: document.getElementById('editPuestoCompleto').value,
+            nick: document.getElementById('editNickCompleto').value || null,
+            fecha_alta: document.getElementById('editFechaAltaCompleto').value || null,
+            activo: document.getElementById('editEstadoCompleto').value === 'true'
+        }).eq('id', id);
+        
+        if (updateError) {
+            mostrarMensaje("Error al actualizar: " + updateError.message, 'error');
+            return;
+        }
+        
+        // Cambiar contraseña si se proporcionó una nueva
+        if (nuevaPassword) {
+            try {
+                const { error: passError } = await sb.auth.admin.updateUserById(id, {
+                    password: nuevaPassword
+                });
+                
+                if (passError) {
+                    mostrarMensaje("Error al cambiar contraseña: " + passError.message, 'error');
+                } else {
+                    mostrarMensaje("✅ Contraseña actualizada correctamente", 'exito');
+                }
+            } catch (e) {
+                mostrarMensaje("Error al cambiar contraseña: " + e.message, 'error');
+            }
+        }
+        
+        mostrarMensaje("✅ Técnico actualizado correctamente");
+        document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
+        cargarTecnicos();
+    }
+
+    window.eliminarTecnico = async (id, nombre) => {
+        if (confirm(`¿Eliminar técnico "${nombre}"?`)) {
+            await sb.from('perfiles').delete().eq('id', id);
+            mostrarMensaje("✅ Técnico eliminado");
+            cargarTecnicos();
+        }
+    };
+
+    async function crearTecnico() {
+        const nombre = document.getElementById('nuevoNombre').value.trim();
+        const email = document.getElementById('nuevoEmail').value.trim();
+        const password = document.getElementById('nuevoPassword').value;
+        const telefono = document.getElementById('nuevoTelefono').value.trim();
+        const nif = document.getElementById('nuevoNif').value.trim();
+        const fechaNacimiento = document.getElementById('nuevoFechaNacimiento').value;
+        const direccion = document.getElementById('nuevoDireccion').value.trim();
+        const numSS = document.getElementById('nuevoSS').value.trim();
+        const iban = document.getElementById('nuevoIban').value.trim();
+        const tipoContrato = document.getElementById('nuevoTipoContrato').value;
+        const jornada = document.getElementById('nuevoJornada').value;
+        const puesto = document.getElementById('nuevoPuesto').value;
+        const fechaAlta = document.getElementById('nuevoFechaAlta').value;
+        const nick = document.getElementById('nuevoNick').value.trim() || nombre.split(' ')[0].toLowerCase();
+        
+        if (!nombre) { mostrarMensaje("❌ Nombre completo obligatorio", 'error'); return; }
+        if (!email) { mostrarMensaje("❌ Email obligatorio", 'error'); return; }
+        if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
+        if (!nif) { mostrarMensaje("❌ NIF/NIE obligatorio", 'error'); return; }
+        if (!fechaNacimiento) { mostrarMensaje("❌ Fecha de nacimiento obligatoria", 'error'); return; }
+        if (!direccion) { mostrarMensaje("❌ Dirección obligatoria", 'error'); return; }
+        if (!numSS) { mostrarMensaje("❌ Nº Seguridad Social obligatorio", 'error'); return; }
+        if (!iban) { mostrarMensaje("❌ IBAN obligatorio", 'error'); return; }
+        
+        const btn = document.getElementById('btnCrearTecnico');
+        btn.innerHTML = '<span class="spinner"></span> Creando...';
+        btn.disabled = true;
+        
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    nombre: nombre,
+                    empresa_id: currentEmpresaId,
+                    empresa_nombre: 'Mi Empresa',
+                    rol: 'tecnico'
+                })
+            });
+            
+            const resultado = await response.json();
+            if (!resultado.success) throw new Error(resultado.error);
+            
+            const { error: updateError } = await sb.from('perfiles').update({
+                telefono: telefono || null,
+                nif: nif,
+                direccion: direccion,
+                fecha_nacimiento: fechaNacimiento,
+                num_seguridad_social: numSS,
+                iban: iban,
+                tipo_contrato: tipoContrato,
+                jornada: jornada,
+                puesto: puesto,
+                fecha_alta: fechaAlta || new Date().toISOString().split('T')[0],
+                nick: nick
+            }).eq('id', resultado.user_id);
+            
+            if (updateError) throw updateError;
+            
+            mostrarMensaje(`✅ Técnico ${nombre} dado de alta`);
+            
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('nuevoEmail').value = '';
+            document.getElementById('nuevoPassword').value = '';
+            document.getElementById('nuevoTelefono').value = '';
+            document.getElementById('nuevoNif').value = '';
+            document.getElementById('nuevoFechaNacimiento').value = '';
+            document.getElementById('nuevoDireccion').value = '';
+            document.getElementById('nuevoSS').value = '';
+            document.getElementById('nuevoIban').value = '';
+            document.getElementById('nuevoNick').value = '';
+            
+            cargarTecnicos();
+            cargarStats();
+            
+        } catch (error) {
+            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+            console.error(error);
+        } finally {
+            btn.innerHTML = '✅ Dar de alta técnico';
+            btn.disabled = false;
+        }
+    }
 
     // ========== GASTOS ==========
     async function cargarGastos() {
@@ -995,7 +1171,7 @@ async function guardarCliente() {
                 <td>${g.perfiles?.nombre || '-'}</td>
                 <td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td>
             </tr>
-        `).join('') || '<tr><td colspan="7">No hay gastos pendientes</td></tr>';
+        `).join('') || '</table><td colspan="7">No hay gastos pendientes</td></tr>';
         
         const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
         document.getElementById('gastosAprobadosBody').innerHTML = aprobados?.map(g => `
@@ -1008,7 +1184,7 @@ async function guardarCliente() {
                 <td>${g.perfiles?.nombre || '-'}</td>
                 <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
             </tr>
-        `).join('') || '<td><td colspan="7">No hay gastos procesados</td></tr>';
+        `).join('') || '<tr><td colspan="7">No hay gastos procesados</td></tr>';
         
         document.querySelectorAll('.aprobar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("✅ Gasto aprobado"); });
         document.querySelectorAll('.rechazar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'RECHAZADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("❌ Gasto rechazado"); });
@@ -1079,141 +1255,136 @@ async function guardarCliente() {
 
     // ========== INICIALIZACIÓN ==========
     function inicializarTabs() {
-    // Tabs principales
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.onclick = () => {
-            // Ocultar todas las pestañas
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Ocultar todos los tab contents
-            const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabGastos', 'tabFacturas', 'tabExportar'];
-            tabIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
-            });
-            
-            // Mostrar la pestaña seleccionada
-            const tabId = tab.dataset.tab;
-            const tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1);
-            document.getElementById(tabName).style.display = 'block';
-            
-            // Cargar datos según la pestaña
-            if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
-            if (tabId === 'clientes') cargarClientes();
-            if (tabId === 'personal') cargarTecnicos();
-            if (tabId === 'gastos') cargarGastos();
-            if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); }
-        };
-    });
-    
-    // Sub-tabs de Tareas
-    document.querySelectorAll('#tabTareas .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabTareas .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabTareas [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            if (subId === 'crearTarea') { cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
-        };
-    });
-    
-    // Sub-tabs de Clientes
-    document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-        };
-    });
-    
-    // Sub-tabs de Personal
-    document.querySelectorAll('#tabPersonal .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabPersonal .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            if (subId === 'listaTecnicos') {
-                document.getElementById('subListaTecnicos').style.display = 'block';
-                document.getElementById('subCrearTecnico').style.display = 'none';
-                cargarTecnicos();
-            } else if (subId === 'crearTecnico') {
-                document.getElementById('subListaTecnicos').style.display = 'none';
-                document.getElementById('subCrearTecnico').style.display = 'block';
-            }
-        };
-    });
-    
-    // Sub-tabs de Gastos
-    document.querySelectorAll('#tabGastos .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabGastos .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabGastos [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            cargarGastos();
-        };
-    });
-    
-    // Sub-tabs de Facturas
-    document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            if (subId === 'crearFactura') cargarClientes();
-        };
-    });
-    
-    // Sub-tabs de Exportar
-    document.querySelectorAll('#tabExportar .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabExportar .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabExportar [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-        };
-    });
-}
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabGastos', 'tabFacturas', 'tabExportar'];
+                tabIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+                
+                const tabId = tab.dataset.tab;
+                const tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1);
+                document.getElementById(tabName).style.display = 'block';
+                
+                if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+                if (tabId === 'clientes') cargarClientes();
+                if (tabId === 'personal') cargarTecnicos();
+                if (tabId === 'gastos') cargarGastos();
+                if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); }
+            };
+        });
+        
+        document.querySelectorAll('#tabTareas .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabTareas .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabTareas [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                if (subId === 'crearTarea') { cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+            };
+        });
+        
+        document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            };
+        });
+        
+        document.querySelectorAll('#tabPersonal .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabPersonal .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                if (subId === 'listaTecnicos') {
+                    document.getElementById('subListaTecnicos').style.display = 'block';
+                    document.getElementById('subCrearTecnico').style.display = 'none';
+                    cargarTecnicos();
+                } else if (subId === 'crearTecnico') {
+                    document.getElementById('subListaTecnicos').style.display = 'none';
+                    document.getElementById('subCrearTecnico').style.display = 'block';
+                }
+            };
+        });
+        
+        document.querySelectorAll('#tabGastos .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabGastos .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabGastos [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                cargarGastos();
+            };
+        });
+        
+        document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                if (subId === 'crearFactura') cargarClientes();
+            };
+        });
+        
+        document.querySelectorAll('#tabExportar .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabExportar .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabExportar [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            };
+        });
+    }
+
+    // Eventos
+    document.getElementById('btnGuardarEdicionCompleta').onclick = guardarEdicionTecnico;
+    document.getElementById('btnCancelarEdicionCompleta').onclick = () => {
+        document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
+    };
 
     // ========== EVENTOS GLOBALES ==========
-document.getElementById('btnLogin').onclick = async () => {
-    const exito = await hacerLogin();
-    if (exito) {
-        document.getElementById('loginPanel').style.display = 'none';
-        document.getElementById('dashboardPanel').style.display = 'block';
-        inicializarTabs();
-        await cargarStats(); 
-        await cargarTareas(); 
-        await cargarActivos(); 
-        await cargarTecnicos(); 
-        await cargarClientes(); 
-        await cargarGastos(); 
-        await cargarFacturas(); 
-        await cargarPlantillas();
-    }
-};
+    document.getElementById('btnLogin').onclick = async () => {
+        const exito = await hacerLogin();
+        if (exito) {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('dashboardPanel').style.display = 'block';
+            inicializarTabs();
+            await cargarStats(); 
+            await cargarTareas(); 
+            await cargarActivos(); 
+            await cargarTecnicos(); 
+            await cargarClientes(); 
+            await cargarGastos(); 
+            await cargarFacturas(); 
+            await cargarPlantillas();
+        }
+    };
 
-document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
-document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
-document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
-document.getElementById('btnCrearTarea').onclick = crearTarea;
-document.getElementById('btnRecargarActivos').onclick = cargarActivos;
-document.getElementById('btnGuardarCliente').onclick = guardarCliente;
-document.getElementById('btnBuscarCliente').onclick = cargarClientes;
-document.getElementById('btnCrearTecnico').onclick = crearTecnico;
-document.getElementById('btnCrearFactura').onclick = crearFactura;
-document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
-document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
+    document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
+    document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
+    document.getElementById('btnCrearTarea').onclick = crearTarea;
+    document.getElementById('btnRecargarActivos').onclick = cargarActivos;
+    document.getElementById('btnGuardarCliente').onclick = guardarCliente;
+    document.getElementById('btnBuscarCliente').onclick = cargarClientes;
+    document.getElementById('btnCrearTecnico').onclick = crearTecnico;
+    document.getElementById('btnCrearFactura').onclick = crearFactura;
+    document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
+    document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
 
-window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+    window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
 
 </script>
 </body>
