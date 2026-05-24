@@ -165,7 +165,8 @@
         .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
         .grupo { flex: 1; min-width: 180px; }
         label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; }
+        textarea { resize: vertical; }
         
         .modal {
             display: none;
@@ -420,7 +421,7 @@
                             <thead>
                                 <tr><th>Fecha</th><th>Cliente</th><th>Nº Factura</th><th>Concepto</th><th>Total</th><th>Estado</th><th>Acciones</th>
                             </thead>
-                            <tbody id="facturasBody"><tr><td colspan="7" style="text-align:center;">📋 No hay facturas</td></tr>^</tbody>
+                            <tbody id="facturasBody"><tr><td colspan="7" style="text-align:center;">📋 No hay facturas</td></tbody>
                         </table>
                     </div>
                 </div>
@@ -511,23 +512,6 @@
         setTimeout(() => msg.remove(), 3000);
     }
 
-    function generarPassword() {
-        const mayusculas = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-        const minusculas = 'abcdefghijkmnopqrstuvwxyz';
-        const numeros = '23456789';
-        const simbolos = '!@#$%';
-        const all = mayusculas + minusculas + numeros + simbolos;
-        let password = '';
-        password += mayusculas[Math.floor(Math.random() * mayusculas.length)];
-        password += minusculas[Math.floor(Math.random() * minusculas.length)];
-        password += numeros[Math.floor(Math.random() * numeros.length)];
-        password += simbolos[Math.floor(Math.random() * simbolos.length)];
-        for (let i = 0; i < 8; i++) {
-            password += all[Math.floor(Math.random() * all.length)];
-        }
-        return password;
-    }
-
     async function hacerLogin() {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
@@ -604,7 +588,7 @@
         const end = start + registrosPorPagina;
         const paginados = clientesFiltrados.slice(start, end);
         const tbody = document.getElementById('clientesBody');
-        if (paginados.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px;">📋 No hay clientes que coincidan</td><tr>'; document.getElementById('paginacion').innerHTML = ''; document.getElementById('totalClientes').innerHTML = ''; return; }
+        if (paginados.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px;">📋 No hay clientes que coincidan</td></tr>'; document.getElementById('paginacion').innerHTML = ''; document.getElementById('totalClientes').innerHTML = ''; return; }
         tbody.innerHTML = paginados.map(emp => `<tr><td>${getBadgeTipo(emp.tipo_cliente)}</td><td><strong>${emp.nombre}</strong><br><small style="color:#64748b;">${emp.nif || ''}</small></td><td>${emp.contacto_nombre || '-'}</td><td>${emp.contacto_email || '-'}</td><td><span class="badge ${emp.plan === 'BASICO' ? 'badge-basico' : (emp.plan === 'PRO' ? 'badge-pro' : 'badge-empresa-plan')}">${emp.plan || 'BASICO'}</span></td><td><span class="badge ${emp.activo ? 'badge-activo' : 'badge-inactivo'}">${emp.activo ? 'Activo' : 'Inactivo'}</span></td><td><button class="btn-sm ver-cliente" data-id="${emp.id}" style="background:#0284c7;">👁️</button> <button class="btn-sm editar-cliente" data-id="${emp.id}" style="background:#e67e22;">✏️</button> <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}" style="background:#e67e22;">${emp.activo ? '❌' : '✅'}</button> <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre.replace(/"/g, '&quot;')}" style="background:#c2410c;">🗑️</button></td></tr>`).join('');
         const totalPaginas = Math.ceil(clientesFiltrados.length / registrosPorPagina);
         let pagHtml = '';
@@ -696,7 +680,13 @@
         
         if (!nombre || !email) { mostrarMensaje("❌ Nombre y email son obligatorios", 'error'); return; }
         
-        const passwordTemp = generarPassword();
+        // 🔐 PEDIR CONTRASEÑA MANUALMENTE
+        const passwordTemp = prompt("🔐 Introduce la contraseña para el gerente:\n(mínimo 6 caracteres)", "Gerente2026!");
+        if (!passwordTemp || passwordTemp.length < 6) {
+            mostrarMensaje("❌ Contraseña requerida (mínimo 6 caracteres)", 'error');
+            return;
+        }
+        
         const btn = document.getElementById('btnGuardarCliente');
         const textoOriginal = btn.innerHTML;
         btn.innerHTML = '<span class="spinner"></span> Creando...';
@@ -736,7 +726,7 @@
 ║  Contraseña: ${passwordTemp}
 ║  Tipo: ${getTipoIcono(tipo)}
 ╠══════════════════════════════════════════════════════════════╣
-║  📌 Se ha enviado un correo con las credenciales            ║
+║  📌 El gerente ya puede acceder al Panel de Gerente         ║
 ╚══════════════════════════════════════════════════════════════╝`;
             
             alert(mensajeCredenciales);
@@ -776,7 +766,7 @@
         if (hasta) query = query.lte('fecha', hasta);
         const { data: facturas, error } = await query;
         const tbody = document.getElementById('facturasBody');
-        if (error || !facturas?.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">📋 No hay facturas</td><tr>'; return; }
+        if (error || !facturas?.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">📋 No hay facturas</td></tr>'; return; }
         tbody.innerHTML = facturas.map(f => `<tr><td>${formatDate(f.fecha)}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.numero || f.id.slice(0,8)}</td><td>${f.concepto || '-'}</td><td>${(f.total || 0).toFixed(2)}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}" style="background:#e67e22;">${f.pagada ? '❌' : '✅'}</button></td></tr>`).join('');
         document.querySelectorAll('.toggle-factura').forEach(btn => { btn.onclick = async () => { const id = btn.dataset.id, pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', id); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); await cargarFacturas(); await cargarStats(); }; });
         const { data: empresas } = await sb.from('empresas').select('id, nombre');
@@ -785,7 +775,7 @@
     }
 
     async function cargarSelectorClientesFactura() {
-        const { data: empresas, error } = await sb.from('empresas').select('id, nombre').eq('activo', true).order('nombre');
+        const { data: empresas } = await sb.from('empresas').select('id, nombre').eq('activo', true).order('nombre');
         const select = document.getElementById('selectorClienteFactura');
         if (select && empresas) select.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + empresas.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
     }
