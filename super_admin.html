@@ -250,39 +250,45 @@
     }
 
     async function hacerLogin() {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        
-        if (!email || !password) {
-            document.getElementById('errorMsg').innerText = "Introduce email y contraseña";
-            return false;
-        }
-        
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) {
-            document.getElementById('errorMsg').innerText = error.message;
-            return false;
-        }
-        
-        const { data: perfil, error: perfilError } = await sb
-            .from('perfiles')
-            .select('rol, nombre')
-            .eq('id', data.user.id)
-            .single();
-        
-        if (perfilError || perfil.rol !== 'super_admin') {
-            await sb.auth.signOut();
-            document.getElementById('errorMsg').innerText = "Acceso no autorizado";
-            return false;
-        }
-        
-        currentUser = data.user;
-        currentUserRol = perfil.rol;
-        document.getElementById('nombreAdmin').innerHTML = perfil.nombre || 'Super Admin';
-        document.getElementById('emailAdmin').innerHTML = currentUser.email;
-        
-        return true;
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    
+    if (!email || !password) {
+        document.getElementById('errorMsg').innerText = "Introduce email y contraseña";
+        return false;
     }
+    
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+        document.getElementById('errorMsg').innerText = error.message;
+        return false;
+    }
+    
+    const { data: perfil, error: perfilError } = await sb
+        .from('perfiles')
+        .select('rol, nombre')
+        .eq('id', data.user.id)
+        .maybeSingle();
+    
+    if (perfilError || !perfil) {
+        await sb.auth.signOut();
+        document.getElementById('errorMsg').innerText = "Usuario no encontrado en el sistema";
+        return false;
+    }
+    
+    if (perfil.rol !== 'super_admin') {
+        await sb.auth.signOut();
+        document.getElementById('errorMsg').innerText = "Acceso no autorizado";
+        return false;
+    }
+    
+    currentUser = data.user;
+    currentUserRol = perfil.rol;
+    document.getElementById('nombreAdmin').innerHTML = perfil.nombre || 'Super Admin';
+    document.getElementById('emailAdmin').innerHTML = currentUser.email;
+    
+    return true;
+}
 
     async function cargarClientes() {
         const container = document.getElementById('listaClientes');
