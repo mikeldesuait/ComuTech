@@ -363,17 +363,41 @@
                     
                     <div id="subNuevoCliente" style="display: none;">
                         <div class="row-flex">
-                            <div class="grupo"><label class="required">🏢 Nombre empresa</label><input type="text" id="nuevoClienteNombre" placeholder="Razón social"></div>
-                            <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com"></div>
+                            <div class="grupo"><label class="required">🏢 Razón social / Nombre</label><input type="text" id="nuevoClienteNombre" placeholder="Ej: Comunidad Avda. del Puerto" autocomplete="organization"></div>
+                            <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com" autocomplete="email"></div>
                         </div>
                         <div class="row-flex">
-                            <div class="grupo"><label>👤 Contacto</label><input type="text" id="nuevoClienteContacto" placeholder="Persona de contacto"></div>
-                            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="nuevoClienteTelefono" placeholder="Teléfono"></div>
+                            <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoClienteDireccion" placeholder="Calle, número, piso" autocomplete="street-address"></div>
+                            <div class="grupo"><label class="required">📮 Código postal</label><input type="text" id="nuevoClienteCp" placeholder="Código postal" autocomplete="postal-code"></div>
                         </div>
                         <div class="row-flex">
-                            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="nuevoClienteNif" placeholder="B12345678"></div>
-                            <div class="grupo"><label>📍 Dirección</label><input type="text" id="nuevoClienteDireccion" placeholder="Dirección"></div>
+                            <div class="grupo"><label class="required">🌆 Ciudad</label><input type="text" id="nuevoClienteCiudad" placeholder="Ciudad" autocomplete="address-level2"></div>
+                            <div class="grupo"><label class="required">🗺️ Provincia</label><input type="text" id="nuevoClienteProvincia" placeholder="Provincia" autocomplete="address-level1"></div>
                         </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>👤 Persona de contacto</label><input type="text" id="nuevoClienteContacto" placeholder="Nombre del presidente/administrador" autocomplete="name"></div>
+                            <div class="grupo"><label>📋 Cargo</label><input type="text" id="nuevoClienteCargo" placeholder="Ej: Presidente, Administrador"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoClienteTelefono" placeholder="Teléfono" autocomplete="tel"></div>
+                            <div class="grupo"><label class="required">📋 NIF/CIF</label><input type="text" id="nuevoClienteNif" placeholder="B12345678" autocomplete="off"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>🏦 IBAN (para domiciliación)</label><input type="text" id="nuevoClienteIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
+                            <div class="grupo"><label>🏦 Banco</label><input type="text" id="nuevoClienteBanco" placeholder="Nombre del banco"></div>
+                        </div>
+                        <div class="row-flex">
+                            <div class="grupo"><label>🏷️ Tipo de cliente</label>
+                                <select id="nuevoClienteTipo">
+                                    <option value="comunidad">🏘️ Comunidad de propietarios</option>
+                                    <option value="empresa">🏭 Empresa / Autónomo</option>
+                                    <option value="particular">👤 Particular</option>
+                                </select>
+                            </div>
+                            <div class="grupo"><label>📅 Fecha alta</label><input type="date" id="nuevoClienteFechaAlta" value="2026-05-24"></div>
+                        </div>
+                        <hr>
+                        <p style="font-size:0.7rem; color:#64748b;">* Campos obligatorios para facturación</p>
                         <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
                     </div>
                 </div>
@@ -749,25 +773,63 @@
         `).join('');
     }
 
-    async function guardarCliente() {
-        const nombre = document.getElementById('nuevoClienteNombre').value.trim();
-        const email = document.getElementById('nuevoClienteEmail').value.trim();
-        if (!nombre || !email) { mostrarMensaje("Nombre y email son obligatorios", 'error'); return; }
+async function guardarCliente() {
+    const nombre = document.getElementById('nuevoClienteNombre').value.trim();
+    const nif = document.getElementById('nuevoClienteNif').value.trim();
+    const email = document.getElementById('nuevoClienteEmail').value.trim();
+    
+    if (!nombre) { mostrarMensaje("❌ La razón social es obligatoria", 'error'); return; }
+    if (!nif) { mostrarMensaje("❌ El NIF/CIF es obligatorio", 'error'); return; }
+    if (!email) { mostrarMensaje("❌ El email es obligatorio", 'error'); return; }
+    
+    const btn = document.getElementById('btnGuardarCliente');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Guardando...';
+    btn.disabled = true;
+    
+    try {
         const { error } = await sb.from('empresas').insert({
-            nombre, email, telefono: document.getElementById('nuevoClienteTelefono').value,
-            nif: document.getElementById('nuevoClienteNif').value, direccion: document.getElementById('nuevoClienteDireccion').value,
-            contacto_nombre: document.getElementById('nuevoClienteContacto').value, created_by: currentUser.id
+            nombre: nombre,
+            nif: nif,
+            email: email,
+            telefono: document.getElementById('nuevoClienteTelefono').value,
+            direccion: document.getElementById('nuevoClienteDireccion').value,
+            codigo_postal: document.getElementById('nuevoClienteCp').value,
+            ciudad: document.getElementById('nuevoClienteCiudad').value,
+            provincia: document.getElementById('nuevoClienteProvincia').value,
+            contacto_nombre: document.getElementById('nuevoClienteContacto').value,
+            contacto_cargo: document.getElementById('nuevoClienteCargo').value,
+            iban: document.getElementById('nuevoClienteIban').value,
+            banco: document.getElementById('nuevoClienteBanco').value,
+            tipo_cliente: document.getElementById('nuevoClienteTipo').value,
+            fecha_alta: document.getElementById('nuevoClienteFechaAlta').value,
+            created_by: currentUser.id,
+            activo: true
         });
-        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
-        mostrarMensaje("✅ Cliente guardado");
-        document.getElementById('nuevoClienteNombre').value = '';
-        document.getElementById('nuevoClienteEmail').value = '';
-        document.getElementById('nuevoClienteTelefono').value = '';
-        document.getElementById('nuevoClienteNif').value = '';
-        document.getElementById('nuevoClienteDireccion').value = '';
-        document.getElementById('nuevoClienteContacto').value = '';
-        cargarClientes(); cargarStats();
+        
+        if (error) throw error;
+        
+        mostrarMensaje("✅ Cliente guardado correctamente");
+        
+        // Limpiar formulario
+        const campos = [
+            'nuevoClienteNombre', 'nuevoClienteNif', 'nuevoClienteEmail',
+            'nuevoClienteTelefono', 'nuevoClienteDireccion', 'nuevoClienteCp',
+            'nuevoClienteCiudad', 'nuevoClienteProvincia', 'nuevoClienteContacto',
+            'nuevoClienteCargo', 'nuevoClienteIban', 'nuevoClienteBanco'
+        ];
+        campos.forEach(id => document.getElementById(id).value = '');
+        
+        cargarClientes();
+        cargarStats();
+        
+    } catch (error) {
+        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+    } finally {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
     }
+}
 
     // ========== TÉCNICOS ==========
     async function cargarTecnicos() {
