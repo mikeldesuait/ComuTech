@@ -6,7 +6,8 @@
     <title>COMUTECH · Panel Gerente</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>        * { margin: 0; padding: 0; box-sizing: border-box; }
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: #f0f4f8;
@@ -170,6 +171,7 @@
         .badge-completada { background: #d4edda; color: #155724; }
         .badge-activo { background: #d4edda; color: #155724; }
         .badge-pagada { background: #d4edda; color: #155724; }
+        .badge-externo { background: #e67e22; color: white; }
         
         .mensaje {
             position: fixed;
@@ -195,7 +197,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* MODALES - POSICIONAMIENTO CORREGIDO */
         .modal {
             display: none;
             position: fixed;
@@ -229,26 +230,30 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .grupo { min-width: 100%; }
         }
-        /* Forzar que los modales estén sobre todo */
-.modal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(0,0,0,0.6) !important;
-    z-index: 999999 !important;
-}
-
-.modal-content {
-    position: relative !important;
-    margin: 50px auto !important;
-    z-index: 1000000 !important;
-}
-
-        </style>
+        .modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0,0,0,0.6) !important;
+            z-index: 999999 !important;
+        }
+        .modal-content {
+            position: relative !important;
+            margin: 50px auto !important;
+            z-index: 1000000 !important;
+        }
+        .cliente-seleccionado {
+            background: #e8f4e8;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -285,6 +290,7 @@
                 <button class="tab active" data-tab="tareas">📋 TAREAS</button>
                 <button class="tab" data-tab="clientes">👥 CLIENTES</button>
                 <button class="tab" data-tab="personal">👨‍🔧 PERSONAL</button>
+                <button class="tab" data-tab="externos">🔄 EXTERNOS</button>
                 <button class="tab" data-tab="gastos">💰 GASTOS</button>
                 <button class="tab" data-tab="facturas">🧾 FACTURAS</button>
                 <button class="tab" data-tab="exportar">📁 EXPORTAR</button>
@@ -311,9 +317,7 @@
                             <button id="btnRefrescarTareas" class="btn-sm btn-info">🔄 Refrescar</button>
                         </div>
                         <table class="tabla">
-                            <thead>
-                                <tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
-                            </thead>
+                            <thead><tr><th>ID</th><th>Tipo</th><th>Activo</th><th>Técnico</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody id="tareasBody"></tbody>
                         </table>
                         <div id="paginacionTareas" class="pagination" style="margin-top:16px; text-align:center;"></div>
@@ -357,18 +361,15 @@
                             <label>📋 Orden de trabajo</label>
                             <textarea id="tareaOrden" rows="4" placeholder="Instrucciones para el técnico..."></textarea>
                         </div>
-                        <!-- Campos específicos para presupuesto (se muestran solo cuando se selecciona PRESUPUESTO) -->
-<div id="camposPresupuesto" style="display: none;">
-    <div class="row-flex">
-        <div class="grupo"><label>💰 Coste estimado (€)</label><input type="number" id="tareaCosteEstimado" step="0.01" placeholder="Presupuesto estimado"></div>
-        <div class="grupo"><label>📝 Notas para el técnico</label><input type="text" id="tareaNotasPresupuesto" placeholder="Ej: Revisar bomba, posible fuga..."></div>
-    </div>
-</div>
+                        <div id="camposPresupuesto" style="display: none;">
+                            <div class="row-flex">
+                                <div class="grupo"><label>💰 Coste estimado (€)</label><input type="number" id="tareaCosteEstimado" step="0.01" placeholder="Presupuesto estimado"></div>
+                                <div class="grupo"><label>📝 Notas para el técnico</label><input type="text" id="tareaNotasPresupuesto" placeholder="Ej: Revisar bomba, posible fuga..."></div>
+                            </div>
+                        </div>
                         <div class="row-flex">
                             <div class="grupo"><label>📄 Plantilla rápida</label>
-                                <select id="plantillaOrden">
-                                    <option value="">-- Seleccionar plantilla --</option>
-                                </select>
+                                <select id="plantillaOrden"><option value="">-- Seleccionar plantilla --</option></select>
                             </div>
                             <div><button id="btnCrearTarea" class="btn-success">✅ Crear tarea</button></div>
                         </div>
@@ -380,6 +381,7 @@
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="listaClientes">📋 Lista de clientes</button>
                         <button class="sub-tab" data-sub="nuevoCliente">➕ Nuevo cliente</button>
+                        <button class="sub-tab" data-sub="activosCliente">🏢 Activos</button>
                     </div>
                     
                     <div id="subListaClientes">
@@ -388,9 +390,7 @@
                             <button id="btnBuscarCliente" class="btn-sm btn-info">🔍 Buscar</button>
                         </div>
                         <table class="tabla">
-                            <thead>
-                                <tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>NIF</th><th>Acciones</th>
-                            </thead>
+                            <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>NIF</th><th>Acciones</th></tr></thead>
                             <tbody id="clientesBody"></tbody>
                         </table>
                     </div>
@@ -398,31 +398,31 @@
                     <div id="subNuevoCliente" style="display: none;">
                         <form>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">🏢 Razón social / Nombre</label><input type="text" id="nuevoClienteNombre" placeholder="Ej: Comunidad Avda. del Puerto" autocomplete="organization"></div>
-                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com" autocomplete="email"></div>
+                                <div class="grupo"><label class="required">🏢 Razón social / Nombre</label><input type="text" id="nuevoClienteNombre" placeholder="Ej: Comunidad Avda. del Puerto"></div>
+                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoClienteDireccion" placeholder="Calle, número, piso" autocomplete="street-address"></div>
-                                <div class="grupo"><label class="required">📮 Código postal</label><input type="text" id="nuevoClienteCp" placeholder="Código postal" autocomplete="postal-code"></div>
+                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoClienteDireccion" placeholder="Calle"></div>
+                                <div class="grupo"><label class="required">📮 Código postal</label><input type="text" id="nuevoClienteCp" placeholder="Código postal"></div>
                             </div>
                             <div class="row-flex">
-    <div class="grupo"><label>🔢 Número</label><input type="text" id="nuevoClienteNumero" placeholder="Número"></div>
-    <div class="grupo"><label>🏢 Piso/Puerta</label><input type="text" id="nuevoClientePiso" placeholder="Piso/Puerta"></div>
-</div>
-                            <div class="row-flex">
-                                <div class="grupo"><label class="required">🌆 Ciudad</label><input type="text" id="nuevoClienteCiudad" placeholder="Ciudad" autocomplete="address-level2"></div>
-                                <div class="grupo"><label class="required">🗺️ Provincia</label><input type="text" id="nuevoClienteProvincia" placeholder="Provincia" autocomplete="address-level1"></div>
+                                <div class="grupo"><label>🔢 Número</label><input type="text" id="nuevoClienteNumero" placeholder="Número"></div>
+                                <div class="grupo"><label>🏢 Piso/Puerta</label><input type="text" id="nuevoClientePiso" placeholder="Piso/Puerta"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label>👤 Persona de contacto</label><input type="text" id="nuevoClienteContacto" placeholder="Nombre del presidente/administrador" autocomplete="name"></div>
+                                <div class="grupo"><label class="required">🌆 Ciudad</label><input type="text" id="nuevoClienteCiudad" placeholder="Ciudad"></div>
+                                <div class="grupo"><label class="required">🗺️ Provincia</label><input type="text" id="nuevoClienteProvincia" placeholder="Provincia"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>👤 Persona de contacto</label><input type="text" id="nuevoClienteContacto" placeholder="Nombre del presidente/administrador"></div>
                                 <div class="grupo"><label>📋 Cargo</label><input type="text" id="nuevoClienteCargo" placeholder="Ej: Presidente, Administrador"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoClienteTelefono" placeholder="Teléfono" autocomplete="tel"></div>
-                                <div class="grupo"><label class="required">📋 NIF/CIF</label><input type="text" id="nuevoClienteNif" placeholder="B12345678" autocomplete="off"></div>
+                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoClienteTelefono" placeholder="Teléfono"></div>
+                                <div class="grupo"><label class="required">📋 NIF/CIF</label><input type="text" id="nuevoClienteNif" placeholder="B12345678"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label>🏦 IBAN (para domiciliación)</label><input type="text" id="nuevoClienteIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
+                                <div class="grupo"><label>🏦 IBAN</label><input type="text" id="nuevoClienteIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
                                 <div class="grupo"><label>🏦 Banco</label><input type="text" id="nuevoClienteBanco" placeholder="Nombre del banco"></div>
                             </div>
                             <div class="row-flex">
@@ -436,60 +436,66 @@
                                 <div class="grupo"><label>📅 Fecha alta</label><input type="date" id="nuevoClienteFechaAlta" value="2026-05-24"></div>
                             </div>
                             <hr>
-                            <p style="font-size:0.7rem; color:#64748b;">* Campos obligatorios para facturación</p>
                             <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
                         </form>
                     </div>
+                    
+                    <div id="subActivosCliente" style="display: none;">
+                        <div class="search-bar">
+                            <select id="selectorClienteActivo" style="flex:2;">
+                                <option value="">-- Selecciona un cliente --</option>
+                            </select>
+                            <button id="btnCargarActivosCliente" class="btn-sm btn-info">🔍 Cargar activos</button>
+                            <button id="btnMostrarFormActivo" class="btn-sm btn-success">➕ Nuevo activo</button>
+                        </div>
+                        <div id="formNuevoActivo" style="display: none; background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 16px;">
+                            <div class="row-flex">
+                                <div class="grupo"><label>🏷️ Tipo servicio</label>
+                                    <select id="activoTipoServicio">
+                                        <option value="PISCINA">🏊 PISCINA</option>
+                                        <option value="JARDIN">🌳 JARDIN</option>
+                                        <option value="FONTANERIA">🔧 FONTANERIA</option>
+                                        <option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option>
+                                        <option value="LIMPIEZA">🧹 LIMPIEZA</option>
+                                    </select>
+                                </div>
+                                <div class="grupo"><label>🏢 Nombre activo</label><input type="text" id="activoNombre" placeholder="Ej: Piscina Municipal"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>📍 Dirección</label><input type="text" id="activoDireccion" placeholder="Calle"></div>
+                                <div class="grupo"><label>🔢 Número</label><input type="text" id="activoNumero" placeholder="Número"></div>
+                                <div class="grupo"><label>🏢 Piso</label><input type="text" id="activoPiso" placeholder="Piso"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>📮 Código postal</label><input type="text" id="activoCp" placeholder="Código postal"></div>
+                                <div class="grupo"><label>🌆 Ciudad</label><input type="text" id="activoCiudad" placeholder="Ciudad"></div>
+                                <div class="grupo"><label>🗺️ Provincia</label><input type="text" id="activoProvincia" placeholder="Provincia"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>👤 Persona contacto</label><input type="text" id="activoPersonaContacto" placeholder="Persona de contacto"></div>
+                                <div class="grupo"><label>📞 Teléfono contacto</label><input type="text" id="activoTelefonoContacto" placeholder="Teléfono"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>🕐 Horario acceso</label><input type="text" id="activoHorario" placeholder="Ej: L-V 9:00-18:00"></div>
+                                <div class="grupo"><label>🔑 Código acceso</label><input type="text" id="activoCodigo" placeholder="Código de entrada"></div>
+                            </div>
+                            <div class="grupo"><label>📝 Notas lugar</label><textarea id="activoNotas" rows="2" placeholder="Indicaciones adicionales..."></textarea></div>
+                            <div class="btn-group" style="margin-top:12px;">
+                                <button id="btnGuardarActivoCliente" class="btn-success">💾 Guardar activo</button>
+                                <button id="btnCancelarFormActivo" class="btn-danger">✖ Cancelar</button>
+                            </div>
+                        </div>
+                        <div id="activosClienteLista">
+                            <div class="card-header" style="margin-top:0;">📋 Activos del cliente</div>
+                            <div id="clienteSeleccionadoInfo" class="cliente-seleccionado" style="display:none;">Cliente: <span id="clienteSeleccionadoNombre"></span></div>
+                            <table class="tabla">
+                                <thead><tr><th>Nombre</th><th>Dirección</th><th>Contacto</th><th>Tipo</th><th>Acciones</th></tr></thead>
+                                <tbody id="activosClienteBody"><tr><td colspan="5">Selecciona un cliente</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <!-- MODAL EDITAR CLIENTE COMPLETO -->
-<div id="modalEditarCliente" class="modal">
-    <div class="modal-content">
-        <div class="card-header">✏️ Editar cliente</div>
-        <input type="hidden" id="editClienteId">
-        
-        <div class="row-flex">
-            <div class="grupo"><label>🏢 Razón social</label><input type="text" id="editClienteNombre"></div>
-            <div class="grupo"><label>📧 Email</label><input type="email" id="editClienteEmail"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="editClienteNif"></div>
-            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="editClienteTelefono"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>📍 Calle</label><input type="text" id="editClienteCalle"></div>
-            <div class="grupo"><label>🔢 Número</label><input type="text" id="editClienteNumero"></div>
-            <div class="grupo"><label>🏢 Piso</label><input type="text" id="editClientePiso"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>📮 Código postal</label><input type="text" id="editClienteCp"></div>
-            <div class="grupo"><label>🌆 Ciudad</label><input type="text" id="editClienteCiudad"></div>
-            <div class="grupo"><label>🗺️ Provincia</label><input type="text" id="editClienteProvincia"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>👤 Contacto</label><input type="text" id="editClienteContacto"></div>
-            <div class="grupo"><label>📋 Cargo</label><input type="text" id="editClienteCargo"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>🏦 IBAN</label><input type="text" id="editClienteIban"></div>
-            <div class="grupo"><label>🏦 Banco</label><input type="text" id="editClienteBanco"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>🏷️ Tipo cliente</label>
-                <select id="editClienteTipo">
-                    <option value="comunidad">Comunidad</option>
-                    <option value="empresa">Empresa</option>
-                    <option value="particular">Particular</option>
-                </select>
-            </div>
-            <div class="grupo"><label>📅 Fecha alta</label><input type="date" id="editClienteFechaAlta"></div>
-        </div>
-        
-        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
-            <button id="btnGuardarEdicionCliente" class="btn-success">💾 Guardar cambios</button>
-            <button id="btnCancelarEdicionCliente" class="btn-danger">✖ Cancelar</button>
-        </div>
-    </div>
-</div>
+
                 <!-- ==================== TAB PERSONAL ==================== -->
                 <div id="tabPersonal" style="display: none;">
                     <div class="sub-tabs">
@@ -499,9 +505,7 @@
                     
                     <div id="subListaTecnicos">
                         <table class="tabla">
-                            <thead>
-                                <tr><th>Nombre</th><th>NIF/NIE</th><th>Email</th><th>Teléfono</th><th>Estado</th><th>Acciones</th>
-                            </thead>
+                            <thead><tr><th>Nombre</th><th>NIF/NIE</th><th>Email</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody id="tecnicosBody"></tbody>
                         </table>
                     </div>
@@ -509,23 +513,23 @@
                     <div id="subCrearTecnico" style="display: none;">
                         <form>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">👤 Nombre completo</label><input type="text" id="nuevoNombre" placeholder="Nombre y apellidos" autocomplete="name"></div>
-                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com" autocomplete="email"></div>
+                                <div class="grupo"><label class="required">👤 Nombre completo</label><input type="text" id="nuevoNombre" placeholder="Nombre y apellidos"></div>
+                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password"></div>
-                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto" autocomplete="tel"></div>
+                                <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)"></div>
+                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">🆔 NIF / NIE</label><input type="text" id="nuevoNif" placeholder="12345678A" autocomplete="off"></div>
-                                <div class="grupo"><label class="required">📅 Fecha nacimiento</label><input type="date" id="nuevoFechaNacimiento" autocomplete="bday"></div>
+                                <div class="grupo"><label class="required">🆔 NIF / NIE</label><input type="text" id="nuevoNif" placeholder="12345678A"></div>
+                                <div class="grupo"><label class="required">📅 Fecha nacimiento</label><input type="date" id="nuevoFechaNacimiento"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoDireccion" placeholder="Dirección completa" autocomplete="street-address"></div>
-                                <div class="grupo"><label class="required">🔢 Nº Seguridad Social</label><input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX" autocomplete="off"></div>
+                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoDireccion" placeholder="Dirección completa"></div>
+                                <div class="grupo"><label class="required">🔢 Nº Seguridad Social</label><input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX"></div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label class="required">🏦 IBAN</label><input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
+                                <div class="grupo"><label class="required">🏦 IBAN</label><input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
                                 <div class="grupo"><label>🏷️ Tipo contrato</label>
                                     <select id="nuevoTipoContrato">
                                         <option value="INDEFINIDO">Indefinido</option>
@@ -551,79 +555,70 @@
                                 </div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="nuevoFechaAlta" value="2026-05-24" autocomplete="off"></div>
-                                <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="nuevoNick" placeholder="Usuario para login" autocomplete="username"></div>
+                                <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="nuevoFechaAlta" value="2026-05-24"></div>
+                                <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="nuevoNick" placeholder="Usuario para login"></div>
                             </div>
                             <hr>
                             <button id="btnCrearTecnico" class="btn-success">✅ Dar de alta técnico</button>
                         </form>
                     </div>
                 </div>
-                <!-- MODAL EDITAR TÉCNICO COMPLETO -->
-<div id="modalEditarTecnicoCompleto" class="modal">
-    <div class="modal-content">
-        <div class="card-header">✏️ Editar técnico</div>
-        <input type="hidden" id="editTecnicoId">
-        
-        <div class="row-flex">
-            <div class="grupo"><label>👤 Nombre completo</label><input type="text" id="editNombreCompleto"></div>
-            <div class="grupo"><label>📧 Email</label><input type="email" id="editEmailCompleto"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefonoCompleto"></div>
-            <div class="grupo"><label>🆔 NIF/NIE</label><input type="text" id="editNifCompleto"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>📍 Dirección</label><input type="text" id="editDireccionCompleto"></div>
-            <div class="grupo"><label>📅 Fecha nacimiento</label><input type="date" id="editFechaNacimientoCompleto"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>🔢 Nº Seguridad Social</label><input type="text" id="editSSCompleto"></div>
-            <div class="grupo"><label>🏦 IBAN</label><input type="text" id="editIbanCompleto"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>🏷️ Tipo contrato</label>
-                <select id="editTipoContratoCompleto">
-                    <option value="INDEFINIDO">Indefinido</option>
-                    <option value="TEMPORAL">Temporal</option>
-                    <option value="POR_OBRA">Por obra/servicio</option>
-                </select>
-            </div>
-            <div class="grupo"><label>⏱️ Jornada</label>
-                <select id="editJornadaCompleto">
-                    <option value="COMPLETA">Completa (40h)</option>
-                    <option value="PARCIAL_50">Parcial 50%</option>
-                    <option value="PARCIAL_75">Parcial 75%</option>
-                </select>
-            </div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>🔧 Puesto</label>
-                <select id="editPuestoCompleto">
-                    <option value="TECNICO_BASE">Técnico base</option>
-                    <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
-                    <option value="SUPERVISOR">Supervisor</option>
-                </select>
-            </div>
-            <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="editNickCompleto"></div>
-        </div>
-        <div class="row-flex">
-            <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="editFechaAltaCompleto"></div>
-            <div class="grupo"><label>🔘 Estado</label>
-                <select id="editEstadoCompleto">
-                    <option value="true">Activo</option>
-                    <option value="false">Inactivo</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
-            <button id="btnGuardarEdicionCompleta" class="btn-success">💾 Guardar cambios</button>
-            <button id="btnCancelarEdicionCompleta" class="btn-danger">✖ Cancelar</button>
-        </div>
-    </div>
-</div>
 
+                <!-- ==================== TAB EXTERNOS ==================== -->
+                <div id="tabExternos" style="display: none;">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" data-sub="listaExternos">📋 Personal externo</button>
+                        <button class="sub-tab" data-sub="crearExterno">➕ Nuevo externo</button>
+                    </div>
+                    
+                    <div id="subListaExternos">
+                        <table class="tabla">
+                            <thead><tr><th>Nombre / Razón social</th><th>NIF/CIF</th><th>Email</th><th>Teléfono</th><th>Tipo</th><th>Acciones</th></tr></thead>
+                            <tbody id="externosBody"></tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="subCrearExterno" style="display: none;">
+                        <form>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">👤 Nombre / Razón social</label><input type="text" id="externoNombre" placeholder="Nombre del autónomo o empresa"></div>
+                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="externoEmail" placeholder="email@externo.com"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="externoPassword" placeholder="Contraseña (mínimo 6 caracteres)"></div>
+                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="externoTelefono" placeholder="Teléfono de contacto"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🆔 NIF / CIF</label><input type="text" id="externoNif" placeholder="12345678A"></div>
+                                <div class="grupo"><label>👤 Tipo</label>
+                                    <select id="externoTipo">
+                                        <option value="autonomo">👤 Autónomo</option>
+                                        <option value="empresa">🏭 Empresa subcontrata</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>📍 Dirección</label><input type="text" id="externoDireccion" placeholder="Dirección"></div>
+                                <div class="grupo"><label>📋 Especialidad</label>
+                                    <select id="externoEspecialidad">
+                                        <option value="PISCINA">🏊 Piscinas</option>
+                                        <option value="JARDIN">🌳 Jardinería</option>
+                                        <option value="FONTANERIA">🔧 Fontanería</option>
+                                        <option value="ELECTRICIDAD">⚡ Electricidad</option>
+                                        <option value="LIMPIEZA">🧹 Limpieza</option>
+                                        <option value="OTRO">📋 Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>🏦 IBAN</label><input type="text" id="externoIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
+                                <div class="grupo"><label>🏦 Banco</label><input type="text" id="externoBanco" placeholder="Nombre del banco"></div>
+                            </div>
+                            <hr>
+                            <button id="btnCrearExterno" class="btn-success">✅ Dar de alta externo</button>
+                        </form>
+                    </div>
+                </div>
 
                 <!-- ==================== TAB GASTOS ==================== -->
                 <div id="tabGastos" style="display: none;">
@@ -631,24 +626,8 @@
                         <button class="sub-tab active" data-sub="pendientesGastos">⏳ Pendientes</button>
                         <button class="sub-tab" data-sub="aprobadosGastos">✅ Aprobados</button>
                     </div>
-                    
-                    <div id="subPendientesGastos">
-                        <table class="tabla">
-                            <thead>
-                                <tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Acciones</th>
-                            </thead>
-                            <tbody id="gastosPendientesBody"></tbody>
-                        </table>
-                    </div>
-                    
-                    <div id="subAprobadosGastos" style="display: none;">
-                        <table class="tabla">
-                            <thead>
-                                <tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Estado</th>
-                            </thead>
-                            <tbody id="gastosAprobadosBody"></tbody>
-                        </table>
-                    </div>
+                    <div id="subPendientesGastos"><table class="tabla"><thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Acciones</th></table></thead><tbody id="gastosPendientesBody"></tbody></table></div>
+                    <div id="subAprobadosGastos" style="display: none;"><table class="tabla"><thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Estado</th></tr></thead><tbody id="gastosAprobadosBody"></tbody></table></div>
                 </div>
 
                 <!-- ==================== TAB FACTURAS ==================== -->
@@ -657,33 +636,10 @@
                         <button class="sub-tab active" data-sub="listaFacturas">📄 Facturas emitidas</button>
                         <button class="sub-tab" data-sub="crearFactura">➕ Crear factura</button>
                     </div>
-                    
-                    <div id="subListaFacturas">
-                        <table class="tabla">
-                            <thead>
-                                <tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Concepto</th><th>Total</th><th>Estado</th><th>Acciones</th>
-                            </thead>
-                            <tbody id="facturasBody"></tbody>
-                        </tr>
-                    </div>
-                    
+                    <div id="subListaFacturas"><table class="tabla"><thead><tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Concepto</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="facturasBody"></tbody></table></div>
                     <div id="subCrearFactura" style="display: none;">
-                        <div class="row-flex">
-                            <div class="grupo"><label>🏢 Cliente</label>
-                                <select id="facturaCliente"></select>
-                            </div>
-                            <div class="grupo"><label>📅 Fecha</label>
-                                <input type="date" id="facturaFecha" value="2026-05-24">
-                            </div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label>📝 Concepto</label>
-                                <input type="text" id="facturaConcepto" placeholder="Descripción del servicio">
-                            </div>
-                            <div class="grupo"><label>💰 Importe (€)</label>
-                                <input type="number" id="facturaImporte" step="0.01" placeholder="0.00">
-                            </div>
-                        </div>
+                        <div class="row-flex"><div class="grupo"><label>🏢 Cliente</label><select id="facturaCliente"></select></div><div class="grupo"><label>📅 Fecha</label><input type="date" id="facturaFecha" value="2026-05-24"></div></div>
+                        <div class="row-flex"><div class="grupo"><label>📝 Concepto</label><input type="text" id="facturaConcepto" placeholder="Descripción del servicio"></div><div class="grupo"><label>💰 Importe (€)</label><input type="number" id="facturaImporte" step="0.01" placeholder="0.00"></div></div>
                         <button id="btnCrearFactura" class="btn-success">✅ Crear factura</button>
                     </div>
                 </div>
@@ -695,29 +651,9 @@
                         <button class="sub-tab" data-sub="exportarFacturas">🧾 Exportar facturas</button>
                         <button class="sub-tab" data-sub="backup">💾 Copia seguridad</button>
                     </div>
-                    
-                    <div id="subExportarTareas">
-                        <div class="row-flex">
-                            <div class="grupo"><label>📅 Desde</label><input type="date" id="exportTareasDesde"></div>
-                            <div class="grupo"><label>📅 Hasta</label><input type="date" id="exportTareasHasta"></div>
-                            <div><button id="btnExportarTareasPDF" class="btn-warning">📄 Exportar PDF</button></div>
-                        </div>
-                    </div>
-                    
-                    <div id="subExportarFacturas" style="display: none;">
-                        <div class="row-flex">
-                            <div class="grupo"><label>📅 Desde</label><input type="date" id="exportFacturasDesde"></div>
-                            <div class="grupo"><label>📅 Hasta</label><input type="date" id="exportFacturasHasta"></div>
-                            <div><button id="btnExportarFacturasPDF" class="btn-warning">📄 Exportar PDF</button></div>
-                        </div>
-                    </div>
-                    
-                    <div id="subBackup" style="display: none;">
-                        <div style="text-align: center; padding: 30px;">
-                            <p>📦 Generar copia de seguridad de todos los datos</p>
-                            <button id="btnGenerarBackup" class="btn-success">💾 Generar backup</button>
-                        </div>
-                    </div>
+                    <div id="subExportarTareas"><div class="row-flex"><div class="grupo"><label>📅 Desde</label><input type="date" id="exportTareasDesde"></div><div class="grupo"><label>📅 Hasta</label><input type="date" id="exportTareasHasta"></div><div><button id="btnExportarTareasPDF" class="btn-warning">📄 Exportar PDF</button></div></div></div>
+                    <div id="subExportarFacturas" style="display: none;"><div class="row-flex"><div class="grupo"><label>📅 Desde</label><input type="date" id="exportFacturasDesde"></div><div class="grupo"><label>📅 Hasta</label><input type="date" id="exportFacturasHasta"></div><div><button id="btnExportarFacturasPDF" class="btn-warning">📄 Exportar PDF</button></div></div></div>
+                    <div id="subBackup" style="display: none;"><div style="text-align:center;padding:30px;"><button id="btnGenerarBackup" class="btn-success">💾 Generar backup</button></div></div>
                 </div>
 
             </div>
@@ -725,7 +661,14 @@
     </div>
 </div>
 
+<!-- MODALES -->
+<div id="modalEditarCliente" class="modal"><div class="modal-content"><div class="card-header">✏️ Editar cliente</div><input type="hidden" id="editClienteId"><div class="row-flex"><div class="grupo"><label>🏢 Razón social</label><input type="text" id="editClienteNombre"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editClienteEmail"></div></div><div class="row-flex"><div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="editClienteNif"></div><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editClienteTelefono"></div></div><div class="row-flex"><div class="grupo"><label>📍 Calle</label><input type="text" id="editClienteCalle"></div><div class="grupo"><label>🔢 Número</label><input type="text" id="editClienteNumero"></div><div class="grupo"><label>🏢 Piso</label><input type="text" id="editClientePiso"></div></div><div class="row-flex"><div class="grupo"><label>📮 Código postal</label><input type="text" id="editClienteCp"></div><div class="grupo"><label>🌆 Ciudad</label><input type="text" id="editClienteCiudad"></div><div class="grupo"><label>🗺️ Provincia</label><input type="text" id="editClienteProvincia"></div></div><div class="row-flex"><div class="grupo"><label>👤 Contacto</label><input type="text" id="editClienteContacto"></div><div class="grupo"><label>📋 Cargo</label><input type="text" id="editClienteCargo"></div></div><div class="row-flex"><div class="grupo"><label>🏦 IBAN</label><input type="text" id="editClienteIban"></div><div class="grupo"><label>🏦 Banco</label><input type="text" id="editClienteBanco"></div></div><div class="row-flex"><div class="grupo"><label>🏷️ Tipo cliente</label><select id="editClienteTipo"><option value="comunidad">Comunidad</option><option value="empresa">Empresa</option><option value="particular">Particular</option></select></div><div class="grupo"><label>📅 Fecha alta</label><input type="date" id="editClienteFechaAlta"></div></div><div class="btn-group"><button id="btnGuardarEdicionCliente" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicionCliente" class="btn-danger">✖ Cancelar</button></div></div></div>
 
+<div id="modalEditarTecnicoCompleto" class="modal"><div class="modal-content"><div class="card-header">✏️ Editar técnico</div><input type="hidden" id="editTecnicoId"><div class="row-flex"><div class="grupo"><label>👤 Nombre completo</label><input type="text" id="editNombreCompleto"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editEmailCompleto"></div></div><div class="row-flex"><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefonoCompleto"></div><div class="grupo"><label>🆔 NIF/NIE</label><input type="text" id="editNifCompleto"></div></div><div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="editDireccionCompleto"></div><div class="grupo"><label>📅 Fecha nacimiento</label><input type="date" id="editFechaNacimientoCompleto"></div></div><div class="row-flex"><div class="grupo"><label>🔢 Nº Seguridad Social</label><input type="text" id="editSSCompleto"></div><div class="grupo"><label>🏦 IBAN</label><input type="text" id="editIbanCompleto"></div></div><div class="row-flex"><div class="grupo"><label>🏷️ Tipo contrato</label><select id="editTipoContratoCompleto"><option value="INDEFINIDO">Indefinido</option><option value="TEMPORAL">Temporal</option><option value="POR_OBRA">Por obra/servicio</option></select></div><div class="grupo"><label>⏱️ Jornada</label><select id="editJornadaCompleto"><option value="COMPLETA">Completa</option><option value="PARCIAL_50">Parcial 50%</option><option value="PARCIAL_75">Parcial 75%</option></select></div></div><div class="row-flex"><div class="grupo"><label>🔧 Puesto</label><select id="editPuestoCompleto"><option value="TECNICO_BASE">Técnico base</option><option value="TECNICO_ESPECIALISTA">Especialista</option><option value="SUPERVISOR">Supervisor</option></select></div><div class="grupo"><label>👤 Nick</label><input type="text" id="editNickCompleto"></div></div><div class="row-flex"><div class="grupo"><label>📅 Fecha alta</label><input type="date" id="editFechaAltaCompleto"></div><div class="grupo"><label>🔘 Estado</label><select id="editEstadoCompleto"><option value="true">Activo</option><option value="false">Inactivo</option></select></div></div><div class="btn-group"><button id="btnGuardarEdicionCompleta" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicionCompleta" class="btn-danger">✖ Cancelar</button></div></div></div>
+
+<div id="modalEditarActivo" class="modal"><div class="modal-content"><div class="card-header">✏️ Editar activo</div><input type="hidden" id="editActivoId"><div class="row-flex"><div class="grupo"><label>🏷️ Tipo servicio</label><select id="editActivoTipo"><option value="PISCINA">PISCINA</option><option value="JARDIN">JARDIN</option><option value="FONTANERIA">FONTANERIA</option><option value="ELECTRICIDAD">ELECTRICIDAD</option></select></div><div class="grupo"><label>🏢 Nombre</label><input type="text" id="editActivoNombre"></div></div><div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="editActivoDireccion"></div><div class="grupo"><label>🔢 Número</label><input type="text" id="editActivoNumero"></div><div class="grupo"><label>🏢 Piso</label><input type="text" id="editActivoPiso"></div></div><div class="row-flex"><div class="grupo"><label>📮 CP</label><input type="text" id="editActivoCp"></div><div class="grupo"><label>🌆 Ciudad</label><input type="text" id="editActivoCiudad"></div><div class="grupo"><label>🗺️ Provincia</label><input type="text" id="editActivoProvincia"></div></div><div class="row-flex"><div class="grupo"><label>👤 Contacto</label><input type="text" id="editActivoContacto"></div><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editActivoTelefono"></div></div><div class="row-flex"><div class="grupo"><label>🕐 Horario</label><input type="text" id="editActivoHorario"></div><div class="grupo"><label>🔑 Código</label><input type="text" id="editActivoCodigo"></div></div><div class="grupo"><label>📝 Notas</label><textarea id="editActivoNotas" rows="2"></textarea></div><div class="btn-group"><button id="btnGuardarEdicionActivo" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicionActivo" class="btn-danger">✖ Cancelar</button></div></div></div>
+
+<div id="modalEditarExterno" class="modal"><div class="modal-content"><div class="card-header">✏️ Editar externo</div><input type="hidden" id="editExternoId"><div class="row-flex"><div class="grupo"><label>👤 Nombre/Razón social</label><input type="text" id="editExternoNombre"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editExternoEmail"></div></div><div class="row-flex"><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editExternoTelefono"></div><div class="grupo"><label>🆔 NIF/CIF</label><input type="text" id="editExternoNif"></div></div><div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="editExternoDireccion"></div><div class="grupo"><label>🏷️ Tipo</label><select id="editExternoTipo"><option value="autonomo">Autónomo</option><option value="empresa">Empresa</option></select></div></div><div class="row-flex"><div class="grupo"><label>🔧 Especialidad</label><select id="editExternoEspecialidad"><option value="PISCINA">Piscinas</option><option value="JARDIN">Jardinería</option><option value="FONTANERIA">Fontanería</option><option value="ELECTRICIDAD">Electricidad</option></select></div><div class="grupo"><label>🏦 IBAN</label><input type="text" id="editExternoIban"></div></div><div class="btn-group"><button id="btnGuardarEdicionExterno" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicionExterno" class="btn-danger">✖ Cancelar</button></div></div></div>
 
 <script>
     const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
@@ -747,75 +690,40 @@
         setTimeout(() => msg.remove(), 3000);
     }
 
-    // ========== LOGIN ==========
     async function hacerLogin() {
         const identificador = document.getElementById('identificador').value.trim();
         const password = document.getElementById('password').value;
-        
-        if (!identificador || !password) { 
-            document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; 
-            return false; 
-        }
-        
+        if (!identificador || !password) { document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; return false; }
         let email = identificador;
         if (!identificador.includes('@')) {
             const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
-            if (!perfil) {
-                document.getElementById('errorMsg').innerText = "Usuario no encontrado";
-                return false;
-            }
+            if (!perfil) { document.getElementById('errorMsg').innerText = "Usuario no encontrado"; return false; }
             email = perfil.email;
         }
-        
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) { 
-            document.getElementById('errorMsg').innerText = error.message; 
-            return false; 
-        }
-        
+        if (error) { document.getElementById('errorMsg').innerText = error.message; return false; }
         const { data: perfil, error: perfilError } = await sb.from('perfiles').select('*').eq('id', data.user.id).maybeSingle();
-        
-        if (perfilError || !perfil) { 
-            await sb.auth.signOut(); 
-            document.getElementById('errorMsg').innerText = "Error al cargar perfil"; 
-            return false; 
-        }
-        
-        if (perfil.rol !== 'gerente') { 
-            await sb.auth.signOut(); 
-            document.getElementById('errorMsg').innerText = "Acceso no autorizado. Solo gerentes."; 
-            return false; 
-        }
-        
+        if (perfilError || !perfil) { await sb.auth.signOut(); document.getElementById('errorMsg').innerText = "Error al cargar perfil"; return false; }
+        if (perfil.rol !== 'gerente') { await sb.auth.signOut(); document.getElementById('errorMsg').innerText = "Acceso no autorizado. Solo gerentes."; return false; }
         currentUser = data.user;
         currentEmpresaId = perfil.empresa_id;
         document.getElementById('nombreGerente').innerHTML = perfil.nombre || 'Gerente';
         document.getElementById('emailGerente').innerHTML = currentUser.email;
-        
         if (currentEmpresaId) {
             const { data: empresa } = await sb.from('empresas').select('nombre').eq('id', currentEmpresaId).single();
             document.getElementById('nombreEmpresaBanner').innerHTML = empresa?.nombre || 'Mi Empresa';
-        } else {
-            document.getElementById('nombreEmpresaBanner').innerHTML = 'Mi Empresa';
-        }
-        
+        } else { document.getElementById('nombreEmpresaBanner').innerHTML = 'Mi Empresa'; }
         return true;
     }
 
-    // ========== STATS ==========
     async function cargarStats() {
         const { data: tareas } = await sb.from('tareas').select('*').eq('cliente_id', currentEmpresaId);
         const { data: tecnicos } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
+        const { data: externos } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'externo');
         const { data: clientes } = await sb.from('empresas').select('*').eq('created_by', currentUser.id);
-        document.getElementById('statsPanel').innerHTML = `
-            <div class="stat-card"><div class="stat-number">${tareas?.length || 0}</div><div class="stat-label">Total Tareas</div></div>
-            <div class="stat-card"><div class="stat-number">${tareas?.filter(t => t.estado === 'PENDIENTE').length || 0}</div><div class="stat-label">Pendientes</div></div>
-            <div class="stat-card"><div class="stat-number">${tecnicos?.length || 0}</div><div class="stat-label">Técnicos</div></div>
-            <div class="stat-card"><div class="stat-number">${clientes?.length || 0}</div><div class="stat-label">Clientes</div></div>
-        `;
+        document.getElementById('statsPanel').innerHTML = `<div class="stat-card"><div class="stat-number">${tareas?.length || 0}</div><div class="stat-label">Tareas</div></div><div class="stat-card"><div class="stat-number">${tecnicos?.length || 0}</div><div class="stat-label">Técnicos</div></div><div class="stat-card"><div class="stat-number">${externos?.length || 0}</div><div class="stat-label">Externos</div></div><div class="stat-card"><div class="stat-number">${clientes?.length || 0}</div><div class="stat-label">Clientes</div></div>`;
     }
 
-    // ========== TAREAS ==========
     async function cargarTareas() {
         const estado = document.getElementById('filtroEstadoTarea')?.value || '';
         const fecha = document.getElementById('filtroFechaTarea')?.value || '';
@@ -832,129 +740,59 @@
         const start = (paginaTareas - 1) * registrosPorPagina;
         const paginados = tareasData.slice(start, start + registrosPorPagina);
         const tbody = document.getElementById('tareasBody');
-        if (!paginados.length) { tbody.innerHTML = '<tr><td colspan="7">No hay tareas</td></td>'; return; }
-        
+        if (!paginados.length) { tbody.innerHTML = '<tr><td colspan="7">No hay tareas</td></tr>'; return; }
         const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada' };
-        tbody.innerHTML = paginados.map(t => `
-            <tr>
-                <td>${t.id.substring(0, 12)}...</td>
-                <td>${t.tipo}</td>
-                <td>${t.activos?.nombre || '-'}</td>
-                <td>${t.perfiles?.nombre || '-'}</td>
-                <td>${t.fecha_asignacion}</td>
-                <td><span class="badge ${estadoClass[t.estado]}">${t.estado}</span></td>
-                <td>
-                    <button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️</button>
-                    <button class="btn-sm btn-warning editar-tarea" data-id="${t.id}">✏️</button>
-                    <button class="btn-sm btn-danger eliminar-tarea" data-id="${t.id}">🗑️</button>
-                 </td>
-            </tr>
-        `).join('');
-        
+        tbody.innerHTML = paginados.map(t => `<tr><td>${t.id.substring(0,12)}...</td><td>${t.tipo}</td><td>${t.activos?.nombre || '-'}</td><td>${t.perfiles?.nombre || '-'}</td><td>${t.fecha_asignacion}</td><td><span class="badge ${estadoClass[t.estado]}">${t.estado}</span></td><td><button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️</button><button class="btn-sm btn-warning editar-tarea" data-id="${t.id}">✏️</button><button class="btn-sm btn-danger eliminar-tarea" data-id="${t.id}">🗑️</button></td></tr>`).join('');
+        document.querySelectorAll('.ver-tarea').forEach(btn => btn.onclick = () => alert("Detalle próximamente"));
         const totalPaginas = Math.ceil(tareasData.length / registrosPorPagina);
         let pagHtml = '';
-        for (let i = 1; i <= totalPaginas; i++) pagHtml += `<button class="${i === paginaTareas ? 'active' : ''}" onclick="cambiarPaginaTareas(${i})">${i}</button>`;
+        for (let i = 1; i <= Math.min(totalPaginas, 10); i++) pagHtml += `<button class="${i === paginaTareas ? 'active' : ''}" onclick="cambiarPaginaTareas(${i})">${i}</button>`;
         document.getElementById('paginacionTareas').innerHTML = pagHtml;
     }
-    
     window.cambiarPaginaTareas = (pagina) => { paginaTareas = pagina; renderizarTareas(); };
 
     async function crearTarea() {
-    const tipo = document.getElementById('tareaTipo').value;
-    const servicio = document.getElementById('tareaServicio').value;
-    const activoId = document.getElementById('tareaActivo').value;
-    const tecnicoId = document.getElementById('tareaTecnico').value;
-    const fecha = document.getElementById('tareaFecha').value;
-    const orden = document.getElementById('tareaOrden').value;
-    
-    // Campos específicos para presupuesto
-    const costeEstimado = document.getElementById('tareaCosteEstimado')?.value || null;
-    const notasPresupuesto = document.getElementById('tareaNotasPresupuesto')?.value || null;
-    
-    if (!activoId) { mostrarMensaje("Selecciona un activo", 'error'); return; }
-    if (!tecnicoId) { mostrarMensaje("Selecciona un técnico", 'error'); return; }
-    
-    // Calcular prioridad
-    let prioridad = 3;
-    if (tipo === 'URGENCIA') prioridad = 1;
-    else if (tipo === 'AVERIA') prioridad = 2;
-    else if (tipo === 'PRESUPUESTO') prioridad = 4; // Prioridad baja para presupuestos
-    
-    const tareaId = `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    
-    // Construir orden de trabajo según el tipo
-    let ordenTrabajo = orden;
-    let descripcion = `Tarea de ${tipo}`;
-    
-    if (tipo === 'PRESUPUESTO') {
-        descripcion = `📋 SOLICITUD DE PRESUPUESTO - ${servicio}`;
-        if (!ordenTrabajo) {
-            ordenTrabajo = `📋 SOLICITUD DE PRESUPUESTO
-
-El cliente solicita presupuesto para:
-${notasPresupuesto || 'Revisar y diagnosticar el problema'}
-
-El técnico deberá:
-1. Visitar la instalación
-2. Diagnosticar el problema
-3. Tomar fotos y notas
-4. Elaborar presupuesto detallado
-5. Enviar presupuesto al gerente
-
-Presupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'}`;
+        const tipo = document.getElementById('tareaTipo').value;
+        const servicio = document.getElementById('tareaServicio').value;
+        const activoId = document.getElementById('tareaActivo').value;
+        const tecnicoId = document.getElementById('tareaTecnico').value;
+        const fecha = document.getElementById('tareaFecha').value;
+        const orden = document.getElementById('tareaOrden').value;
+        const costeEstimado = document.getElementById('tareaCosteEstimado')?.value || null;
+        const notasPresupuesto = document.getElementById('tareaNotasPresupuesto')?.value || null;
+        if (!activoId) { mostrarMensaje("Selecciona un activo", 'error'); return; }
+        if (!tecnicoId) { mostrarMensaje("Selecciona un técnico", 'error'); return; }
+        let prioridad = 3;
+        if (tipo === 'URGENCIA') prioridad = 1;
+        else if (tipo === 'AVERIA') prioridad = 2;
+        else if (tipo === 'PRESUPUESTO') prioridad = 4;
+        const tareaId = `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        let ordenTrabajo = orden;
+        let descripcion = `Tarea de ${tipo}`;
+        if (tipo === 'PRESUPUESTO') {
+            descripcion = `📋 SOLICITUD DE PRESUPUESTO - ${servicio}`;
+            if (!ordenTrabajo) ordenTrabajo = `📋 SOLICITUD DE PRESUPUESTO\n\nEl cliente solicita presupuesto para:\n${notasPresupuesto || 'Revisar y diagnosticar el problema'}\n\nEl técnico deberá:\n1. Visitar la instalación\n2. Diagnosticar el problema\n3. Tomar fotos y notas\n4. Elaborar presupuesto\n\nPresupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'}`;
         }
+        const nuevaTarea = { id: tareaId, tipo, prioridad, cliente_id: currentEmpresaId, tecnico_id: tecnicoId, activo_id: activoId, servicio_tipo: servicio, descripcion, orden_trabajo: ordenTrabajo, fecha_asignacion: fecha, estado: 'PENDIENTE', creada_por: currentUser.id, tipo_tecnico: 'INTERNO' };
+        if (tipo === 'PRESUPUESTO') { nuevaTarea.presupuesto_solicitado = true; nuevaTarea.presupuesto_aprobado = false; nuevaTarea.presupuesto_rechazado = false; if (costeEstimado) nuevaTarea.coste_estimado = parseFloat(costeEstimado); }
+        const { error } = await sb.from('tareas').insert(nuevaTarea);
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Tarea creada");
+        document.getElementById('tareaOrden').value = '';
+        if (document.getElementById('tareaCosteEstimado')) document.getElementById('tareaCosteEstimado').value = '';
+        if (document.getElementById('tareaNotasPresupuesto')) document.getElementById('tareaNotasPresupuesto').value = '';
+        cargarTareas(); cargarStats();
     }
-    
-    // Datos base de la tarea
-    const nuevaTarea = {
-        id: tareaId,
-        tipo: tipo,
-        prioridad: prioridad,
-        cliente_id: currentEmpresaId,
-        tecnico_id: tecnicoId,
-        activo_id: activoId,
-        servicio_tipo: servicio,
-        descripcion: descripcion,
-        orden_trabajo: ordenTrabajo,
-        fecha_asignacion: fecha,
-        estado: 'PENDIENTE',
-        creada_por: currentUser.id,
-        tipo_tecnico: 'INTERNO'
-    };
-    
-    // Añadir campos específicos para presupuesto
-    if (tipo === 'PRESUPUESTO') {
-        nuevaTarea.presupuesto_solicitado = true;
-        nuevaTarea.presupuesto_aprobado = false;
-        nuevaTarea.presupuesto_rechazado = false;
-        if (costeEstimado) nuevaTarea.coste_estimado = parseFloat(costeEstimado);
-    }
-    
-    const { error } = await sb.from('tareas').insert(nuevaTarea);
-    
-    if (error) { 
-        mostrarMensaje("Error: " + error.message, 'error'); 
-        return; 
-    }
-    
-    mostrarMensaje("✅ Tarea creada correctamente");
-    document.getElementById('tareaOrden').value = '';
-    if (document.getElementById('tareaCosteEstimado')) 
-        document.getElementById('tareaCosteEstimado').value = '';
-    if (document.getElementById('tareaNotasPresupuesto')) 
-        document.getElementById('tareaNotasPresupuesto').value = '';
-    cargarTareas();
-    cargarStats();
-}
 
-    // ========== CLIENTES ==========
     async function cargarClientes() {
-        const search = document.getElementById('buscadorCliente')?.value.toLowerCase() || '';
-        let query = sb.from('empresas').select('*').eq('created_by', currentUser.id).order('created_at', { ascending: false });
-        const { data, error } = await query;
-        if (error) return;
-        const tbody = document.getElementById('clientesBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5">No hay clientes</td></tr>'; return; }
+    const search = document.getElementById('buscadorCliente')?.value.toLowerCase() || '';
+    let query = sb.from('empresas').select('*').eq('created_by', currentUser.id).order('created_at', { ascending: false });
+    const { data, error } = await query;
+    if (error) return;
+    const tbody = document.getElementById('clientesBody');
+    if (!data?.length) { 
+        tbody.innerHTML = '<tr><td colspan="5">No hay clientes</td></tr>'; 
+    } else {
         const filtrados = search ? data.filter(c => c.nombre?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search)) : data;
         tbody.innerHTML = filtrados.map(c => `
             <tr>
@@ -965,173 +803,339 @@ Presupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'
                 <td>
                     <button class="btn-sm btn-warning editar-cliente" data-id="${c.id}">✏️</button>
                     <button class="btn-sm btn-danger eliminar-cliente" data-id="${c.id}" data-nombre="${c.nombre}">🗑️</button>
-                 </td>
-            </tr>
+                </td>
+             </tr>
         `).join('');
     }
-
-    async function guardarCliente() {
-    const nombre = document.getElementById('nuevoClienteNombre').value.trim();
-    const nif = document.getElementById('nuevoClienteNif').value.trim();
-    const email = document.getElementById('nuevoClienteEmail').value.trim();
     
-    if (!nombre) { mostrarMensaje("❌ La razón social es obligatoria", 'error'); return; }
-    if (!nif) { mostrarMensaje("❌ El NIF/CIF es obligatorio", 'error'); return; }
-    if (!email) { mostrarMensaje("❌ El email es obligatorio", 'error'); return; }
-    
-    const btn = document.getElementById('btnGuardarCliente');
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner"></span> Guardando...';
-    btn.disabled = true;
-    
-    try {
-        const nuevoCliente = {
-            nombre: nombre,
-            nif: nif,
-            email: email,
-            telefono: document.getElementById('nuevoClienteTelefono').value || null,
-            calle: document.getElementById('nuevoClienteDireccion').value || null,
-            numero: document.getElementById('nuevoClienteNumero')?.value || null,
-            piso: document.getElementById('nuevoClientePiso')?.value || null,
-            codigo_postal: document.getElementById('nuevoClienteCp').value || null,
-            ciudad: document.getElementById('nuevoClienteCiudad').value || null,
-            provincia: document.getElementById('nuevoClienteProvincia').value || null,
-            contacto_nombre: document.getElementById('nuevoClienteContacto').value || null,
-            contacto_cargo: document.getElementById('nuevoClienteCargo').value || null,
-            iban: document.getElementById('nuevoClienteIban').value || null,
-            banco: document.getElementById('nuevoClienteBanco').value || null,
-            tipo_cliente: document.getElementById('nuevoClienteTipo').value,
-            fecha_alta: document.getElementById('nuevoClienteFechaAlta').value || new Date().toISOString().split('T')[0],
-            created_by: currentUser.id,
-            activo: true,
-            plan: 'BASICO'
-        };
-        
-        const { error } = await sb.from('empresas').insert(nuevoCliente);
-        
-        if (error) throw error;
-        
-        mostrarMensaje("✅ Cliente guardado correctamente");
-        
-        // Limpiar formulario
-        const campos = [
-            'nuevoClienteNombre', 'nuevoClienteNif', 'nuevoClienteEmail',
-            'nuevoClienteTelefono', 'nuevoClienteDireccion', 'nuevoClienteNumero',
-            'nuevoClientePiso', 'nuevoClienteCp', 'nuevoClienteCiudad',
-            'nuevoClienteProvincia', 'nuevoClienteContacto', 'nuevoClienteCargo',
-            'nuevoClienteIban', 'nuevoClienteBanco'
-        ];
-        campos.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        
-        cargarClientes();
-        cargarStats();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-    } finally {
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
+    // 👇 LLENAR EL SELECTOR DE ACTIVOS (IMPORTANTE)
+    const selectClienteActivo = document.getElementById('selectorClienteActivo');
+    if (selectClienteActivo && data) {
+        selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
+            data.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
     }
 }
 
-    // ========== TÉCNICOS ==========
-    async function cargarTecnicos() {
-    const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
-    const tbody = document.getElementById('tecnicosBody');
-    
-    if (!data || data.length === 0) {
-        tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td></tr>';
+    async function guardarCliente() {
+        const nombre = document.getElementById('nuevoClienteNombre').value.trim();
+        const nif = document.getElementById('nuevoClienteNif').value.trim();
+        const email = document.getElementById('nuevoClienteEmail').value.trim();
+        if (!nombre) { mostrarMensaje("❌ Razón social obligatoria", 'error'); return; }
+        if (!nif) { mostrarMensaje("❌ NIF/CIF obligatorio", 'error'); return; }
+        if (!email) { mostrarMensaje("❌ Email obligatorio", 'error'); return; }
+        const btn = document.getElementById('btnGuardarCliente');
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner"></span> Guardando...';
+        btn.disabled = true;
+        try {
+            const nuevoCliente = {
+                nombre, nif, email,
+                telefono: document.getElementById('nuevoClienteTelefono').value || null,
+                calle: document.getElementById('nuevoClienteDireccion').value || null,
+                numero: document.getElementById('nuevoClienteNumero')?.value || null,
+                piso: document.getElementById('nuevoClientePiso')?.value || null,
+                codigo_postal: document.getElementById('nuevoClienteCp').value || null,
+                ciudad: document.getElementById('nuevoClienteCiudad').value || null,
+                provincia: document.getElementById('nuevoClienteProvincia').value || null,
+                contacto_nombre: document.getElementById('nuevoClienteContacto').value || null,
+                contacto_cargo: document.getElementById('nuevoClienteCargo').value || null,
+                iban: document.getElementById('nuevoClienteIban').value || null,
+                banco: document.getElementById('nuevoClienteBanco').value || null,
+                tipo_cliente: document.getElementById('nuevoClienteTipo').value,
+                fecha_alta: document.getElementById('nuevoClienteFechaAlta').value || new Date().toISOString().split('T')[0],
+                created_by: currentUser.id, activo: true, plan: 'BASICO'
+            };
+            const { error } = await sb.from('empresas').insert(nuevoCliente);
+            if (error) throw error;
+            mostrarMensaje("✅ Cliente guardado");
+            ['nuevoClienteNombre','nuevoClienteNif','nuevoClienteEmail','nuevoClienteTelefono','nuevoClienteDireccion','nuevoClienteNumero','nuevoClientePiso','nuevoClienteCp','nuevoClienteCiudad','nuevoClienteProvincia','nuevoClienteContacto','nuevoClienteCargo','nuevoClienteIban','nuevoClienteBanco'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            cargarClientes(); cargarStats();
+        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); }
+        finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+    }
+
+    // ACTIVOS
+    async function cargarActivosCliente(clienteId) {
+    if (!clienteId) return;
+    const { data } = await sb.from('activos').select('*').eq('empresa_id', clienteId).order('nombre');
+    const tbody = document.getElementById('activosClienteBody');
+    if (!data?.length) { 
+        tbody.innerHTML = '<tr><td colspan="5">No hay activos para este cliente</td></table>';
         return;
     }
-    
-    tbody.innerHTML = data.map(t => `
+    tbody.innerHTML = data.map(a => `
         <tr>
-            <td>${t.nombre || t.nick}</td>
-            <td>${t.nif || '-'}</td>
-            <td>${t.email}</td>
-            <td>${t.telefono || '-'}</td>
-            <td><span class="badge badge-activo">Activo</span></td>
+            <td>${a.nombre}</td>
+            <td>${a.direccion || ''} ${a.numero || ''} ${a.piso || ''} ${a.localidad || ''}</td>
+            <td>${a.persona_contacto || '-'}</td>
+            <td><span class="badge badge-activo">${a.tipo_servicio}</span></td>
             <td>
-                <button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button>
-                <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button>
+                <button class="btn-sm btn-warning editar-activo" data-id="${a.id}">✏️</button>
+                <button class="btn-sm btn-danger eliminar-activo" data-id="${a.id}" data-nombre="${a.nombre}">🗑️</button>
             </td>
         </tr>
     `).join('');
     
-    // Asignar eventos después de crear los botones
-    document.querySelectorAll('.btn-editar-tecnico').forEach(btn => {
-        btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id);
+    document.querySelectorAll('.editar-activo').forEach(btn => {
+        btn.onclick = () => abrirModalEditarActivo(btn.dataset.id);
     });
-    
-    document.querySelectorAll('.btn-eliminar-tecnico').forEach(btn => {
-        btn.onclick = () => eliminarTecnico(btn.dataset.id, btn.dataset.nombre);
+    document.querySelectorAll('.eliminar-activo').forEach(btn => {
+        btn.onclick = async () => {
+            if(confirm(`¿Eliminar activo "${btn.dataset.nombre}"?`)) {
+                await sb.from('activos').delete().eq('id', btn.dataset.id);
+                cargarActivosCliente(clienteId);
+                mostrarMensaje("✅ Activo eliminado");
+            }
+        };
     });
-    
-    const select = document.getElementById('tareaTecnico');
-    if (select) {
-        select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
-    }
 }
+
+    async function guardarActivoCliente() {
+    const clienteId = document.getElementById('selectorClienteActivo').value;
+    if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
+    
+    const nombre = document.getElementById('activoNombre').value.trim();
+    if (!nombre) { mostrarMensaje("Nombre del activo obligatorio", 'error'); return; }
+    
+    const nuevoActivo = {
+        empresa_id: clienteId,
+        nombre: nombre,
+        tipo_servicio: document.getElementById('activoTipoServicio').value,
+        direccion: document.getElementById('activoDireccion').value || null,
+        numero: document.getElementById('activoNumero').value || null,
+        piso: document.getElementById('activoPiso').value || null,
+        codigo_postal: document.getElementById('activoCp').value || null,
+        localidad: document.getElementById('activoCiudad').value || null,
+        provincia: document.getElementById('activoProvincia').value || null,
+        persona_contacto: document.getElementById('activoPersonaContacto').value || null,
+        telefono_contacto: document.getElementById('activoTelefonoContacto').value || null,
+        horario_acceso: document.getElementById('activoHorario').value || null,
+        codigo_acceso: document.getElementById('activoCodigo').value || null,
+        notas_lugar: document.getElementById('activoNotas').value || null,
+        activo: true,
+        created_by: currentUser.id
+    };
+    
+    console.log('Enviando activo:', nuevoActivo);
+    
+    const { error } = await sb.from('activos').insert(nuevoActivo);
+    
+    if (error) {
+        console.error('Error:', error);
+        mostrarMensaje("Error: " + error.message, 'error');
+        return;
+    }
+    
+    mostrarMensaje("✅ Activo guardado");
+    document.getElementById('formNuevoActivo').style.display = 'none';
+    
+    // Limpiar formulario
+    const campos = ['activoNombre', 'activoDireccion', 'activoNumero', 'activoPiso', 'activoCp', 
+        'activoCiudad', 'activoProvincia', 'activoPersonaContacto', 'activoTelefonoContacto',
+        'activoHorario', 'activoCodigo', 'activoNotas'];
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    
+    // Recargar activos del cliente
+    cargarActivosCliente(clienteId);
+}
+
+    async function abrirModalEditarActivo(id) {
+    const { data: a, error } = await sb.from('activos').select('*').eq('id', id).single();
+    if (error) {
+        mostrarMensaje("Error al cargar activo", 'error');
+        return;
+    }
+    if (!a) return;
+    
+    document.getElementById('editActivoId').value = a.id;
+    document.getElementById('editActivoTipo').value = a.tipo_servicio || 'PISCINA';
+    document.getElementById('editActivoNombre').value = a.nombre || '';
+    document.getElementById('editActivoDireccion').value = a.direccion || '';
+    document.getElementById('editActivoNumero').value = a.numero || '';
+    document.getElementById('editActivoPiso').value = a.piso || '';
+    document.getElementById('editActivoCp').value = a.codigo_postal || '';
+    document.getElementById('editActivoCiudad').value = a.localidad || '';
+    document.getElementById('editActivoProvincia').value = a.provincia || '';
+    document.getElementById('editActivoContacto').value = a.persona_contacto || '';
+    document.getElementById('editActivoTelefono').value = a.telefono_contacto || '';
+    document.getElementById('editActivoHorario').value = a.horario_acceso || '';
+    document.getElementById('editActivoCodigo').value = a.codigo_acceso || '';
+    document.getElementById('editActivoNotas').value = a.notas_lugar || '';
+    
+    document.getElementById('modalEditarActivo').style.display = 'flex';
+}
+
+    async function guardarEdicionActivo() {
+    const id = document.getElementById('editActivoId').value;
+    
+    const activoActualizado = {
+        tipo_servicio: document.getElementById('editActivoTipo').value,
+        nombre: document.getElementById('editActivoNombre').value,
+        direccion: document.getElementById('editActivoDireccion').value || null,
+        numero: document.getElementById('editActivoNumero').value || null,
+        piso: document.getElementById('editActivoPiso').value || null,
+        codigo_postal: document.getElementById('editActivoCp').value || null,
+        localidad: document.getElementById('editActivoCiudad').value || null,
+        provincia: document.getElementById('editActivoProvincia').value || null,
+        persona_contacto: document.getElementById('editActivoContacto').value || null,
+        telefono_contacto: document.getElementById('editActivoTelefono').value || null,
+        horario_acceso: document.getElementById('editActivoHorario').value || null,
+        codigo_acceso: document.getElementById('editActivoCodigo').value || null,
+        notas_lugar: document.getElementById('editActivoNotas').value || null
+    };
+    
+    console.log('Actualizando activo:', activoActualizado);
+    
+    const { error } = await sb.from('activos').update(activoActualizado).eq('id', id);
+    
+    if (error) {
+        console.error('Error:', error);
+        mostrarMensaje("Error: " + error.message, 'error');
+        return;
+    }
+    
+    mostrarMensaje("✅ Activo actualizado");
+    document.getElementById('modalEditarActivo').style.display = 'none';
+    
+    const clienteId = document.getElementById('selectorClienteActivo').value;
+    if (clienteId) cargarActivosCliente(clienteId);
+}
+
+    // EXTERNOS
+    async function cargarExternos() {
+        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'externo').order('nombre');
+        const tbody = document.getElementById('externosBody');
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6">No hay personal externo</td></tr>'; return; }
+        tbody.innerHTML = data.map(e => `<tr><td>${e.nombre || '-'}</td><td>${e.nif || '-'}</td><td>${e.email || '-'}</td><td>${e.telefono || '-'}</td><td><span class="badge badge-externo">${e.tipo_externo === 'empresa' ? 'Empresa' : 'Autónomo'}</span></td><td><button class="btn-sm btn-warning editar-externo" data-id="${e.id}">✏️</button><button class="btn-sm btn-danger eliminar-externo" data-id="${e.id}" data-nombre="${e.nombre}">🗑️</button></td></tr>`).join('');
+        document.querySelectorAll('.editar-externo').forEach(btn => btn.onclick = () => abrirModalEditarExterno(btn.dataset.id));
+        document.querySelectorAll('.eliminar-externo').forEach(btn => btn.onclick = async () => { if(confirm(`¿Eliminar externo "${btn.dataset.nombre}"?`)) { await sb.from('perfiles').delete().eq('id', btn.dataset.id); cargarExternos(); mostrarMensaje("✅ Externo eliminado"); } });
+    }
+
+    async function crearExterno() {
+        const nombre = document.getElementById('externoNombre').value.trim();
+        const email = document.getElementById('externoEmail').value.trim();
+        const password = document.getElementById('externoPassword').value;
+        if (!nombre || !email) { mostrarMensaje("Nombre y email obligatorios", 'error'); return; }
+        if (!password || password.length < 6) { mostrarMensaje("Contraseña (mínimo 6 caracteres)", 'error'); return; }
+        const btn = document.getElementById('btnCrearExterno');
+        btn.innerHTML = '<span class="spinner"></span> Creando...';
+        btn.disabled = true;
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ email, password, nombre, empresa_id: currentEmpresaId, rol: 'externo' })
+            });
+            const resultado = await response.json();
+            if (!resultado.success) throw new Error(resultado.error);
+            const { error: updateError } = await sb.from('perfiles').update({
+                telefono: document.getElementById('externoTelefono').value || null,
+                nif: document.getElementById('externoNif').value || null,
+                direccion: document.getElementById('externoDireccion').value || null,
+                tipo_externo: document.getElementById('externoTipo').value,
+                especialidad: document.getElementById('externoEspecialidad').value,
+                iban: document.getElementById('externoIban').value || null,
+                banco: document.getElementById('externoBanco').value || null
+            }).eq('id', resultado.user_id);
+            if (updateError) throw updateError;
+            mostrarMensaje(`✅ Externo ${nombre} creado`);
+            ['externoNombre','externoEmail','externoPassword','externoTelefono','externoNif','externoDireccion','externoIban','externoBanco'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            cargarExternos(); cargarStats();
+        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); }
+        finally { btn.innerHTML = '✅ Dar de alta externo'; btn.disabled = false; }
+    }
+
+    async function abrirModalEditarExterno(id) {
+        const { data: e } = await sb.from('perfiles').select('*').eq('id', id).single();
+        if (!e) return;
+        document.getElementById('editExternoId').value = e.id;
+        document.getElementById('editExternoNombre').value = e.nombre || '';
+        document.getElementById('editExternoEmail').value = e.email || '';
+        document.getElementById('editExternoTelefono').value = e.telefono || '';
+        document.getElementById('editExternoNif').value = e.nif || '';
+        document.getElementById('editExternoDireccion').value = e.direccion || '';
+        document.getElementById('editExternoTipo').value = e.tipo_externo || 'autonomo';
+        document.getElementById('editExternoEspecialidad').value = e.especialidad || 'OTRO';
+        document.getElementById('editExternoIban').value = e.iban || '';
+        document.getElementById('modalEditarExterno').style.display = 'flex';
+    }
+
+    async function guardarEdicionExterno() {
+        const id = document.getElementById('editExternoId').value;
+        const { error } = await sb.from('perfiles').update({
+            nombre: document.getElementById('editExternoNombre').value,
+            email: document.getElementById('editExternoEmail').value,
+            telefono: document.getElementById('editExternoTelefono').value || null,
+            nif: document.getElementById('editExternoNif').value || null,
+            direccion: document.getElementById('editExternoDireccion').value || null,
+            tipo_externo: document.getElementById('editExternoTipo').value,
+            especialidad: document.getElementById('editExternoEspecialidad').value,
+            iban: document.getElementById('editExternoIban').value || null
+        }).eq('id', id);
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Externo actualizado");
+        document.getElementById('modalEditarExterno').style.display = 'none';
+        cargarExternos();
+    }
+
+    async function cargarTecnicos() {
+        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
+        const tbody = document.getElementById('tecnicosBody');
+        if (!data?.length) { tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td></tr>'; return; }
+        tbody.innerHTML = data.map(t => `<tr><td>${t.nombre || t.nick}</td><td>${t.nif || '-'}</td><td>${t.email}</td><td>${t.telefono || '-'}</td><td><span class="badge badge-activo">Activo</span></td><td><button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button><button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td></tr>`).join('');
+        document.querySelectorAll('.btn-editar-tecnico').forEach(btn => btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id));
+        document.querySelectorAll('.btn-eliminar-tecnico').forEach(btn => btn.onclick = () => eliminarTecnico(btn.dataset.id, btn.dataset.nombre));
+        const select = document.getElementById('tareaTecnico');
+        if (select) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
+    }
 
     async function abrirModalEditarTecnico(id) {
-    const { data: t, error } = await sb.from('perfiles').select('*').eq('id', id).single();
-    if (error) {
-        mostrarMensaje("Error al cargar datos", 'error');
-        return;
+        const { data: t } = await sb.from('perfiles').select('*').eq('id', id).single();
+        if (!t) return;
+        document.getElementById('editTecnicoId').value = t.id;
+        document.getElementById('editNombreCompleto').value = t.nombre || '';
+        document.getElementById('editEmailCompleto').value = t.email || '';
+        document.getElementById('editTelefonoCompleto').value = t.telefono || '';
+        document.getElementById('editNifCompleto').value = t.nif || '';
+        document.getElementById('editDireccionCompleto').value = t.direccion || '';
+        document.getElementById('editFechaNacimientoCompleto').value = t.fecha_nacimiento || '';
+        document.getElementById('editSSCompleto').value = t.num_seguridad_social || '';
+        document.getElementById('editIbanCompleto').value = t.iban || '';
+        document.getElementById('editTipoContratoCompleto').value = t.tipo_contrato || 'INDEFINIDO';
+        document.getElementById('editJornadaCompleto').value = t.jornada || 'COMPLETA';
+        document.getElementById('editPuestoCompleto').value = t.puesto || 'TECNICO_BASE';
+        document.getElementById('editNickCompleto').value = t.nick || '';
+        document.getElementById('editFechaAltaCompleto').value = t.fecha_alta || '';
+        document.getElementById('editEstadoCompleto').value = t.activo ? 'true' : 'false';
+        document.getElementById('modalEditarTecnicoCompleto').style.display = 'flex';
     }
-    
-    document.getElementById('editTecnicoId').value = t.id;
-    document.getElementById('editNombreCompleto').value = t.nombre || '';
-    document.getElementById('editEmailCompleto').value = t.email || '';
-    document.getElementById('editTelefonoCompleto').value = t.telefono || '';
-    document.getElementById('editNifCompleto').value = t.nif || '';
-    document.getElementById('editDireccionCompleto').value = t.direccion || '';
-    document.getElementById('editFechaNacimientoCompleto').value = t.fecha_nacimiento || '';
-    document.getElementById('editSSCompleto').value = t.num_seguridad_social || '';
-    document.getElementById('editIbanCompleto').value = t.iban || '';
-    document.getElementById('editTipoContratoCompleto').value = t.tipo_contrato || 'INDEFINIDO';
-    document.getElementById('editJornadaCompleto').value = t.jornada || 'COMPLETA';
-    document.getElementById('editPuestoCompleto').value = t.puesto || 'TECNICO_BASE';
-    document.getElementById('editNickCompleto').value = t.nick || '';
-    document.getElementById('editFechaAltaCompleto').value = t.fecha_alta || '';
-    document.getElementById('editEstadoCompleto').value = t.activo ? 'true' : 'false';
-    
-    document.getElementById('modalEditarTecnicoCompleto').style.display = 'flex';
-}
 
     async function guardarEdicionTecnico() {
-    const id = document.getElementById('editTecnicoId').value;
-    
-    const { error: updateError } = await sb.from('perfiles').update({
-        nombre: document.getElementById('editNombreCompleto').value,
-        email: document.getElementById('editEmailCompleto').value,
-        telefono: document.getElementById('editTelefonoCompleto').value || null,
-        nif: document.getElementById('editNifCompleto').value || null,
-        direccion: document.getElementById('editDireccionCompleto').value || null,
-        fecha_nacimiento: document.getElementById('editFechaNacimientoCompleto').value || null,
-        num_seguridad_social: document.getElementById('editSSCompleto').value || null,
-        iban: document.getElementById('editIbanCompleto').value || null,
-        tipo_contrato: document.getElementById('editTipoContratoCompleto').value,
-        jornada: document.getElementById('editJornadaCompleto').value,
-        puesto: document.getElementById('editPuestoCompleto').value,
-        nick: document.getElementById('editNickCompleto').value || null,
-        fecha_alta: document.getElementById('editFechaAltaCompleto').value || null,
-        activo: document.getElementById('editEstadoCompleto').value === 'true'
-    }).eq('id', id);
-    
-    if (updateError) {
-        mostrarMensaje("Error al actualizar: " + updateError.message, 'error');
-        return;
+        const id = document.getElementById('editTecnicoId').value;
+        const { error } = await sb.from('perfiles').update({
+            nombre: document.getElementById('editNombreCompleto').value,
+            email: document.getElementById('editEmailCompleto').value,
+            telefono: document.getElementById('editTelefonoCompleto').value || null,
+            nif: document.getElementById('editNifCompleto').value || null,
+            direccion: document.getElementById('editDireccionCompleto').value || null,
+            fecha_nacimiento: document.getElementById('editFechaNacimientoCompleto').value || null,
+            num_seguridad_social: document.getElementById('editSSCompleto').value || null,
+            iban: document.getElementById('editIbanCompleto').value || null,
+            tipo_contrato: document.getElementById('editTipoContratoCompleto').value,
+            jornada: document.getElementById('editJornadaCompleto').value,
+            puesto: document.getElementById('editPuestoCompleto').value,
+            nick: document.getElementById('editNickCompleto').value || null,
+            fecha_alta: document.getElementById('editFechaAltaCompleto').value || null,
+            activo: document.getElementById('editEstadoCompleto').value === 'true'
+        }).eq('id', id);
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Técnico actualizado");
+        document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
+        cargarTecnicos();
     }
-    
-    mostrarMensaje("✅ Técnico actualizado correctamente");
-    document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
-    cargarTecnicos();
-}
 
     window.eliminarTecnico = async (id, nombre) => {
         if (confirm(`¿Eliminar técnico "${nombre}"?`)) {
@@ -1145,308 +1149,228 @@ Presupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'
         const nombre = document.getElementById('nuevoNombre').value.trim();
         const email = document.getElementById('nuevoEmail').value.trim();
         const password = document.getElementById('nuevoPassword').value;
-        const telefono = document.getElementById('nuevoTelefono').value.trim();
-        const nif = document.getElementById('nuevoNif').value.trim();
-        const fechaNacimiento = document.getElementById('nuevoFechaNacimiento').value;
-        const direccion = document.getElementById('nuevoDireccion').value.trim();
-        const numSS = document.getElementById('nuevoSS').value.trim();
-        const iban = document.getElementById('nuevoIban').value.trim();
-        const tipoContrato = document.getElementById('nuevoTipoContrato').value;
-        const jornada = document.getElementById('nuevoJornada').value;
-        const puesto = document.getElementById('nuevoPuesto').value;
-        const fechaAlta = document.getElementById('nuevoFechaAlta').value;
-        const nick = document.getElementById('nuevoNick').value.trim() || nombre.split(' ')[0].toLowerCase();
-        
-        if (!nombre) { mostrarMensaje("❌ Nombre completo obligatorio", 'error'); return; }
-        if (!email) { mostrarMensaje("❌ Email obligatorio", 'error'); return; }
-        if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
-        if (!nif) { mostrarMensaje("❌ NIF/NIE obligatorio", 'error'); return; }
-        if (!fechaNacimiento) { mostrarMensaje("❌ Fecha de nacimiento obligatoria", 'error'); return; }
-        if (!direccion) { mostrarMensaje("❌ Dirección obligatoria", 'error'); return; }
-        if (!numSS) { mostrarMensaje("❌ Nº Seguridad Social obligatorio", 'error'); return; }
-        if (!iban) { mostrarMensaje("❌ IBAN obligatorio", 'error'); return; }
-        
+        if (!nombre || !email || !password || password.length < 6) { mostrarMensaje("Datos obligatorios", 'error'); return; }
         const btn = document.getElementById('btnCrearTecnico');
         btn.innerHTML = '<span class="spinner"></span> Creando...';
         btn.disabled = true;
-        
         try {
             const { data: { session } } = await sb.auth.getSession();
-            
             const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password,
-                    nombre: nombre,
-                    empresa_id: currentEmpresaId,
-                    empresa_nombre: 'Mi Empresa',
-                    rol: 'tecnico'
-                })
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ email, password, nombre, empresa_id: currentEmpresaId, rol: 'tecnico' })
             });
-            
             const resultado = await response.json();
             if (!resultado.success) throw new Error(resultado.error);
-            
             const { error: updateError } = await sb.from('perfiles').update({
-                telefono: telefono || null,
-                nif: nif,
-                direccion: direccion,
-                fecha_nacimiento: fechaNacimiento,
-                num_seguridad_social: numSS,
-                iban: iban,
-                tipo_contrato: tipoContrato,
-                jornada: jornada,
-                puesto: puesto,
-                fecha_alta: fechaAlta || new Date().toISOString().split('T')[0],
-                nick: nick
+                telefono: document.getElementById('nuevoTelefono').value || null,
+                nif: document.getElementById('nuevoNif').value || null,
+                direccion: document.getElementById('nuevoDireccion').value || null,
+                fecha_nacimiento: document.getElementById('nuevoFechaNacimiento').value || null,
+                num_seguridad_social: document.getElementById('nuevoSS').value || null,
+                iban: document.getElementById('nuevoIban').value || null,
+                tipo_contrato: document.getElementById('nuevoTipoContrato').value,
+                jornada: document.getElementById('nuevoJornada').value,
+                puesto: document.getElementById('nuevoPuesto').value,
+                fecha_alta: document.getElementById('nuevoFechaAlta').value || new Date().toISOString().split('T')[0],
+                nick: document.getElementById('nuevoNick').value || nombre.split(' ')[0].toLowerCase()
             }).eq('id', resultado.user_id);
-            
             if (updateError) throw updateError;
-            
-            mostrarMensaje(`✅ Técnico ${nombre} dado de alta`);
-            
-            document.getElementById('nuevoNombre').value = '';
-            document.getElementById('nuevoEmail').value = '';
-            document.getElementById('nuevoPassword').value = '';
-            document.getElementById('nuevoTelefono').value = '';
-            document.getElementById('nuevoNif').value = '';
-            document.getElementById('nuevoFechaNacimiento').value = '';
-            document.getElementById('nuevoDireccion').value = '';
-            document.getElementById('nuevoSS').value = '';
-            document.getElementById('nuevoIban').value = '';
-            document.getElementById('nuevoNick').value = '';
-            
-            cargarTecnicos();
-            cargarStats();
-            
-        } catch (error) {
-            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-            console.error(error);
-        } finally {
-            btn.innerHTML = '✅ Dar de alta técnico';
-            btn.disabled = false;
-        }
+            mostrarMensaje(`✅ Técnico ${nombre} creado`);
+            ['nuevoNombre','nuevoEmail','nuevoPassword','nuevoTelefono','nuevoNif','nuevoFechaNacimiento','nuevoDireccion','nuevoSS','nuevoIban','nuevoNick'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            cargarTecnicos(); cargarStats();
+        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); }
+        finally { btn.innerHTML = '✅ Dar de alta técnico'; btn.disabled = false; }
     }
 
-    // ========== GASTOS ==========
-    async function cargarGastos() {
-        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
-        document.getElementById('gastosPendientesBody').innerHTML = pendientes?.map(g => `
-            <tr>
-                <td>${g.fecha_gasto}</td>
-                <td>${g.tareas?.activos?.nombre || '-'}</td>
-                <td>${g.tipo_gasto}</td>
-                <td>${g.descripcion}</td>
-                <td>${g.importe_total}€</td>
-                <td>${g.perfiles?.nombre || '-'}</td>
-                <td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td>
-            </tr>
-        `).join('') || '</table><td colspan="7">No hay gastos pendientes</td></tr>';
-        
-        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
-        document.getElementById('gastosAprobadosBody').innerHTML = aprobados?.map(g => `
-            <tr>
-                <td>${g.fecha_gasto}</td>
-                <td>${g.tareas?.activos?.nombre || '-'}</td>
-                <td>${g.tipo_gasto}</td>
-                <td>${g.descripcion}</td>
-                <td>${g.importe_total}€</td>
-                <td>${g.perfiles?.nombre || '-'}</td>
-                <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
-            </tr>
-        `).join('') || '<tr><td colspan="7">No hay gastos procesados</td></tr>';
-        
-        document.querySelectorAll('.aprobar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("✅ Gasto aprobado"); });
-        document.querySelectorAll('.rechazar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'RECHAZADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("❌ Gasto rechazado"); });
-    }
-
-    // ========== FACTURAS ==========
-    async function cargarFacturas() {
-        const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId);
-        const tbody = document.getElementById('facturasBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7">No hay facturas</td></tr>'; return; }
-        tbody.innerHTML = data.map(f => `
-            <tr>
-                <td>${f.numero}</td>
-                <td>${f.empresas?.nombre || '-'}</td>
-                <td>${f.fecha}</td>
-                <td>${f.concepto || '-'}</td>
-                <td>${f.total}€</td>
-                <td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td>
-                <td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td>
-            </tr>
-        `).join('');
-        document.querySelectorAll('.toggle-factura').forEach(btn => btn.onclick = async () => { const pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', btn.dataset.id); cargarFacturas(); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); });
-    }
-
-    async function crearFactura() {
-        const clienteId = document.getElementById('facturaCliente').value;
-        const fecha = document.getElementById('facturaFecha').value;
-        const concepto = document.getElementById('facturaConcepto').value;
-        const importe = parseFloat(document.getElementById('facturaImporte').value);
-        if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
-        if (!concepto || isNaN(importe)) { mostrarMensaje("Concepto e importe obligatorios", 'error'); return; }
-        const { error } = await sb.from('facturas').insert({
-            empresa_id: clienteId, numero: `F${Date.now()}`, fecha, concepto, total: importe, subtotal: importe / 1.21, iva: importe - (importe / 1.21), pagada: false
-        });
-        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
-        mostrarMensaje("✅ Factura creada");
-        cargarFacturas();
-    }
-
-    // ========== ACTIVOS ==========
     async function cargarActivos() {
         const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
         const select = document.getElementById('tareaActivo');
         if (select && data) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
     }
 
-    // ========== PLANTILLAS ==========
     async function cargarPlantillas() {
         const { data } = await sb.from('plantillas_orden_trabajo').select('*').eq('empresa_id', currentEmpresaId);
         const select = document.getElementById('plantillaOrden');
-        if (select && data) {
-            select.innerHTML = '<option value="">-- Seleccionar plantilla --</option>' + data.map(p => `<option value="${p.contenido.replace(/"/g, '&quot;')}">${p.nombre_plantilla}</option>`).join('');
-            select.onchange = () => { if (select.value) document.getElementById('tareaOrden').value = select.value; };
-        }
+        if (select && data) select.innerHTML = '<option value="">-- Seleccionar plantilla --</option>' + data.map(p => `<option value="${p.contenido.replace(/"/g, '&quot;')}">${p.nombre_plantilla}</option>`).join('');
     }
 
-    // ========== EXPORTAR ==========
+    async function cargarGastos() {
+        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
+        document.getElementById('gastosPendientesBody').innerHTML = pendientes?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td><td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td>`).join('') || '<tr><td colspan="7">No hay gastos pendientes</tr>';
+        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
+        document.getElementById('gastosAprobadosBody').innerHTML = aprobados?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td><td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>`).join('') || '<tr><td colspan="7">No hay gastos procesados</tr>';
+        document.querySelectorAll('.aprobar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("✅ Gasto aprobado"); });
+        document.querySelectorAll('.rechazar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'RECHAZADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("❌ Gasto rechazado"); });
+    }
+
+    async function cargarFacturas() {
+        const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId);
+        const tbody = document.getElementById('facturasBody');
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7">No hay facturas</tr>'; return; }
+        tbody.innerHTML = data.map(f => `<td><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.concepto || '-'}</td><td>${f.total}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td>`).join('');
+        document.querySelectorAll('.toggle-factura').forEach(btn => btn.onclick = async () => { const pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', btn.dataset.id); cargarFacturas(); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); });
+    }
+
+    async function crearFactura() {
+        const clienteId = document.getElementById('facturaCliente').value;
+        if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
+        const importe = parseFloat(document.getElementById('facturaImporte').value);
+        if (isNaN(importe)) { mostrarMensaje("Importe inválido", 'error'); return; }
+        const { error } = await sb.from('facturas').insert({ empresa_id: clienteId, numero: `F${Date.now()}`, fecha: document.getElementById('facturaFecha').value, concepto: document.getElementById('facturaConcepto').value, total: importe, subtotal: importe / 1.21, iva: importe - (importe / 1.21), pagada: false });
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Factura creada");
+        cargarFacturas();
+    }
+
     async function exportarTareasPDF() {
-        const desde = document.getElementById('exportTareasDesde').value;
-        const hasta = document.getElementById('exportTareasHasta').value;
-        let query = sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId);
-        if (desde) query = query.gte('fecha_asignacion', desde);
-        if (hasta) query = query.lte('fecha_asignacion', hasta);
-        const { data } = await query;
+        const { data } = await sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId);
         const html = `<html><body><h2>Reporte de Tareas</h2><pre>${JSON.stringify(data, null, 2)}</pre></body></html>`;
         html2pdf().set({ margin: 10, filename: `tareas_${new Date().toISOString().split('T')[0]}.pdf` }).from(html).save();
     }
 
-    // ========== INICIALIZACIÓN ==========
     function inicializarTabs() {
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.onclick = () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
+    // Tabs principales
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.onclick = () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabExternos', 'tabGastos', 'tabFacturas', 'tabExportar'];
+            tabIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            
+            const tabId = tab.dataset.tab;
+            const tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1);
+            const tabElement = document.getElementById(tabName);
+            if (tabElement) tabElement.style.display = 'block';
+            
+            if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+            if (tabId === 'clientes') cargarClientes();
+            if (tabId === 'personal') cargarTecnicos();
+            if (tabId === 'externos') cargarExternos();
+            if (tabId === 'gastos') cargarGastos();
+            if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); }
+        };
+    });
+    
+    // Sub-tabs de Tareas
+    document.querySelectorAll('#tabTareas .sub-tab').forEach(sub => {
+        sub.onclick = () => {
+            document.querySelectorAll('#tabTareas .sub-tab').forEach(s => s.classList.remove('active'));
+            sub.classList.add('active');
+            const subId = sub.dataset.sub;
+            document.querySelectorAll('#tabTareas [id^="sub"]').forEach(s => s.style.display = 'none');
+            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            if (subId === 'crearTarea') { cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+        };
+    });
+    
+    // Sub-tabs de Clientes (CORREGIDO - con async/await)
+    document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => {
+        sub.onclick = async () => {
+            document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active'));
+            sub.classList.add('active');
+            const subId = sub.dataset.sub;
+            document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none');
+            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            
+            if (subId === 'activosCliente') {
+                // Cargar clientes en el selector
+                const { data: clientes, error } = await sb.from('empresas').select('id, nombre').eq('created_by', currentUser.id);
                 
-                const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabGastos', 'tabFacturas', 'tabExportar'];
-                tabIds.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                });
-                
-                const tabId = tab.dataset.tab;
-                const tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1);
-                document.getElementById(tabName).style.display = 'block';
-                
-                if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
-                if (tabId === 'clientes') cargarClientes();
-                if (tabId === 'personal') cargarTecnicos();
-                if (tabId === 'gastos') cargarGastos();
-                if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); }
-            };
-        });
-        
-        document.querySelectorAll('#tabTareas .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#tabTareas .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#tabTareas [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-                if (subId === 'crearTarea') { cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
-            };
-        });
-        
-        document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            };
-        });
-        
-        document.querySelectorAll('#tabPersonal .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#tabPersonal .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                if (subId === 'listaTecnicos') {
-                    document.getElementById('subListaTecnicos').style.display = 'block';
-                    document.getElementById('subCrearTecnico').style.display = 'none';
-                    cargarTecnicos();
-                } else if (subId === 'crearTecnico') {
-                    document.getElementById('subListaTecnicos').style.display = 'none';
-                    document.getElementById('subCrearTecnico').style.display = 'block';
+                const selectClienteActivo = document.getElementById('selectorClienteActivo');
+                if (selectClienteActivo) {
+                    if (clientes && clientes.length > 0) {
+                        selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
+                            clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+                        console.log('✅ Selector actualizado');
+                    } else {
+                        selectClienteActivo.innerHTML = '<option value="">-- No hay clientes --</option>';
+                    }
                 }
-            };
-        });
-        
-        document.querySelectorAll('#tabGastos .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#tabGastos .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#tabGastos [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-                cargarGastos();
-            };
-        });
-        
-        document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-                if (subId === 'crearFactura') cargarClientes();
-            };
-        });
-        
-        document.querySelectorAll('#tabExportar .sub-tab').forEach(sub => {
-            sub.onclick = () => {
-                document.querySelectorAll('#tabExportar .sub-tab').forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
-                const subId = sub.dataset.sub;
-                document.querySelectorAll('#tabExportar [id^="sub"]').forEach(s => s.style.display = 'none');
-                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            };
-        });
-    }
+                
+                // Limpiar lista de activos
+                document.getElementById('activosClienteBody').innerHTML = '<tr><td colspan="5">Selecciona un cliente para ver sus activos</td></tr>';
+                document.getElementById('clienteSeleccionadoInfo').style.display = 'none';
+                document.getElementById('formNuevoActivo').style.display = 'none';
+            }
+        };
+    });
+    
+    // Sub-tabs de Personal
+    document.querySelectorAll('#tabPersonal .sub-tab').forEach(sub => {
+        sub.onclick = () => {
+            document.querySelectorAll('#tabPersonal .sub-tab').forEach(s => s.classList.remove('active'));
+            sub.classList.add('active');
+            const subId = sub.dataset.sub;
+            if (subId === 'listaTecnicos') {
+                document.getElementById('subListaTecnicos').style.display = 'block';
+                document.getElementById('subCrearTecnico').style.display = 'none';
+                cargarTecnicos();
+            } else if (subId === 'crearTecnico') {
+                document.getElementById('subListaTecnicos').style.display = 'none';
+                document.getElementById('subCrearTecnico').style.display = 'block';
+            }
+        };
+    });
+    
+    // Sub-tabs de Externos
+    document.querySelectorAll('#tabExternos .sub-tab').forEach(sub => {
+        sub.onclick = () => {
+            document.querySelectorAll('#tabExternos .sub-tab').forEach(s => s.classList.remove('active'));
+            sub.classList.add('active');
+            const subId = sub.dataset.sub;
+            if (subId === 'listaExternos') {
+                document.getElementById('subListaExternos').style.display = 'block';
+                document.getElementById('subCrearExterno').style.display = 'none';
+                cargarExternos();
+            } else if (subId === 'crearExterno') {
+                document.getElementById('subListaExternos').style.display = 'none';
+                document.getElementById('subCrearExterno').style.display = 'block';
+            }
+        };
+    });
+    
+    // Sub-tabs de Gastos
+    document.querySelectorAll('#tabGastos .sub-tab').forEach(sub => {
+        sub.onclick = () => {
+            document.querySelectorAll('#tabGastos .sub-tab').forEach(s => s.classList.remove('active'));
+            sub.classList.add('active');
+            const subId = sub.dataset.sub;
+            document.querySelectorAll('#tabGastos [id^="sub"]').forEach(s => s.style.display = 'none');
+            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            cargarGastos();
+        };
+    });
+    
+    // Sub-tabs de Facturas
+    document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => {
+        sub.onclick = () => {
+            document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active'));
+            sub.classList.add('active');
+            const subId = sub.dataset.sub;
+            document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none');
+            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            if (subId === 'crearFactura') cargarClientes();
+        };
+    });
+    
+    // Sub-tabs de Exportar
+    document.querySelectorAll('#tabExportar .sub-tab').forEach(sub => {
+        sub.onclick = () => {
+            document.querySelectorAll('#tabExportar .sub-tab').forEach(s => s.classList.remove('active'));
+            sub.classList.add('active');
+            const subId = sub.dataset.sub;
+            document.querySelectorAll('#tabExportar [id^="sub"]').forEach(s => s.style.display = 'none');
+            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+        };
+    });
+}
 
-    // Eventos
-    document.getElementById('btnGuardarEdicionCompleta').onclick = guardarEdicionTecnico;
-    document.getElementById('btnCancelarEdicionCompleta').onclick = () => {
-        document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
-    };
-
-    // ========== EVENTOS GLOBALES ==========
-    document.getElementById('btnLogin').onclick = async () => {
-        const exito = await hacerLogin();
-        if (exito) {
-            document.getElementById('loginPanel').style.display = 'none';
-            document.getElementById('dashboardPanel').style.display = 'block';
-            inicializarTabs();
-            await cargarStats(); 
-            await cargarTareas(); 
-            await cargarActivos(); 
-            await cargarTecnicos(); 
-            await cargarClientes(); 
-            await cargarGastos(); 
-            await cargarFacturas(); 
-            await cargarPlantillas();
-        }
-    };
-
+    // EVENTOS
+    document.getElementById('btnLogin').onclick = async () => { if (await hacerLogin()) { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; inicializarTabs(); await cargarStats(); await cargarTareas(); await cargarActivos(); await cargarTecnicos(); await cargarClientes(); await cargarGastos(); await cargarFacturas(); await cargarPlantillas(); await cargarExternos(); } };
     document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
     document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
     document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
@@ -1458,104 +1382,68 @@ Presupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'
     document.getElementById('btnCrearFactura').onclick = crearFactura;
     document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
     document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
-
+    document.getElementById('btnGuardarEdicionCliente').onclick = async () => {
+        const id = document.getElementById('editClienteId').value;
+        const { error } = await sb.from('empresas').update({
+            nombre: document.getElementById('editClienteNombre').value,
+            email: document.getElementById('editClienteEmail').value,
+            nif: document.getElementById('editClienteNif').value || null,
+            telefono: document.getElementById('editClienteTelefono').value || null,
+            calle: document.getElementById('editClienteCalle').value || null,
+            numero: document.getElementById('editClienteNumero').value || null,
+            piso: document.getElementById('editClientePiso').value || null,
+            codigo_postal: document.getElementById('editClienteCp').value || null,
+            ciudad: document.getElementById('editClienteCiudad').value || null,
+            provincia: document.getElementById('editClienteProvincia').value || null,
+            contacto_nombre: document.getElementById('editClienteContacto').value || null,
+            contacto_cargo: document.getElementById('editClienteCargo').value || null,
+            iban: document.getElementById('editClienteIban').value || null,
+            banco: document.getElementById('editClienteBanco').value || null,
+            tipo_cliente: document.getElementById('editClienteTipo').value,
+            fecha_alta: document.getElementById('editClienteFechaAlta').value || null
+        }).eq('id', id);
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); } else { mostrarMensaje("✅ Cliente actualizado"); document.getElementById('modalEditarCliente').style.display = 'none'; cargarClientes(); }
+    };
+    document.getElementById('btnCancelarEdicionCliente').onclick = () => document.getElementById('modalEditarCliente').style.display = 'none';
+    document.getElementById('btnGuardarEdicionCompleta').onclick = guardarEdicionTecnico;
+    document.getElementById('btnCancelarEdicionCompleta').onclick = () => document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
+    document.getElementById('btnGuardarEdicionActivo').onclick = guardarEdicionActivo;
+    document.getElementById('btnCancelarEdicionActivo').onclick = () => document.getElementById('modalEditarActivo').style.display = 'none';
+    document.getElementById('btnGuardarEdicionExterno').onclick = guardarEdicionExterno;
+    document.getElementById('btnCancelarEdicionExterno').onclick = () => document.getElementById('modalEditarExterno').style.display = 'none';
+    document.getElementById('btnCrearExterno').onclick = crearExterno;
+    document.getElementById('btnCargarActivosCliente').onclick = () => { const clienteId = document.getElementById('selectorClienteActivo').value; if (clienteId) { cargarActivosCliente(clienteId); document.getElementById('clienteSeleccionadoInfo').style.display = 'block'; document.getElementById('clienteSeleccionadoNombre').innerHTML = document.getElementById('selectorClienteActivo').options[document.getElementById('selectorClienteActivo').selectedIndex]?.text || ''; } else { mostrarMensaje("Selecciona un cliente", 'error'); } };
+    document.getElementById('btnMostrarFormActivo').onclick = () => { document.getElementById('formNuevoActivo').style.display = 'block'; };
+    document.getElementById('btnGuardarActivoCliente').onclick = guardarActivoCliente;
+    document.getElementById('btnCancelarFormActivo').onclick = () => { document.getElementById('formNuevoActivo').style.display = 'none'; };
+    document.getElementById('tareaTipo').addEventListener('change', function() { const campos = document.getElementById('camposPresupuesto'); if (campos) campos.style.display = this.value === 'PRESUPUESTO' ? 'block' : 'none'; });
     window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
-
-    
-// ========== FUNCIONES PARA EDITAR CLIENTE ==========
-window.abrirModalEditarCliente = async function(id) {
-    console.log('Abriendo modal para cliente ID:', id);
-    
-    const { data: cliente, error } = await sb.from('empresas').select('*').eq('id', id).single();
-    if (error) {
-        mostrarMensaje("Error al cargar cliente: " + error.message, 'error');
-        return;
-    }
-    
-    document.getElementById('editClienteId').value = cliente.id;
-    document.getElementById('editClienteNombre').value = cliente.nombre || '';
-    document.getElementById('editClienteEmail').value = cliente.email || '';
-    document.getElementById('editClienteNif').value = cliente.nif || '';
-    document.getElementById('editClienteTelefono').value = cliente.telefono || '';
-    document.getElementById('editClienteCalle').value = cliente.calle || '';
-    document.getElementById('editClienteNumero').value = cliente.numero || '';
-    document.getElementById('editClientePiso').value = cliente.piso || '';
-    document.getElementById('editClienteCp').value = cliente.codigo_postal || '';
-    document.getElementById('editClienteCiudad').value = cliente.ciudad || '';
-    document.getElementById('editClienteProvincia').value = cliente.provincia || '';
-    document.getElementById('editClienteContacto').value = cliente.contacto_nombre || '';
-    document.getElementById('editClienteCargo').value = cliente.contacto_cargo || '';
-    document.getElementById('editClienteIban').value = cliente.iban || '';
-    document.getElementById('editClienteBanco').value = cliente.banco || '';
-    document.getElementById('editClienteTipo').value = cliente.tipo_cliente || 'empresa';
-    document.getElementById('editClienteFechaAlta').value = cliente.fecha_alta || '';
-    
-    document.getElementById('modalEditarCliente').style.display = 'flex';
-};
-
-// Guardar edición de cliente
-document.getElementById('btnGuardarEdicionCliente').onclick = async () => {
-    const id = document.getElementById('editClienteId').value;
-    
-    const { error } = await sb.from('empresas').update({
-        nombre: document.getElementById('editClienteNombre').value,
-        email: document.getElementById('editClienteEmail').value,
-        nif: document.getElementById('editClienteNif').value || null,
-        telefono: document.getElementById('editClienteTelefono').value || null,
-        calle: document.getElementById('editClienteCalle').value || null,
-        numero: document.getElementById('editClienteNumero').value || null,
-        piso: document.getElementById('editClientePiso').value || null,
-        codigo_postal: document.getElementById('editClienteCp').value || null,
-        ciudad: document.getElementById('editClienteCiudad').value || null,
-        provincia: document.getElementById('editClienteProvincia').value || null,
-        contacto_nombre: document.getElementById('editClienteContacto').value || null,
-        contacto_cargo: document.getElementById('editClienteCargo').value || null,
-        iban: document.getElementById('editClienteIban').value || null,
-        banco: document.getElementById('editClienteBanco').value || null,
-        tipo_cliente: document.getElementById('editClienteTipo').value,
-        fecha_alta: document.getElementById('editClienteFechaAlta').value || null
-    }).eq('id', id);
-    
-    if (error) {
-        mostrarMensaje("Error: " + error.message, 'error');
-    } else {
-        mostrarMensaje("✅ Cliente actualizado correctamente");
-        document.getElementById('modalEditarCliente').style.display = 'none';
-        cargarClientes();
-    }
-};
-
-// Cancelar edición
-document.getElementById('btnCancelarEdicionCliente').onclick = () => {
-    document.getElementById('modalEditarCliente').style.display = 'none';
-};
-
-// Asignar eventos a los botones editar cliente después de cargar la tabla
-function asignarEventosEditarCliente() {
-    document.querySelectorAll('.editar-cliente').forEach(btn => {
-        btn.onclick = () => {
-            window.abrirModalEditarCliente(btn.dataset.id);
-        };
-    });
-}
-
-// Modificar cargarClientes para asignar eventos después de renderizar
-const originalCargarClientes = cargarClientes;
-window.cargarClientes = async function() {
-    await originalCargarClientes();
-    asignarEventosEditarCliente();
-};
-cargarClientes = window.cargarClientes;
-// Mostrar/ocultar campos de presupuesto según el tipo seleccionado
-document.getElementById('tareaTipo').addEventListener('change', function() {
-    const camposPresupuesto = document.getElementById('camposPresupuesto');
-    if (this.value === 'PRESUPUESTO') {
-        camposPresupuesto.style.display = 'block';
-    } else {
-        camposPresupuesto.style.display = 'none';
-    }
-});
-
+    window.abrirModalEditarCliente = async (id) => {
+        const { data: c } = await sb.from('empresas').select('*').eq('id', id).single();
+        if (!c) return;
+        document.getElementById('editClienteId').value = c.id;
+        document.getElementById('editClienteNombre').value = c.nombre || '';
+        document.getElementById('editClienteEmail').value = c.email || '';
+        document.getElementById('editClienteNif').value = c.nif || '';
+        document.getElementById('editClienteTelefono').value = c.telefono || '';
+        document.getElementById('editClienteCalle').value = c.calle || '';
+        document.getElementById('editClienteNumero').value = c.numero || '';
+        document.getElementById('editClientePiso').value = c.piso || '';
+        document.getElementById('editClienteCp').value = c.codigo_postal || '';
+        document.getElementById('editClienteCiudad').value = c.ciudad || '';
+        document.getElementById('editClienteProvincia').value = c.provincia || '';
+        document.getElementById('editClienteContacto').value = c.contacto_nombre || '';
+        document.getElementById('editClienteCargo').value = c.contacto_cargo || '';
+        document.getElementById('editClienteIban').value = c.iban || '';
+        document.getElementById('editClienteBanco').value = c.banco || '';
+        document.getElementById('editClienteTipo').value = c.tipo_cliente || 'empresa';
+        document.getElementById('editClienteFechaAlta').value = c.fecha_alta || '';
+        document.getElementById('modalEditarCliente').style.display = 'flex';
+    };
+    function asignarEventosEditarCliente() { document.querySelectorAll('.editar-cliente').forEach(btn => btn.onclick = () => window.abrirModalEditarCliente(btn.dataset.id)); }
+    const originalCargarClientes = cargarClientes;
+    window.cargarClientes = async function() { await originalCargarClientes(); asignarEventosEditarCliente(); };
+    cargarClientes = window.cargarClientes;
 </script>
 </body>
 </html>
