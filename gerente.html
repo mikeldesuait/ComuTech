@@ -362,43 +362,45 @@
                     </div>
                     
                     <div id="subNuevoCliente" style="display: none;">
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">🏢 Razón social / Nombre</label><input type="text" id="nuevoClienteNombre" placeholder="Ej: Comunidad Avda. del Puerto" autocomplete="organization"></div>
-                            <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com" autocomplete="email"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoClienteDireccion" placeholder="Calle, número, piso" autocomplete="street-address"></div>
-                            <div class="grupo"><label class="required">📮 Código postal</label><input type="text" id="nuevoClienteCp" placeholder="Código postal" autocomplete="postal-code"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">🌆 Ciudad</label><input type="text" id="nuevoClienteCiudad" placeholder="Ciudad" autocomplete="address-level2"></div>
-                            <div class="grupo"><label class="required">🗺️ Provincia</label><input type="text" id="nuevoClienteProvincia" placeholder="Provincia" autocomplete="address-level1"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label>👤 Persona de contacto</label><input type="text" id="nuevoClienteContacto" placeholder="Nombre del presidente/administrador" autocomplete="name"></div>
-                            <div class="grupo"><label>📋 Cargo</label><input type="text" id="nuevoClienteCargo" placeholder="Ej: Presidente, Administrador"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoClienteTelefono" placeholder="Teléfono" autocomplete="tel"></div>
-                            <div class="grupo"><label class="required">📋 NIF/CIF</label><input type="text" id="nuevoClienteNif" placeholder="B12345678" autocomplete="off"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label>🏦 IBAN (para domiciliación)</label><input type="text" id="nuevoClienteIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
-                            <div class="grupo"><label>🏦 Banco</label><input type="text" id="nuevoClienteBanco" placeholder="Nombre del banco"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label>🏷️ Tipo de cliente</label>
-                                <select id="nuevoClienteTipo">
-                                    <option value="comunidad">🏘️ Comunidad de propietarios</option>
-                                    <option value="empresa">🏭 Empresa / Autónomo</option>
-                                    <option value="particular">👤 Particular</option>
-                                </select>
+                        <form>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🏢 Razón social / Nombre</label><input type="text" id="nuevoClienteNombre" placeholder="Ej: Comunidad Avda. del Puerto" autocomplete="organization"></div>
+                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoClienteEmail" placeholder="admin@empresa.com" autocomplete="email"></div>
                             </div>
-                            <div class="grupo"><label>📅 Fecha alta</label><input type="date" id="nuevoClienteFechaAlta" value="2026-05-24"></div>
-                        </div>
-                        <hr>
-                        <p style="font-size:0.7rem; color:#64748b;">* Campos obligatorios para facturación</p>
-                        <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoClienteDireccion" placeholder="Calle, número, piso" autocomplete="street-address"></div>
+                                <div class="grupo"><label class="required">📮 Código postal</label><input type="text" id="nuevoClienteCp" placeholder="Código postal" autocomplete="postal-code"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🌆 Ciudad</label><input type="text" id="nuevoClienteCiudad" placeholder="Ciudad" autocomplete="address-level2"></div>
+                                <div class="grupo"><label class="required">🗺️ Provincia</label><input type="text" id="nuevoClienteProvincia" placeholder="Provincia" autocomplete="address-level1"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>👤 Persona de contacto</label><input type="text" id="nuevoClienteContacto" placeholder="Nombre del presidente/administrador" autocomplete="name"></div>
+                                <div class="grupo"><label>📋 Cargo</label><input type="text" id="nuevoClienteCargo" placeholder="Ej: Presidente, Administrador"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoClienteTelefono" placeholder="Teléfono" autocomplete="tel"></div>
+                                <div class="grupo"><label class="required">📋 NIF/CIF</label><input type="text" id="nuevoClienteNif" placeholder="B12345678" autocomplete="off"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>🏦 IBAN (para domiciliación)</label><input type="text" id="nuevoClienteIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
+                                <div class="grupo"><label>🏦 Banco</label><input type="text" id="nuevoClienteBanco" placeholder="Nombre del banco"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>🏷️ Tipo de cliente</label>
+                                    <select id="nuevoClienteTipo">
+                                        <option value="comunidad">🏘️ Comunidad de propietarios</option>
+                                        <option value="empresa">🏭 Empresa / Autónomo</option>
+                                        <option value="particular">👤 Particular</option>
+                                    </select>
+                                </div>
+                                <div class="grupo"><label>📅 Fecha alta</label><input type="date" id="nuevoClienteFechaAlta" value="2026-05-24"></div>
+                            </div>
+                            <hr>
+                            <p style="font-size:0.7rem; color:#64748b;">* Campos obligatorios para facturación</p>
+                            <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+                        </form>
                     </div>
                 </div>
 
@@ -419,54 +421,56 @@
                     </div>
                     
                     <div id="subCrearTecnico" style="display: none;">
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">👤 Nombre completo</label><input type="text" id="nuevoNombre" placeholder="Nombre y apellidos" autocomplete="name"></div>
-                            <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com" autocomplete="email"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password"></div>
-                            <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto" autocomplete="tel"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">🆔 NIF / NIE</label><input type="text" id="nuevoNif" placeholder="12345678A" autocomplete="off"></div>
-                            <div class="grupo"><label class="required">📅 Fecha nacimiento</label><input type="date" id="nuevoFechaNacimiento" autocomplete="bday"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoDireccion" placeholder="Dirección completa" autocomplete="street-address"></div>
-                            <div class="grupo"><label class="required">🔢 Nº Seguridad Social</label><input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX" autocomplete="off"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label class="required">🏦 IBAN</label><input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
-                            <div class="grupo"><label>🏷️ Tipo contrato</label>
-                                <select id="nuevoTipoContrato">
-                                    <option value="INDEFINIDO">Indefinido</option>
-                                    <option value="TEMPORAL">Temporal</option>
-                                    <option value="POR_OBRA">Por obra/servicio</option>
-                                </select>
+                        <form>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">👤 Nombre completo</label><input type="text" id="nuevoNombre" placeholder="Nombre y apellidos" autocomplete="name"></div>
+                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com" autocomplete="email"></div>
                             </div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label>⏱️ Jornada</label>
-                                <select id="nuevoJornada">
-                                    <option value="COMPLETA">Completa (40h)</option>
-                                    <option value="PARCIAL_50">Parcial 50%</option>
-                                    <option value="PARCIAL_75">Parcial 75%</option>
-                                </select>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password"></div>
+                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto" autocomplete="tel"></div>
                             </div>
-                            <div class="grupo"><label>🔧 Puesto</label>
-                                <select id="nuevoPuesto">
-                                    <option value="TECNICO_BASE">Técnico base</option>
-                                    <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
-                                    <option value="SUPERVISOR">Supervisor</option>
-                                </select>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🆔 NIF / NIE</label><input type="text" id="nuevoNif" placeholder="12345678A" autocomplete="off"></div>
+                                <div class="grupo"><label class="required">📅 Fecha nacimiento</label><input type="date" id="nuevoFechaNacimiento" autocomplete="bday"></div>
                             </div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="nuevoFechaAlta" value="2026-05-24" autocomplete="off"></div>
-                            <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="nuevoNick" placeholder="Usuario para login" autocomplete="username"></div>
-                        </div>
-                        <hr>
-                        <button id="btnCrearTecnico" class="btn-success">✅ Dar de alta técnico</button>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoDireccion" placeholder="Dirección completa" autocomplete="street-address"></div>
+                                <div class="grupo"><label class="required">🔢 Nº Seguridad Social</label><input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX" autocomplete="off"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🏦 IBAN</label><input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
+                                <div class="grupo"><label>🏷️ Tipo contrato</label>
+                                    <select id="nuevoTipoContrato">
+                                        <option value="INDEFINIDO">Indefinido</option>
+                                        <option value="TEMPORAL">Temporal</option>
+                                        <option value="POR_OBRA">Por obra/servicio</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>⏱️ Jornada</label>
+                                    <select id="nuevoJornada">
+                                        <option value="COMPLETA">Completa (40h)</option>
+                                        <option value="PARCIAL_50">Parcial 50%</option>
+                                        <option value="PARCIAL_75">Parcial 75%</option>
+                                    </select>
+                                </div>
+                                <div class="grupo"><label>🔧 Puesto</label>
+                                    <select id="nuevoPuesto">
+                                        <option value="TECNICO_BASE">Técnico base</option>
+                                        <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
+                                        <option value="SUPERVISOR">Supervisor</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="nuevoFechaAlta" value="2026-05-24" autocomplete="off"></div>
+                                <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="nuevoNick" placeholder="Usuario para login" autocomplete="username"></div>
+                            </div>
+                            <hr>
+                            <button id="btnCrearTecnico" class="btn-success">✅ Dar de alta técnico</button>
+                        </form>
                     </div>
                 </div>
 
@@ -640,33 +644,56 @@
 
     // ========== LOGIN ==========
     async function hacerLogin() {
-        const identificador = document.getElementById('identificador').value.trim();
-        const password = document.getElementById('password').value;
-        if (!identificador || !password) { document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; return false; }
-        
-        let email = identificador;
-        if (!identificador.includes('@')) {
-            const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
-            if (!perfil) { document.getElementById('errorMsg').innerText = "Usuario no encontrado"; return false; }
-            email = perfil.email;
-        }
-        
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) { document.getElementById('errorMsg').innerText = error.message; return false; }
-        
-        const { data: perfil } = await sb.from('perfiles').select('*, empresas!inner(*)').eq('id', data.user.id).maybeSingle();
-        if (!perfil || perfil.rol !== 'gerente') { 
-            await sb.auth.signOut(); 
-            document.getElementById('errorMsg').innerText = "Acceso no autorizado. Solo gerentes."; 
-            return false; 
-        }
-        
-        currentUser = data.user;
-        currentEmpresaId = perfil.empresa_id;
-        document.getElementById('nombreGerente').innerHTML = perfil.nombre || 'Gerente';
-        document.getElementById('emailGerente').innerHTML = currentUser.email;
-        return true;
+    const identificador = document.getElementById('identificador').value.trim();
+    const password = document.getElementById('password').value;
+    
+    if (!identificador || !password) { 
+        document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; 
+        return false; 
     }
+    
+    // Determinar si es email o nick
+    let email = identificador;
+    if (!identificador.includes('@')) {
+        const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
+        if (!perfil) {
+            document.getElementById('errorMsg').innerText = "Usuario no encontrado";
+            return false;
+        }
+        email = perfil.email;
+    }
+    
+    // Autenticar con Supabase Auth
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { 
+        document.getElementById('errorMsg').innerText = error.message; 
+        return false; 
+    }
+    
+    // Obtener perfil del usuario (sin la relación empresas!inner que daba error)
+    const { data: perfil, error: perfilError } = await sb.from('perfiles').select('*').eq('id', data.user.id).maybeSingle();
+    
+    if (perfilError || !perfil) { 
+        await sb.auth.signOut(); 
+        document.getElementById('errorMsg').innerText = "Error al cargar perfil"; 
+        return false; 
+    }
+    
+    // Verificar rol
+    if (perfil.rol !== 'gerente') { 
+        await sb.auth.signOut(); 
+        document.getElementById('errorMsg').innerText = "Acceso no autorizado. Solo gerentes."; 
+        return false; 
+    }
+    
+    // Guardar datos globales
+    currentUser = data.user;
+    currentEmpresaId = perfil.empresa_id;
+    document.getElementById('nombreGerente').innerHTML = perfil.nombre || 'Gerente';
+    document.getElementById('emailGerente').innerHTML = currentUser.email;
+    
+    return true;
+}
 
     // ========== STATS ==========
     async function cargarStats() {
@@ -993,28 +1020,36 @@ async function guardarCliente() {
     }
 
     // ========== EVENTOS GLOBALES ==========
-    document.getElementById('btnLogin').onclick = async () => {
-        if (await hacerLogin()) {
-            document.getElementById('loginPanel').style.display = 'none';
-            document.getElementById('dashboardPanel').style.display = 'block';
-            inicializarTabs();
-            await cargarStats(); await cargarTareas(); await cargarActivos(); await cargarTecnicos(); await cargarClientes(); await cargarGastos(); await cargarFacturas(); await cargarPlantillas();
-        }
-    };
-    document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
-    document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
-    document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
-    document.getElementById('btnCrearTarea').onclick = crearTarea;
-    document.getElementById('btnRecargarActivos').onclick = cargarActivos;
-    document.getElementById('btnGuardarCliente').onclick = guardarCliente;
-    document.getElementById('btnBuscarCliente').onclick = cargarClientes;
-    document.getElementById('btnCrearTecnico').onclick = crearTecnico;
-    document.getElementById('btnCrearFactura').onclick = crearFactura;
-    document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
-    document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
-    
-    // Cerrar modales
-    window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+document.getElementById('btnLogin').onclick = async () => {
+    const exito = await hacerLogin();
+    if (exito) {
+        document.getElementById('loginPanel').style.display = 'none';
+        document.getElementById('dashboardPanel').style.display = 'block';
+        inicializarTabs();
+        await cargarStats(); 
+        await cargarTareas(); 
+        await cargarActivos(); 
+        await cargarTecnicos(); 
+        await cargarClientes(); 
+        await cargarGastos(); 
+        await cargarFacturas(); 
+        await cargarPlantillas();
+    }
+};
+
+document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
+document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
+document.getElementById('btnCrearTarea').onclick = crearTarea;
+document.getElementById('btnRecargarActivos').onclick = cargarActivos;
+document.getElementById('btnGuardarCliente').onclick = guardarCliente;
+document.getElementById('btnBuscarCliente').onclick = cargarClientes;
+document.getElementById('btnCrearTecnico').onclick = crearTecnico;
+document.getElementById('btnCrearFactura').onclick = crearFactura;
+document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
+document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
+
+window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
 </script>
 </body>
 </html>
