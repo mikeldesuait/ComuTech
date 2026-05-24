@@ -433,31 +433,55 @@
                         </form>
                     </div>
                 </div>
-                <!-- MODAL EDITAR CLIENTE -->
+                <!-- MODAL EDITAR CLIENTE COMPLETO -->
 <div id="modalEditarCliente" class="modal">
     <div class="modal-content">
         <div class="card-header">✏️ Editar cliente</div>
         <input type="hidden" id="editClienteId">
+        
         <div class="row-flex">
-            <div class="grupo"><label>Nombre</label><input type="text" id="editClienteNombre"></div>
-            <div class="grupo"><label>Email</label><input type="email" id="editClienteEmail"></div>
+            <div class="grupo"><label>🏢 Razón social</label><input type="text" id="editClienteNombre"></div>
+            <div class="grupo"><label>📧 Email</label><input type="email" id="editClienteEmail"></div>
         </div>
         <div class="row-flex">
-            <div class="grupo"><label>Teléfono</label><input type="text" id="editClienteTelefono"></div>
-            <div class="grupo"><label>NIF</label><input type="text" id="editClienteNif"></div>
+            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="editClienteNif"></div>
+            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="editClienteTelefono"></div>
         </div>
         <div class="row-flex">
-            <div class="grupo"><label>Dirección</label><input type="text" id="editClienteDireccion"></div>
-            <div class="grupo"><label>Contacto</label><input type="text" id="editClienteContacto"></div>
+            <div class="grupo"><label>📍 Calle</label><input type="text" id="editClienteCalle"></div>
+            <div class="grupo"><label>🔢 Número</label><input type="text" id="editClienteNumero"></div>
+            <div class="grupo"><label>🏢 Piso</label><input type="text" id="editClientePiso"></div>
         </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📮 Código postal</label><input type="text" id="editClienteCp"></div>
+            <div class="grupo"><label>🌆 Ciudad</label><input type="text" id="editClienteCiudad"></div>
+            <div class="grupo"><label>🗺️ Provincia</label><input type="text" id="editClienteProvincia"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>👤 Contacto</label><input type="text" id="editClienteContacto"></div>
+            <div class="grupo"><label>📋 Cargo</label><input type="text" id="editClienteCargo"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🏦 IBAN</label><input type="text" id="editClienteIban"></div>
+            <div class="grupo"><label>🏦 Banco</label><input type="text" id="editClienteBanco"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🏷️ Tipo cliente</label>
+                <select id="editClienteTipo">
+                    <option value="comunidad">Comunidad</option>
+                    <option value="empresa">Empresa</option>
+                    <option value="particular">Particular</option>
+                </select>
+            </div>
+            <div class="grupo"><label>📅 Fecha alta</label><input type="date" id="editClienteFechaAlta"></div>
+        </div>
+        
         <div class="btn-group" style="display:flex; gap:12px; margin-top:20px;">
-            <button id="btnGuardarEdicionCliente" class="btn-success">💾 Guardar</button>
+            <button id="btnGuardarEdicionCliente" class="btn-success">💾 Guardar cambios</button>
             <button id="btnCancelarEdicionCliente" class="btn-danger">✖ Cancelar</button>
         </div>
     </div>
 </div>
-
-
                 <!-- ==================== TAB PERSONAL ==================== -->
                 <div id="tabPersonal" style="display: none;">
                     <div class="sub-tabs">
@@ -1365,6 +1389,92 @@
     document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
 
     window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+
+    
+// ========== FUNCIONES PARA EDITAR CLIENTE ==========
+window.abrirModalEditarCliente = async function(id) {
+    console.log('Abriendo modal para cliente ID:', id);
+    
+    const { data: cliente, error } = await sb.from('empresas').select('*').eq('id', id).single();
+    if (error) {
+        mostrarMensaje("Error al cargar cliente: " + error.message, 'error');
+        return;
+    }
+    
+    document.getElementById('editClienteId').value = cliente.id;
+    document.getElementById('editClienteNombre').value = cliente.nombre || '';
+    document.getElementById('editClienteEmail').value = cliente.email || '';
+    document.getElementById('editClienteNif').value = cliente.nif || '';
+    document.getElementById('editClienteTelefono').value = cliente.telefono || '';
+    document.getElementById('editClienteCalle').value = cliente.calle || '';
+    document.getElementById('editClienteNumero').value = cliente.numero || '';
+    document.getElementById('editClientePiso').value = cliente.piso || '';
+    document.getElementById('editClienteCp').value = cliente.codigo_postal || '';
+    document.getElementById('editClienteCiudad').value = cliente.ciudad || '';
+    document.getElementById('editClienteProvincia').value = cliente.provincia || '';
+    document.getElementById('editClienteContacto').value = cliente.contacto_nombre || '';
+    document.getElementById('editClienteCargo').value = cliente.contacto_cargo || '';
+    document.getElementById('editClienteIban').value = cliente.iban || '';
+    document.getElementById('editClienteBanco').value = cliente.banco || '';
+    document.getElementById('editClienteTipo').value = cliente.tipo_cliente || 'empresa';
+    document.getElementById('editClienteFechaAlta').value = cliente.fecha_alta || '';
+    
+    document.getElementById('modalEditarCliente').style.display = 'flex';
+};
+
+// Guardar edición de cliente
+document.getElementById('btnGuardarEdicionCliente').onclick = async () => {
+    const id = document.getElementById('editClienteId').value;
+    
+    const { error } = await sb.from('empresas').update({
+        nombre: document.getElementById('editClienteNombre').value,
+        email: document.getElementById('editClienteEmail').value,
+        nif: document.getElementById('editClienteNif').value || null,
+        telefono: document.getElementById('editClienteTelefono').value || null,
+        calle: document.getElementById('editClienteCalle').value || null,
+        numero: document.getElementById('editClienteNumero').value || null,
+        piso: document.getElementById('editClientePiso').value || null,
+        codigo_postal: document.getElementById('editClienteCp').value || null,
+        ciudad: document.getElementById('editClienteCiudad').value || null,
+        provincia: document.getElementById('editClienteProvincia').value || null,
+        contacto_nombre: document.getElementById('editClienteContacto').value || null,
+        contacto_cargo: document.getElementById('editClienteCargo').value || null,
+        iban: document.getElementById('editClienteIban').value || null,
+        banco: document.getElementById('editClienteBanco').value || null,
+        tipo_cliente: document.getElementById('editClienteTipo').value,
+        fecha_alta: document.getElementById('editClienteFechaAlta').value || null
+    }).eq('id', id);
+    
+    if (error) {
+        mostrarMensaje("Error: " + error.message, 'error');
+    } else {
+        mostrarMensaje("✅ Cliente actualizado correctamente");
+        document.getElementById('modalEditarCliente').style.display = 'none';
+        cargarClientes();
+    }
+};
+
+// Cancelar edición
+document.getElementById('btnCancelarEdicionCliente').onclick = () => {
+    document.getElementById('modalEditarCliente').style.display = 'none';
+};
+
+// Asignar eventos a los botones editar cliente después de cargar la tabla
+function asignarEventosEditarCliente() {
+    document.querySelectorAll('.editar-cliente').forEach(btn => {
+        btn.onclick = () => {
+            window.abrirModalEditarCliente(btn.dataset.id);
+        };
+    });
+}
+
+// Modificar cargarClientes para asignar eventos después de renderizar
+const originalCargarClientes = cargarClientes;
+window.cargarClientes = async function() {
+    await originalCargarClientes();
+    asignarEventosEditarCliente();
+};
+cargarClientes = window.cargarClientes;
 
 </script>
 </body>
