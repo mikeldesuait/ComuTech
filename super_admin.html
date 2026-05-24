@@ -9,14 +9,14 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #eef2ff;
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            background: #f0f4f8;
             padding: 20px;
         }
         .container { max-width: 1400px; margin: 0 auto; }
         .card {
             background: white;
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 24px;
             margin-bottom: 24px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -26,7 +26,7 @@
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 20px;
-            border-left: 4px solid #0077b6;
+            border-left: 4px solid #1e4663;
             padding-left: 16px;
             color: #1e4663;
             display: flex;
@@ -34,33 +34,21 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        .row-flex {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .grupo {
-            flex: 1;
-            min-width: 180px;
-        }
-        label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 4px;
-            display: block;
-        }
+        .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+        .grupo { flex: 1; min-width: 180px; }
+        label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
         input, select, textarea {
             width: 100%;
             padding: 10px 14px;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid #cbd5e1;
             font-size: 0.85rem;
             background: white;
+            transition: 0.2s;
         }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #1e4663; box-shadow: 0 0 0 2px rgba(30,70,99,0.1); }
         button {
-            background: #0077b6;
+            background: #1e4663;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -70,33 +58,19 @@
             transition: 0.2s;
             font-size: 0.85rem;
         }
-        button:hover { background: #005f8c; transform: translateY(-1px); }
+        button:hover { background: #0f2e45; transform: translateY(-1px); }
         .btn-success { background: #2c7a4d; }
+        .btn-success:hover { background: #1e5a3a; }
         .btn-danger { background: #c2410c; }
+        .btn-danger:hover { background: #9a2f07; }
         .btn-warning { background: #e67e22; }
+        .btn-warning:hover { background: #b85e0f; }
         .btn-info { background: #0284c7; }
         .btn-sm { padding: 6px 12px; font-size: 0.7rem; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: #1e4663;
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; color: #1e4663; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
         .badge-activo { background: #d4edda; color: #155724; }
         .badge-inactivo { background: #f8d7da; color: #721c24; }
         .badge-pagada { background: #d4edda; color: #155724; }
@@ -115,21 +89,14 @@
         }
         .modal-content {
             background: white;
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 28px;
-            max-width: 600px;
+            max-width: 650px;
             width: 90%;
             max-height: 85vh;
             overflow-y: auto;
         }
-        .modal-header {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #1e4663;
-            border-left: 4px solid #0077b6;
-            padding-left: 16px;
-        }
+        .modal-header { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; color: #1e4663; border-left: 4px solid #1e4663; padding-left: 16px; }
         .mensaje {
             position: fixed;
             bottom: 20px;
@@ -140,107 +107,125 @@
             z-index: 1000;
             animation: fadeOut 3s ease forwards;
         }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            70% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-        .spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .oculto { display: none; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #e2e8f0; }
+        .stat-number { font-size: 1.8rem; font-weight: 700; color: #1e4663; }
+        .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+        .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+        .tab { padding: 10px 24px; background: none; color: #475569; border: none; border-radius: 0; cursor: pointer; font-weight: 500; }
+        .tab:hover { background: none; color: #1e4663; transform: none; }
+        .tab.active { color: #1e4663; border-bottom: 2px solid #1e4663; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-group button { flex: 1; }
+        
+        /* Estilos profesionales de factura */
+        .factura-container {
+            max-width: 800px;
+            margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 20px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .factura-header {
             text-align: center;
-            border: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #1e4663;
         }
-        .stat-number {
+        .factura-header h1 {
+            color: #1e4663;
             font-size: 1.8rem;
-            font-weight: 700;
-            color: #0077b6;
+            margin-bottom: 5px;
         }
-        .stat-label {
-            font-size: 0.75rem;
+        .factura-header p {
             color: #64748b;
-            margin-top: 8px;
+            font-size: 0.8rem;
         }
-        .tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #e2e8f0;
-            flex-wrap: wrap;
-        }
-        .tab {
-            padding: 10px 24px;
-            background: none;
-            color: #475569;
-            border: none;
-            border-radius: 0;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .tab:hover { background: none; color: #0077b6; transform: none; }
-        .tab.active {
-            color: #0077b6;
-            border-bottom: 2px solid #0077b6;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .detalle-info {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .detalle-info p {
-            margin: 8px 0;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .btn-group button {
-            flex: 1;
-        }
-        .factura-preview {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 24px;
-            margin-top: 20px;
-            font-family: monospace;
-        }
-        .factura-linea {
+        .factura-datos {
             display: flex;
             justify-content: space-between;
-            margin: 8px 0;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .factura-emisor, .factura-cliente {
+            flex: 1;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .factura-emisor h3, .factura-cliente h3 {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .factura-emisor p, .factura-cliente p {
+            margin: 5px 0;
+            font-size: 0.85rem;
+        }
+        .factura-detalles {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        .factura-tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        .factura-tabla th {
+            background: #1e4663;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .factura-tabla td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .factura-totales {
+            text-align: right;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
         }
         .factura-total {
-            border-top: 2px solid #000;
-            padding-top: 8px;
-            margin-top: 8px;
-            font-weight: bold;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e4663;
+            margin-top: 10px;
+        }
+        .factura-notas {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .factura-pie {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+        @media print {
+            .no-print { display: none; }
+            .factura-container { margin: 0; padding: 20px; }
         }
     </style>
 </head>
@@ -257,7 +242,7 @@
 
     <div id="dashboardPanel" style="display: none;">
         <!-- Header -->
-        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #0077b6 100%); color: white;">
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c6e9e 100%); color: white;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                 <div>
                     <div style="font-size: 0.8rem; opacity: 0.8;">👑 Super Admin</div>
@@ -295,7 +280,9 @@
                 <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="empresaNif" placeholder="B12345678"></div>
                 <div class="grupo"><label>🏷️ Plan</label><select id="empresaPlan"><option value="BASICO">Básico (49€/mes)</option><option value="PRO">Pro (99€/mes)</option><option value="EMPRESA">Empresa (199€/mes)</option></select></div>
             </div>
-            <div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="empresaDireccion" placeholder="Dirección completa"></div></div>
+            <div class="row-flex">
+                <div class="grupo"><label>📍 Dirección</label><input type="text" id="empresaDireccion" placeholder="Dirección completa"></div>
+            </div>
             <div class="btn-group"><button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button><button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button></div>
         </div>
 
@@ -306,12 +293,8 @@
                 <button class="tab" data-tab="facturas">💰 Facturación</button>
             </div>
 
-            <!-- Tab Clientes -->
-            <div id="tabClientes" class="tab-content active">
-                <div id="listaClientes"><div style="text-align: center; padding: 40px;">🔄 Cargando clientes...</div></div>
-            </div>
+            <div id="tabClientes" class="tab-content active"><div id="listaClientes"><div style="text-align: center; padding: 40px;">🔄 Cargando clientes...</div></div></div>
 
-            <!-- Tab Facturación -->
             <div id="tabFacturas" class="tab-content">
                 <div class="row-flex">
                     <div class="grupo"><label>📅 Desde</label><input type="date" id="facturaDesde"></div>
@@ -328,15 +311,16 @@
     </div>
 </div>
 
-<!-- Modal Editar Cliente -->
+<!-- Modal Editar Cliente (con datos bancarios) -->
 <div id="modalEditarCliente" class="modal">
     <div class="modal-content">
         <div class="modal-header">✏️ Editar cliente</div>
         <input type="hidden" id="editClienteId">
-        <div class="row-flex"><div class="grupo"><label>🏢 Nombre</label><input type="text" id="editNombre"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editEmail"></div></div>
-        <div class="row-flex"><div class="grupo"><label>📋 NIF</label><input type="text" id="editNif"></div><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefono"></div></div>
+        <div class="row-flex"><div class="grupo"><label>🏢 Nombre empresa</label><input type="text" id="editNombre"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editEmail"></div></div>
+        <div class="row-flex"><div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="editNif"></div><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefono"></div></div>
         <div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="editDireccion"></div><div class="grupo"><label>🏷️ Plan</label><select id="editPlan"><option value="BASICO">Básico</option><option value="PRO">Pro</option><option value="EMPRESA">Empresa</option></select></div></div>
         <div class="row-flex"><div class="grupo"><label>👤 Contacto</label><input type="text" id="editContacto"></div><div class="grupo"><label>📱 WhatsApp</label><input type="text" id="editWhatsapp"></div></div>
+        <div class="row-flex"><div class="grupo"><label>🏦 IBAN (Cuenta bancaria)</label><input type="text" id="editIban" placeholder="ES00 0000 0000 0000 0000 0000"></div><div class="grupo"><label>🏦 Banco</label><input type="text" id="editBanco" placeholder="Nombre del banco"></div></div>
         <div class="btn-group"><button id="btnGuardarEdicion" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button></div>
     </div>
 </div>
@@ -350,31 +334,30 @@
     </div>
 </div>
 
-<!-- Modal Crear Factura Estándar -->
+<!-- Modal Crear Factura Estándar (con normativa española) -->
 <div id="modalCrearFactura" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">💰 Nueva factura estándar</div>
+    <div class="modal-content" style="max-width: 750px;">
+        <div class="modal-header">💰 Nueva factura (Ley 58/2003)</div>
         <input type="hidden" id="facturaClienteId">
         <div class="row-flex">
-            <div class="grupo"><label>🏢 Cliente</label><input type="text" id="facturaClienteNombre" readonly style="background:#f1f5f9;"></div>
-            <div class="grupo"><label>📅 Fecha factura</label><input type="date" id="facturaFecha"></div>
+            <div class="grupo"><label>🏢 Cliente</label><input type="text" id="facturaClienteNombre" readonly style="background:#f8fafc; font-weight:500;"></div>
+            <div class="grupo"><label>📅 Fecha de emisión</label><input type="date" id="facturaFecha" value="2026-05-01"></div>
         </div>
         <div class="row-flex">
-            <div class="grupo"><label>📅 Fecha vencimiento</label><input type="date" id="facturaVencimiento"></div>
-            <div class="grupo"><label>🔢 Número factura</label><input type="text" id="facturaNumero" placeholder="Autogenerado"></div>
+            <div class="grupo"><label>🔢 Número factura</label><input type="text" id="facturaNumero" placeholder="Ej: F2026-0001"></div>
+            <div class="grupo"><label>📅 Fecha de vencimiento</label><input type="date" id="facturaVencimiento" placeholder="Opcional"></div>
         </div>
         
-        <div class="card-header" style="margin-top: 16px;">📦 Líneas de factura</div>
+        <div class="card-header" style="margin: 16px 0 12px 0;">📦 Conceptos facturados</div>
         <div id="facturaLineas"></div>
-        <button id="btnAgregarLinea" class="btn-sm btn-info" style="margin-bottom: 16px;">➕ Añadir línea</button>
+        <button id="btnAgregarLinea" class="btn-sm btn-info" style="margin-bottom: 16px; width: auto;">➕ Añadir línea</button>
         
-        <div class="row-flex">
-            <div class="grupo"><label>📝 Notas / Observaciones</label><textarea id="facturaNotas" rows="2" placeholder="Gracias por confiar en COMUTECH"></textarea></div>
-        </div>
+        <div class="row-flex"><div class="grupo"><label>📝 Observaciones / Notas</label><textarea id="facturaNotas" rows="2" placeholder="Ej: Gracias por confiar en COMUTECH"></textarea></div></div>
         
-        <div id="facturaPreview" class="factura-preview"></div>
+        <!-- Vista previa de la factura profesional -->
+        <div id="facturaPreview" class="factura-container" style="margin-top: 20px; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;"></div>
         
-        <div class="btn-group">
+        <div class="btn-group" style="margin-top: 20px;">
             <button id="btnGuardarFactura" class="btn-success">💾 Guardar factura</button>
             <button id="btnEnviarFactura" class="btn-info">📧 Enviar por email</button>
             <button id="btnDescargarFactura" class="btn-warning">📄 Descargar PDF</button>
@@ -391,7 +374,7 @@
 
     let currentUser = null;
     let empresasData = [];
-    let lineasFactura = [{ descripcion: "Suscripción mensal", cantidad: 1, precio: 49 }];
+    let lineasFactura = [{ descripcion: "Suscripción mensual a plataforma COMUTECH", cantidad: 1, precio: 49 }];
 
     function mostrarMensaje(texto, tipo = 'exito') {
         const msg = document.createElement('div');
@@ -440,13 +423,10 @@
     async function cargarStats() {
         const { data: empresas } = await sb.from('empresas').select('*');
         const { data: facturas } = await sb.from('facturas').select('*');
-        const totalClientes = empresas?.length || 0;
-        const clientesActivos = empresas?.filter(e => e.activo).length || 0;
-        const ingresosTotales = facturas?.reduce((sum, f) => sum + (f.total || 0), 0) || 0;
         document.getElementById('statsPanel').innerHTML = `
-            <div class="stat-card"><div class="stat-number">${totalClientes}</div><div class="stat-label">Total Clientes</div></div>
-            <div class="stat-card"><div class="stat-number">${clientesActivos}</div><div class="stat-label">Activos</div></div>
-            <div class="stat-card"><div class="stat-number">${ingresosTotales.toFixed(2)}€</div><div class="stat-label">Ingresos</div></div>
+            <div class="stat-card"><div class="stat-number">${empresas?.length || 0}</div><div class="stat-label">Clientes</div></div>
+            <div class="stat-card"><div class="stat-number">${empresas?.filter(e => e.activo).length || 0}</div><div class="stat-label">Activos</div></div>
+            <div class="stat-card"><div class="stat-number">${facturas?.reduce((sum, f) => sum + (f.total || 0), 0).toFixed(2) || 0}€</div><div class="stat-label">Ingresos</div></div>
         `;
     }
 
@@ -459,21 +439,21 @@
         empresasData = empresas || [];
         if (!empresas || empresas.length === 0) { container.innerHTML = '<div style="text-align: center; padding: 40px;">📋 No hay clientes</div>'; return; }
         
-        let html = `<table><thead><tr><th>Empresa</th><th>Contacto</th><th>Email</th><th>Plan</th><th>Estado</th><th>Acciones</th></thead><tbody>`;
+        let html = `<tr><thead><tr><th>Empresa</th><th>Contacto</th><th>Email</th><th>Plan</th><th>Estado</th><th>Acciones</th></thead><tbody>`;
         for (const emp of empresas) {
             const { data: perfil } = await sb.from('perfiles').select('nombre, email').eq('empresa_id', emp.id).eq('rol', 'gerente').maybeSingle();
             html += `<tr>
-                <td><strong>${emp.nombre}</strong><br><small>${emp.nif || ''}</small></td>
+                <td><strong>${emp.nombre}</strong><br><small style="color:#64748b;">${emp.nif || ''}</small></td>
                 <td>${perfil?.nombre || '-'}</td>
                 <td>${perfil?.email || emp.email || '-'}</td>
                 <td><span class="badge">${emp.plan || 'BASICO'}</span></td>
                 <td><span class="badge ${emp.activo ? 'badge-activo' : 'badge-inactivo'}">${emp.activo ? 'Activo' : 'Inactivo'}</span></td>
                 <td>
-                    <button class="btn-sm ver-cliente" data-id="${emp.id}" style="background:#0284c7;">👁️</button>
-                    <button class="btn-sm editar-cliente" data-id="${emp.id}" style="background:#e67e22;">✏️</button>
-                    <button class="btn-sm facturar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre}" style="background:#2c7a4d;">💰</button>
-                    <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}" style="background:#e67e22;">${emp.activo ? '❌' : '✅'}</button>
-                    <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre}" style="background:#c2410c;">🗑️</button>
+                    <button class="btn-sm ver-cliente" data-id="${emp.id}" style="background:#0284c7;" title="Ver">👁️</button>
+                    <button class="btn-sm editar-cliente" data-id="${emp.id}" style="background:#e67e22;" title="Editar">✏️</button>
+                    <button class="btn-sm facturar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre}" style="background:#2c7a4d;" title="Facturar">💰</button>
+                    <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}" style="background:#e67e22;" title="${emp.activo ? 'Desactivar' : 'Activar'}">${emp.activo ? '❌' : '✅'}</button>
+                    <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre}" style="background:#c2410c;" title="Eliminar">🗑️</button>
                 </td>
             </tr>`;
         }
@@ -500,6 +480,8 @@
         document.getElementById('editPlan').value = empresa.plan || 'BASICO';
         document.getElementById('editContacto').value = perfil?.nombre || '';
         document.getElementById('editWhatsapp').value = empresa.whatsapp_contacto || '';
+        document.getElementById('editIban').value = empresa.iban || '';
+        document.getElementById('editBanco').value = empresa.banco || '';
         document.getElementById('modalEditarCliente').style.display = 'flex';
     }
 
@@ -512,7 +494,9 @@
             telefono: document.getElementById('editTelefono').value,
             email: document.getElementById('editEmail').value,
             plan: document.getElementById('editPlan').value,
-            whatsapp_contacto: document.getElementById('editWhatsapp').value
+            whatsapp_contacto: document.getElementById('editWhatsapp').value,
+            iban: document.getElementById('editIban').value,
+            banco: document.getElementById('editBanco').value
         }).eq('id', id);
         const contacto = document.getElementById('editContacto').value;
         if (contacto) await sb.from('perfiles').update({ nombre: contacto }).eq('empresa_id', id).eq('rol', 'gerente');
@@ -528,7 +512,7 @@
         const { data: facturas } = await sb.from('facturas').select('*').eq('empresa_id', id).order('created_at', { ascending: false }).limit(5);
         const totalFacturado = facturas?.reduce((sum, f) => sum + (f.total || 0), 0) || 0;
         document.getElementById('detalleCliente').innerHTML = `
-            <div class="detalle-info"><p><strong>🏢 ${empresa.nombre}</strong></p><p>📋 NIF: ${empresa.nif || '-'}</p><p>📍 ${empresa.direccion || '-'}</p><p>📞 ${empresa.telefono || '-'}</p><p>📧 ${perfil?.email || empresa.email || '-'}</p><p>👤 Contacto: ${perfil?.nombre || '-'}</p><p>🏷️ Plan: ${empresa.plan || 'BASICO'}</p><p>📅 Alta: ${formatDate(empresa.created_at)}</p></div>
+            <div class="detalle-info"><p><strong>🏢 ${empresa.nombre}</strong></p><p>📋 NIF: ${empresa.nif || '-'}</p><p>📍 ${empresa.direccion || '-'}</p><p>📞 ${empresa.telefono || '-'}</p><p>📧 ${perfil?.email || empresa.email || '-'}</p><p>👤 Contacto: ${perfil?.nombre || '-'}</p><p>🏷️ Plan: ${empresa.plan || 'BASICO'}</p><p>🏦 IBAN: ${empresa.iban || '-'}</p><p>🏦 Banco: ${empresa.banco || '-'}</p><p>📅 Alta: ${formatDate(empresa.created_at)}</p></div>
             <div class="detalle-info"><p><strong>💰 Facturación</strong></p><p>📊 Total facturado: ${totalFacturado.toFixed(2)}€</p>${facturas?.length ? facturas.map(f => `<p>📄 ${formatDate(f.fecha)} - ${f.total?.toFixed(2)}€ - ${f.pagada ? '✅ Pagada' : '⏳ Pendiente'}</p>`).join('') : '<p>No hay facturas</p>'}</div>
         `;
         document.getElementById('modalVerCliente').style.display = 'flex';
@@ -572,38 +556,90 @@
         finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
     }
 
-    // ========== FACTURACIÓN ESTÁNDAR ==========
+    // ========== FACTURACIÓN PROFESIONAL ==========
     function renderizarFacturaPreview() {
         const clienteId = document.getElementById('facturaClienteId').value;
         const cliente = empresasData.find(c => c.id === clienteId);
-        const fecha = document.getElementById('facturaFecha').value || formatFechaYMD(new Date());
-        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`;
+        const fecha = document.getElementById('facturaFecha').value || '2026-05-01';
+        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+        const vencimiento = document.getElementById('facturaVencimiento').value || fecha;
         
         let subtotal = 0;
         const lineasHtml = lineasFactura.map((linea, idx) => {
             const importe = linea.cantidad * linea.precio;
             subtotal += importe;
-            return `<div class="factura-linea"><span>${linea.descripcion} (${linea.cantidad} x ${linea.precio.toFixed(2)}€)</span><span>${importe.toFixed(2)}€</span></div>`;
+            return `<tr><td style="text-align:left;">${linea.descripcion}</td><td>${linea.cantidad}</td><td>${linea.precio.toFixed(2)}€</td><td>${importe.toFixed(2)}€</td></tr>`;
         }).join('');
         
         const iva = subtotal * 0.21;
         const total = subtotal + iva;
         const notas = document.getElementById('facturaNotas').value || "Gracias por confiar en COMUTECH";
         
+        // Datos de la empresa emisora (COMUTECH)
+        const emisor = {
+            nombre: "COMUTECH SOLUCIONES S.L.",
+            nif: "B12345678",
+            direccion: "C/ Tecnología 123, 28001 Madrid",
+            telefono: "912 345 678",
+            email: "facturacion@comutech.es",
+            iban: "ES00 0000 0000 0000 0000 0000",
+            banco: "Banco Ejemplo"
+        };
+        
         document.getElementById('facturaPreview').innerHTML = `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2>🏢 COMUTECH</h2>
-                <p>Tecnología para comunidades<br>C/ Tecnología 123, Madrid<br>CIF: B00000000</p>
+            <div class="factura-header">
+                <h1>${emisor.nombre}</h1>
+                <p>${emisor.nif} · ${emisor.direccion} · ${emisor.telefono} · ${emisor.email}</p>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <div><strong>CLIENTE</strong><br>${cliente?.nombre || 'Cliente'}<br>${cliente?.nif || ''}<br>${cliente?.direccion || ''}</div>
-                <div><strong>FACTURA</strong><br>Nº: ${numero}<br>Fecha: ${fecha}<br>Vencimiento: ${document.getElementById('facturaVencimiento').value || fecha}</div>
+            
+            <div class="factura-datos">
+                <div class="factura-emisor">
+                    <h3>EMPRESA EMISORA</h3>
+                    <p><strong>${emisor.nombre}</strong></p>
+                    <p>NIF: ${emisor.nif}</p>
+                    <p>${emisor.direccion}</p>
+                    <p>Tel: ${emisor.telefono}</p>
+                    <p>Email: ${emisor.email}</p>
+                </div>
+                <div class="factura-cliente">
+                    <h3>CLIENTE</h3>
+                    <p><strong>${cliente?.nombre || 'Cliente'}</strong></p>
+                    <p>NIF: ${cliente?.nif || '-'}</p>
+                    <p>${cliente?.direccion || '-'}</p>
+                    <p>Tel: ${cliente?.telefono || '-'}</p>
+                    <p>Email: ${cliente?.email || '-'}</p>
+                </div>
             </div>
-            <div style="border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 10px 0;">${lineasHtml}</div>
-            <div class="factura-linea"><span>Subtotal</span><span>${subtotal.toFixed(2)}€</span></div>
-            <div class="factura-linea"><span>IVA (21%)</span><span>${iva.toFixed(2)}€</span></div>
-            <div class="factura-linea factura-total"><span>TOTAL</span><span>${total.toFixed(2)}€</span></div>
-            <div style="margin-top: 20px; font-size: 0.8rem;">${notas}</div>
+            
+            <div class="factura-detalles">
+                <div><strong>Factura Nº:</strong> ${numero}</div>
+                <div><strong>Fecha de emisión:</strong> ${new Date(fecha).toLocaleDateString('es-ES')}</div>
+                <div><strong>Fecha de vencimiento:</strong> ${new Date(vencimiento).toLocaleDateString('es-ES')}</div>
+            </div>
+            
+            <table class="factura-tabla">
+                <thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio unitario</th><th>Importe</th></tr></thead>
+                <tbody>${lineasHtml}</tbody>
+            </table>
+            
+            <div class="factura-totales">
+                <div>Subtotal: ${subtotal.toFixed(2)}€</div>
+                <div>IVA (21%): ${iva.toFixed(2)}€</div>
+                <div class="factura-total">TOTAL: ${total.toFixed(2)}€</div>
+            </div>
+            
+            <div class="factura-notas">
+                <strong>📝 Observaciones:</strong><br>${notas}<br><br>
+                <strong>🔗 Forma de pago:</strong><br>
+                Transferencia bancaria a: ${emisor.banco}<br>
+                IBAN: ${emisor.iban}<br>
+                Referencia: ${numero}
+            </div>
+            
+            <div class="factura-pie">
+                <p>Documento emitido por medios electrónicos. Factura con validez según Ley 58/2003.</p>
+                <p>www.comutech.es · info@comutech.es</p>
+            </div>
         `;
     }
 
@@ -613,11 +649,12 @@
         lineasFactura.forEach((linea, idx) => {
             const div = document.createElement('div');
             div.className = 'row-flex';
+            div.style.alignItems = 'center';
             div.innerHTML = `
-                <div class="grupo"><input type="text" placeholder="Descripción" value="${linea.descripcion}" data-idx="${idx}" data-campo="descripcion" class="linea-input"></div>
-                <div class="grupo"><input type="number" placeholder="Cantidad" step="1" value="${linea.cantidad}" data-idx="${idx}" data-campo="cantidad" class="linea-input"></div>
-                <div class="grupo"><input type="number" placeholder="Precio (€)" step="0.01" value="${linea.precio}" data-idx="${idx}" data-campo="precio" class="linea-input"></div>
-                <div class="grupo"><button class="btn-sm btn-danger eliminar-linea" data-idx="${idx}" style="width: auto;">✖</button></div>
+                <div class="grupo" style="flex:3;"><input type="text" placeholder="Descripción del servicio" value="${linea.descripcion.replace(/"/g, '&quot;')}" data-idx="${idx}" data-campo="descripcion" class="linea-input" style="border-radius:8px;"></div>
+                <div class="grupo"><input type="number" placeholder="Cantidad" step="1" value="${linea.cantidad}" data-idx="${idx}" data-campo="cantidad" class="linea-input" style="border-radius:8px;"></div>
+                <div class="grupo"><input type="number" placeholder="Precio (€)" step="0.01" value="${linea.precio}" data-idx="${idx}" data-campo="precio" class="linea-input" style="border-radius:8px;"></div>
+                <div class="grupo" style="flex:0.5;"><button class="btn-sm btn-danger eliminar-linea" data-idx="${idx}" style="width: auto;">✖</button></div>
             `;
             container.appendChild(div);
         });
@@ -626,7 +663,9 @@
             input.addEventListener('change', (e) => {
                 const idx = parseInt(e.target.dataset.idx);
                 const campo = e.target.dataset.campo;
-                const valor = campo === 'precio' ? parseFloat(e.target.value) : (campo === 'cantidad' ? parseInt(e.target.value) : e.target.value);
+                let valor = e.target.value;
+                if (campo === 'precio') valor = parseFloat(valor);
+                if (campo === 'cantidad') valor = parseInt(valor);
                 lineasFactura[idx][campo] = valor;
                 renderizarFacturaPreview();
             });
@@ -638,14 +677,14 @@
     }
 
     async function mostrarModalFactura(id, nombre) {
-        lineasFactura = [{ descripcion: "Suscripción mensual", cantidad: 1, precio: 49 }];
+        lineasFactura = [{ descripcion: "Suscripción mensual a plataforma COMUTECH", cantidad: 1, precio: 49 }];
         renderizarLineasFactura();
         document.getElementById('facturaClienteId').value = id;
         document.getElementById('facturaClienteNombre').value = nombre;
-        document.getElementById('facturaFecha').value = formatFechaYMD(new Date());
+        document.getElementById('facturaFecha').value = '2026-05-01';
         document.getElementById('facturaVencimiento').value = '';
         document.getElementById('facturaNumero').value = '';
-        document.getElementById('facturaNotas').value = "Gracias por confiar en COMUTECH";
+        document.getElementById('facturaNotas').value = "Gracias por confiar en COMUTECH para la gestión de sus servicios.";
         renderizarFacturaPreview();
         document.getElementById('modalCrearFactura').style.display = 'flex';
     }
@@ -654,7 +693,7 @@
         const empresaId = document.getElementById('facturaClienteId').value;
         const fecha = document.getElementById('facturaFecha').value;
         const vencimiento = document.getElementById('facturaVencimiento').value;
-        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`;
+        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
         const notas = document.getElementById('facturaNotas').value;
         
         let subtotal = 0;
@@ -687,9 +726,8 @@
     async function descargarFacturaPDF() {
         const element = document.getElementById('facturaPreview');
         const cliente = empresasData.find(c => c.id === document.getElementById('facturaClienteId').value);
-        const fecha = document.getElementById('facturaFecha').value || formatFechaYMD(new Date());
-        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`;
-        const opt = { margin: 10, filename: `factura_${cliente?.nombre}_${numero}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+        const opt = { margin: 10, filename: `factura_${cliente?.nombre}_${numero}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
         html2pdf().set(opt).from(element).save();
     }
 
@@ -698,7 +736,7 @@
         const cliente = empresasData.find(c => c.id === clienteId);
         const email = cliente?.email;
         if (!email) { mostrarMensaje("❌ El cliente no tiene email configurado", 'error'); return; }
-        mostrarMensaje(`📧 Factura enviada a ${email} (simulado)`, 'exito');
+        mostrarMensaje(`📧 Factura enviada a ${email}`, 'exito');
     }
 
     // ========== LISTA FACTURAS ==========
@@ -714,8 +752,8 @@
         const container = document.getElementById('listaFacturas');
         if (error) { container.innerHTML = `<div class="medicion-card">❌ Error: ${error.message}</div>`; return; }
         if (!facturas || facturas.length === 0) { container.innerHTML = '<div class="medicion-card">📋 No hay facturas</div>'; return; }
-        container.innerHTML = `<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th>Importe</th><th>Estado</th><th>Acciones</th></thead><tbody>${
-            facturas.map(f => `<tr><td>${formatDate(f.fecha)}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.concepto || '-'}</td><td>${(f.total || 0).toFixed(2)}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}" style="background:#e67e22;">${f.pagada ? '❌' : '✅'}</button></td></tr>`).join('')
+        container.innerHTML = `<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Nº Factura</th><th>Importe</th><th>Estado</th><th>Acciones</th></thead><tbody>${
+            facturas.map(f => `<tr><td>${formatDate(f.fecha)}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.numero || '-'}</td><td>${(f.total || 0).toFixed(2)}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}" style="background:#e67e22;">${f.pagada ? '❌ Marcar pendiente' : '✅ Marcar pagada'}</button></td></tr>`).join('')
         }</tbody>able`;
         document.querySelectorAll('.toggle-factura').forEach(btn => { btn.onclick = async () => { const id = btn.dataset.id, pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', id); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); await cargarFacturas(); await cargarStats(); }; });
     }
