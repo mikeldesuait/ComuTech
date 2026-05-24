@@ -3,504 +3,1105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Sistema de Facturación - Clientes y Ventas</title>
-    <!-- Supabase JS Library -->
+    <title>COMUTECH · Super Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- jsPDF y html2canvas para generar PDF (opcional para facturas) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', 'Inter', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #eef2f5;
-            margin: 0;
-            padding: 24px 20px;
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            background: #f0f4f8;
+            padding: 20px;
         }
-        .dashboard {
-            max-width: 1400px;
-            margin: 0 auto;
+        .container { max-width: 1400px; margin: 0 auto; }
+        .card {
             background: white;
-            border-radius: 32px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-            overflow: hidden;
-            padding: 24px 28px 32px 28px;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
-        h1 {
-            font-size: 1.8rem;
+        .card-header {
+            font-size: 1.2rem;
             font-weight: 600;
-            margin: 0 0 8px 0;
-            color: #1a2c3e;
+            margin-bottom: 20px;
+            border-left: 4px solid #1e4663;
+            padding-left: 16px;
+            color: #1e4663;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-        }
-        .subtitulo {
-            color: #4a627a;
-            margin-bottom: 28px;
-            border-left: 4px solid #2c7a4d;
-            padding-left: 14px;
-            font-size: 0.9rem;
-        }
-        /* tabs */
-        .tabs {
-            display: flex;
-            gap: 12px;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 28px;
             flex-wrap: wrap;
         }
-        .tab-btn {
-            background: none;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            border-radius: 40px;
-            transition: all 0.2s;
-            color: #4b5563;
-        }
-        .tab-btn.activo {
-            background: #2c7a4d;
-            color: white;
-            box-shadow: 0 2px 8px rgba(44,122,77,0.2);
-        }
-        .tab-btn:not(.activo):hover {
-            background: #e9ecef;
-        }
-        /* formularios y tablas */
-        .row-flex {
-            display: flex;
-            flex-wrap: wrap;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
-            align-items: flex-end;
+            margin-bottom: 24px;
         }
-        .grupo {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex: 1;
-            min-width: 160px;
-        }
-        label {
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #2c3e4e;
-            letter-spacing: 0.3px;
-        }
-        input, select, textarea {
-            padding: 10px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 14px;
-            font-size: 0.9rem;
+        .stat-card {
             background: white;
-            transition: 0.2s;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
         }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #2c7a4d;
-            box-shadow: 0 0 0 2px rgba(44,122,77,0.2);
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #e2e8f0;
-            transition: 0.2s;
-        }
-        .btn-success { background: #2c7a4d; color: white; }
-        .btn-success:hover { background: #1f5e3a; transform: scale(0.98);}
-        .btn-info { background: #2c6e9e; color: white; }
-        .btn-info:hover { background: #1f557c; }
-        .btn-danger { background: #b91c1c; color: white; }
-        .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 24px; margin: 0 2px; border: none; cursor: pointer;}
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-            font-size: 0.85rem;
-        }
-        th, td {
-            text-align: left;
-            padding: 12px 8px;
-            border-bottom: 1px solid #e2edf2;
-        }
-        th {
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stat-number { font-size: 1.8rem; font-weight: 700; color: #1e4663; }
+        .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+        
+        .browser-tabs {
+            display: flex;
             background: #f1f5f9;
-            font-weight: 600;
+            padding: 8px 12px 0 12px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 4px;
+            overflow-x: auto;
+            flex-wrap: wrap;
         }
+        .browser-tab {
+            padding: 10px 20px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #475569;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .browser-tab:hover { background: #cbd5e1; }
+        .browser-tab.active {
+            background: white;
+            color: #1e4663;
+            border-top: 2px solid #1e4663;
+        }
+        .browser-content {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 20px;
+        }
+        
         .search-bar {
             display: flex;
-            flex-wrap: wrap;
             gap: 12px;
-            margin: 20px 0 16px;
-            background: #f9fafb;
-            padding: 16px;
-            border-radius: 24px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        .mensaje-flotante {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #1f2f3a;
-            color: white;
-            padding: 12px 20px;
+        .search-bar input, .search-bar select {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
             border-radius: 40px;
-            font-size: 0.85rem;
-            z-index: 999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-size: 0.9rem;
+            background: white;
+            min-width: 150px;
         }
-        /* modal factura */
+        .search-bar input:focus, .search-bar select:focus { outline: none; border-color: #1e4663; }
+        
+        .clientes-tabla {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .clientes-tabla th, .clientes-tabla td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+        }
+        .clientes-tabla th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1e4663;
+            position: sticky;
+            top: 0;
+        }
+        .clientes-tabla tr:hover { background: #f8fafc; }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-activo { background: #d4edda; color: #155724; }
+        .badge-inactivo { background: #f8d7da; color: #721c24; }
+        .badge-pagada { background: #d4edda; color: #155724; }
+        .badge-pendiente { background: #fff3cd; color: #856404; }
+        .badge-administrador { background: #1e4663; color: white; }
+        .badge-comunidad { background: #0284c7; color: white; }
+        .badge-empresa { background: #2c7a4d; color: white; }
+        .badge-autonomo { background: #e67e22; color: white; }
+        .badge-basico { background: #e0e7ff; color: #1e4663; }
+        .badge-pro { background: #fef3c7; color: #92400e; }
+        .badge-empresa-plan { background: #d1ecf1; color: #0c5460; }
+        
+        button {
+            background: #1e4663;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        button:hover { background: #0f2e45; transform: translateY(-1px); }
+        .btn-success { background: #2c7a4d; }
+        .btn-success:hover { background: #1e5a3a; }
+        .btn-danger { background: #c2410c; }
+        .btn-danger:hover { background: #9a2f07; }
+        .btn-warning { background: #e67e22; }
+        .btn-info { background: #0284c7; }
+        .btn-sm { padding: 6px 10px; font-size: 0.7rem; }
+        
+        .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+        .grupo { flex: 1; min-width: 180px; }
+        label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; }
+        
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0,0,0,0.5);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
         }
-        .modal-contenido {
+        .modal-content {
             background: white;
-            max-width: 550px;
+            border-radius: 20px;
+            padding: 28px;
+            max-width: 850px;
             width: 90%;
-            border-radius: 28px;
-            padding: 20px 24px;
             max-height: 85vh;
             overflow-y: auto;
         }
-        .campo-modal {
-            margin-bottom: 12px;
+        .modal-header { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; border-left: 4px solid #1e4663; padding-left: 16px; color: #1e4663; }
+        
+        .mensaje {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 40px;
+            color: white;
+            z-index: 1000;
+            animation: fadeOut 3s ease forwards;
         }
-        hr {
-            margin: 16px 0;
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
-        @media (max-width: 680px) {
-            .dashboard { padding: 16px; }
+        .pagination button {
+            background: #e2e8f0;
+            color: #1e4663;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        .pagination button.active { background: #1e4663; color: white; }
+        
+        .detalle-info { background: #f8fafc; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-group button { flex: 1; }
+        
+        .factura-linea {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .factura-total {
+            font-weight: bold;
+            border-top: 2px solid #1e4663;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .clientes-tabla th, .clientes-tabla td { padding: 6px; font-size: 0.7rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .modal-content { padding: 16px; }
+            .grupo { min-width: 100%; }
         }
     </style>
 </head>
 <body>
-<div class="dashboard">
-    <h1>💰 FACTURACIÓN INTELIGENTE</h1>
-    <div class="subtitulo">Administra clientes, crea boletas/facturas electrónicas</div>
-
-    <!-- Pestañas -->
-    <div class="tabs">
-        <button class="tab-btn activo" data-tab="clientes">📋 CLIENTES</button>
-        <button class="tab-btn" data-tab="facturacion">🧾 FACTURACIÓN</button>
+<div class="container">
+    <div id="loginPanel" class="card">
+        <div class="card-header" style="cursor:default;">👑 COMUTECH · Super Admin</div>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="btnLogin">Iniciar sesión</button>
+        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
     </div>
 
-    <!-- TAB CLIENTES -->
-    <div id="tabClientes">
-        <div class="row-flex" style="margin-bottom: 20px;">
-            <div class="grupo"><label>🏢 Razón social</label><input type="text" id="nombreEmpresa" placeholder="Ej: Comercial XYZ Ltda"></div>
-            <div class="grupo"><label>📧 Correo</label><input type="email" id="emailEmpresa" placeholder="cliente@mail.com"></div>
-            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="telefonoEmpresa"></div>
-            <div class="grupo"><label>🆔 RUT (opcional)</label><input type="text" id="rutEmpresa" placeholder="99.999.999-9"></div>
-            <div class="grupo"><label>📍 Dirección</label><input type="text" id="direccionEmpresa"></div>
-            <div><button id="btnAgregarCliente" class="btn-success">➕ Agregar Cliente</button></div>
+    <div id="dashboardPanel" style="display: none;">
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c6e9e 100%); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">👑 Super Admin</div>
+                    <div style="font-size: 1.3rem; font-weight: 700;" id="nombreAdmin">Cargando...</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailAdmin"></div>
+                </div>
+                <div><button id="btnLogoutHeader" style="background: rgba(255,255,255,0.2);">🚪 Salir</button></div>
+            </div>
         </div>
-        <div style="overflow-x: auto;">
-            <table class="clientes-tabla">
-                <thead><tr><th>ID</th><th>Razón Social</th><th>RUT</th><th>Correo</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th></tr></thead>
-                <tbody id="clientesBody"><tr><td colspan="7">Cargando clientes...</td></tr></tbody>
-            </table>
-        </div>
-    </div>
 
-    <!-- TAB FACTURACIÓN (con selector de cliente incluido) -->
-    <div id="tabFacturacion" style="display: none;">
-        <!-- ******** SELECTOR DE CLIENTE PARA CREAR FACTURA ******** -->
-        <div class="row-flex" style="margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 20px;">
-            <div class="grupo" style="flex: 2;">
-                <label>🏢 Seleccionar cliente (para facturar)</label>
-                <select id="selectorClienteFactura">
-                    <option value="">-- Selecciona un cliente --</option>
+        <div class="stats-grid" id="statsPanel"></div>
+
+        <div class="card">
+            <div class="row-flex">
+                <button id="btnMostrarAlta" class="btn-success">➕ Nuevo cliente</button>
+                <button id="btnRefrescar" class="btn-info">🔄 Refrescar</button>
+                <button id="btnExportarPDF" class="btn-warning">📄 Exportar PDF</button>
+            </div>
+        </div>
+
+        <!-- Formulario alta cliente -->
+        <div id="formAlta" class="card" style="display: none;">
+            <div class="card-header">📝 Dar de alta nuevo cliente</div>
+            <div class="row-flex">
+                <div class="grupo"><label>🏢 Nombre empresa *</label><input type="text" id="empresaNombre" placeholder="Ej: Gestión Norte S.L."></div>
+                <div class="grupo"><label>📧 Email contacto *</label><input type="email" id="empresaEmail" placeholder="admin@empresa.com"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>👤 Nombre contacto</label><input type="text" id="contactoNombre" placeholder="Nombre del administrador"></div>
+                <div class="grupo"><label>📞 Teléfono</label><input type="text" id="empresaTelefono" placeholder="Teléfono"></div>
+                <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="empresaNif" placeholder="B12345678"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>🏷️ Plan</label>
+                    <select id="empresaPlan">
+                        <option value="BASICO">Básico (49€/mes)</option>
+                        <option value="PRO">Pro (99€/mes)</option>
+                        <option value="EMPRESA">Empresa (199€/mes)</option>
+                    </select>
+                </div>
+                <div class="grupo"><label>🏢 Tipo de cliente *</label>
+                    <select id="empresaTipo" onchange="toggleOficio()">
+                        <option value="administrador">🏢 Administrador de comunidades</option>
+                        <option value="comunidad">🏘️ Comunidad de propietarios</option>
+                        <option value="empresa_piscinas">🌊 Empresa de piscinas</option>
+                        <option value="empresa_jardineria">🌳 Empresa de jardinería</option>
+                        <option value="empresa_fontaneria">🔧 Empresa de fontanería</option>
+                        <option value="empresa_electricidad">⚡ Empresa de electricidad</option>
+                        <option value="empresa_limpieza">🧹 Empresa de limpieza</option>
+                        <option value="empresa_cerrajeria">🔒 Empresa de cerrajería</option>
+                        <option value="empresa_reformas">🏗️ Empresa de reformas</option>
+                        <option value="empresa_antenas">📡 Empresa de antenas</option>
+                        <option value="empresa_climatizacion">❄️ Climatización/Calefacción</option>
+                        <option value="autonomo">👤 Autónomo</option>
+                        <option value="otro">📋 Otro</option>
+                    </select>
+                </div>
+            </div>
+            <div id="oficioDiv" style="display: none;">
+                <div class="row-flex">
+                    <div class="grupo"><label>🔧 Oficio / Especialidad</label>
+                        <select id="empresaOficio">
+                            <option value="">Selecciona oficio</option>
+                            <option value="electricidad">⚡ Electricidad</option>
+                            <option value="fontaneria">🔧 Fontanería</option>
+                            <option value="pintura">🎨 Pintura</option>
+                            <option value="albañileria">🏗️ Albañilería</option>
+                            <option value="jardineria">🌳 Jardinería</option>
+                            <option value="limpieza">🧹 Limpieza</option>
+                            <option value="cerrajeria">🔒 Cerrajería</option>
+                            <option value="piscinas">🏊 Piscinas</option>
+                            <option value="climatizacion">❄️ Climatización</option>
+                            <option value="reformas">🔨 Reformas</option>
+                            <option value="informatica">💻 Informática</option>
+                            <option value="otro">📋 Otro</option>
+                        </select>
+                    </div>
+                    <div class="grupo"><label>📋 CNAE</label><input type="text" id="empresaCnae" placeholder="Código CNAE (opcional)"></div>
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📍 Calle</label><input type="text" id="empresaCalle" placeholder="Calle"></div>
+                <div class="grupo"><label>🔢 Número</label><input type="text" id="empresaNumero" placeholder="Número"></div>
+                <div class="grupo"><label>🏢 Piso/Puerta</label><input type="text" id="empresaPiso" placeholder="Piso/Puerta"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📮 Código postal</label><input type="text" id="empresaCp" placeholder="Código postal"></div>
+                <div class="grupo"><label>🌆 Ciudad</label><input type="text" id="empresaCiudad" placeholder="Ciudad"></div>
+                <div class="grupo"><label>🗺️ Provincia</label><input type="text" id="empresaProvincia" placeholder="Provincia"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>🏦 IBAN</label><input type="text" id="empresaIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
+                <div class="grupo"><label>🏦 Banco</label><input type="text" id="empresaBanco" placeholder="Nombre del banco"></div>
+                <div class="grupo"><label>🔑 Código SWIFT/BIC</label><input type="text" id="empresaSwift" placeholder="Opcional"></div>
+            </div>
+            <div class="btn-group"><button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button><button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button></div>
+        </div>
+
+        <!-- Navegador de clientes -->
+        <div class="card">
+            <div class="browser-tabs">
+                <button class="browser-tab active" data-tab="todos">📋 Todos</button>
+                <button class="browser-tab" data-tab="administrador">🏢 Administradores</button>
+                <button class="browser-tab" data-tab="comunidad">🏘️ Comunidades</button>
+                <button class="browser-tab" data-tab="empresa">🏭 Empresas</button>
+                <button class="browser-tab" data-tab="autonomo">👤 Autónomos</button>
+                <button class="browser-tab" data-tab="facturas">💰 Facturación</button>
+            </div>
+            <div class="browser-content">
+                <!-- Tab Clientes -->
+                <div id="tabClientes">
+                    <div class="search-bar">
+                        <input type="text" id="buscadorCliente" placeholder="🔍 Buscar por nombre, email, NIF...">
+                        <select id="filtroPlan">
+                            <option value="">Todos los planes</option>
+                            <option value="BASICO">Básico</option>
+                            <option value="PRO">Profesional</option>
+                            <option value="EMPRESA">Empresa</option>
+                        </select>
+                        <select id="filtroEstado">
+                            <option value="">Todos los estados</option>
+                            <option value="activo">Activos</option>
+                            <option value="inactivo">Inactivos</option>
+                        </select>
+                        <select id="filtroProvincia">
+                            <option value="">Todas las provincias</option>
+                        </select>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="clientes-tabla" id="clientesTabla">
+                            <thead>
+                                <tr><th>Tipo</th><th>Empresa</th><th>Contacto</th><th>Email</th><th>Plan</th><th>Estado</th><th>Acciones</th>
+                            </thead>
+                            <tbody id="clientesBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="paginacion" class="pagination"></div>
+                    <div id="totalClientes" style="text-align: center; margin-top: 16px; font-size: 0.75rem; color: #64748b;"></div>
+                </div>
+
+                <!-- Tab Facturación -->
+                <div id="tabFacturacion" style="display: none;">
+                    <!-- Selector de cliente para crear factura -->
+                    <div class="row-flex" style="margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 20px;">
+                        <div class="grupo" style="flex: 2;">
+                            <label>🏢 Seleccionar cliente</label>
+                            <select id="selectorClienteFactura">
+                                <option value="">-- Selecciona un cliente --</option>
+                            </select>
+                        </div>
+                        <div class="grupo" style="flex: 0.5;">
+                            <button id="btnCrearFacturaDesdeSelector" class="btn-success" style="margin-top: 24px;">💰 Crear factura</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtros de facturas existentes -->
+                    <div class="search-bar">
+                        <input type="date" id="facturaDesde" placeholder="Desde">
+                        <input type="date" id="facturaHasta" placeholder="Hasta">
+                        <select id="filtroFacturaCliente"><option value="">Todos los clientes</option></select>
+                        <button id="btnFiltrarFacturas" class="btn-info">🔍 Filtrar</button>
+                    </div>
+                    
+                    <!-- Lista de facturas -->
+                    <div style="overflow-x: auto;">
+                        <table class="clientes-tabla">
+                            <thead>
+                                <tr><th>Fecha</th><th>Cliente</th><th>Nº Factura</th><th>Concepto</th><th>Total</th><th>Estado</th><th>Acciones</th>
+                            </thead>
+                            <tbody id="facturasBody"><tr><td colspan="7" style="text-align:center;">📋 No hay facturas</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="btnLogoutFooter" style="background:#475569; margin-top:16px;">🚪 Cerrar sesión</button>
+    </div>
+</div>
+
+<!-- Modal Editar Cliente (COMPLETO) -->
+<div id="modalEditarCliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">✏️ Editar cliente</div>
+        <input type="hidden" id="editClienteId">
+        
+        <div class="row-flex">
+            <div class="grupo"><label>🏢 Nombre empresa</label><input type="text" id="editNombre"></div>
+            <div class="grupo"><label>📧 Email</label><input type="email" id="editEmail"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="editNif"></div>
+            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefono"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>👤 Contacto</label><input type="text" id="editContacto"></div>
+            <div class="grupo"><label>📱 WhatsApp</label><input type="text" id="editWhatsapp"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🏷️ Plan</label>
+                <select id="editPlan">
+                    <option value="BASICO">Básico (49€/mes)</option>
+                    <option value="PRO">Pro (99€/mes)</option>
+                    <option value="EMPRESA">Empresa (199€/mes)</option>
                 </select>
             </div>
-            <div class="grupo" style="flex: 0.5;">
-                <button id="btnCrearFacturaDesdeSelector" class="btn-success" style="margin-top: 24px;">💰 Crear factura</button>
+            <div class="grupo"><label>🏢 Tipo de cliente</label>
+                <select id="editTipo">
+                    <option value="administrador">🏢 Administrador de comunidades</option>
+                    <option value="comunidad">🏘️ Comunidad de propietarios</option>
+                    <option value="empresa_piscinas">🌊 Empresa de piscinas</option>
+                    <option value="empresa_jardineria">🌳 Empresa de jardinería</option>
+                    <option value="empresa_fontaneria">🔧 Empresa de fontanería</option>
+                    <option value="empresa_electricidad">⚡ Empresa de electricidad</option>
+                    <option value="empresa_limpieza">🧹 Empresa de limpieza</option>
+                    <option value="empresa_cerrajeria">🔒 Empresa de cerrajería</option>
+                    <option value="empresa_reformas">🏗️ Empresa de reformas</option>
+                    <option value="empresa_antenas">📡 Empresa de antenas</option>
+                    <option value="empresa_climatizacion">❄️ Climatización/Calefacción</option>
+                    <option value="autonomo">👤 Autónomo</option>
+                    <option value="otro">📋 Otro</option>
+                </select>
             </div>
         </div>
-
-        <!-- Filtros para listar facturas existentes -->
-        <div class="search-bar">
-            <input type="date" id="facturaDesde" placeholder="Desde">
-            <input type="date" id="facturaHasta" placeholder="Hasta">
-            <select id="filtroFacturaCliente"><option value="">Todos los clientes</option></select>
-            <button id="btnFiltrarFacturas" class="btn-info">🔍 Filtrar</button>
+        
+        <div id="editOficioDiv" style="display: none;">
+            <div class="row-flex">
+                <div class="grupo"><label>🔧 Oficio</label>
+                    <select id="editOficio">
+                        <option value="">Selecciona oficio</option>
+                        <option value="electricidad">⚡ Electricidad</option>
+                        <option value="fontaneria">🔧 Fontanería</option>
+                        <option value="pintura">🎨 Pintura</option>
+                        <option value="albañileria">🏗️ Albañilería</option>
+                        <option value="jardineria">🌳 Jardinería</option>
+                        <option value="limpieza">🧹 Limpieza</option>
+                        <option value="cerrajeria">🔒 Cerrajería</option>
+                        <option value="piscinas">🏊 Piscinas</option>
+                        <option value="climatizacion">❄️ Climatización</option>
+                        <option value="reformas">🔨 Reformas</option>
+                        <option value="informatica">💻 Informática</option>
+                        <option value="otro">📋 Otro</option>
+                    </select>
+                </div>
+                <div class="grupo"><label>📋 CNAE</label><input type="text" id="editCnae"></div>
+            </div>
         </div>
-        <div style="overflow-x: auto;">
-            <table class="facturas-tabla">
-                <thead>
-                    <tr><th>Fecha</th><th>Cliente</th><th>Nº Factura</th><th>Concepto</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>
-                </thead>
-                <tbody id="facturasBody"><tr><td colspan="7" style="text-align:center;">📋 No hay facturas</td></tr></tbody>
-            </table>
+        
+        <div class="row-flex">
+            <div class="grupo"><label>📍 Calle</label><input type="text" id="editCalle"></div>
+            <div class="grupo"><label>🔢 Número</label><input type="text" id="editNumero"></div>
+            <div class="grupo"><label>🏢 Piso</label><input type="text" id="editPiso"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📮 CP</label><input type="text" id="editCp"></div>
+            <div class="grupo"><label>🌆 Ciudad</label><input type="text" id="editCiudad"></div>
+            <div class="grupo"><label>🗺️ Provincia</label><input type="text" id="editProvincia"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🏦 IBAN</label><input type="text" id="editIban"></div>
+            <div class="grupo"><label>🏦 Banco</label><input type="text" id="editBanco"></div>
+            <div class="grupo"><label>🔑 SWIFT</label><input type="text" id="editSwift"></div>
+        </div>
+        
+        <div class="btn-group">
+            <button id="btnGuardarEdicion" class="btn-success">💾 Guardar</button>
+            <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
         </div>
     </div>
 </div>
 
-<div id="modalFactura" class="modal">
-    <div class="modal-contenido">
-        <h3>🧾 Crear Factura / Boleta</h3>
-        <div class="campo-modal"><label>Cliente:</label><span id="modalClienteNombre"></span><input type="hidden" id="modalClienteId"></div>
-        <div class="campo-modal"><label>📅 Fecha Emisión</label><input type="date" id="facturaFecha"></div>
-        <div class="campo-modal"><label>🔢 Número Folio (opcional)</label><input type="text" id="facturaNumero" placeholder="Auto o manual"></div>
-        <div class="campo-modal"><label>📝 Concepto / Detalle</label><textarea id="facturaConcepto" rows="2" placeholder="Ej: Venta de productos"></textarea></div>
-        <div class="campo-modal"><label>💰 Monto Total (CLP)</label><input type="number" id="facturaMonto" step="1" value="0"></div>
-        <div class="row-flex" style="gap: 10px; margin-top: 12px;">
-            <button id="btnGuardarFactura" class="btn-success">✅ Emitir Documento</button>
-            <button id="btnCerrarModal" class="btn-info">Cerrar</button>
+<!-- Modal Ver Cliente -->
+<div id="modalVerCliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">📋 Detalle del cliente</div>
+        <div id="detalleCliente"></div>
+        <div class="btn-group"><button id="btnCerrarDetalle" class="btn-info">Cerrar</button></div>
+    </div>
+</div>
+
+<!-- Modal Crear Factura -->
+<div id="modalCrearFactura" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">💰 Nueva factura</div>
+        <input type="hidden" id="facturaEmpresaId">
+        <div class="row-flex">
+            <div class="grupo"><label>🏢 Cliente</label><input type="text" id="facturaClienteNombre" readonly style="background:#f8fafc;"></div>
+            <div class="grupo"><label>📅 Fecha</label><input type="date" id="facturaFecha" value="2026-05-01"></div>
         </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🔢 Número</label><input type="text" id="facturaNumero" placeholder="Ej: F2026-0001"></div>
+            <div class="grupo"><label>📅 Vencimiento</label><input type="date" id="facturaVencimiento"></div>
+        </div>
+        <div class="card-header" style="margin: 16px 0 12px 0;">📦 Conceptos</div>
+        <div id="facturaLineas"></div>
+        <button id="btnAgregarLinea" class="btn-sm btn-info" style="width: auto; margin-bottom: 16px;">➕ Añadir línea</button>
+        <div class="row-flex"><div class="grupo"><label>📝 Observaciones</label><textarea id="facturaNotas" rows="2" placeholder="Gracias por confiar en COMUTECH"></textarea></div></div>
+        <div id="facturaPreview" style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 16px 0;"></div>
+        <div class="btn-group"><button id="btnGuardarFactura" class="btn-success">💾 Guardar</button><button id="btnDescargarFacturaPDF" class="btn-warning">📄 Descargar PDF</button><button id="btnCancelarFactura" class="btn-danger">✖ Cancelar</button></div>
     </div>
 </div>
 
 <script>
-    // ------------------- CONFIGURACIÓN SUPABASE -------------------
-    const SUPABASE_URL = 'https://TUSUPABASEURL.supabase.co';      // 👈 REEMPLAZA CON TU URL
-    const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';                  // 👈 REEMPLAZA CON TU API KEY ANON
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Variables globales
-    let empresasCache = [];
+    let currentUser = null;
+    let empresasData = [];
+    let clientesFiltrados = [];
+    let paginaActual = 1;
+    let lineasFactura = [{ descripcion: "Suscripción COMUTECH", cantidad: 1, precio: 49 }];
+    const registrosPorPagina = 10;
 
-    // Helper mensajes
-    function mostrarMensaje(texto, tipo = 'info') {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'mensaje-flotante';
-        msgDiv.innerText = texto;
-        document.body.appendChild(msgDiv);
-        setTimeout(() => msgDiv.remove(), 2800);
-    }
-
-    // ------------- CLIENTES -------------
-    async function cargarClientes() {
-        const { data, error } = await sb.from('empresas').select('*').order('nombre');
-        if (error) {
-            console.error(error);
-            mostrarMensaje('Error al cargar clientes', 'error');
-            return;
-        }
-        empresasCache = data || [];
-        const tbody = document.getElementById('clientesBody');
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7">No hay clientes registrados</td></tr>';
-        } else {
-            tbody.innerHTML = data.map(emp => `
-                <tr>
-                    <td>${emp.id}</td>
-                    <td>${escapeHtml(emp.nombre)}</td>
-                    <td>${emp.rut || '—'}</td>
-                    <td>${emp.email || '—'}</td>
-                    <td>${emp.telefono || '—'}</td>
-                    <td>${emp.direccion || '—'}</td>
-                    <td>
-                        <button class="btn-sm facturar-cliente" data-id="${emp.id}" data-nombre="${escapeHtml(emp.nombre)}" style="background:#2c7a4d; color:white;">💰 Facturar</button>
-                        <button class="btn-sm eliminar-cliente" data-id="${emp.id}" style="background:#b91c1c; color:white;">🗑️</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        // Llenar también selector de facturación y filtros
-        llenarSelectorClientesFactura();
-        llenarFiltroFacturaClientes();
-        // Eventos dinámicos
-        document.querySelectorAll('.facturar-cliente').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = btn.getAttribute('data-id');
-                const nombre = btn.getAttribute('data-nombre');
-                mostrarModalFactura(id, nombre);
-            });
-        });
-        document.querySelectorAll('.eliminar-cliente').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = btn.getAttribute('data-id');
-                if(confirm('¿Eliminar este cliente? También se perderán sus facturas asociadas (si las hay)')) {
-                    await sb.from('empresas').delete().eq('id', id);
-                    mostrarMensaje('Cliente eliminado');
-                    cargarClientes();
-                    cargarFacturas();
-                }
-            });
-        });
-    }
-
-    async function agregarCliente() {
-        const nombre = document.getElementById('nombreEmpresa').value.trim();
-        if(!nombre) { mostrarMensaje('Nombre obligatorio', 'error'); return; }
-        const nuevo = {
-            nombre, email: document.getElementById('emailEmpresa').value,
-            telefono: document.getElementById('telefonoEmpresa').value,
-            rut: document.getElementById('rutEmpresa').value,
-            direccion: document.getElementById('direccionEmpresa').value,
-            activo: true
+    function getTipoIcono(tipo) {
+        const tipos = {
+            'administrador': '🏢 Administrador',
+            'comunidad': '🏘️ Comunidad',
+            'empresa_piscinas': '🌊 Piscinas',
+            'empresa_jardineria': '🌳 Jardinería',
+            'empresa_fontaneria': '🔧 Fontanería',
+            'empresa_electricidad': '⚡ Electricidad',
+            'empresa_limpieza': '🧹 Limpieza',
+            'empresa_cerrajeria': '🔒 Cerrajería',
+            'empresa_reformas': '🏗️ Reformas',
+            'empresa_antenas': '📡 Antenas',
+            'empresa_climatizacion': '❄️ Climatización',
+            'autonomo': '👤 Autónomo',
+            'otro': '📋 Otro'
         };
-        const { error } = await sb.from('empresas').insert([nuevo]);
-        if(error) { mostrarMensaje('Error al agregar: '+error.message, 'error'); return; }
-        mostrarMensaje('Cliente agregado');
-        document.getElementById('nombreEmpresa').value = '';
-        document.getElementById('emailEmpresa').value = '';
-        document.getElementById('telefonoEmpresa').value = '';
-        document.getElementById('rutEmpresa').value = '';
-        document.getElementById('direccionEmpresa').value = '';
-        cargarClientes();
-        cargarFacturas(); // refrescar filtros
+        return tipos[tipo] || '📋 ' + tipo;
     }
 
-    // ----------- SELECTORES CLIENTE EN FACTURACIÓN -------------
-    async function llenarSelectorClientesFactura() {
-        const { data, error } = await sb.from('empresas').select('id, nombre').eq('activo', true).order('nombre');
-        if(error) return;
-        const select = document.getElementById('selectorClienteFactura');
-        if(select) {
-            select.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
-                data.map(e => `<option value="${e.id}">${escapeHtml(e.nombre)}</option>`).join('');
+    function getBadgeTipo(tipo) {
+        if (tipo === 'administrador') return '<span class="badge badge-administrador">🏢 Administrador</span>';
+        if (tipo === 'comunidad') return '<span class="badge badge-comunidad">🏘️ Comunidad</span>';
+        if (tipo === 'autonomo') return '<span class="badge badge-autonomo">👤 Autónomo</span>';
+        return '<span class="badge badge-empresa">🏭 Empresa</span>';
+    }
+
+    function toggleOficio() {
+        const tipo = document.getElementById('empresaTipo').value;
+        document.getElementById('oficioDiv').style.display = tipo === 'autonomo' ? 'block' : 'none';
+    }
+
+    function formatDate(date) {
+        if (!date) return '';
+        return new Date(date).toLocaleDateString('es-ES');
+    }
+
+    function mostrarMensaje(texto, tipo = 'exito') {
+        const msg = document.createElement('div');
+        msg.className = 'mensaje';
+        msg.style.background = tipo === 'exito' ? '#2c7a4d' : '#c2410c';
+        msg.innerHTML = texto;
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
+    }
+
+    async function hacerLogin() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        if (!email || !password) { document.getElementById('errorMsg').innerText = "Introduce email y contraseña"; return false; }
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { document.getElementById('errorMsg').innerText = error.message; return false; }
+        const { data: perfil } = await sb.from('perfiles').select('rol, nombre').eq('id', data.user.id).maybeSingle();
+        if (!perfil || perfil.rol !== 'super_admin') { await sb.auth.signOut(); document.getElementById('errorMsg').innerText = "Acceso no autorizado"; return false; }
+        currentUser = data.user;
+        document.getElementById('nombreAdmin').innerHTML = perfil.nombre || 'Super Admin';
+        document.getElementById('emailAdmin').innerHTML = currentUser.email;
+        return true;
+    }
+
+    async function cargarStats() {
+        const { data: empresas } = await sb.from('empresas').select('*');
+        const total = empresas?.length || 0;
+        const activos = empresas?.filter(e => e.activo).length || 0;
+        const administradores = empresas?.filter(e => e.tipo_cliente === 'administrador').length || 0;
+        const comunidades = empresas?.filter(e => e.tipo_cliente === 'comunidad').length || 0;
+        document.getElementById('statsPanel').innerHTML = `
+            <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total Clientes</div></div>
+            <div class="stat-card"><div class="stat-number">${activos}</div><div class="stat-label">Activos</div></div>
+            <div class="stat-card"><div class="stat-number">${administradores}</div><div class="stat-label">Administradores</div></div>
+            <div class="stat-card"><div class="stat-number">${comunidades}</div><div class="stat-label">Comunidades</div></div>
+        `;
+    }
+
+    async function cargarClientes() {
+        const { data: empresas, error } = await sb.from('empresas').select('*').order('created_at', { ascending: false });
+        if (error) { mostrarMensaje("Error cargando clientes: " + error.message, 'error'); return; }
+        empresasData = empresas || [];
+        for (const emp of empresasData) {
+            const { data: perfil } = await sb.from('perfiles').select('nombre, email, telefono').eq('empresa_id', emp.id).eq('rol', 'gerente').maybeSingle();
+            emp.contacto_nombre = perfil?.nombre || '';
+            emp.contacto_email = perfil?.email || emp.email || '';
         }
-    }
-
-    async function llenarFiltroFacturaClientes() {
-        const { data, error } = await sb.from('empresas').select('id, nombre').eq('activo', true);
-        if(error) return;
-        const selectFiltro = document.getElementById('filtroFacturaCliente');
-        if(selectFiltro) {
-            selectFiltro.innerHTML = '<option value="">Todos los clientes</option>' +
-                data.map(e => `<option value="${e.id}">${escapeHtml(e.nombre)}</option>`).join('');
+        const provincias = [...new Set(empresasData.map(e => e.provincia).filter(p => p))];
+        const selectProvincia = document.getElementById('filtroProvincia');
+        if (selectProvincia) {
+            selectProvincia.innerHTML = '<option value="">Todas las provincias</option>' + provincias.map(p => `<option value="${p}">${p}</option>`).join('');
         }
+        aplicarFiltros();
+        await cargarFacturas();
+        await cargarSelectorClientesFactura();
+        initSelectorFactura();
     }
 
-    // ----------- FACTURAS (documentos tributarios) ------------
-    async function cargarFacturas(filtroClienteId = null, desde = null, hasta = null) {
-        let query = sb.from('facturas').select('*, empresas(nombre)');
-        if(filtroClienteId && filtroClienteId !== '') query = query.eq('cliente_id', filtroClienteId);
-        if(desde) query = query.gte('fecha_emision', desde);
-        if(hasta) query = query.lte('fecha_emision', hasta);
-        const { data, error } = await query.order('fecha_emision', { ascending: false });
-        if(error) { console.error(error); return; }
-        const tbody = document.getElementById('facturasBody');
-        if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7">📭 No hay facturas emitidas</td></tr>';
+    function aplicarFiltros() {
+        const searchText = document.getElementById('buscadorCliente').value.toLowerCase();
+        const planFiltro = document.getElementById('filtroPlan').value;
+        const estadoFiltro = document.getElementById('filtroEstado').value;
+        const provinciaFiltro = document.getElementById('filtroProvincia').value;
+        const tabActiva = document.querySelector('.browser-tab.active')?.dataset.tab || 'todos';
+        
+        let filtrados = [...empresasData];
+        
+        if (tabActiva !== 'todos' && tabActiva !== 'facturas') {
+            if (tabActiva === 'administrador') filtrados = filtrados.filter(e => e.tipo_cliente === 'administrador');
+            else if (tabActiva === 'comunidad') filtrados = filtrados.filter(e => e.tipo_cliente === 'comunidad');
+            else if (tabActiva === 'empresa') filtrados = filtrados.filter(e => e.tipo_cliente && e.tipo_cliente.startsWith('empresa_'));
+            else if (tabActiva === 'autonomo') filtrados = filtrados.filter(e => e.tipo_cliente === 'autonomo');
+        }
+        
+        if (searchText) {
+            filtrados = filtrados.filter(e => 
+                e.nombre?.toLowerCase().includes(searchText) ||
+                e.nif?.toLowerCase().includes(searchText) ||
+                e.contacto_email?.toLowerCase().includes(searchText) ||
+                e.contacto_nombre?.toLowerCase().includes(searchText)
+            );
+        }
+        if (planFiltro) filtrados = filtrados.filter(e => e.plan === planFiltro);
+        if (estadoFiltro === 'activo') filtrados = filtrados.filter(e => e.activo === true);
+        else if (estadoFiltro === 'inactivo') filtrados = filtrados.filter(e => e.activo === false);
+        if (provinciaFiltro) filtrados = filtrados.filter(e => e.provincia === provinciaFiltro);
+        
+        clientesFiltrados = filtrados;
+        paginaActual = 1;
+        renderizarClientes();
+    }
+
+    function renderizarClientes() {
+        const start = (paginaActual - 1) * registrosPorPagina;
+        const end = start + registrosPorPagina;
+        const paginados = clientesFiltrados.slice(start, end);
+        const tbody = document.getElementById('clientesBody');
+        
+        if (paginados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">📋 No hay clientes que coincidan</td></tr>';
+            document.getElementById('paginacion').innerHTML = '';
+            document.getElementById('totalClientes').innerHTML = '';
             return;
         }
-        tbody.innerHTML = data.map(f => `
+        
+        tbody.innerHTML = paginados.map(emp => `
             <tr>
-                <td>${f.fecha_emision || '—'}</td>
-                <td>${f.empresas?.nombre || 'Cliente eliminado'}</td>
-                <td>${f.numero_factura || 'BE-' + f.id}</td>
-                <td>${escapeHtml(f.concepto || 'Venta')}</td>
-                <td>$${Number(f.total).toLocaleString('es-CL')}</td>
-                <td>${f.estado || 'emitida'}</td>
-                <td><button class="btn-sm ver-pdf-factura" data-id="${f.id}" style="background:#2c6e9e; color:white;">📄 Ver PDF</button></td>
+                <td>${getBadgeTipo(emp.tipo_cliente)}</td>
+                <td><strong>${emp.nombre}</strong><br><small style="color:#64748b;">${emp.nif || ''}</small></td>
+                <td>${emp.contacto_nombre || '-'}</td>
+                <td>${emp.contacto_email || '-'}</td>
+                <td><span class="badge ${emp.plan === 'BASICO' ? 'badge-basico' : (emp.plan === 'PRO' ? 'badge-pro' : 'badge-empresa-plan')}">${emp.plan || 'BASICO'}</span></td>
+                <td><span class="badge ${emp.activo ? 'badge-activo' : 'badge-inactivo'}">${emp.activo ? 'Activo' : 'Inactivo'}</span></td>
+                <td>
+                    <button class="btn-sm ver-cliente" data-id="${emp.id}" style="background:#0284c7;" title="Ver">👁️</button>
+                    <button class="btn-sm editar-cliente" data-id="${emp.id}" style="background:#e67e22;" title="Editar">✏️</button>
+                    <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}" style="background:#e67e22;" title="${emp.activo ? 'Desactivar' : 'Activar'}">${emp.activo ? '❌' : '✅'}</button>
+                    <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${emp.nombre.replace(/"/g, '&quot;')}" style="background:#c2410c;" title="Eliminar">🗑️</button>
+                </td>
             </tr>
         `).join('');
-        // eventos pdf
-        document.querySelectorAll('.ver-pdf-factura').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const idFact = btn.getAttribute('data-id');
-                const { data: fac, error } = await sb.from('facturas').select('*, empresas(*)').eq('id', idFact).single();
-                if(fac) generarPDFFactura(fac);
-                else mostrarMensaje('Factura no encontrada');
+        
+        const totalPaginas = Math.ceil(clientesFiltrados.length / registrosPorPagina);
+        let pagHtml = '';
+        for (let i = 1; i <= Math.min(totalPaginas, 10); i++) {
+            pagHtml += `<button class="${i === paginaActual ? 'active' : ''}" onclick="cambiarPagina(${i})">${i}</button>`;
+        }
+        document.getElementById('paginacion').innerHTML = pagHtml;
+        document.getElementById('totalClientes').innerHTML = `Mostrando ${clientesFiltrados.length} clientes · Página ${paginaActual} de ${totalPaginas}`;
+        
+        document.querySelectorAll('.toggle-cliente').forEach(btn => {
+            btn.onclick = async () => { const id = btn.dataset.id, activo = btn.dataset.activo === 'true'; await sb.from('empresas').update({ activo: !activo }).eq('id', id); mostrarMensaje(activo ? 'Desactivado' : 'Activado'); await cargarClientes(); await cargarStats(); };
+        });
+        document.querySelectorAll('.editar-cliente').forEach(btn => { btn.onclick = () => editarCliente(btn.dataset.id); });
+        document.querySelectorAll('.ver-cliente').forEach(btn => { btn.onclick = () => verCliente(btn.dataset.id); });
+        document.querySelectorAll('.eliminar-cliente').forEach(btn => { btn.onclick = () => eliminarCliente(btn.dataset.id, btn.dataset.nombre); });
+    }
+
+    window.cambiarPagina = (pagina) => { paginaActual = pagina; renderizarClientes(); };
+
+    async function editarCliente(id) {
+        const empresa = empresasData.find(e => e.id === id);
+        if (!empresa) return;
+        
+        document.getElementById('editClienteId').value = id;
+        document.getElementById('editNombre').value = empresa.nombre || '';
+        document.getElementById('editEmail').value = empresa.contacto_email || '';
+        document.getElementById('editNif').value = empresa.nif || '';
+        document.getElementById('editTelefono').value = empresa.telefono || '';
+        document.getElementById('editContacto').value = empresa.contacto_nombre || '';
+        document.getElementById('editWhatsapp').value = empresa.whatsapp_contacto || '';
+        document.getElementById('editPlan').value = empresa.plan || 'BASICO';
+        document.getElementById('editTipo').value = empresa.tipo_cliente || 'administrador';
+        document.getElementById('editOficio').value = empresa.oficio || '';
+        document.getElementById('editCnae').value = empresa.cnae || '';
+        document.getElementById('editCalle').value = empresa.calle || '';
+        document.getElementById('editNumero').value = empresa.numero || '';
+        document.getElementById('editPiso').value = empresa.piso || '';
+        document.getElementById('editCp').value = empresa.codigo_postal || '';
+        document.getElementById('editCiudad').value = empresa.ciudad || '';
+        document.getElementById('editProvincia').value = empresa.provincia || '';
+        document.getElementById('editIban').value = empresa.iban || '';
+        document.getElementById('editBanco').value = empresa.banco || '';
+        document.getElementById('editSwift').value = empresa.swift || '';
+        
+        const tipo = document.getElementById('editTipo').value;
+        document.getElementById('editOficioDiv').style.display = tipo === 'autonomo' ? 'block' : 'none';
+        
+        document.getElementById('modalEditarCliente').style.display = 'flex';
+    }
+
+    async function guardarEdicionCliente() {
+        const id = document.getElementById('editClienteId').value;
+        
+        await sb.from('empresas').update({
+            nombre: document.getElementById('editNombre').value,
+            nif: document.getElementById('editNif').value,
+            telefono: document.getElementById('editTelefono').value,
+            email: document.getElementById('editEmail').value,
+            plan: document.getElementById('editPlan').value,
+            tipo_cliente: document.getElementById('editTipo').value,
+            oficio: document.getElementById('editOficio').value,
+            cnae: document.getElementById('editCnae').value,
+            whatsapp_contacto: document.getElementById('editWhatsapp').value,
+            calle: document.getElementById('editCalle').value,
+            numero: document.getElementById('editNumero').value,
+            piso: document.getElementById('editPiso').value,
+            codigo_postal: document.getElementById('editCp').value,
+            ciudad: document.getElementById('editCiudad').value,
+            provincia: document.getElementById('editProvincia').value,
+            iban: document.getElementById('editIban').value,
+            banco: document.getElementById('editBanco').value,
+            swift: document.getElementById('editSwift').value
+        }).eq('id', id);
+        
+        const contacto = document.getElementById('editContacto').value;
+        if (contacto) {
+            await sb.from('perfiles').update({ nombre: contacto }).eq('empresa_id', id).eq('rol', 'gerente');
+        }
+        
+        mostrarMensaje("✅ Cliente actualizado correctamente");
+        document.getElementById('modalEditarCliente').style.display = 'none';
+        await cargarClientes();
+        await cargarStats();
+    }
+
+    async function verCliente(id) {
+        const empresa = empresasData.find(e => e.id === id);
+        if (!empresa) return;
+        document.getElementById('detalleCliente').innerHTML = `
+            <div class="detalle-info">
+                <p><strong>🏢 ${empresa.nombre}</strong></p>
+                <p>📋 Tipo: ${getTipoIcono(empresa.tipo_cliente)}</p>
+                ${empresa.oficio ? `<p>🔧 Oficio: ${empresa.oficio}</p>` : ''}
+                <p>📋 NIF: ${empresa.nif || '-'}</p>
+                <p>📍 ${empresa.calle || ''} ${empresa.numero || ''} ${empresa.piso || ''}</p>
+                <p>📮 ${empresa.codigo_postal || ''} ${empresa.ciudad || ''} ${empresa.provincia || ''}</p>
+                <p>📞 ${empresa.telefono || '-'}</p>
+                <p>📧 ${empresa.contacto_email || '-'}</p>
+                <p>👤 Contacto: ${empresa.contacto_nombre || '-'}</p>
+                <p>🏦 IBAN: ${empresa.iban || '-'}</p>
+                <p>🏦 Banco: ${empresa.banco || '-'}</p>
+                <p>🏷️ Plan: ${empresa.plan || 'BASICO'}</p>
+                <p>📅 Alta: ${formatDate(empresa.created_at)}</p>
+            </div>
+        `;
+        document.getElementById('modalVerCliente').style.display = 'flex';
+    }
+
+    async function eliminarCliente(id, nombre) {
+        if (!confirm(`¿Eliminar "${nombre}"? Esta acción es irreversible.`)) return;
+        const perfil = await sb.from('perfiles').select('id').eq('empresa_id', id).eq('rol', 'gerente').maybeSingle();
+        await sb.from('facturas').delete().eq('empresa_id', id);
+        if (perfil) await sb.from('perfiles').delete().eq('id', perfil.id);
+        await sb.from('empresas').delete().eq('id', id);
+        mostrarMensaje(`✅ Cliente "${nombre}" eliminado`);
+        await cargarClientes(); await cargarStats();
+    }
+
+    async function crearCliente() {
+        const nombre = document.getElementById('empresaNombre').value.trim();
+        const email = document.getElementById('empresaEmail').value.trim();
+        const contactoNombre = document.getElementById('contactoNombre').value.trim();
+        const telefono = document.getElementById('empresaTelefono').value.trim();
+        const nif = document.getElementById('empresaNif').value.trim();
+        const plan = document.getElementById('empresaPlan').value;
+        const tipo = document.getElementById('empresaTipo').value;
+        const oficio = document.getElementById('empresaOficio')?.value || null;
+        const cnae = document.getElementById('empresaCnae')?.value || null;
+        const calle = document.getElementById('empresaCalle').value.trim();
+        const numero = document.getElementById('empresaNumero').value.trim();
+        const piso = document.getElementById('empresaPiso').value.trim();
+        const cp = document.getElementById('empresaCp').value.trim();
+        const ciudad = document.getElementById('empresaCiudad').value.trim();
+        const provincia = document.getElementById('empresaProvincia').value.trim();
+        const iban = document.getElementById('empresaIban').value.trim();
+        const banco = document.getElementById('empresaBanco').value.trim();
+        const swift = document.getElementById('empresaSwift').value.trim();
+        
+        if (!nombre || !email) { mostrarMensaje("❌ Nombre y email son obligatorios", 'error'); return; }
+        const passwordTemp = Math.random().toString(36).substring(2, 10) + "A1!";
+        const btn = document.getElementById('btnGuardarCliente');
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner"></span> Creando...';
+        btn.disabled = true;
+        try {
+            const { data: empresa, error: empError } = await sb.from('empresas').insert({
+                nombre, nif: nif || null, telefono: telefono || null, email: email, plan: plan,
+                tipo_cliente: tipo, oficio: oficio, cnae: cnae,
+                calle: calle, numero: numero, piso: piso, codigo_postal: cp, ciudad: ciudad, provincia: provincia,
+                iban: iban, banco: banco, swift: swift,
+                activo: true
+            }).select().single();
+            if (empError) throw empError;
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: passwordTemp, nombre: contactoNombre || nombre, empresa_id: empresa.id, empresa_nombre: nombre })
             });
+            const resultado = await response.json();
+            if (!resultado.success) throw new Error(resultado.error);
+            alert(`✅ Cliente creado\n\nEmpresa: ${nombre}\nEmail: ${email}\nPassword temporal: ${passwordTemp}\nTipo: ${getTipoIcono(tipo)}`);
+            document.getElementById('empresaNombre').value = ''; document.getElementById('empresaEmail').value = '';
+            document.getElementById('contactoNombre').value = ''; document.getElementById('empresaTelefono').value = '';
+            document.getElementById('empresaNif').value = ''; document.getElementById('empresaCalle').value = '';
+            document.getElementById('empresaNumero').value = ''; document.getElementById('empresaPiso').value = '';
+            document.getElementById('empresaCp').value = ''; document.getElementById('empresaCiudad').value = '';
+            document.getElementById('empresaProvincia').value = ''; document.getElementById('empresaIban').value = '';
+            document.getElementById('empresaBanco').value = ''; document.getElementById('empresaSwift').value = '';
+            document.getElementById('formAlta').style.display = 'none';
+            await cargarClientes(); await cargarStats();
+        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); }
+        finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+    }
+
+    // ========== FACTURACIÓN ==========
+    async function cargarFacturas() {
+        const desde = document.getElementById('facturaDesde')?.value;
+        const hasta = document.getElementById('facturaHasta')?.value;
+        let query = sb.from('facturas').select('*, empresas(nombre)').order('created_at', { ascending: false });
+        if (desde) query = query.gte('fecha', desde);
+        if (hasta) query = query.lte('fecha', hasta);
+        const { data: facturas, error } = await query;
+        const tbody = document.getElementById('facturasBody');
+        if (error || !facturas?.length) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">📋 No hay facturas</td></tr>';
+            return;
+        }
+        tbody.innerHTML = facturas.map(f => `
+            <tr>
+                <td>${formatDate(f.fecha)}</td>
+                <td>${f.empresas?.nombre || '-'}</td>
+                <td>${f.numero || f.id.slice(0,8)}</td>
+                <td>${f.concepto || '-'}</td>
+                <td>${(f.total || 0).toFixed(2)}€</td>
+                <td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td>
+                <td><button class="btn-sm toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}" style="background:#e67e22;">${f.pagada ? '❌' : '✅'}</button></td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.toggle-factura').forEach(btn => {
+            btn.onclick = async () => { const id = btn.dataset.id, pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', id); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); await cargarFacturas(); await cargarStats(); };
+        });
+        
+        const { data: empresas } = await sb.from('empresas').select('id, nombre');
+        const selectCliente = document.getElementById('filtroFacturaCliente');
+        if (selectCliente && empresas) {
+            selectCliente.innerHTML = '<option value="">Todos los clientes</option>' + empresas.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+        }
+    }
+
+    async function cargarSelectorClientesFactura() {
+        const { data: empresas, error } = await sb.from('empresas').select('id, nombre').eq('activo', true).order('nombre');
+        const select = document.getElementById('selectorClienteFactura');
+        if (select && empresas) {
+            select.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
+                empresas.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+        }
+    }
+
+    function initSelectorFactura() {
+        const btn = document.getElementById('btnCrearFacturaDesdeSelector');
+        if (btn) {
+            btn.onclick = () => {
+                const select = document.getElementById('selectorClienteFactura');
+                const clienteId = select.value;
+                const clienteNombre = select.options[select.selectedIndex]?.text;
+                if (!clienteId) {
+                    mostrarMensaje("❌ Selecciona un cliente", 'error');
+                    return;
+                }
+                mostrarModalFactura(clienteId, clienteNombre);
+            };
+        }
+    }
+
+    function renderizarFacturaPreview() {
+        let subtotal = 0;
+        const lineasHtml = lineasFactura.map(linea => {
+            const importe = linea.cantidad * linea.precio;
+            subtotal += importe;
+            return `<div class="factura-linea"><span>${linea.descripcion} (${linea.cantidad} x ${linea.precio.toFixed(2)}€)</span><span>${importe.toFixed(2)}€</span></div>`;
+        }).join('');
+        const iva = subtotal * 0.21;
+        const total = subtotal + iva;
+        document.getElementById('facturaPreview').innerHTML = `
+            <div><strong>COMUTECH SOLUCIONES S.L.</strong><br>C/ Tecnología 123, 28001 Madrid<br>NIF: B12345678</div>
+            <div style="margin: 12px 0;">${lineasHtml}</div>
+            <div class="factura-linea"><span>Subtotal</span><span>${subtotal.toFixed(2)}€</span></div>
+            <div class="factura-linea"><span>IVA (21%)</span><span>${iva.toFixed(2)}€</span></div>
+            <div class="factura-linea factura-total"><span>TOTAL</span><span>${total.toFixed(2)}€</span></div>
+        `;
+    }
+
+    function renderizarLineasFactura() {
+        const container = document.getElementById('facturaLineas');
+        container.innerHTML = '';
+        lineasFactura.forEach((linea, idx) => {
+            const div = document.createElement('div');
+            div.className = 'row-flex';
+            div.style.alignItems = 'center';
+            div.innerHTML = `
+                <div class="grupo" style="flex:3;"><input type="text" placeholder="Descripción" value="${linea.descripcion.replace(/"/g, '&quot;')}" data-idx="${idx}" data-campo="descripcion" class="linea-input" style="border-radius:8px;"></div>
+                <div class="grupo"><input type="number" placeholder="Cantidad" step="1" value="${linea.cantidad}" data-idx="${idx}" data-campo="cantidad" class="linea-input"></div>
+                <div class="grupo"><input type="number" placeholder="Precio (€)" step="0.01" value="${linea.precio}" data-idx="${idx}" data-campo="precio" class="linea-input"></div>
+                <div class="grupo" style="flex:0.5;"><button class="btn-sm btn-danger eliminar-linea" data-idx="${idx}" style="width: auto;">✖</button></div>
+            `;
+            container.appendChild(div);
+        });
+        
+        document.querySelectorAll('.linea-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                const campo = e.target.dataset.campo;
+                let valor = e.target.value;
+                if (campo === 'precio') valor = parseFloat(valor);
+                if (campo === 'cantidad') valor = parseInt(valor);
+                lineasFactura[idx][campo] = valor;
+                renderizarFacturaPreview();
+            });
+        });
+        
+        document.querySelectorAll('.eliminar-linea').forEach(btn => {
+            btn.onclick = () => { lineasFactura.splice(parseInt(btn.dataset.idx), 1); if (lineasFactura.length === 0) lineasFactura = [{ descripcion: "Suscripción COMUTECH", cantidad: 1, precio: 49 }]; renderizarLineasFactura(); renderizarFacturaPreview(); };
         });
     }
 
-    // Modal factura
-    function mostrarModalFactura(clienteId, clienteNombre) {
-        document.getElementById('modalClienteId').value = clienteId;
-        document.getElementById('modalClienteNombre').innerText = clienteNombre;
-        document.getElementById('facturaFecha').value = new Date().toISOString().slice(0,10);
+    function mostrarModalFactura(id, nombre) {
+        lineasFactura = [{ descripcion: "Suscripción COMUTECH", cantidad: 1, precio: 49 }];
+        renderizarLineasFactura();
+        document.getElementById('facturaEmpresaId').value = id;
+        document.getElementById('facturaClienteNombre').value = nombre;
+        document.getElementById('facturaFecha').value = new Date().toISOString().split('T')[0];
         document.getElementById('facturaNumero').value = '';
-        document.getElementById('facturaConcepto').value = '';
-        document.getElementById('facturaMonto').value = '';
-        document.getElementById('modalFactura').style.display = 'flex';
+        document.getElementById('facturaVencimiento').value = '';
+        document.getElementById('facturaNotas').value = "Gracias por confiar en COMUTECH";
+        renderizarFacturaPreview();
+        document.getElementById('modalCrearFactura').style.display = 'flex';
     }
 
     async function guardarFactura() {
-        const clienteId = document.getElementById('modalClienteId').value;
-        if(!clienteId) { mostrarMensaje('Cliente no seleccionado', 'error'); return; }
+        const empresaId = document.getElementById('facturaEmpresaId').value;
         const fecha = document.getElementById('facturaFecha').value;
-        const numero = document.getElementById('facturaNumero').value.trim() || `F-${Date.now()}`;
-        const concepto = document.getElementById('facturaConcepto').value.trim() || 'Documento tributario';
-        const total = parseFloat(document.getElementById('facturaMonto').value);
-        if(isNaN(total) || total <= 0) { mostrarMensaje('Monto inválido', 'error'); return; }
-        const nuevaFactura = {
-            cliente_id: parseInt(clienteId),
-            fecha_emision: fecha,
-            numero_factura: numero,
-            concepto: concepto,
-            total: total,
-            estado: 'emitida',
-            created_at: new Date().toISOString()
-        };
-        const { error } = await sb.from('facturas').insert([nuevaFactura]);
-        if(error) { mostrarMensaje('Error al emitir: '+error.message, 'error'); return; }
-        mostrarMensaje(`✅ Factura emitida por $${total.toLocaleString('es-CL')}`);
-        document.getElementById('modalFactura').style.display = 'none';
-        cargarFacturas();
-    }
-
-    // Generación simple de PDF (demo)
-    async function generarPDFFactura(factura) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFont("helvetica");
-        doc.setFontSize(18);
-        doc.text("DOCUMENTO TRIBUTARIO", 20, 20);
-        doc.setFontSize(11);
-        doc.text(`Número: ${factura.numero_factura || 'BOLETA' }`, 20, 40);
-        doc.text(`Fecha: ${factura.fecha_emision}`, 20, 50);
-        doc.text(`Cliente: ${factura.empresas?.nombre || 'N/A'}`, 20, 60);
-        doc.text(`RUT: ${factura.empresas?.rut || 'Sin RUT'}`, 20, 70);
-        doc.text(`Concepto: ${factura.concepto}`, 20, 85);
-        doc.text(`Total: $${Number(factura.total).toLocaleString('es-CL')}`, 20, 100);
-        doc.text("Este documento es una representación de DTE.", 20, 130);
-        doc.save(`factura_${factura.numero_factura || factura.id}.pdf`);
-        mostrarMensaje("PDF generado");
-    }
-
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-
-    // Eventos y pestañas
-    document.getElementById('btnAgregarCliente')?.addEventListener('click', agregarCliente);
-    document.getElementById('btnCrearFacturaDesdeSelector')?.addEventListener('click', () => {
-        const select = document.getElementById('selectorClienteFactura');
-        const clienteId = select.value;
-        const clienteNombre = select.options[select.selectedIndex]?.text;
-        if(!clienteId) { mostrarMensaje("❌ Selecciona un cliente", 'error'); return; }
-        mostrarModalFactura(clienteId, clienteNombre);
-    });
-    document.getElementById('btnGuardarFactura')?.addEventListener('click', guardarFactura);
-    document.getElementById('btnCerrarModal')?.addEventListener('click', () => document.getElementById('modalFactura').style.display = 'none');
-    document.getElementById('btnFiltrarFacturas')?.addEventListener('click', () => {
-        const cliente = document.getElementById('filtroFacturaCliente').value;
-        const desde = document.getElementById('facturaDesde').value;
-        const hasta = document.getElementById('facturaHasta').value;
-        cargarFacturas(cliente, desde, hasta);
-    });
-    window.addEventListener('click', (e) => { if(e.target === document.getElementById('modalFactura')) document.getElementById('modalFactura').style.display = 'none'; });
-
-    // pestañas
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
-            btn.classList.add('activo');
-            document.getElementById('tabClientes').style.display = btn.getAttribute('data-tab') === 'clientes' ? 'block' : 'none';
-            document.getElementById('tabFacturacion').style.display = btn.getAttribute('data-tab') === 'facturacion' ? 'block' : 'none';
-            if(btn.getAttribute('data-tab') === 'facturacion') { cargarFacturas(); llenarSelectorClientesFactura(); }
+        const numero = document.getElementById('facturaNumero').value || `F${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+        let subtotal = 0;
+        const lineas = lineasFactura.map(linea => { const importe = linea.cantidad * linea.precio; subtotal += importe; return { ...linea, importe }; });
+        const iva = subtotal * 0.21;
+        const total = subtotal + iva;
+        const { error } = await sb.from('facturas').insert({
+            empresa_id: empresaId, numero: numero, fecha: fecha, concepto: lineas.map(l => l.descripcion).join(', '),
+            subtotal: subtotal, iva: iva, total: total, notas: document.getElementById('facturaNotas').value, pagada: false
         });
+        if (error) { mostrarMensaje("❌ Error: " + error.message, 'error'); }
+        else { mostrarMensaje("✅ Factura creada"); document.getElementById('modalCrearFactura').style.display = 'none'; await cargarFacturas(); await cargarStats(); }
+    }
+
+    async function descargarFacturaPDF() {
+        const element = document.getElementById('facturaPreview');
+        const opt = { margin: 10, filename: `factura_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    async function exportarClientesPDF() {
+        const element = document.getElementById('clientesTabla');
+        const opt = { margin: 10, filename: `clientes_comutech_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    // ========== EVENTOS ==========
+    document.getElementById('btnLogin').onclick = async () => {
+        if (await hacerLogin()) {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('dashboardPanel').style.display = 'block';
+            await cargarStats(); await cargarClientes();
+        }
+    };
+    document.getElementById('btnMostrarAlta').onclick = () => { document.getElementById('formAlta').style.display = 'block'; };
+    document.getElementById('btnCancelarAlta').onclick = () => { document.getElementById('formAlta').style.display = 'none'; };
+    document.getElementById('btnGuardarCliente').onclick = crearCliente;
+    document.getElementById('btnRefrescar').onclick = () => { cargarClientes(); cargarStats(); };
+    document.getElementById('btnExportarPDF').onclick = exportarClientesPDF;
+    document.getElementById('btnGuardarEdicion').onclick = guardarEdicionCliente;
+    document.getElementById('btnCancelarEdicion').onclick = () => document.getElementById('modalEditarCliente').style.display = 'none';
+    document.getElementById('btnCerrarDetalle').onclick = () => document.getElementById('modalVerCliente').style.display = 'none';
+    document.getElementById('btnGuardarFactura').onclick = guardarFactura;
+    document.getElementById('btnDescargarFacturaPDF').onclick = descargarFacturaPDF;
+    document.getElementById('btnCancelarFactura').onclick = () => document.getElementById('modalCrearFactura').style.display = 'none';
+    document.getElementById('btnAgregarLinea').onclick = () => { lineasFactura.push({ descripcion: "Nuevo servicio", cantidad: 1, precio: 0 }); renderizarLineasFactura(); renderizarFacturaPreview(); };
+    document.getElementById('btnFiltrarFacturas').onclick = cargarFacturas;
+    document.getElementById('btnLogoutHeader').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    document.getElementById('btnLogoutFooter').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    
+    document.getElementById('buscadorCliente')?.addEventListener('input', aplicarFiltros);
+    document.getElementById('filtroPlan')?.addEventListener('change', aplicarFiltros);
+    document.getElementById('filtroEstado')?.addEventListener('change', aplicarFiltros);
+    document.getElementById('filtroProvincia')?.addEventListener('change', aplicarFiltros);
+    document.getElementById('editTipo')?.addEventListener('change', () => {
+        const tipo = document.getElementById('editTipo').value;
+        document.getElementById('editOficioDiv').style.display = tipo === 'autonomo' ? 'block' : 'none';
     });
     
-    // inicializar todo
-    cargarClientes();
-    cargarFacturas();
-    llenarSelectorClientesFactura();
+    document.querySelectorAll('.browser-tab').forEach(tab => {
+        tab.onclick = () => {
+            document.querySelectorAll('.browser-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const tabId = tab.dataset.tab;
+            document.getElementById('tabClientes').style.display = tabId === 'facturas' ? 'none' : 'block';
+            document.getElementById('tabFacturacion').style.display = tabId === 'facturas' ? 'block' : 'none';
+            if (tabId === 'facturas') {
+                cargarFacturas();
+                cargarSelectorClientesFactura();
+                initSelectorFactura();
+            } else {
+                aplicarFiltros();
+            }
+        };
+    });
 </script>
 </body>
 </html>
