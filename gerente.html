@@ -83,6 +83,7 @@
             margin-bottom: 20px;
             border-bottom: 1px solid #e2e8f0;
             padding-bottom: 8px;
+            flex-wrap: wrap;
         }
         .sub-tab {
             background: none;
@@ -100,7 +101,7 @@
         }
         
         .row-flex { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
-        .grupo { flex: 1; min-width: 180px; }
+        .grupo { flex: 1; min-width: 200px; }
         label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; }
         input, select, textarea {
             width: 100%;
@@ -145,6 +146,7 @@
         .badge-pendiente { background: #fff3cd; color: #856404; }
         .badge-curso { background: #cce5ff; color: #004085; }
         .badge-completada { background: #d4edda; color: #155724; }
+        .badge-activo { background: #d4edda; color: #155724; }
         
         .mensaje {
             position: fixed;
@@ -188,6 +190,10 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .required::after { content: " *"; color: #c2410c; }
+        
+        hr { margin: 16px 0; border: none; border-top: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -195,7 +201,8 @@
     <!-- Login -->
     <div id="loginPanel" class="card">
         <div class="card-header">🏢 COMUTECH · Panel Gerente</div>
-        <input type="email" id="email" placeholder="Email">
+        <p style="font-size:0.8rem; margin-bottom:12px; color:#64748b;">Puedes usar email o nick para acceder</p>
+        <input type="text" id="identificador" placeholder="Email o Nick">
         <input type="password" id="password" placeholder="Contraseña">
         <button id="btnLogin">Iniciar sesión</button>
         <div id="errorMsg" style="color:red; margin-top:12px;"></div>
@@ -283,7 +290,7 @@
                     </div>
                 </div>
 
-                <!-- TAB PERSONAL -->
+                <!-- TAB PERSONAL - Con datos legales completos -->
                 <div id="tabPersonal" style="display: none;">
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="tecnicos">👥 Técnicos</button>
@@ -291,22 +298,71 @@
                     </div>
                     
                     <div id="subTecnicos">
-                        <table class="tabla">
-                            <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>
-                            <tbody id="tecnicosBody"></tbody>
-                        </table>
+                        <div style="overflow-x: auto;">
+                            <table class="tabla">
+                                <thead>
+                                    <tr><th>Nombre</th><th>NIF/NIE</th><th>Email</th><th>Teléfono</th><th>Fecha alta</th><th>Estado</th><th>Acciones</th>
+                                </thead>
+                                <tbody id="tecnicosBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                     
                     <div id="subCrearTecnico" style="display: none;">
-                        <div class="row-flex">
-                            <div class="grupo"><label>👤 Nombre *</label><input type="text" id="nuevoNombre" placeholder="Nombre del técnico"></div>
-                            <div class="grupo"><label>📧 Email *</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com"></div>
-                        </div>
-                        <div class="row-flex">
-                            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="nuevoTelefono" placeholder="Teléfono"></div>
-                            <div class="grupo"><label>🔐 Contraseña *</label><input type="password" id="nuevoPassword" placeholder="Contraseña"></div>
-                        </div>
-                        <button id="btnCrearTecnico" class="btn-success">✅ Crear técnico</button>
+                        <form id="formTecnico">
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">👤 Nombre completo</label><input type="text" id="nuevoNombre" placeholder="Nombre y apellidos"></div>
+                                <div class="grupo"><label class="required">📧 Email</label><input type="email" id="nuevoEmail" placeholder="email@tecnico.com"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🔐 Contraseña</label><input type="password" id="nuevoPassword" placeholder="Contraseña (mínimo 6 caracteres)"></div>
+                                <div class="grupo"><label class="required">📞 Teléfono</label><input type="tel" id="nuevoTelefono" placeholder="Teléfono de contacto"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🆔 NIF / NIE</label><input type="text" id="nuevoNif" placeholder="12345678A"></div>
+                                <div class="grupo"><label class="required">📅 Fecha nacimiento</label><input type="date" id="nuevoFechaNacimiento"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">📍 Dirección</label><input type="text" id="nuevoDireccion" placeholder="Calle, número, piso, código postal, ciudad"></div>
+                                <div class="grupo"><label class="required">🔢 Nº Seguridad Social</label><input type="text" id="nuevoSS" placeholder="XX/XXXXXXXXXX"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label class="required">🏦 IBAN (Cuenta bancaria)</label><input type="text" id="nuevoIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
+                                <div class="grupo"><label>🏷️ Tipo contrato</label>
+                                    <select id="nuevoTipoContrato">
+                                        <option value="INDEFINIDO">Indefinido</option>
+                                        <option value="TEMPORAL">Temporal</option>
+                                        <option value="POR_OBRA">Por obra/servicio</option>
+                                        <option value="FORMACION">Formación</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>⏱️ Jornada</label>
+                                    <select id="nuevoJornada">
+                                        <option value="COMPLETA">Completa (40h/semana)</option>
+                                        <option value="PARCIAL_50">Parcial 50%</option>
+                                        <option value="PARCIAL_75">Parcial 75%</option>
+                                        <option value="PARCIAL_25">Parcial 25%</option>
+                                    </select>
+                                </div>
+                                <div class="grupo"><label>🔧 Puesto</label>
+                                    <select id="nuevoPuesto">
+                                        <option value="TECNICO_BASE">Técnico base</option>
+                                        <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
+                                        <option value="SUPERVISOR">Supervisor</option>
+                                        <option value="APRENDIZ">Aprendiz</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>📅 Fecha de alta (contrato)</label><input type="date" id="nuevoFechaAlta" value="2026-05-24"></div>
+                                <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="nuevoNick" placeholder="Usuario para login"></div>
+                            </div>
+                            <hr>
+                            <p style="font-size:0.7rem; color:#64748b; margin-bottom:16px;">* Campos obligatorios para el contrato laboral</p>
+                            <button id="btnCrearTecnico" class="btn-success">✅ Dar de alta técnico</button>
+                        </form>
                     </div>
                 </div>
 
@@ -354,11 +410,23 @@
         setTimeout(() => msg.remove(), 3000);
     }
 
-    // ========== LOGIN ==========
+    // ========== LOGIN con email o nick ==========
     async function hacerLogin() {
-        const email = document.getElementById('email').value.trim();
+        const identificador = document.getElementById('identificador').value.trim();
         const password = document.getElementById('password').value;
-        if (!email || !password) { document.getElementById('errorMsg').innerText = "Introduce email y contraseña"; return false; }
+        if (!identificador || !password) { document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; return false; }
+        
+        // Determinar si es email o nick
+        let email = identificador;
+        if (!identificador.includes('@')) {
+            // Es nick, buscar el email correspondiente
+            const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
+            if (!perfil) {
+                document.getElementById('errorMsg').innerText = "Usuario no encontrado";
+                return false;
+            }
+            email = perfil.email;
+        }
         
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if (error) { document.getElementById('errorMsg').innerText = error.message; return false; }
@@ -380,10 +448,11 @@
     // ========== CARGAR STATS ==========
     async function cargarStats() {
         const { data: tareas } = await sb.from('tareas').select('*').eq('cliente_id', currentEmpresaId);
+        const { data: tecnicos } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
         document.getElementById('statsPanel').innerHTML = `
             <div class="stat-card"><div class="stat-number">${tareas?.length || 0}</div><div class="stat-label">Total Tareas</div></div>
             <div class="stat-card"><div class="stat-number">${tareas?.filter(t => t.estado === 'PENDIENTE').length || 0}</div><div class="stat-label">Pendientes</div></div>
-            <div class="stat-card"><div class="stat-number">${tareas?.filter(t => t.estado === 'COMPLETADA').length || 0}</div><div class="stat-label">Completadas</div></div>
+            <div class="stat-card"><div class="stat-number">${tecnicos?.length || 0}</div><div class="stat-label">Técnicos</div></div>
         `;
     }
 
@@ -470,7 +539,7 @@
         }
     }
 
-    // ========== CARGAR TÉCNICOS ==========
+    // ========== CARGAR TÉCNICOS (con datos completos) ==========
     async function cargarTecnicos() {
         const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico');
         const select = document.getElementById('tareaTecnico');
@@ -481,15 +550,17 @@
         const tbody = document.getElementById('tecnicosBody');
         if (tbody) {
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<td><td colspan="5">No hay técnicos</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7">No hay técnicos</td></tr>';
                 return;
             }
             tbody.innerHTML = data.map(t => `
                 <tr>
                     <td>${t.nombre || t.nick}</td>
+                    <td>${t.nif || '-'}</td>
                     <td>${t.email}</td>
                     <td>${t.telefono || '-'}</td>
-                    <td><span class="badge ${t.activo ? 'badge-completada' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
+                    <td>${t.fecha_alta || '-'}</td>
+                    <td><span class="badge ${t.activo ? 'badge-activo' : 'badge-pendiente'}">${t.activo ? 'Activo' : 'Inactivo'}</span></td>
                     <td><button class="btn-sm btn-danger eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td>
                 </tr>
             `).join('');
@@ -497,7 +568,7 @@
         
         document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
             btn.onclick = async () => {
-                if (confirm(`¿Eliminar técnico "${btn.dataset.nombre}"?`)) {
+                if (confirm(`¿Eliminar técnico "${btn.dataset.nombre}"? Esta acción eliminará todos sus datos.`)) {
                     await sb.from('perfiles').delete().eq('id', btn.dataset.id);
                     mostrarMensaje("✅ Técnico eliminado");
                     cargarTecnicos();
@@ -506,35 +577,64 @@
         });
     }
 
-    // ========== CREAR TÉCNICO ==========
+    // ========== CREAR TÉCNICO (con todos los datos legales) ==========
     async function crearTecnico() {
         const nombre = document.getElementById('nuevoNombre').value.trim();
         const email = document.getElementById('nuevoEmail').value.trim();
-        const telefono = document.getElementById('nuevoTelefono').value.trim();
         const password = document.getElementById('nuevoPassword').value;
+        const telefono = document.getElementById('nuevoTelefono').value.trim();
+        const nif = document.getElementById('nuevoNif').value.trim();
+        const fechaNacimiento = document.getElementById('nuevoFechaNacimiento').value;
+        const direccion = document.getElementById('nuevoDireccion').value.trim();
+        const numSS = document.getElementById('nuevoSS').value.trim();
+        const iban = document.getElementById('nuevoIban').value.trim();
+        const tipoContrato = document.getElementById('nuevoTipoContrato').value;
+        const jornada = document.getElementById('nuevoJornada').value;
+        const puesto = document.getElementById('nuevoPuesto').value;
+        const fechaAlta = document.getElementById('nuevoFechaAlta').value;
+        const nick = document.getElementById('nuevoNick').value.trim() || nombre.split(' ')[0].toLowerCase();
         
-        if (!nombre || !email) { mostrarMensaje("❌ Nombre y email son obligatorios", 'error'); return; }
+        // Validaciones obligatorias
+        if (!nombre) { mostrarMensaje("❌ Nombre completo obligatorio", 'error'); return; }
+        if (!email) { mostrarMensaje("❌ Email obligatorio", 'error'); return; }
         if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
+        if (!nif) { mostrarMensaje("❌ NIF/NIE obligatorio", 'error'); return; }
+        if (!fechaNacimiento) { mostrarMensaje("❌ Fecha de nacimiento obligatoria", 'error'); return; }
+        if (!direccion) { mostrarMensaje("❌ Dirección obligatoria", 'error'); return; }
+        if (!numSS) { mostrarMensaje("❌ Nº Seguridad Social obligatorio", 'error'); return; }
+        if (!iban) { mostrarMensaje("❌ IBAN (cuenta bancaria) obligatorio", 'error'); return; }
         
         const btn = document.getElementById('btnCrearTecnico');
         btn.innerHTML = '<span class="spinner"></span> Creando...';
         btn.disabled = true;
         
         try {
+            // Crear usuario en Auth
             const { data: authUser, error: authError } = await sb.auth.admin.createUser({
                 email: email,
                 password: password,
                 email_confirm: true,
-                user_metadata: { nombre: nombre, empresa_id: currentEmpresaId }
+                user_metadata: { nombre: nombre, empresa_id: currentEmpresaId, nick: nick }
             });
             
             if (authError) throw authError;
             
+            // Crear perfil del técnico con todos los datos legales
             const { error: perfilError } = await sb.from('perfiles').insert({
                 id: authUser.user.id,
                 nombre: nombre,
+                nick: nick,
                 email: email,
                 telefono: telefono || null,
+                nif: nif,
+                direccion: direccion,
+                fecha_nacimiento: fechaNacimiento,
+                num_seguridad_social: numSS,
+                iban: iban,
+                fecha_alta: fechaAlta || new Date().toISOString().split('T')[0],
+                tipo_contrato: tipoContrato,
+                jornada: jornada,
+                puesto: puesto,
                 rol: 'tecnico',
                 empresa_id: currentEmpresaId,
                 activo: true
@@ -542,17 +642,27 @@
             
             if (perfilError) throw perfilError;
             
-            mostrarMensaje(`✅ Técnico ${nombre} creado`);
+            mostrarMensaje(`✅ Técnico ${nombre} dado de alta correctamente`);
+            
+            // Limpiar formulario
             document.getElementById('nuevoNombre').value = '';
             document.getElementById('nuevoEmail').value = '';
-            document.getElementById('nuevoTelefono').value = '';
             document.getElementById('nuevoPassword').value = '';
+            document.getElementById('nuevoTelefono').value = '';
+            document.getElementById('nuevoNif').value = '';
+            document.getElementById('nuevoFechaNacimiento').value = '';
+            document.getElementById('nuevoDireccion').value = '';
+            document.getElementById('nuevoSS').value = '';
+            document.getElementById('nuevoIban').value = '';
+            document.getElementById('nuevoNick').value = '';
+            
             cargarTecnicos();
+            cargarStats();
             
         } catch (error) {
             mostrarMensaje(`❌ Error: ${error.message}`, 'error');
         } finally {
-            btn.innerHTML = '✅ Crear técnico';
+            btn.innerHTML = '✅ Dar de alta técnico';
             btn.disabled = false;
         }
     }
@@ -570,7 +680,7 @@
                     <td>${g.importe_total}€</td>
                     <td><button class="btn-sm btn-info aprobar-gasto" data-id="${g.id}">✅ Aprobar</button></td>
                 </tr>
-            `).join('') || '<tr><td colspan="5">No hay gastos pendientes</td></tr>';
+            `).join('') || '<tr><td colspan="5">No hay gastos pendientes</tr>'；
         }
         
         const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre))').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
@@ -584,7 +694,7 @@
                     <td>${g.importe_total}€</td>
                     <td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td>
                 </tr>
-            `).join('') || '<tr><td colspan="5">No hay gastos procesados</td></tr>';
+            `).join('') || '<tr><td colspan="5">No hay gastos procesados</tr>'；
         }
         
         document.querySelectorAll('.aprobar-gasto').forEach(btn => {
