@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Panel Técnico</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f5f5; padding: 0; padding-bottom: 70px; }
+        
+        /* Colores por tipo de tarea */
+        .tipo-urgente { background: #dc2626; color: white; }
+        .tipo-averia { background: #ea580c; color: white; }
+        .tipo-mantenimiento { background: #16a34a; color: white; }
+        .tipo-revision { background: #2563eb; color: white; }
+        .tipo-presupuesto { background: #d97706; color: white; }
+        
+        /* Colores por estado */
+        .estado-pendiente { background: #ca8a04; color: white; }
+        .estado-aceptada { background: #16a34a; color: white; }
+        .estado-curso { background: #0284c7; color: white; }
+        .estado-completada { background: #6b7280; color: white; }
+        .estado-cancelada { background: #4b5563; color: white; }
+        
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+        .card-tarea.prioridad-urgente { border-left: 5px solid #dc2626; }
+        .card-tarea.prioridad-averia { border-left: 5px solid #ea580c; }
+        .card-tarea.prioridad-mantenimiento { border-left: 5px solid #16a34a; }
+        .card-tarea.prioridad-revision { border-left: 5px solid #2563eb; }
+        .card-tarea.prioridad-presupuesto { border-left: 5px solid #d97706; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #1e4663 0%, #2c7a4d 100%); color: white; padding: 16px; position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 1.1rem; margin-bottom: 8px; text-align: center; }
+        .header-tecnico { font-size: 0.7rem; opacity: 0.9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .btn-logout { background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 30px; border: none; color: white; font-size: 0.7rem; cursor: pointer; }
+        
+        /* Contadores */
+        .contadores { display: flex; justify-content: space-around; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .contador-item { text-align: center; }
+        .contador-numero { display: block; font-size: 1.3rem; font-weight: 700; }
+        .contador-label { font-size: 0.6rem; opacity: 0.8; }
+        
+        /* Navegación inferior */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 20px; border-top: 1px solid #e2e8f0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; font-size: 0.7rem; color: #64748b; cursor: pointer; padding: 8px 16px; border-radius: 30px; transition: all 0.2s; }
+        .nav-item.active { color: #2c7a4d; background: #e8f4e8; border-bottom: 3px solid #2c7a4d; border-radius: 30px 30px 0 0; }
+        .nav-item span:first-child { font-size: 1.3rem; }
+        
+        /* Tarjetas de tarea */
+        .container { padding: 16px; }
+        .card-tarea { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; border-left-width: 5px; }
+        .card-header-tarea { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .tarea-cliente { font-weight: 600; font-size: 0.85rem; color: #1e4663; }
+        .tarea-direccion { font-size: 0.7rem; color: #64748b; margin: 4px 0; }
+        .btn-leer { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 40px; font-weight: 600; width: 100%; margin-top: 12px; font-size: 0.9rem; cursor: pointer; }
+        .btn-ver-detalle { background: #64748b; color: white; border: none; padding: 10px; border-radius: 40px; font-weight: 600; width: 100%; margin-top: 8px; font-size: 0.8rem; cursor: pointer; }
+        
+        /* Filtros con sugerencias */
+        .filtros-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; position: relative; }
+        .filtros-bar input, .filtros-bar select { flex: 1; min-width: 120px; padding: 10px; border-radius: 40px; border: 1px solid #cbd5e1; font-size: 0.8rem; }
+        .buscador-container { flex: 2; position: relative; }
+        .buscador-container input { width: 100%; }
+        .sugerencias {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        .sugerencia-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; }
+        .sugerencia-item:hover { background: #e8f4e8; }
+        .btn-filtrar { background: #2c7a4d; color: white; border: none; padding: 10px 16px; border-radius: 40px; font-size: 0.8rem; cursor: pointer; }
+        
+        /* Pantalla de detalle/trabajo */
+        .screen { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f5f5f5; z-index: 200; overflow-y: auto; padding-bottom: 80px; }
+        .screen-header { position: sticky; top: 0; background: white; padding: 16px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 16px; z-index: 10; }
+        .btn-back { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 8px; }
+        .screen-content { padding: 16px; }
+        
+        /* Stepper */
+        .stepper { display: flex; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 4px; }
+        .step { flex: 1; text-align: center; font-size: 0.6rem; color: #cbd5e1; }
+        .step.active { color: #2c7a4d; font-weight: 600; }
+        .step.completed { color: #16a34a; }
+        .step-icon { font-size: 1rem; display: block; }
+        
+        /* Botones */
+        .action-btn { background: #2c7a4d; color: white; border: none; padding: 16px; border-radius: 50px; font-weight: 600; font-size: 1rem; width: 100%; margin: 8px 0; cursor: pointer; }
+        .action-btn-danger { background: #dc2626; }
+        .action-btn-secondary { background: #6b21a5; }
+        
+        /* Formularios */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { font-size: 0.7rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 1rem; font-family: inherit; }
+        textarea { resize: vertical; min-height: 80px; }
+        
+        /* Grid mediciones */
+        .mediciones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        /* Materiales */
+        .material-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+        .material-select { flex: 2; min-width: 150px; }
+        .material-cantidad { flex: 1; min-width: 80px; }
+        .material-unidad { flex: 1; min-width: 80px; background: #f0f0f0; }
+        .btn-add-material { background: #2c7a4d; color: white; border: none; padding: 12px 16px; border-radius: 40px; font-size: 0.8rem; cursor: pointer; }
+        .material-listado-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px; border-radius: 12px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        .material-listado-info { flex: 1; font-size: 0.85rem; }
+        .btn-eliminar-material-listado { background: #fee2e2; border: none; padding: 6px 12px; border-radius: 20px; color: #dc2626; cursor: pointer; }
+        
+        /* IA */
+        .btn-ia { background: #6b21a5; color: white; border: none; padding: 8px 12px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; margin-left: 8px; }
+        .btn-ia:hover { background: #581c87; }
+        .nota-obligatoria { border-left: 3px solid #dc2626; background: #fef2f2; padding-left: 12px; }
+        
+        /* Modales */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-content h3 { margin-bottom: 16px; color: #1e4663; }
+        .modal-content .detalle-info {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 16px;
+            margin: 8px 0;
+            white-space: pre-wrap;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 16px; }
+        .modal-buttons button { flex: 1; padding: 12px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .btn-aceptar { background: #2c7a4d; color: white; border: none; }
+        .btn-regenerar { background: #6b21a5; color: white; border: none; }
+        .btn-cancelar { background: #64748b; color: white; border: none; }
+        
+        .text-center { text-align: center; }
+        .mensaje { position: fixed; bottom: 80px; left: 16px; right: 16px; background: #2c7a4d; color: white; padding: 12px 20px; border-radius: 40px; z-index: 1000; text-align: center; animation: fadeOut 3s ease forwards; }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        .ia-loading { background: #f3e8ff; border-left: 4px solid #6b21a5; padding: 8px 12px; border-radius: 12px; font-size: 0.7rem; color: #4c1d95; margin-top: 8px; }
+        
+        .tiempo-linea { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; }
+        .tiempo-titulo { font-weight: 600; color: #1e4663; }
+        
+        .botones-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+        .botones-acciones button { flex: 1; min-width: 100px; }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPanel" class="container">
+    <div class="card-tarea" style="text-align: center; margin-top: 50px;">
+        <h2>🔧 Panel del Técnico</h2>
+        <p style="margin: 16px 0;">Acceso para técnicos</p>
+        <form id="loginForm" onsubmit="return false;">
+            <input type="text" id="identificador" placeholder="Email o Nick" autocomplete="username" style="margin-bottom: 12px;">
+            <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" style="margin-bottom: 12px;">
+            <button type="button" id="btnLogin" class="action-btn">Iniciar sesión</button>
+            <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+        </form>
+    </div>
+</div>
+
+<!-- PANEL PRINCIPAL TÉCNICO -->
+<div id="dashboardPanel" style="display: none;">
+    <div class="header">
+        <h1 id="nombreEmpresaBanner">Cargando...</h1>
+        <div class="header-tecnico">
+            <span>👨‍🔧 <span id="nombreTecnico">Cargando...</span></span>
+            <span>📧 <span id="emailTecnico"></span></span>
+            <div style="display: flex; gap: 8px;">
+                <button id="btnRefrescar" class="btn-logout">🔄</button>
+                <button id="btnLogout" class="btn-logout">🚪 Salir</button>
+            </div>
+        </div>
+        <div class="contadores">
+            <div class="contador-item"><span class="contador-numero" id="contNuevas">0</span><span class="contador-label">Nuevas</span></div>
+            <div class="contador-item"><span class="contador-numero" id="contActivas">0</span><span class="contador-label">Activas</span></div>
+            <div class="contador-item"><span class="contador-numero" id="contCompletadas">0</span><span class="contador-label">Completadas</span></div>
+        </div>
+    </div>
+    <div id="contenidoPanel"></div>
+    <div class="bottom-nav">
+        <button class="nav-item active" data-tab="nuevas"><span>📋</span><span>Nuevas</span></button>
+        <button class="nav-item" data-tab="activas"><span>▶️</span><span>Activas</span></button>
+        <button class="nav-item" data-tab="completadas"><span>🏁</span><span>Completadas</span></button>
+        <button class="nav-item" data-tab="perfil"><span>👤</span><span>Perfil</span></button>
+    </div>
+</div>
+
+<!-- PANTALLA DE DETALLE/TRABAJO -->
+<div id="trabajoScreen" class="screen">
+    <div class="screen-header">
+        <button class="btn-back" id="btnBackTrabajo">←</button>
+        <span style="font-weight: 600; flex:1;" id="trabajoTitulo">Cargando...</span>
+    </div>
+    <div class="screen-content" id="trabajoContent"></div>
+</div>
+
+<!-- MODAL ACEPTAR TAREA -->
+<div id="modalAceptarTarea" class="modal-overlay">
+    <div class="modal-content">
+        <h3>✅ Aceptar tarea</h3>
+        <div class="form-group"><label>📅 Fecha propuesta</label><input type="date" id="modalFechaPropuesta"></div>
+        <div class="form-group"><label>⏰ Hora propuesta</label><input type="time" id="modalHoraPropuesta"></div>
+        <div class="modal-buttons">
+            <button id="btnConfirmarAceptar" class="btn-aceptar">✅ Aceptar</button>
+            <button id="btnCancelarAceptar" class="btn-cancelar">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PREVISUALIZACIÓN INFORME CLIENTE -->
+<div id="modalInformeCliente" class="modal-overlay">
+    <div class="modal-content">
+        <h3>📋 Informe para el cliente</h3>
+        <div class="detalle-info" id="informePreview"></div>
+        <div class="modal-buttons">
+            <button id="btnAceptarInforme" class="btn-aceptar">✅ Aceptar</button>
+            <button id="btnRegenerarInforme" class="btn-regenerar">🔄 Generar otro</button>
+            <button id="btnCancelarInforme" class="btn-cancelar">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ALBARÁN PARA TÉCNICO EXTERNO -->
+<div id="modalAlbaran" class="modal-overlay">
+    <div class="modal-content">
+        <h3>💰 ALBARÁN DE SERVICIO</h3>
+        <div class="form-group"><label>⏱️ Horas trabajadas</label><input type="number" id="albaranHoras" step="0.5" placeholder="0" value="0"></div>
+        <div class="form-group"><label>💰 Precio por hora (€)</label><input type="number" id="albaranPrecioHora" step="0.01" placeholder="0.00" value="0"></div>
+        <div class="form-group"><label>🧰 Materiales (€)</label><input type="number" id="albaranMateriales" step="0.01" placeholder="0.00" readonly></div>
+        <div class="form-group"><label>🚗 Dietas / desplazamiento (€)</label><input type="number" id="albaranDietas" step="0.01" placeholder="0.00" value="0"></div>
+        <div class="form-group"><label><strong>💰 TOTAL (€)</strong></label><input type="text" id="albaranTotal" readonly style="font-weight: bold; font-size: 1.1rem;"></div>
+        <div class="modal-buttons">
+            <button id="btnAceptarAlbaran" class="btn-aceptar">✅ Guardar albarán</button>
+            <button id="btnCancelarAlbaran" class="btn-cancelar">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DETALLE TAREA COMPLETADA -->
+<div id="modalDetalleTarea" class="modal-overlay">
+    <div class="modal-content">
+        <h3>📋 Detalle completo de la tarea</h3>
+        <div id="detalleTareaContent" class="detalle-info"></div>
+        <div class="modal-buttons">
+            <button id="btnCerrarDetalle" class="btn-cancelar">✖ Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
+    let currentTecnicoId = null;
+    let currentEmpresaId = null;
+    let isExterno = false;
+    let tareasData = { nuevas: [], activas: [], completadas: [] };
+    let tareaActual = null;
+    let pasoActual = 0;
+    let materialesTemp = [];
+    let servicioActual = 'PISCINA';
+    let pendingInformeCallback = null;
+    let completadasFiltradas = [];
+    let todasTareasCache = [];
+    let tiempoInicioDesplazamiento = null;
+    let tiempoInicioTrabajo = null;
+    let tiempoEnSuspension = false;
+
+    const materialesPorServicio = {
+        'PISCINA': [
+            { nombre: 'Cloro granulado', unidad: 'gramos' },
+            { nombre: 'Cloro líquido', unidad: 'litros' },
+            { nombre: 'Alguicida', unidad: 'litros' },
+            { nombre: 'Floculante', unidad: 'litros' },
+            { nombre: 'Regulador pH +', unidad: 'gramos' },
+            { nombre: 'Regulador pH -', unidad: 'gramos' },
+            { nombre: 'Filtro de arena', unidad: 'unidad' },
+            { nombre: 'Junta de bomba', unidad: 'unidad' },
+            { nombre: 'Cesto de skimmer', unidad: 'unidad' }
+        ],
+        'JARDIN': [
+            { nombre: 'Abono orgánico', unidad: 'gramos' },
+            { nombre: 'Fertilizante líquido', unidad: 'litros' },
+            { nombre: 'Herbicida', unidad: 'litros' },
+            { nombre: 'Tierra vegetal', unidad: 'gramos' },
+            { nombre: 'Semillas césped', unidad: 'gramos' },
+            { nombre: 'Fitosanitarios', unidad: 'litros' }
+        ],
+        'FONTANERIA': [
+            { nombre: 'Tubería PVC', unidad: 'metros' },
+            { nombre: 'Codo 90º', unidad: 'unidad' },
+            { nombre: 'Llave de paso', unidad: 'unidad' },
+            { nombre: 'Teflón', unidad: 'rollo' },
+            { nombre: 'Junta tórica', unidad: 'unidad' },
+            { nombre: 'Silicona', unidad: 'unidad' }
+        ],
+        'ELECTRICIDAD': [
+            { nombre: 'Cable eléctrico', unidad: 'metros' },
+            { nombre: 'Interruptor', unidad: 'unidad' },
+            { nombre: 'Toma de corriente', unidad: 'unidad' },
+            { nombre: 'Caja de conexiones', unidad: 'unidad' },
+            { nombre: 'Termomagnético', unidad: 'unidad' },
+            { nombre: 'Cinta aislante', unidad: 'rollo' }
+        ],
+        'LIMPIEZA': [
+            { nombre: 'Detergente', unidad: 'litros' },
+            { nombre: 'Desinfectante', unidad: 'litros' },
+            { nombre: 'Bayetas', unidad: 'unidad' },
+            { nombre: 'Fregona', unidad: 'unidad' },
+            { nombre: 'Cubo', unidad: 'unidad' },
+            { nombre: 'Lejía', unidad: 'litros' }
+        ],
+        'OTRO': [
+            { nombre: 'Material varios', unidad: 'unidad' }
+        ]
+    };
+
+    function mostrarMensaje(texto, tipo = 'exito') {
+        const msg = document.createElement('div');
+        msg.className = 'mensaje';
+        msg.style.background = tipo === 'exito' ? '#2c7a4d' : '#dc2626';
+        msg.innerHTML = texto;
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
+    }
+
+    function formatearFecha(fecha) {
+        if (!fecha) return 'Sin fecha';
+        const partes = fecha.split('-');
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function formatearFechaHora(fechaHora) {
+        if (!fechaHora) return 'Sin fecha';
+        const fecha = new Date(fechaHora);
+        return fecha.toLocaleString('es-ES');
+    }
+
+    function formatearDuracion(minutos) {
+    if (!minutos && minutos !== 0) return 'No registrado';
+    if (minutos === 0) return '0min';
+    
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+    
+    if (horas > 0 && mins > 0) return `${horas}h ${mins}min`;
+    if (horas > 0) return `${horas}h`;
+    return `${mins}min`;
+}
+
+    function getPrioridadClass(tipo) {
+        const prioridades = { 'URGENCIA': 'prioridad-urgente', 'AVERIA': 'prioridad-averia', 'MANTENIMIENTO': 'prioridad-mantenimiento', 'REVISION': 'prioridad-revision', 'PRESUPUESTO': 'prioridad-presupuesto' };
+        return prioridades[tipo] || 'prioridad-mantenimiento';
+    }
+
+    function getTipoIcono(tipo) {
+        const iconos = { 'URGENCIA': '🔴', 'AVERIA': '🟠', 'MANTENIMIENTO': '🟢', 'REVISION': '🔵', 'PRESUPUESTO': '🟡' };
+        return iconos[tipo] || '📋';
+    }
+
+    function getTipoClass(tipo) { 
+        const tipos = { 'URGENCIA': 'tipo-urgente', 'AVERIA': 'tipo-averia', 'MANTENIMIENTO': 'tipo-mantenimiento', 'REVISION': 'tipo-revision', 'PRESUPUESTO': 'tipo-presupuesto' }; 
+        return tipos[tipo] || 'tipo-mantenimiento'; 
+    }
+    
+    function getEstadoClass(estado) { 
+        const estados = { 'PENDIENTE': 'estado-pendiente', 'ACEPTADA': 'estado-aceptada', 'EN_CURSO': 'estado-curso', 'COMPLETADA': 'estado-completada', 'CANCELADA': 'estado-cancelada' }; 
+        return estados[estado] || 'estado-pendiente'; 
+    }
+    
+    function getEstadoTexto(estado) { 
+        const textos = { 'PENDIENTE': 'Pendiente', 'ACEPTADA': 'Aceptada', 'EN_CURSO': 'En curso', 'COMPLETADA': 'Completada', 'CANCELADA': 'Cancelada' }; 
+        return textos[estado] || estado; 
+    }
+
+    async function hacerLogin() {
+        const identificador = document.getElementById('identificador').value.trim();
+        const password = document.getElementById('password').value;
+        if (!identificador || !password) { document.getElementById('errorMsg').innerText = "Introduce email/nick y contraseña"; return false; }
+        let email = identificador;
+        if (!identificador.includes('@')) {
+            const { data: perfil } = await sb.from('perfiles').select('email').eq('nick', identificador).maybeSingle();
+            if (!perfil) { document.getElementById('errorMsg').innerText = "Usuario no encontrado"; return false; }
+            email = perfil.email;
+        }
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { document.getElementById('errorMsg').innerText = error.message; return false; }
+        const { data: perfil } = await sb.from('perfiles').select('*').eq('id', data.user.id).maybeSingle();
+        if (!perfil || perfil.rol !== 'tecnico') { await sb.auth.signOut(); document.getElementById('errorMsg').innerText = "Acceso solo para técnicos"; return false; }
+        
+        currentUser = data.user;
+        currentTecnicoId = perfil.id;
+        currentEmpresaId = perfil.empresa_id;
+        isExterno = perfil.tipo_externo !== null;
+        
+        document.getElementById('nombreTecnico').innerHTML = perfil.nombre || 'Técnico';
+        document.getElementById('emailTecnico').innerHTML = currentUser.email;
+        
+        const { data: empresa } = await sb.from('empresas').select('nombre').eq('id', currentEmpresaId).single();
+        document.getElementById('nombreEmpresaBanner').innerHTML = empresa?.nombre || 'Mi Empresa';
+        
+        return true;
+    }
+
+    async function cargarTareas() {
+        const { data: todas, error } = await sb.from('tareas')
+            .select('*, activos(nombre, direccion, localidad), empresas!cliente_id(nombre)')
+            .eq('tecnico_id', currentTecnicoId)
+            .order('fecha_asignacion', { ascending: false });
+        
+        if (error) return;
+        
+        todasTareasCache = todas || [];
+        
+        const ordenar = (tareas) => {
+            const prioridadOrden = { 'URGENCIA': 1, 'AVERIA': 2, 'MANTENIMIENTO': 3, 'REVISION': 4, 'PRESUPUESTO': 5 };
+            return [...tareas].sort((a, b) => {
+                const priorA = prioridadOrden[a.tipo] || 99, priorB = prioridadOrden[b.tipo] || 99;
+                if (priorA !== priorB) return priorA - priorB;
+                return new Date(b.fecha_asignacion) - new Date(a.fecha_asignacion);
+            });
+        };
+        
+        tareasData = {
+            nuevas: ordenar(todas.filter(t => t.estado === 'PENDIENTE' && !t.leida)),
+            activas: ordenar(todas.filter(t => t.estado === 'ACEPTADA' || t.estado === 'DESPLAZAMIENTO' || t.estado === 'EN_CURSO')),
+            completadas: ordenar(todas.filter(t => t.estado === 'COMPLETADA' || t.estado === 'CANCELADA'))
+        };
+        
+        completadasFiltradas = [...tareasData.completadas];
+        
+        document.getElementById('contNuevas').innerText = tareasData.nuevas.length;
+        document.getElementById('contActivas').innerText = tareasData.activas.length;
+        document.getElementById('contCompletadas').innerText = tareasData.completadas.length;
+        
+        renderizarPanel();
+    }
+
+    function generarSugerencias(texto) {
+        if (!texto || texto.length < 2) {
+            document.getElementById('sugerenciasLista').style.display = 'none';
+            return;
+        }
+        const textoLower = texto.toLowerCase();
+        const sugerencias = new Set();
+        
+        todasTareasCache.forEach(t => {
+            if (t.empresas?.nombre?.toLowerCase().includes(textoLower)) sugerencias.add(t.empresas.nombre);
+            if (t.activos?.nombre?.toLowerCase().includes(textoLower)) sugerencias.add(t.activos.nombre);
+            if (t.id?.toLowerCase().includes(textoLower)) sugerencias.add(t.id);
+        });
+        
+        const sugerenciasArray = Array.from(sugerencias).slice(0, 5);
+        if (sugerenciasArray.length > 0) {
+            const sugerenciasHtml = sugerenciasArray.map(s => `<div class="sugerencia-item" onclick="aplicarSugerencia('${s.replace(/'/g, "\\'")}')">${s}</div>`).join('');
+            document.getElementById('sugerenciasLista').innerHTML = sugerenciasHtml;
+            document.getElementById('sugerenciasLista').style.display = 'block';
+        } else {
+            document.getElementById('sugerenciasLista').style.display = 'none';
+        }
+    }
+
+    function aplicarSugerencia(texto) {
+        document.getElementById('filtroBuscar').value = texto;
+        document.getElementById('sugerenciasLista').style.display = 'none';
+        aplicarFiltrosCompletadas();
+    }
+
+    function renderizarPanel() {
+        const tabActiva = document.querySelector('.nav-item.active')?.dataset.tab || 'nuevas';
+        let contenido = '';
+        if (tabActiva === 'nuevas') contenido = renderizarTareas(tareasData.nuevas, 'nueva');
+        else if (tabActiva === 'activas') contenido = renderizarTareas(tareasData.activas, 'activa');
+        else if (tabActiva === 'completadas') contenido = renderizarCompletadas();
+        else if (tabActiva === 'perfil') contenido = renderizarPerfil();
+        document.getElementById('contenidoPanel').innerHTML = contenido;
+        
+        if (tabActiva === 'completadas') {
+            const inputBuscar = document.getElementById('filtroBuscar');
+            if (inputBuscar) {
+                inputBuscar.addEventListener('input', (e) => generarSugerencias(e.target.value));
+            }
+        }
+    }
+
+    function renderizarCompletadas() {
+        let html = `
+            <div class="container">
+                <div class="filtros-bar">
+                    <div class="buscador-container">
+                        <input type="text" id="filtroBuscar" placeholder="🔍 Buscar (cliente, activo, ID)" autocomplete="off">
+                        <div id="sugerenciasLista" class="sugerencias"></div>
+                    </div>
+                    <select id="filtroTipo">
+                        <option value="">Todos los tipos</option>
+                        <option value="URGENCIA">🔴 Urgencia</option>
+                        <option value="AVERIA">🟠 Avería</option>
+                        <option value="MANTENIMIENTO">🟢 Mantenimiento</option>
+                        <option value="REVISION">🔵 Revisión</option>
+                        <option value="PRESUPUESTO">🟡 Presupuesto</option>
+                    </select>
+                    <input type="date" id="filtroFechaDesde" placeholder="Desde">
+                    <input type="date" id="filtroFechaHasta" placeholder="Hasta">
+                    <button class="btn-filtrar" onclick="aplicarFiltrosCompletadas()">🔍 Filtrar</button>
+                    <button class="btn-filtrar" onclick="limpiarFiltrosCompletadas()" style="background:#64748b;">🗑️ Limpiar</button>
+                </div>
+        `;
+        
+        if (completadasFiltradas.length === 0) {
+            html += `<div class="card-tarea text-center">📭 No hay tareas completadas</div>`;
+        } else {
+            html += `<div id="listaCompletadas">${completadasFiltradas.map(t => `
+                <div class="card-tarea ${getPrioridadClass(t.tipo)}">
+                    <div class="card-header-tarea">
+                        <span class="badge ${getTipoClass(t.tipo)}">${getTipoIcono(t.tipo)} ${t.tipo}</span>
+                        <span class="badge ${getEstadoClass(t.estado)}">${getEstadoTexto(t.estado)}</span>
+                    </div>
+                    <div class="tarea-cliente">${t.empresas?.nombre || 'Cliente'}</div>
+                    <div class="tarea-direccion">${t.activos?.nombre || 'Sin activo'} - ${t.activos?.direccion || ''}</div>
+                    <div class="tarea-direccion">📅 Completada: ${formatearFecha(t.completada_en?.split('T')[0] || t.fecha_asignacion)}</div>
+                    <button class="btn-ver-detalle" onclick="verDetalleCompletada('${t.id}')">👁️ Ver detalle completo</button>
+                </div>
+            `).join('')}</div>`;
+        }
+        
+        html += `</div>`;
+        return html;
+    }
+
+    function aplicarFiltrosCompletadas() {
+        const buscar = document.getElementById('filtroBuscar')?.value.toLowerCase() || '';
+        const tipo = document.getElementById('filtroTipo')?.value || '';
+        const fechaDesde = document.getElementById('filtroFechaDesde')?.value || '';
+        const fechaHasta = document.getElementById('filtroFechaHasta')?.value || '';
+        
+        completadasFiltradas = tareasData.completadas.filter(t => {
+            if (tipo && t.tipo !== tipo) return false;
+            if (fechaDesde && t.completada_en && t.completada_en.split('T')[0] < fechaDesde) return false;
+            if (fechaHasta && t.completada_en && t.completada_en.split('T')[0] > fechaHasta) return false;
+            if (buscar) {
+                const texto = `${t.empresas?.nombre} ${t.activos?.nombre} ${t.id}`.toLowerCase();
+                if (!texto.includes(buscar)) return false;
+            }
+            return true;
+        });
+        
+        renderizarPanel();
+    }
+
+    function limpiarFiltrosCompletadas() {
+        document.getElementById('filtroBuscar').value = '';
+        document.getElementById('filtroTipo').value = '';
+        document.getElementById('filtroFechaDesde').value = '';
+        document.getElementById('filtroFechaHasta').value = '';
+        document.getElementById('sugerenciasLista').style.display = 'none';
+        completadasFiltradas = [...tareasData.completadas];
+        renderizarPanel();
+    }
+
+    async function verDetalleCompletada(id) {
+    const { data: tarea } = await sb.from('tareas')
+        .select('*, activos(*), empresas!cliente_id(*)')
+        .eq('id', id)
+        .single();
+    
+    if (!tarea) return;
+    
+    const { data: mediciones } = await sb.from('mediciones_dinamicas').select('*').eq('tarea_id', id).order('fecha_registro', { ascending: false }).limit(1);
+    const { data: materiales } = await sb.from('gastos_tarea').select('*').eq('tarea_id', id).eq('tipo_gasto', 'MATERIALES');
+    const { data: seguimiento } = await sb.from('seguimiento_tareas').select('*').eq('tarea_id', id).order('inicio', { ascending: true });
+    
+    // Calcular tiempos totales sumando duracion_minutos
+    let tiempoDesplazamiento = 0;
+    let tiempoTrabajo = 0;
+    
+    for (let i = 0; i < seguimiento.length; i++) {
+        const ev = seguimiento[i];
+        if (ev.evento === 'LLEGADA' && ev.duracion_minutos) {
+            tiempoDesplazamiento += ev.duracion_minutos;
+        }
+        if (ev.evento === 'FIN_TRABAJO' && ev.duracion_minutos) {
+            tiempoTrabajo += ev.duracion_minutos;
+        }
+    }
+    
+    // Formatear tiempos
+    const formatTiempo = (minutos) => {
+        if (!minutos && minutos !== 0) return 'No registrado';
+        if (minutos === 0) return '0min';
+        const horas = Math.floor(minutos / 60);
+        const mins = minutos % 60;
+        if (horas > 0 && mins > 0) return `${horas}h ${mins}min`;
+        if (horas > 0) return `${horas}h`;
+        return `${mins}min`;
+    };
+    
+    // Generar HTML de eventos
+    let eventosHtml = '';
+    for (let i = 0; i < seguimiento.length; i++) {
+        const ev = seguimiento[i];
+        let eventoTexto = '';
+        let duracionTexto = '';
+        
+        switch(ev.evento) {
+            case 'INICIO_DESPLAZAMIENTO': eventoTexto = '🚗 Inicio desplazamiento'; break;
+            case 'LLEGADA': eventoTexto = '📍 Llegada'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
+            case 'INICIO_TRABAJO': eventoTexto = '⚙️ Inicio trabajo'; break;
+            case 'FIN_TRABAJO': eventoTexto = '🏁 Fin trabajo'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
+            default: eventoTexto = ev.evento;
+        }
+        
+        const fechaHora = ev.inicio ? new Date(ev.inicio).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '-';
+        
+        eventosHtml += `<div class="tiempo-linea">
+            <span class="tiempo-titulo">${eventoTexto}</span>
+            <span>${fechaHora}${duracionTexto}</span>
+        </div>`;
+    }
+    
+    // Construir HTML completo
+    let html = `<strong>📋 ID:</strong> ${tarea.id}<br>`;
+    html += `<strong>🏢 Cliente:</strong> ${tarea.empresas?.nombre || '-'}<br>`;
+    html += `<strong>🔧 Activo:</strong> ${tarea.activos?.nombre || '-'}<br>`;
+    html += `<strong>📍 Dirección:</strong> ${tarea.activos?.direccion || ''} ${tarea.activos?.localidad || ''}<br>`;
+    html += `<strong>📅 Fecha asignación:</strong> ${formatearFecha(tarea.fecha_asignacion)}<br>`;
+    if (tarea.fecha_propuesta) html += `<strong>📅 Fecha propuesta:</strong> ${formatearFecha(tarea.fecha_propuesta)} a las ${tarea.hora_propuesta || '--:--'}<br>`;
+    if (tarea.completada_en) html += `<strong>✅ Fecha finalización:</strong> ${new Date(tarea.completada_en).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}<br>`;
+    
+    html += `<hr><strong>⏱️ TIEMPOS TOTALES:</strong><br>`;
+    html += `<div class="tiempo-linea"><span class="tiempo-titulo">🚗 Tiempo de desplazamiento:</span><span>${formatTiempo(tiempoDesplazamiento)}</span></div>`;
+    html += `<div class="tiempo-linea"><span class="tiempo-titulo">⚙️ Tiempo de trabajo efectivo:</span><span>${formatTiempo(tiempoTrabajo)}</span></div>`;
+    
+    html += `<hr><strong>📋 REGISTRO DE EVENTOS:</strong><br>${eventosHtml}`;
+    html += `<hr><strong>📋 ORDEN DE TRABAJO:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.orden_trabajo || 'Sin instrucciones'}</div><br>`;
+    
+    if (mediciones && mediciones[0]) {
+        html += `<strong>🔬 MEDICIONES REALIZADAS:</strong><br>`;
+        const params = mediciones[0].parametros;
+        html += `<div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">`;
+        if (params.cloro) html += `Cloro: ${params.cloro} ppm<br>`;
+        if (params.ph) html += `pH: ${params.ph}<br>`;
+        if (params.temperatura) html += `Temperatura: ${params.temperatura} °C<br>`;
+        html += `</div><br>`;
+    }
+    
+    if (materiales && materiales.length > 0) {
+        html += `<strong>🧰 MATERIALES UTILIZADOS:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">`;
+        materiales.forEach(m => html += `• ${m.descripcion}<br>`);
+        html += `</div><br>`;
+    }
+    
+    if (tarea.nota_interna) {
+        html += `<strong>📝 NOTA INTERNA (técnico):</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.nota_interna}</div><br>`;
+    }
+    
+    if (tarea.nota_cliente) {
+        html += `<strong>📋 INFORME ENVIADO AL CLIENTE:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.nota_cliente}</div><br>`;
+    }
+    
+    document.getElementById('detalleTareaContent').innerHTML = html;
+    document.getElementById('modalDetalleTarea').style.display = 'flex';
+}
+
+    function renderizarTareas(tareas, tipo) {
+        if (!tareas.length) return `<div class="container"><div class="card-tarea text-center">📭 No hay tareas</div></div>`;
+        return `<div class="container">${tareas.map(t => {
+            let botonTexto = tipo === 'nueva' ? '👁️ Leer y aceptar' : (t.estado === 'ACEPTADA' ? '🚗 Iniciar desplazamiento' : '🔧 Continuar trabajo');
+            return `<div class="card-tarea ${getPrioridadClass(t.tipo)}">
+                <div class="card-header-tarea">
+                    <span class="badge ${getTipoClass(t.tipo)}">${getTipoIcono(t.tipo)} ${t.tipo}</span>
+                    <span class="badge ${getEstadoClass(t.estado)}">${getEstadoTexto(t.estado)}</span>
+                </div>
+                <div class="tarea-cliente">${t.empresas?.nombre || 'Cliente'}</div>
+                <div class="tarea-direccion">${t.activos?.nombre || 'Sin activo'} - ${t.activos?.direccion || ''}</div>
+                <div class="tarea-direccion">📅 Asignada: ${formatearFecha(t.fecha_asignacion)}</div>
+                <button class="btn-leer" onclick="abrirTarea('${t.id}')">${botonTexto}</button>
+            </div>`;
+        }).join('')}</div>`;
+    }
+
+    function renderizarPerfil() {
+        return `<div class="container"><div class="card-tarea"><h3>👤 Mi perfil</h3><p><strong>Nombre:</strong> ${document.getElementById('nombreTecnico').innerText}</p><p><strong>Email:</strong> ${document.getElementById('emailTecnico').innerText}</p>${isExterno ? '<p><strong>Tipo:</strong> Técnico externo</p>' : ''}<hr><button class="btn-leer" onclick="cerrarSesion()">🚪 Cerrar sesión</button></div></div>`;
+    }
+
+    async function abrirTarea(id) {
+        const { data: tarea } = await sb.from('tareas').select('*, activos(*), empresas!cliente_id(*)').eq('id', id).single();
+        if (!tarea) return;
+        tareaActual = tarea;
+        servicioActual = tarea.servicio_tipo || 'OTRO';
+        if (tarea.estado === 'PENDIENTE' && !tarea.leida) { await sb.from('tareas').update({ leida: true }).eq('id', id); await cargarTareas(); }
+        
+        // Determinar paso actual basado en el estado y seguimiento
+        if (tarea.estado === 'PENDIENTE') pasoActual = 0;
+        else if (tarea.estado === 'ACEPTADA') pasoActual = 0;
+        else if (tarea.estado === 'DESPLAZAMIENTO') pasoActual = 1;
+        else if (tarea.estado === 'EN_CURSO') {
+            // Verificar si hay un trabajo en curso (sin fin)
+            const { data: trabajoActivo } = await sb.from('seguimiento_tareas')
+                .select('*').eq('tarea_id', id).eq('evento', 'INICIO_TRABAJO').is('fin', null).single();
+            if (trabajoActivo) {
+                pasoActual = 3;
+                tiempoEnSuspension = false;
+            } else {
+                pasoActual = 3;
+            }
+        } else pasoActual = 0;
+        
+        const { data: gastos } = await sb.from('gastos_tarea').select('*').eq('tarea_id', id).eq('tipo_gasto', 'MATERIALES');
+        materialesTemp = gastos || [];
+        
+        document.getElementById('trabajoTitulo').innerHTML = tarea.activos?.nombre || 'Tarea';
+        document.getElementById('trabajoScreen').style.display = 'block';
+        renderizarPantallaTrabajo();
+    }
+
+    async function registrarEvento(evento, motivo = null) {
+    const ahoraLocal = new Date();
+    const offset = ahoraLocal.getTimezoneOffset();
+    const ahoraLocalISO = new Date(ahoraLocal.getTime() - offset * 60000).toISOString().slice(0, 19);
+    
+    let duracion = null;
+    
+    try {
+        // Buscar evento anterior sin fin para calcular duración
+        let eventoAnterior = null;
+        
+        if (evento === 'LLEGADA') {
+            const { data: desplazamiento } = await sb.from('seguimiento_tareas')
+                .select('*')
+                .eq('tarea_id', tareaActual.id)
+                .eq('evento', 'INICIO_DESPLAZAMIENTO')
+                .is('fin', null)
+                .single();
+            if (desplazamiento) eventoAnterior = desplazamiento;
+        } else if (evento === 'FIN_TRABAJO') {
+            const { data: trabajo } = await sb.from('seguimiento_tareas')
+                .select('*')
+                .eq('tarea_id', tareaActual.id)
+                .eq('evento', 'INICIO_TRABAJO')
+                .is('fin', null)
+                .single();
+            if (trabajo) eventoAnterior = trabajo;
+        } else if (evento === 'SUSPENSION') {
+            const { data: trabajo } = await sb.from('seguimiento_tareas')
+                .select('*')
+                .eq('tarea_id', tareaActual.id)
+                .eq('evento', 'INICIO_TRABAJO')
+                .is('fin', null)
+                .single();
+            if (trabajo) eventoAnterior = trabajo;
+        } else if (evento === 'REANUDACION') {
+            const { data: suspension } = await sb.from('seguimiento_tareas')
+                .select('*')
+                .eq('tarea_id', tareaActual.id)
+                .eq('evento', 'SUSPENSION')
+                .is('fin', null)
+                .single();
+            if (suspension) eventoAnterior = suspension;
+        }
+        
+        if (eventoAnterior && eventoAnterior.inicio) {
+            const inicio = new Date(eventoAnterior.inicio);
+            const fin = new Date(ahoraLocalISO);
+            duracion = Math.floor((fin - inicio) / 1000 / 60);
+            
+            await sb.from('seguimiento_tareas')
+                .update({ fin: ahoraLocalISO, duracion_minutos: duracion })
+                .eq('id', eventoAnterior.id);
+        }
+        
+        // Insertar el nuevo evento
+        const nuevoEvento = {
+            tarea_id: tareaActual.id,
+            evento: evento,
+            inicio: ahoraLocalISO,
+            duracion_minutos: null,
+            motivo: motivo
+        };
+        
+        const { error } = await sb.from('seguimiento_tareas').insert(nuevoEvento);
+        if (error) throw error;
+        
+        // Actualizar estado de la tarea
+        if (evento === 'INICIO_DESPLAZAMIENTO') {
+            await sb.from('tareas').update({ estado: 'DESPLAZAMIENTO', iniciada_en: ahoraLocalISO }).eq('id', tareaActual.id);
+            tareaActual.estado = 'DESPLAZAMIENTO';
+        } else if (evento === 'LLEGADA') {
+            await sb.from('tareas').update({ estado: 'EN_CURSO' }).eq('id', tareaActual.id);
+            tareaActual.estado = 'EN_CURSO';
+        }
+        
+        mostrarMensaje(`✅ ${evento} registrado`, 'exito');
+        return true;
+        
+    } catch (error) {
+        console.error("Error:", error);
+        mostrarMensaje(`❌ Error al registrar ${evento}`, 'error');
+        return false;
+    }
+}
+
+    async function mejorarNotaInternaIA(texto) {
+        if (!texto || texto.trim() === "") { mostrarMensaje("❌ Escribe algo antes de usar la IA", 'error'); return null; }
+        const iaLoading = document.createElement('div'); iaLoading.className = 'ia-loading'; iaLoading.innerHTML = '⏳ Mejorando nota...';
+        const textarea = document.getElementById('notaInterna'); textarea.insertAdjacentElement('afterend', iaLoading);
+        try {
+            const { data: session } = await sb.auth.getSession();
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/mejorar-nota-interna`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ texto: texto })
+            });
+            const resultado = await response.json();
+            if (resultado.success) { document.getElementById('notaInterna').value = resultado.texto; mostrarMensaje("✅ Nota mejorada", 'exito'); return resultado.texto; }
+            else throw new Error(resultado.error);
+        } catch (error) { mostrarMensaje("❌ Error al mejorar", 'error'); return null; }
+        finally { iaLoading.remove(); }
+    }
+
+    async function generarInformeCliente() {
+        const iaLoading = document.createElement('div'); iaLoading.className = 'ia-loading'; iaLoading.innerHTML = '⏳ Generando informe...';
+        const textarea = document.getElementById('notaCliente'); textarea.insertAdjacentElement('afterend', iaLoading);
+        try {
+            const { data: session } = await sb.auth.getSession();
+            const { data: empresa } = await sb.from('empresas').select('nombre').eq('id', tareaActual.cliente_id).single();
+            const empresaNombre = empresa?.nombre || 'La empresa';
+            const mediciones = { cloro: document.getElementById('medCloro')?.value || null, ph: document.getElementById('medPh')?.value || null, temperatura: document.getElementById('medTemp')?.value || null };
+            const materialesLista = materialesTemp.map(m => m.descripcion).join(', ');
+            
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/generar-informe-cliente`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({
+                    servicio: tareaActual.servicio_tipo || 'OTRO',
+                    tipo: tareaActual.tipo,
+                    activoNombre: tareaActual.activos?.nombre || '',
+                    notasTecnico: document.getElementById('notaInterna')?.value || '',
+                    mediciones: mediciones,
+                    materiales: materialesLista,
+                    empresaNombre: empresaNombre
+                })
+            });
+            const resultado = await response.json();
+            if (resultado.success) { return resultado.texto; }
+            else throw new Error(resultado.error);
+        } catch (error) { mostrarMensaje("❌ Error al generar informe", 'error'); return null; }
+        finally { iaLoading.remove(); }
+    }
+
+    function mostrarModalInformeCliente() {
+        generarInformeCliente().then(informe => {
+            if (informe) {
+                document.getElementById('informePreview').innerText = informe;
+                document.getElementById('modalInformeCliente').style.display = 'flex';
+                pendingInformeCallback = (aceptar) => {
+                    if (aceptar) {
+                        document.getElementById('notaCliente').value = informe;
+                        mostrarMensaje("✅ Informe aceptado", 'exito');
+                    }
+                    document.getElementById('modalInformeCliente').style.display = 'none';
+                };
+            }
+        });
+    }
+
+    function calcularTotalMateriales() { return 0; }
+
+    function actualizarTotalAlbaran() {
+        const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0;
+        const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0;
+        const materiales = parseFloat(document.getElementById('albaranMateriales')?.value) || 0;
+        const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0;
+        const total = (horas * precioHora) + materiales + dietas;
+        document.getElementById('albaranTotal').value = total.toFixed(2) + ' €';
+    }
+
+    function mostrarModalAlbaran() {
+        document.getElementById('albaranMateriales').value = calcularTotalMateriales().toFixed(2);
+        actualizarTotalAlbaran();
+        document.getElementById('modalAlbaran').style.display = 'flex';
+        
+        const inputs = ['albaranHoras', 'albaranPrecioHora', 'albaranDietas'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', actualizarTotalAlbaran);
+        });
+    }
+
+    async function guardarAlbaran() {
+        const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0;
+        const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0;
+        const materiales = parseFloat(document.getElementById('albaranMateriales')?.value) || 0;
+        const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0;
+        const total = (horas * precioHora) + materiales + dietas;
+        
+        try {
+            const { error } = await sb.from('facturas_externas').insert({
+                tarea_id: tareaActual.id,
+                tecnico_id: currentTecnicoId,
+                horas_trabajadas: horas,
+                precio_hora: precioHora,
+                total_materiales: materiales,
+                total_dietas: dietas,
+                total_general: total,
+                pagada: false
+            });
+            if (error) throw error;
+            mostrarMensaje("✅ Albarán guardado correctamente", 'exito');
+            document.getElementById('modalAlbaran').style.display = 'none';
+        } catch (error) {
+            mostrarMensaje("❌ Error al guardar albarán", 'error');
+        }
+    }
+
+    function renderizarPantallaTrabajo() {
+        const content = document.getElementById('trabajoContent');
+        let html = `<div class="stepper"><div class="step ${pasoActual >= 0 ? 'completed' : ''} ${pasoActual === 0 ? 'active' : ''}"><span class="step-icon">✅</span><span>Aceptada</span></div>
+            <div class="step ${pasoActual >= 1 ? 'completed' : ''} ${pasoActual === 1 ? 'active' : ''}"><span class="step-icon">🚗</span><span>Desplaz.</span></div>
+            <div class="step ${pasoActual >= 2 ? 'completed' : ''} ${pasoActual === 2 ? 'active' : ''}"><span class="step-icon">📍</span><span>Llegada</span></div>
+            <div class="step ${pasoActual >= 3 ? 'completed' : ''} ${pasoActual === 3 ? 'active' : ''}"><span class="step-icon">⚙️</span><span>Trabajo</span></div>
+            <div class="step ${pasoActual >= 4 ? 'completed' : ''} ${pasoActual === 4 ? 'active' : ''}"><span class="step-icon">📝</span><span>Registros</span></div>
+            <div class="step ${pasoActual >= 5 ? 'completed' : ''} ${pasoActual === 5 ? 'active' : ''}"><span class="step-icon">🏁</span><span>Cierre</span></div>
+        </div>
+        <div class="form-group"><label>📋 ORDEN DE TRABAJO</label><textarea readonly rows="4">${tareaActual.orden_trabajo || 'Sin instrucciones'}</textarea></div>`;
+        
+        if (pasoActual === 0) {
+            if (tareaActual.estado === 'PENDIENTE') html += `<button class="action-btn" onclick="mostrarModalAceptar()">✅ ACEPTAR TAREA</button><button class="action-btn action-btn-danger" onclick="mostrarCancelarModal()">❌ CANCELAR TAREA</button>`;
+            else if (tareaActual.estado === 'ACEPTADA') html += `<button class="action-btn" onclick="iniciarDesplazamiento()">🚗 INICIAR DESPLAZAMIENTO</button><button class="action-btn action-btn-danger" onclick="mostrarCancelarModal()">❌ CANCELAR TAREA</button>`;
+        }
+        else if (pasoActual === 1 && !tareaActual.iniciada_en) {
+            html += `<button class="action-btn" onclick="iniciarDesplazamiento()">🚗 INICIAR DESPLAZAMIENTO</button>`;
+        }
+        else if (pasoActual === 1 && tareaActual.iniciada_en) {
+            html += `<button class="action-btn" onclick="registrarLlegada()">📍 REGISTRAR LLEGADA</button>`;
+        }
+        else if (pasoActual === 2) {
+            html += `<button class="action-btn" onclick="iniciarTrabajo()">▶️ INICIAR TRABAJO</button>`;
+        }
+        else if (pasoActual === 3) {
+            html += `<div class="form-group"><label>🔬 MEDICIONES</label><div class="mediciones-grid">
+                <input type="number" step="0.1" id="medCloro" placeholder="Cloro (ppm)">
+                <input type="number" step="0.1" id="medPh" placeholder="pH">
+                <input type="number" step="1" id="medTemp" placeholder="Temperatura (°C)">
+            </div></div>`;
+            html += `<div class="form-group"><label>🧰 MATERIALES USADOS</label>
+                <div class="material-row">
+                    <select id="selectMaterial" class="material-select">
+                        <option value="">-- Seleccionar material --</option>
+                        ${materialesPorServicio[servicioActual].map(m => `<option value="${m.nombre}" data-unidad="${m.unidad}">${m.nombre}</option>`).join('')}
+                    </select>
+                    <input type="number" id="materialCantidad" class="material-cantidad" placeholder="Cantidad" step="0.01" value="1">
+                    <input type="text" id="materialUnidad" class="material-unidad" placeholder="Unidad" readonly>
+                    <button class="btn-add-material" onclick="agregarMaterial()">➕ Añadir</button>
+                </div>
+                <div id="listadoMateriales">${materialesTemp.map((m, idx) => `<div class="material-listado-item"><span class="material-listado-info">${m.descripcion}</span><button class="btn-eliminar-material-listado" onclick="eliminarMaterialListado(${idx})">✖</button></div>`).join('')}</div></div>`;
+            html += `<div class="form-group"><label>📝 NOTA INTERNA <button type="button" class="btn-ia" onclick="mejorarNotaInternaIA(document.getElementById('notaInterna').value)">🤖 Mejorar</button></label><textarea id="notaInterna" rows="2" placeholder="Escribe aquí tus notas...">${tareaActual.nota_interna || ''}</textarea></div>`;
+            html += `<div class="form-group nota-obligatoria"><label>📝 INFORME PARA CLIENTE <button type="button" class="btn-ia" onclick="mostrarModalInformeCliente()">🤖 Generar informe</button></label><textarea id="notaCliente" rows="3" placeholder="El informe se generará automáticamente...">${tareaActual.nota_cliente || ''}</textarea><small>⚠️ Usa el botón IA para generar el informe</small></div>`;
+            
+            html += `<div class="botones-acciones">`;
+            html += `<button class="action-btn-secondary" onclick="suspenderTarea()">⏸️ SUSPENDER</button>`;
+            if (tiempoEnSuspension) html += `<button class="action-btn-secondary" onclick="reanudarTarea()">▶️ REANUDAR</button>`;
+            html += `<button class="action-btn" onclick="finalizarTrabajo()">🏁 FINALIZAR TRABAJO</button>`;
+            html += `</div>`;
+            
+            if (isExterno) html += `<button class="action-btn" onclick="mostrarModalAlbaran()" style="background:#6b21a5; margin-top:8px;">💰 REGISTRAR ALBARÁN</button>`;
+            html += `<button class="action-btn" onclick="finalizarRegistros()">📝 FINALIZAR REGISTROS</button>`;
+        }
+        else if (pasoActual === 4) {
+            html += `<div class="form-group"><label>🔬 MEDICIONES</label><div class="mediciones-grid">
+                <input type="text" disabled value="${document.getElementById('medCloro')?.value || '-'} ppm">
+                <input type="text" disabled value="${document.getElementById('medPh')?.value || '-'} pH">
+                <input type="text" disabled value="${document.getElementById('medTemp')?.value || '-'} °C"></div></div>`;
+            html += `<div class="form-group"><label>🧰 MATERIALES USADOS</label>${materialesTemp.map(m => `<div class="material-listado-item"><span class="material-listado-info">${m.descripcion}</span></div>`).join('')}</div>`;
+            html += `<div class="form-group"><label>📝 NOTA INTERNA</label><textarea readonly rows="2">${document.getElementById('notaInterna')?.value || ''}</textarea></div>`;
+            html += `<div class="form-group"><label>📝 INFORME PARA CLIENTE</label><textarea readonly rows="3">${document.getElementById('notaCliente')?.value || ''}</textarea></div>`;
+            html += `<button class="action-btn" onclick="cerrarTarea()">🏁 CERRAR TAREA</button>`;
+        }
+        document.getElementById('trabajoContent').innerHTML = html;
+        
+        const selectMaterial = document.getElementById('selectMaterial');
+        if (selectMaterial) {
+            selectMaterial.addEventListener('change', function() {
+                const selected = this.options[this.selectedIndex];
+                const unidad = selected?.dataset?.unidad || '';
+                document.getElementById('materialUnidad').value = unidad;
+            });
+        }
+    }
+
+    function agregarMaterial() {
+        const nombre = document.getElementById('selectMaterial')?.value;
+        const cantidad = parseFloat(document.getElementById('materialCantidad')?.value) || 0;
+        const unidad = document.getElementById('materialUnidad')?.value || 'unidad';
+        if (!nombre) { mostrarMensaje("❌ Selecciona un material", 'error'); return; }
+        if (cantidad <= 0) { mostrarMensaje("❌ Cantidad válida", 'error'); return; }
+        materialesTemp.push({ descripcion: `${nombre}: ${cantidad} ${unidad}`, tipo_gasto: 'MATERIALES' });
+        document.getElementById('selectMaterial').value = '';
+        document.getElementById('materialCantidad').value = '1';
+        document.getElementById('materialUnidad').value = '';
+        renderizarPantallaTrabajo();
+    }
+
+    function eliminarMaterialListado(idx) { materialesTemp.splice(idx, 1); renderizarPantallaTrabajo(); }
+
+    async function iniciarDesplazamiento() {
+        await registrarEvento('INICIO_DESPLAZAMIENTO');
+        pasoActual = 1;
+        renderizarPantallaTrabajo();
+        await cargarTareas();
+    }
+    
+    async function registrarLlegada() {
+        await registrarEvento('LLEGADA');
+        pasoActual = 2;
+        renderizarPantallaTrabajo();
+        await cargarTareas();
+    }
+    
+    async function iniciarTrabajo() {
+        await registrarEvento('INICIO_TRABAJO');
+        pasoActual = 3;
+        renderizarPantallaTrabajo();
+    }
+    
+    async function suspenderTarea() {
+        await registrarEvento('SUSPENSION');
+        mostrarMensaje("⏸️ Tarea suspendida. Puedes reanudarla más tarde.", 'exito');
+        renderizarPantallaTrabajo();
+    }
+    
+    async function reanudarTarea() {
+        await registrarEvento('REANUDACION');
+        tiempoEnSuspension = false;
+        mostrarMensaje("▶️ Tarea reanudada", 'exito');
+        renderizarPantallaTrabajo();
+    }
+    
+    async function finalizarTrabajo() {
+        await registrarEvento('FIN_TRABAJO');
+        mostrarMensaje("🏁 Trabajo finalizado. Ahora puedes completar los registros.", 'exito');
+        pasoActual = 4;
+        renderizarPantallaTrabajo();
+        await cargarTareas();
+    }
+
+    function mostrarModalAceptar() {
+        const modal = document.getElementById('modalAceptarTarea');
+        const hoy = new Date(); const fechaDefault = hoy.toISOString().split('T')[0];
+        document.getElementById('modalFechaPropuesta').value = fechaDefault;
+        document.getElementById('modalHoraPropuesta').value = '10:00';
+        modal.style.display = 'flex';
+        const confirmar = document.getElementById('btnConfirmarAceptar');
+        const cancelar = document.getElementById('btnCancelarAceptar');
+        const handlerConfirmar = async () => {
+            const fechaPropuesta = document.getElementById('modalFechaPropuesta').value;
+            const horaPropuesta = document.getElementById('modalHoraPropuesta').value;
+            if (!fechaPropuesta || !horaPropuesta) { mostrarMensaje("❌ Completa fecha y hora", 'error'); return; }
+            const { error } = await sb.from('tareas').update({ estado: 'ACEPTADA', fecha_propuesta: fechaPropuesta, hora_propuesta: horaPropuesta + ':00', leida: true }).eq('id', tareaActual.id);
+            if (error) { mostrarMensaje("❌ Error: " + error.message, 'error'); return; }
+            mostrarMensaje(`✅ Tarea aceptada. Previsión: ${fechaPropuesta} a las ${horaPropuesta}`);
+            modal.style.display = 'none';
+            document.getElementById('trabajoScreen').style.display = 'none';
+            await cargarTareas();
+            document.querySelector('.nav-item[data-tab="activas"]').click();
+            confirmar.removeEventListener('click', handlerConfirmar);
+            cancelar.removeEventListener('click', handlerCancelar);
+        };
+        const handlerCancelar = () => { modal.style.display = 'none'; confirmar.removeEventListener('click', handlerConfirmar); cancelar.removeEventListener('click', handlerCancelar); };
+        confirmar.addEventListener('click', handlerConfirmar);
+        cancelar.addEventListener('click', handlerCancelar);
+    }
+
+    async function finalizarRegistros() {
+        const notaCliente = document.getElementById('notaCliente')?.value || '';
+        if (!notaCliente.trim()) { mostrarMensaje("❌ Debes generar el informe para el cliente", 'error'); return; }
+        const mediciones = { cloro: document.getElementById('medCloro')?.value, ph: document.getElementById('medPh')?.value, temperatura: document.getElementById('medTemp')?.value };
+        await sb.from('mediciones_dinamicas').insert({ tarea_id: tareaActual.id, tecnico_id: currentTecnicoId, parametros: mediciones, notas_tecnico: document.getElementById('notaInterna')?.value || '' });
+        await sb.from('tareas').update({ nota_interna: document.getElementById('notaInterna')?.value || '', nota_cliente: notaCliente }).eq('id', tareaActual.id);
+        for (const m of materialesTemp) await sb.from('gastos_tarea').insert({ tarea_id: tareaActual.id, tecnico_id: currentTecnicoId, tipo_gasto: 'MATERIALES', descripcion: m.descripcion, importe_total: 0, fecha_gasto: new Date().toISOString().split('T')[0], estado: 'PENDIENTE' });
+        pasoActual = 4;
+        mostrarMensaje("✅ Registros guardados");
+        renderizarPantallaTrabajo();
+        await cargarTareas();
+    }
+    
+    async function cerrarTarea() {
+        await sb.from('tareas').update({ estado: 'COMPLETADA', completada_en: new Date().toISOString() }).eq('id', tareaActual.id);
+        mostrarMensaje("🏁 Tarea completada");
+        document.getElementById('trabajoScreen').style.display = 'none';
+        await cargarTareas();
+    }
+    
+    function mostrarCancelarModal() { const motivo = prompt("Motivo de cancelación:", "No tengo disponibilidad"); if (motivo) cancelarTarea(motivo); }
+    async function cancelarTarea(motivo) { await sb.from('tareas').update({ estado: 'CANCELADA', motivo_cancelacion: motivo }).eq('id', tareaActual.id); mostrarMensaje("❌ Tarea cancelada"); document.getElementById('trabajoScreen').style.display = 'none'; await cargarTareas(); }
+    function cerrarSesion() { sb.auth.signOut(); location.reload(); }
+
+    // Eventos modales
+    document.getElementById('btnAceptarInforme').onclick = () => { if (pendingInformeCallback) pendingInformeCallback(true); };
+    document.getElementById('btnRegenerarInforme').onclick = () => {
+        generarInformeCliente().then(informe => {
+            if (informe) document.getElementById('informePreview').innerText = informe;
+        });
+    };
+    document.getElementById('btnCancelarInforme').onclick = () => { if (pendingInformeCallback) pendingInformeCallback(false); else document.getElementById('modalInformeCliente').style.display = 'none'; };
+    document.getElementById('btnAceptarAlbaran').onclick = guardarAlbaran;
+    document.getElementById('btnCancelarAlbaran').onclick = () => document.getElementById('modalAlbaran').style.display = 'none';
+    document.getElementById('btnCerrarDetalle').onclick = () => document.getElementById('modalDetalleTarea').style.display = 'none';
+
+    // Navegación
+    document.querySelectorAll('.nav-item').forEach(btn => { btn.onclick = () => { document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderizarPanel(); }; });
+    document.getElementById('btnBackTrabajo').onclick = () => { document.getElementById('trabajoScreen').style.display = 'none'; cargarTareas(); };
+    document.getElementById('btnLogin').onclick = async () => { if (await hacerLogin()) { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; await cargarTareas(); } };
+    document.getElementById('btnLogout').onclick = cerrarSesion;
+    document.getElementById('btnRefrescar').onclick = async () => { mostrarMensaje("🔄 Refrescando...", 'exito'); await cargarTareas(); renderizarPanel(); };
+
+    // Exponer funciones globales
+    window.abrirTarea = abrirTarea; window.mostrarModalAceptar = mostrarModalAceptar;
+    window.iniciarDesplazamiento = iniciarDesplazamiento; window.registrarLlegada = registrarLlegada;
+    window.iniciarTrabajo = iniciarTrabajo; window.suspenderTarea = suspenderTarea; window.reanudarTarea = reanudarTarea;
+    window.finalizarTrabajo = finalizarTrabajo; window.agregarMaterial = agregarMaterial;
+    window.eliminarMaterialListado = eliminarMaterialListado; window.finalizarRegistros = finalizarRegistros;
+    window.cerrarTarea = cerrarTarea; window.mostrarCancelarModal = mostrarCancelarModal;
+    window.cerrarSesion = cerrarSesion; window.mejorarNotaInternaIA = mejorarNotaInternaIA;
+    window.mostrarModalInformeCliente = mostrarModalInformeCliente; window.mostrarModalAlbaran = mostrarModalAlbaran;
+    window.aplicarFiltrosCompletadas = aplicarFiltrosCompletadas; window.limpiarFiltrosCompletadas = limpiarFiltrosCompletadas;
+    window.verDetalleCompletada = verDetalleCompletada; window.aplicarSugerencia = aplicarSugerencia;
+</script>
+</body>
+</html>
