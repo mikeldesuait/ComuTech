@@ -146,6 +146,8 @@
         .btn-info { background: #0284c7; }
         .btn-warning { background: #e67e22; }
         .btn-sm { padding: 6px 12px; font-size: 0.7rem; }
+        .btn-generar-ia { background: #6b21a5; }
+        .btn-generar-ia:hover { background: #581c87; }
         
         .tabla {
             width: 100%;
@@ -253,6 +255,15 @@
             margin-bottom: 16px;
             font-weight: 600;
         }
+        .ia-loading {
+            background: #f3e8ff;
+            border-left: 4px solid #6b21a5;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            color: #4c1d95;
+        }
     </style>
 </head>
 <body>
@@ -279,7 +290,7 @@
             </div>
             <button id="btnLogout" style="background: rgba(255,255,255,0.2); padding: 6px 20px; margin-bottom: 8px;">🚪 Cerrar sesión</button>
             <div style="font-size: 0.7rem; opacity: 0.6; letter-spacing: 1px;">
-                ⚡ COMUTECH · Gestión inteligente
+                ⚡ COMUTECH · Gestión inteligente con IA
             </div>
         </div>
 
@@ -325,7 +336,14 @@
                     
                     <div id="subCrearTarea" style="display: none;">
                         <div class="row-flex">
-                            <div class="grupo"><label>Tipo</label>
+                            <div class="grupo">
+                                <label class="required">🏢 CLIENTE FINAL</label>
+                                <select id="tareaCliente">
+                                    <option value="">-- Seleccionar cliente --</option>
+                                </select>
+                            </div>
+                            <div class="grupo">
+                                <label>TIPO DE TAREA</label>
                                 <select id="tareaTipo">
                                     <option value="MANTENIMIENTO">📋 Mantenimiento</option>
                                     <option value="URGENCIA">🚨 Urgencia</option>
@@ -334,7 +352,8 @@
                                     <option value="PRESUPUESTO">💰 Solicitud de presupuesto</option>
                                 </select>
                             </div>
-                            <div class="grupo"><label>Servicio</label>
+                            <div class="grupo">
+                                <label>SERVICIO</label>
                                 <select id="tareaServicio">
                                     <option value="PISCINA">🏊 PISCINA</option>
                                     <option value="JARDIN">🌳 JARDIN</option>
@@ -344,34 +363,64 @@
                                     <option value="OTRO">📋 OTRO</option>
                                 </select>
                             </div>
-                            <div class="grupo"><label>Activo</label>
-                                <select id="tareaActivo"></select>
-                                <button id="btnRecargarActivos" class="btn-sm btn-info" style="margin-top:4px;">🔄 Recargar</button>
-                            </div>
                         </div>
+
                         <div class="row-flex">
-                            <div class="grupo"><label>Técnico</label>
-                                <select id="tareaTecnico"></select>
+                            <div class="grupo">
+                                <label class="required">🏢 ACTIVO / EQUIPO</label>
+                                <select id="tareaActivo">
+                                    <option value="">-- Primero selecciona un cliente --</option>
+                                </select>
+                                <button id="btnRecargarActivos" class="btn-sm btn-info" style="margin-top:4px;">🔄 Recargar activos</button>
                             </div>
-                            <div class="grupo"><label>Fecha asignación</label>
+                            <div class="grupo">
+                                <label class="required">👨‍🔧 TÉCNICO</label>
+                                <select id="tareaTecnico">
+                                    <option value="">-- Seleccionar técnico --</option>
+                                </select>
+                            </div>
+                            <div class="grupo">
+                                <label>📅 FECHA ASIGNACIÓN</label>
                                 <input type="date" id="tareaFecha" value="2026-05-25">
                             </div>
                         </div>
+
+                        <!-- Orden de trabajo con IA -->
                         <div class="grupo">
-                            <label>📋 Orden de trabajo</label>
-                            <textarea id="tareaOrden" rows="4" placeholder="Instrucciones para el técnico..."></textarea>
+                            <label>📋 ORDEN DE TRABAJO</label>
+                            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                <textarea id="tareaOrden" rows="4" placeholder="Instrucciones para el técnico..." style="flex:1;"></textarea>
+                                <button id="btnGenerarIA" class="btn-generar-ia" style="align-self: flex-start;">🤖 Generar con IA</button>
+                            </div>
+                            <div id="iaLoading" class="ia-loading" style="display: none;">
+                                ⏳ La IA está generando una orden de trabajo profesional...
+                            </div>
                         </div>
+
+                        <!-- CAMPOS PARA PRESUPUESTO -->
                         <div id="camposPresupuesto" style="display: none;">
                             <div class="row-flex">
-                                <div class="grupo"><label>💰 Coste estimado (€)</label><input type="number" id="tareaCosteEstimado" step="0.01" placeholder="Presupuesto estimado"></div>
-                                <div class="grupo"><label>📝 Notas para el técnico</label><input type="text" id="tareaNotasPresupuesto" placeholder="Ej: Revisar bomba, posible fuga..."></div>
+                                <div class="grupo">
+                                    <label>💰 Coste estimado (€)</label>
+                                    <input type="number" id="tareaCosteEstimado" step="0.01" placeholder="Presupuesto estimado">
+                                </div>
+                                <div class="grupo">
+                                    <label>📝 Notas para el técnico</label>
+                                    <input type="text" id="tareaNotasPresupuesto" placeholder="Ej: Revisar bomba, posible fuga...">
+                                </div>
                             </div>
                         </div>
+
                         <div class="row-flex">
-                            <div class="grupo"><label>📄 Plantilla rápida</label>
-                                <select id="plantillaOrden"><option value="">-- Seleccionar plantilla --</option></select>
+                            <div class="grupo">
+                                <label>📄 PLANTILLA RÁPIDA</label>
+                                <select id="plantillaOrden">
+                                    <option value="">-- Seleccionar plantilla --</option>
+                                </select>
                             </div>
-                            <div><button id="btnCrearTarea" class="btn-success">✅ Crear tarea</button></div>
+                            <div>
+                                <button id="btnCrearTarea" class="btn-success">✅ CREAR TAREA</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -490,7 +539,7 @@
                             <div id="clienteSeleccionadoInfo" class="cliente-seleccionado" style="display:none;">Cliente: <span id="clienteSeleccionadoNombre"></span></div>
                             <table class="tabla">
                                 <thead><tr><th>Nombre</th><th>Dirección</th><th>Contacto</th><th>Tipo</th><th>Acciones</th></tr></thead>
-                                <tbody id="activosClienteBody"><tr><td colspan="5">Selecciona un cliente</td></tr></tbody>
+                                <tbody id="activosClienteBody"><tr><td colspan="5">Selecciona un cliente</td></tr>
                             </table>
                         </div>
                     </div>
@@ -670,6 +719,86 @@
 
 <div id="modalEditarExterno" class="modal"><div class="modal-content"><div class="card-header">✏️ Editar externo</div><input type="hidden" id="editExternoId"><div class="row-flex"><div class="grupo"><label>👤 Nombre/Razón social</label><input type="text" id="editExternoNombre"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editExternoEmail"></div></div><div class="row-flex"><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editExternoTelefono"></div><div class="grupo"><label>🆔 NIF/CIF</label><input type="text" id="editExternoNif"></div></div><div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="editExternoDireccion"></div><div class="grupo"><label>🏷️ Tipo</label><select id="editExternoTipo"><option value="autonomo">Autónomo</option><option value="empresa">Empresa</option></select></div></div><div class="row-flex"><div class="grupo"><label>🔧 Especialidad</label><select id="editExternoEspecialidad"><option value="PISCINA">Piscinas</option><option value="JARDIN">Jardinería</option><option value="FONTANERIA">Fontanería</option><option value="ELECTRICIDAD">Electricidad</option></select></div><div class="grupo"><label>🏦 IBAN</label><input type="text" id="editExternoIban"></div></div><div class="btn-group"><button id="btnGuardarEdicionExterno" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicionExterno" class="btn-danger">✖ Cancelar</button></div></div></div>
 
+<!-- MODAL EDITAR TAREA COMPLETO -->
+<div id="modalEditarTarea" class="modal">
+    <div class="modal-content">
+        <div class="card-header">✏️ Editar tarea</div>
+        <input type="hidden" id="editTareaId">
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏢 Cliente</label>
+                <input type="text" id="editTareaCliente" readonly>
+            </div>
+            <div class="grupo">
+                <label>🔧 Activo</label>
+                <input type="text" id="editTareaActivo" readonly>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📋 Tipo de tarea</label>
+                <select id="editTareaTipo">
+                    <option value="MANTENIMIENTO">📋 Mantenimiento</option>
+                    <option value="URGENCIA">🚨 Urgencia</option>
+                    <option value="AVERIA">🔧 Avería</option>
+                    <option value="REVISION">🔍 Revisión</option>
+                    <option value="PRESUPUESTO">💰 Presupuesto</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>🔧 Servicio</label>
+                <select id="editTareaServicio">
+                    <option value="PISCINA">🏊 PISCINA</option>
+                    <option value="JARDIN">🌳 JARDIN</option>
+                    <option value="FONTANERIA">🔧 FONTANERIA</option>
+                    <option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option>
+                    <option value="LIMPIEZA">🧹 LIMPIEZA</option>
+                    <option value="OTRO">📋 OTRO</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>👨‍🔧 Técnico</label>
+                <select id="editTareaTecnico"></select>
+            </div>
+            <div class="grupo">
+                <label>📅 Fecha asignación</label>
+                <input type="date" id="editTareaFecha">
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📌 Estado</label>
+                <select id="editTareaEstado">
+                    <option value="PENDIENTE">📋 Pendiente</option>
+                    <option value="EN_CURSO">▶️ En curso</option>
+                    <option value="COMPLETADA">✅ Completada</option>
+                    <option value="CANCELADA">❌ Cancelada</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>💰 Coste estimado (€)</label>
+                <input type="number" id="editTareaCosteEstimado" step="0.01">
+            </div>
+        </div>
+        
+        <div class="grupo">
+            <label>📋 Orden de trabajo</label>
+            <textarea id="editTareaOrden" rows="4"></textarea>
+        </div>
+        
+        <div class="btn-group">
+            <button id="btnGuardarEdicionTarea" class="btn-success">💾 Guardar cambios</button>
+            <button id="btnCancelarEdicionTarea" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
     const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
@@ -689,6 +818,77 @@
         document.body.appendChild(msg);
         setTimeout(() => msg.remove(), 3000);
     }
+
+    async function generarOrdenConIA() {
+    const clienteId = document.getElementById('tareaCliente').value;
+    const tipo = document.getElementById('tareaTipo').value;
+    const servicio = document.getElementById('tareaServicio').value;
+    const activoId = document.getElementById('tareaActivo').value;
+    const notas = document.getElementById('tareaNotasPresupuesto')?.value || '';
+    const ordenActual = document.getElementById('tareaOrden').value;
+    
+    // Si el gerente ya escribió algo, preguntar si quiere mejorarlo
+    if (ordenActual.trim() !== "") {
+        const mejorar = confirm("Ya has escrito una orden. ¿Quieres que la IA la mejore o prefieres mantener la original?\n\n✅ Aceptar = Mejorar con IA\n❌ Cancelar = Mantener tu versión");
+        if (!mejorar) {
+            return;
+        }
+    }
+    
+    if (!clienteId) {
+        mostrarMensaje("❌ Selecciona un cliente primero", 'error');
+        return;
+    }
+    
+    const iaLoading = document.getElementById('iaLoading');
+    iaLoading.style.display = 'block';
+    
+    try {
+        let nombreActivo = '';
+        if (activoId) {
+            const { data: activo } = await sb.from('activos').select('nombre').eq('id', activoId).single();
+            nombreActivo = activo?.nombre || '';
+        }
+        
+        const textoBase = ordenActual.trim() !== "" ? ordenActual : (notas || `realizar ${tipo.toLowerCase()} del servicio de ${servicio.toLowerCase()} en ${nombreActivo || 'la instalación'}`);
+        
+        const { data: sessionData } = await sb.auth.getSession();
+        const token = sessionData.session?.access_token;
+        
+        if (!token) {
+            throw new Error("No hay sesión activa");
+        }
+        
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/generar-orden-trabajo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                tipo: tipo,
+                servicio: servicio,
+                activoNombre: nombreActivo,
+                notas: textoBase
+            })
+        });
+        
+        const resultado = await response.json();
+        
+        if (resultado.success) {
+            document.getElementById('tareaOrden').value = resultado.orden;
+            mostrarMensaje("✅ Orden mejorada con IA. Puedes seguir editándola si lo deseas.", 'exito');
+        } else {
+            throw new Error(resultado.error || "Error desconocido");
+        }
+        
+    } catch (error) {
+        console.error("Error en IA:", error);
+        mostrarMensaje("❌ Error al conectar con la IA. Puedes escribir la orden manualmente.", 'error');
+    } finally {
+        iaLoading.style.display = 'none';
+    }
+}
 
     async function hacerLogin() {
         const identificador = document.getElementById('identificador').value.trim();
@@ -727,11 +927,32 @@
     async function cargarTareas() {
         const estado = document.getElementById('filtroEstadoTarea')?.value || '';
         const fecha = document.getElementById('filtroFechaTarea')?.value || '';
-        let query = sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId).order('created_at', { ascending: false });
+        
+        const { data: clientesDelGerente } = await sb.from('empresas')
+            .select('id')
+            .eq('created_by', currentUser.id);
+        
+        const clienteIds = clientesDelGerente?.map(c => c.id) || [];
+        
+        if (clienteIds.length === 0) {
+            tareasData = [];
+            renderizarTareas();
+            return;
+        }
+        
+        let query = sb.from('tareas')
+            .select('*, activos(nombre), perfiles!tecnico_id(nombre)')
+            .in('cliente_id', clienteIds)
+            .order('created_at', { ascending: false });
+        
         if (estado) query = query.eq('estado', estado);
         if (fecha) query = query.eq('fecha_asignacion', fecha);
+        
         const { data, error } = await query;
-        if (error) return;
+        if (error) {
+            console.error("Error cargando tareas:", error);
+            return;
+        }
         tareasData = data || [];
         renderizarTareas();
     }
@@ -740,18 +961,59 @@
         const start = (paginaTareas - 1) * registrosPorPagina;
         const paginados = tareasData.slice(start, start + registrosPorPagina);
         const tbody = document.getElementById('tareasBody');
-        if (!paginados.length) { tbody.innerHTML = '<tr><td colspan="7">No hay tareas</td></tr>'; return; }
-        const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada' };
-        tbody.innerHTML = paginados.map(t => `<tr><td>${t.id.substring(0,12)}...</td><td>${t.tipo}</td><td>${t.activos?.nombre || '-'}</td><td>${t.perfiles?.nombre || '-'}</td><td>${t.fecha_asignacion}</td><td><span class="badge ${estadoClass[t.estado]}">${t.estado}</span></td><td><button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️</button><button class="btn-sm btn-warning editar-tarea" data-id="${t.id}">✏️</button><button class="btn-sm btn-danger eliminar-tarea" data-id="${t.id}">🗑️</button></td></tr>`).join('');
-        document.querySelectorAll('.ver-tarea').forEach(btn => btn.onclick = () => alert("Detalle próximamente"));
+        
+        if (!paginados.length) { 
+            tbody.innerHTML = '<td><td colspan="7">No hay tareas</td></tr>'; 
+            return; 
+        }
+        
+        const estadoClass = { 
+            'PENDIENTE': 'badge-pendiente', 
+            'EN_CURSO': 'badge-curso', 
+            'COMPLETADA': 'badge-completada' 
+        };
+        
+        tbody.innerHTML = paginados.map(t => `
+            <tr>
+                <td>${t.id.substring(0,12)}...</td>
+                <td>${t.tipo}</td>
+                <td>${t.activos?.nombre || '-'}</td>
+                <td>${t.perfiles?.nombre || '-'}</td>
+                <td>${t.fecha_asignacion}</td>
+                <td><span class="badge ${estadoClass[t.estado]}">${t.estado}</span></td>
+                <td>
+                    <button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️</button>
+                    <button class="btn-sm btn-warning editar-tarea" data-id="${t.id}">✏️</button>
+                    <button class="btn-sm btn-danger eliminar-tarea" data-id="${t.id}">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.ver-tarea').forEach(btn => {
+            btn.onclick = () => verDetalleTarea(btn.dataset.id);
+        });
+        document.querySelectorAll('.editar-tarea').forEach(btn => {
+            btn.onclick = () => editarTarea(btn.dataset.id);
+        });
+        document.querySelectorAll('.eliminar-tarea').forEach(btn => {
+            btn.onclick = () => eliminarTarea(btn.dataset.id);
+        });
+        
         const totalPaginas = Math.ceil(tareasData.length / registrosPorPagina);
         let pagHtml = '';
-        for (let i = 1; i <= Math.min(totalPaginas, 10); i++) pagHtml += `<button class="${i === paginaTareas ? 'active' : ''}" onclick="cambiarPaginaTareas(${i})">${i}</button>`;
+        for (let i = 1; i <= Math.min(totalPaginas, 10); i++) {
+            pagHtml += `<button class="${i === paginaTareas ? 'active' : ''}" onclick="cambiarPaginaTareas(${i})">${i}</button>`;
+        }
         document.getElementById('paginacionTareas').innerHTML = pagHtml;
     }
-    window.cambiarPaginaTareas = (pagina) => { paginaTareas = pagina; renderizarTareas(); };
+
+    window.cambiarPaginaTareas = (pagina) => { 
+        paginaTareas = pagina; 
+        renderizarTareas(); 
+    };
 
     async function crearTarea() {
+        const clienteId = document.getElementById('tareaCliente').value;
         const tipo = document.getElementById('tareaTipo').value;
         const servicio = document.getElementById('tareaServicio').value;
         const activoId = document.getElementById('tareaActivo').value;
@@ -760,61 +1022,203 @@
         const orden = document.getElementById('tareaOrden').value;
         const costeEstimado = document.getElementById('tareaCosteEstimado')?.value || null;
         const notasPresupuesto = document.getElementById('tareaNotasPresupuesto')?.value || null;
-        if (!activoId) { mostrarMensaje("Selecciona un activo", 'error'); return; }
-        if (!tecnicoId) { mostrarMensaje("Selecciona un técnico", 'error'); return; }
+        
+        if (!clienteId) { mostrarMensaje("❌ Selecciona un cliente", 'error'); return; }
+        if (!activoId) { mostrarMensaje("❌ Selecciona un activo", 'error'); return; }
+        if (!tecnicoId) { mostrarMensaje("❌ Selecciona un técnico", 'error'); return; }
+        
         let prioridad = 3;
         if (tipo === 'URGENCIA') prioridad = 1;
         else if (tipo === 'AVERIA') prioridad = 2;
         else if (tipo === 'PRESUPUESTO') prioridad = 4;
+        
         const tareaId = `COMUTECH${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        
         let ordenTrabajo = orden;
-        let descripcion = `Tarea de ${tipo}`;
+        let descripcion = `Tarea de ${tipo} - ${servicio}`;
+        
         if (tipo === 'PRESUPUESTO') {
             descripcion = `📋 SOLICITUD DE PRESUPUESTO - ${servicio}`;
-            if (!ordenTrabajo) ordenTrabajo = `📋 SOLICITUD DE PRESUPUESTO\n\nEl cliente solicita presupuesto para:\n${notasPresupuesto || 'Revisar y diagnosticar el problema'}\n\nEl técnico deberá:\n1. Visitar la instalación\n2. Diagnosticar el problema\n3. Tomar fotos y notas\n4. Elaborar presupuesto\n\nPresupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'}`;
+            if (!ordenTrabajo) {
+                ordenTrabajo = `📋 SOLICITUD DE PRESUPUESTO\n\n` +
+                    `El cliente solicita presupuesto para:\n${notasPresupuesto || 'Revisar y diagnosticar el problema'}\n\n` +
+                    `El técnico deberá:\n` +
+                    `1. Visitar la instalación\n` +
+                    `2. Diagnosticar el problema\n` +
+                    `3. Tomar fotos y notas\n` +
+                    `4. Elaborar presupuesto\n\n` +
+                    `Presupuesto estimado: ${costeEstimado ? costeEstimado + '€' : 'Por determinar'}`;
+            }
         }
-        const nuevaTarea = { id: tareaId, tipo, prioridad, cliente_id: currentEmpresaId, tecnico_id: tecnicoId, activo_id: activoId, servicio_tipo: servicio, descripcion, orden_trabajo: ordenTrabajo, fecha_asignacion: fecha, estado: 'PENDIENTE', creada_por: currentUser.id, tipo_tecnico: 'INTERNO' };
-        if (tipo === 'PRESUPUESTO') { nuevaTarea.presupuesto_solicitado = true; nuevaTarea.presupuesto_aprobado = false; nuevaTarea.presupuesto_rechazado = false; if (costeEstimado) nuevaTarea.coste_estimado = parseFloat(costeEstimado); }
+        
+        const nuevaTarea = { 
+            id: tareaId, 
+            tipo: tipo, 
+            prioridad: prioridad, 
+            cliente_id: clienteId,
+            tecnico_id: tecnicoId, 
+            activo_id: activoId, 
+            servicio_tipo: servicio, 
+            descripcion: descripcion, 
+            orden_trabajo: ordenTrabajo, 
+            fecha_asignacion: fecha, 
+            estado: 'PENDIENTE', 
+            creada_por: currentUser.id, 
+            tipo_tecnico: 'INTERNO' 
+        };
+        
+        if (tipo === 'PRESUPUESTO') { 
+            nuevaTarea.presupuesto_solicitado = true; 
+            nuevaTarea.presupuesto_aprobado = false; 
+            nuevaTarea.presupuesto_rechazado = false; 
+            if (costeEstimado) nuevaTarea.coste_estimado = parseFloat(costeEstimado); 
+        }
+        
         const { error } = await sb.from('tareas').insert(nuevaTarea);
-        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
-        mostrarMensaje("✅ Tarea creada");
+        
+        if (error) { 
+            mostrarMensaje("❌ Error: " + error.message, 'error'); 
+            return; 
+        }
+        
+        mostrarMensaje("✅ Tarea creada correctamente");
+        
+        document.getElementById('tareaCliente').value = '';
+        document.getElementById('tareaActivo').innerHTML = '<option value="">-- Primero selecciona un cliente --</option>';
         document.getElementById('tareaOrden').value = '';
         if (document.getElementById('tareaCosteEstimado')) document.getElementById('tareaCosteEstimado').value = '';
         if (document.getElementById('tareaNotasPresupuesto')) document.getElementById('tareaNotasPresupuesto').value = '';
-        cargarTareas(); cargarStats();
+        
+        cargarTareas(); 
+        cargarStats();
+    }
+
+    async function verDetalleTarea(id) {
+        const { data: tarea, error } = await sb.from('tareas')
+            .select('*, activos(nombre), perfiles!tecnico_id(nombre)')
+            .eq('id', id)
+            .single();
+        
+        if (error) {
+            mostrarMensaje("Error al cargar detalle", 'error');
+            return;
+        }
+        
+        alert(`
+📋 TAREA: ${tarea.id}
+🏢 Cliente ID: ${tarea.cliente_id}
+🔧 Activo: ${tarea.activos?.nombre || '-'}
+👨‍🔧 Técnico: ${tarea.perfiles?.nombre || '-'}
+📅 Fecha: ${tarea.fecha_asignacion}
+📌 Estado: ${tarea.estado}
+📝 Descripción: ${tarea.descripcion || '-'}
+        `);
+    }
+
+    async function editarTarea(id) {
+        const { data: tarea, error } = await sb.from('tareas')
+            .select('*, activos(nombre, empresa_id), perfiles!tecnico_id(nombre)')
+            .eq('id', id)
+            .single();
+        
+        if (error) {
+            mostrarMensaje("Error al cargar tarea", 'error');
+            return;
+        }
+        
+        const { data: tecnicos } = await sb.from('perfiles')
+            .select('id, nombre')
+            .eq('empresa_id', currentEmpresaId)
+            .eq('rol', 'tecnico')
+            .is('tipo_externo', null);
+        
+        document.getElementById('editTareaId').value = tarea.id;
+        document.getElementById('editTareaCliente').value = tarea.cliente_id;
+        document.getElementById('editTareaActivo').value = tarea.activos?.nombre || '-';
+        document.getElementById('editTareaTipo').value = tarea.tipo;
+        document.getElementById('editTareaServicio').value = tarea.servicio_tipo || 'OTRO';
+        document.getElementById('editTareaFecha').value = tarea.fecha_asignacion;
+        document.getElementById('editTareaEstado').value = tarea.estado;
+        document.getElementById('editTareaCosteEstimado').value = tarea.coste_estimado || '';
+        document.getElementById('editTareaOrden').value = tarea.orden_trabajo || '';
+        
+        const selectTecnico = document.getElementById('editTareaTecnico');
+        if (selectTecnico && tecnicos) {
+            selectTecnico.innerHTML = '<option value="">-- Seleccionar técnico --</option>' +
+                tecnicos.map(t => `<option value="${t.id}" ${t.id === tarea.tecnico_id ? 'selected' : ''}>${t.nombre}</option>`).join('');
+        }
+        
+        document.getElementById('modalEditarTarea').style.display = 'flex';
+    }
+
+    async function guardarEdicionTarea() {
+        const id = document.getElementById('editTareaId').value;
+        
+        const tareaActualizada = {
+            tipo: document.getElementById('editTareaTipo').value,
+            servicio_tipo: document.getElementById('editTareaServicio').value,
+            tecnico_id: document.getElementById('editTareaTecnico').value || null,
+            fecha_asignacion: document.getElementById('editTareaFecha').value,
+            estado: document.getElementById('editTareaEstado').value,
+            coste_estimado: document.getElementById('editTareaCosteEstimado').value || null,
+            orden_trabajo: document.getElementById('editTareaOrden').value || null
+        };
+        
+        const { error } = await sb.from('tareas').update(tareaActualizada).eq('id', id);
+        
+        if (error) {
+            mostrarMensaje("Error al actualizar: " + error.message, 'error');
+        } else {
+            mostrarMensaje("✅ Tarea actualizada correctamente");
+            document.getElementById('modalEditarTarea').style.display = 'none';
+            cargarTareas();
+            cargarStats();
+        }
+    }
+
+    async function eliminarTarea(id) {
+        if (!confirm(`¿Eliminar la tarea ${id}? Esta acción no se puede deshacer.`)) return;
+        
+        const { error } = await sb.from('tareas').delete().eq('id', id);
+        
+        if (error) {
+            mostrarMensaje("Error al eliminar: " + error.message, 'error');
+        } else {
+            mostrarMensaje("✅ Tarea eliminada");
+            cargarTareas();
+            cargarStats();
+        }
     }
 
     async function cargarClientes() {
-    const search = document.getElementById('buscadorCliente')?.value.toLowerCase() || '';
-    let query = sb.from('empresas').select('*').eq('created_by', currentUser.id).order('created_at', { ascending: false });
-    const { data, error } = await query;
-    if (error) return;
-    const tbody = document.getElementById('clientesBody');
-    if (!data?.length) { 
-        tbody.innerHTML = '<tr><td colspan="5">No hay clientes</td></tr>'; 
-    } else {
-        const filtrados = search ? data.filter(c => c.nombre?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search)) : data;
-        tbody.innerHTML = filtrados.map(c => `
-            <tr>
-                <td>${c.nombre || '-'}</td>
-                <td>${c.email || '-'}</td>
-                <td>${c.telefono || '-'}</td>
-                <td>${c.nif || '-'}</td>
-                <td>
-                    <button class="btn-sm btn-warning editar-cliente" data-id="${c.id}">✏️</button>
-                    <button class="btn-sm btn-danger eliminar-cliente" data-id="${c.id}" data-nombre="${c.nombre}">🗑️</button>
-                </td>
-             </tr>
-        `).join('');
+        const search = document.getElementById('buscadorCliente')?.value.toLowerCase() || '';
+        const { data, error } = await sb.from('empresas').select('*').eq('created_by', currentUser.id).order('created_at', { ascending: false });
+        if (error) return;
+        const tbody = document.getElementById('clientesBody');
+        if (!data?.length) { 
+            tbody.innerHTML = '<td><td colspan="5">No hay clientes</td></tr>'; 
+        } else {
+            const filtrados = search ? data.filter(c => c.nombre?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search)) : data;
+            tbody.innerHTML = filtrados.map(c => `
+                <tr>
+                    <td>${c.nombre || '-'}</td>
+                    <td>${c.email || '-'}</td>
+                    <td>${c.telefono || '-'}</td>
+                    <td>${c.nif || '-'}</td>
+                    <td>
+                        <button class="btn-sm btn-warning editar-cliente" data-id="${c.id}">✏️</button>
+                        <button class="btn-sm btn-danger eliminar-cliente" data-id="${c.id}" data-nombre="${c.nombre}">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        const selectClienteActivo = document.getElementById('selectorClienteActivo');
+        if (selectClienteActivo && data) {
+            selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
+                data.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+        }
     }
-    
-    // 👇 LLENAR EL SELECTOR DE ACTIVOS (IMPORTANTE)
-    const selectClienteActivo = document.getElementById('selectorClienteActivo');
-    if (selectClienteActivo && data) {
-        selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
-            data.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-    }
-}
 
     async function guardarCliente() {
         const nombre = document.getElementById('nuevoClienteNombre').value.trim();
@@ -854,281 +1258,268 @@
         finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
     }
 
-    // ACTIVOS
     async function cargarActivosCliente(clienteId) {
-    if (!clienteId) return;
-    const { data } = await sb.from('activos').select('*').eq('empresa_id', clienteId).order('nombre');
-    const tbody = document.getElementById('activosClienteBody');
-    if (!data?.length) { 
-        tbody.innerHTML = '<tr><td colspan="5">No hay activos para este cliente</td></table>';
-        return;
+        if (!clienteId) return;
+        const { data } = await sb.from('activos').select('*').eq('empresa_id', clienteId).order('nombre');
+        const tbody = document.getElementById('activosClienteBody');
+        if (!data?.length) { 
+            tbody.innerHTML = '<td><td colspan="5">No hay activos para este cliente</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(a => `
+            <tr>
+                <td>${a.nombre}</td>
+                <td>${a.direccion || ''} ${a.numero || ''} ${a.piso || ''} ${a.localidad || ''}</td>
+                <td>${a.persona_contacto || '-'}</td>
+                <td><span class="badge badge-activo">${a.tipo_servicio}</span></td>
+                <td>
+                    <button class="btn-sm btn-warning editar-activo" data-id="${a.id}">✏️</button>
+                    <button class="btn-sm btn-danger eliminar-activo" data-id="${a.id}" data-nombre="${a.nombre}">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.editar-activo').forEach(btn => {
+            btn.onclick = () => abrirModalEditarActivo(btn.dataset.id);
+        });
+        document.querySelectorAll('.eliminar-activo').forEach(btn => {
+            btn.onclick = async () => {
+                if(confirm(`¿Eliminar activo "${btn.dataset.nombre}"?`)) {
+                    await sb.from('activos').delete().eq('id', btn.dataset.id);
+                    cargarActivosCliente(clienteId);
+                    mostrarMensaje("✅ Activo eliminado");
+                }
+            };
+        });
     }
-    tbody.innerHTML = data.map(a => `
-        <tr>
-            <td>${a.nombre}</td>
-            <td>${a.direccion || ''} ${a.numero || ''} ${a.piso || ''} ${a.localidad || ''}</td>
-            <td>${a.persona_contacto || '-'}</td>
-            <td><span class="badge badge-activo">${a.tipo_servicio}</span></td>
-            <td>
-                <button class="btn-sm btn-warning editar-activo" data-id="${a.id}">✏️</button>
-                <button class="btn-sm btn-danger eliminar-activo" data-id="${a.id}" data-nombre="${a.nombre}">🗑️</button>
-            </td>
-        </tr>
-    `).join('');
-    
-    document.querySelectorAll('.editar-activo').forEach(btn => {
-        btn.onclick = () => abrirModalEditarActivo(btn.dataset.id);
-    });
-    document.querySelectorAll('.eliminar-activo').forEach(btn => {
-        btn.onclick = async () => {
-            if(confirm(`¿Eliminar activo "${btn.dataset.nombre}"?`)) {
-                await sb.from('activos').delete().eq('id', btn.dataset.id);
-                cargarActivosCliente(clienteId);
-                mostrarMensaje("✅ Activo eliminado");
-            }
-        };
-    });
-}
 
     async function guardarActivoCliente() {
-    const clienteId = document.getElementById('selectorClienteActivo').value;
-    if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
-    
-    const nombre = document.getElementById('activoNombre').value.trim();
-    if (!nombre) { mostrarMensaje("Nombre del activo obligatorio", 'error'); return; }
-    
-    const nuevoActivo = {
-        empresa_id: clienteId,
-        nombre: nombre,
-        tipo_servicio: document.getElementById('activoTipoServicio').value,
-        direccion: document.getElementById('activoDireccion').value || null,
-        numero: document.getElementById('activoNumero').value || null,
-        piso: document.getElementById('activoPiso').value || null,
-        codigo_postal: document.getElementById('activoCp').value || null,
-        localidad: document.getElementById('activoCiudad').value || null,
-        provincia: document.getElementById('activoProvincia').value || null,
-        persona_contacto: document.getElementById('activoPersonaContacto').value || null,
-        telefono_contacto: document.getElementById('activoTelefonoContacto').value || null,
-        horario_acceso: document.getElementById('activoHorario').value || null,
-        codigo_acceso: document.getElementById('activoCodigo').value || null,
-        notas_lugar: document.getElementById('activoNotas').value || null,
-        activo: true,
-        created_by: currentUser.id
-    };
-    
-    console.log('Enviando activo:', nuevoActivo);
-    
-    const { error } = await sb.from('activos').insert(nuevoActivo);
-    
-    if (error) {
-        console.error('Error:', error);
-        mostrarMensaje("Error: " + error.message, 'error');
-        return;
-    }
-    
-    mostrarMensaje("✅ Activo guardado");
-    document.getElementById('formNuevoActivo').style.display = 'none';
-    
-    // Limpiar formulario
-    const campos = ['activoNombre', 'activoDireccion', 'activoNumero', 'activoPiso', 'activoCp', 
-        'activoCiudad', 'activoProvincia', 'activoPersonaContacto', 'activoTelefonoContacto',
-        'activoHorario', 'activoCodigo', 'activoNotas'];
-    campos.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-    });
-    
-    // Recargar activos del cliente
-    cargarActivosCliente(clienteId);
-}
-
-    async function abrirModalEditarActivo(id) {
-    const { data: a, error } = await sb.from('activos').select('*').eq('id', id).single();
-    if (error) {
-        mostrarMensaje("Error al cargar activo", 'error');
-        return;
-    }
-    if (!a) return;
-    
-    document.getElementById('editActivoId').value = a.id;
-    document.getElementById('editActivoTipo').value = a.tipo_servicio || 'PISCINA';
-    document.getElementById('editActivoNombre').value = a.nombre || '';
-    document.getElementById('editActivoDireccion').value = a.direccion || '';
-    document.getElementById('editActivoNumero').value = a.numero || '';
-    document.getElementById('editActivoPiso').value = a.piso || '';
-    document.getElementById('editActivoCp').value = a.codigo_postal || '';
-    document.getElementById('editActivoCiudad').value = a.localidad || '';
-    document.getElementById('editActivoProvincia').value = a.provincia || '';
-    document.getElementById('editActivoContacto').value = a.persona_contacto || '';
-    document.getElementById('editActivoTelefono').value = a.telefono_contacto || '';
-    document.getElementById('editActivoHorario').value = a.horario_acceso || '';
-    document.getElementById('editActivoCodigo').value = a.codigo_acceso || '';
-    document.getElementById('editActivoNotas').value = a.notas_lugar || '';
-    
-    document.getElementById('modalEditarActivo').style.display = 'flex';
-}
-
-    async function guardarEdicionActivo() {
-    const id = document.getElementById('editActivoId').value;
-    
-    const activoActualizado = {
-        tipo_servicio: document.getElementById('editActivoTipo').value,
-        nombre: document.getElementById('editActivoNombre').value,
-        direccion: document.getElementById('editActivoDireccion').value || null,
-        numero: document.getElementById('editActivoNumero').value || null,
-        piso: document.getElementById('editActivoPiso').value || null,
-        codigo_postal: document.getElementById('editActivoCp').value || null,
-        localidad: document.getElementById('editActivoCiudad').value || null,
-        provincia: document.getElementById('editActivoProvincia').value || null,
-        persona_contacto: document.getElementById('editActivoContacto').value || null,
-        telefono_contacto: document.getElementById('editActivoTelefono').value || null,
-        horario_acceso: document.getElementById('editActivoHorario').value || null,
-        codigo_acceso: document.getElementById('editActivoCodigo').value || null,
-        notas_lugar: document.getElementById('editActivoNotas').value || null
-    };
-    
-    console.log('Actualizando activo:', activoActualizado);
-    
-    const { error } = await sb.from('activos').update(activoActualizado).eq('id', id);
-    
-    if (error) {
-        console.error('Error:', error);
-        mostrarMensaje("Error: " + error.message, 'error');
-        return;
-    }
-    
-    mostrarMensaje("✅ Activo actualizado");
-    document.getElementById('modalEditarActivo').style.display = 'none';
-    
-    const clienteId = document.getElementById('selectorClienteActivo').value;
-    if (clienteId) cargarActivosCliente(clienteId);
-}
-
-    // EXTERNOS
-    async function cargarExternos() {
-    const { data, error } = await sb.from('perfiles')
-        .select('*')
-        .eq('empresa_id', currentEmpresaId)
-        .eq('rol', 'tecnico')
-        .not('tipo_externo', 'is', null);
-    
-    if (error) {
-        console.error('Error cargando externos:', error);
-        return;
-    }
-    
-    const tbody = document.getElementById('externosBody');
-    if (!data || data.length === 0) { 
-        tbody.innerHTML = '<tr><td colspan="6">No hay personal externo</td></tr>';
-        return; 
-    }
-    
-    tbody.innerHTML = data.map(e => `
-        <tr>
-            <td>${e.nombre || '-'}</td>
-            <td>${e.nif || '-'}</td>
-            <td>${e.email || '-'}</td>
-            <td>${e.telefono || '-'}</td>
-            <td><span class="badge badge-externo">${e.tipo_externo === 'empresa' ? '🏭 Empresa' : '👤 Autónomo'}</span></td>
-            <td>
-                <button class="btn-sm btn-warning editar-externo" data-id="${e.id}">✏️</button>
-                <button class="btn-sm btn-danger eliminar-externo" data-id="${e.id}" data-nombre="${e.nombre}">🗑️</button>
-            </td>
-        </tr>
-    `).join('');
-    
-    document.querySelectorAll('.editar-externo').forEach(btn => {
-        btn.onclick = () => abrirModalEditarExterno(btn.dataset.id);
-    });
-    
-    document.querySelectorAll('.eliminar-externo').forEach(btn => {
-        btn.onclick = async () => {
-            if (confirm(`¿Eliminar externo "${btn.dataset.nombre}"?`)) {
-                await sb.from('perfiles').delete().eq('id', btn.dataset.id);
-                cargarExternos();
-                mostrarMensaje("✅ Externo eliminado");
-            }
+        const clienteId = document.getElementById('selectorClienteActivo').value;
+        if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
+        
+        const nombre = document.getElementById('activoNombre').value.trim();
+        if (!nombre) { mostrarMensaje("Nombre del activo obligatorio", 'error'); return; }
+        
+        const nuevoActivo = {
+            empresa_id: clienteId,
+            nombre: nombre,
+            tipo_servicio: document.getElementById('activoTipoServicio').value,
+            direccion: document.getElementById('activoDireccion').value || null,
+            numero: document.getElementById('activoNumero').value || null,
+            piso: document.getElementById('activoPiso').value || null,
+            codigo_postal: document.getElementById('activoCp').value || null,
+            localidad: document.getElementById('activoCiudad').value || null,
+            provincia: document.getElementById('activoProvincia').value || null,
+            persona_contacto: document.getElementById('activoPersonaContacto').value || null,
+            telefono_contacto: document.getElementById('activoTelefonoContacto').value || null,
+            horario_acceso: document.getElementById('activoHorario').value || null,
+            codigo_acceso: document.getElementById('activoCodigo').value || null,
+            notas_lugar: document.getElementById('activoNotas').value || null,
+            activo: true,
+            created_by: currentUser.id
         };
-    });
-}
-
-    async function crearExterno() {
-    const nombre = document.getElementById('externoNombre').value.trim();
-    const email = document.getElementById('externoEmail').value.trim();
-    const password = document.getElementById('externoPassword').value;
-    const telefono = document.getElementById('externoTelefono').value.trim();
-    const nif = document.getElementById('externoNif').value.trim();
-    const direccion = document.getElementById('externoDireccion').value.trim();
-    const tipoExterno = document.getElementById('externoTipo').value;
-    const especialidad = document.getElementById('externoEspecialidad').value;
-    const iban = document.getElementById('externoIban').value.trim();
-    const banco = document.getElementById('externoBanco').value.trim();
-    
-    if (!nombre) { mostrarMensaje("❌ Nombre es obligatorio", 'error'); return; }
-    if (!email) { mostrarMensaje("❌ Email es obligatorio", 'error'); return; }
-    if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
-    
-    const btn = document.getElementById('btnCrearExterno');
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner"></span> Creando...';
-    btn.disabled = true;
-    
-    try {
-        const { data: { session } } = await sb.auth.getSession();
         
-        // Crear usuario en Auth
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-                nombre: nombre,
-                empresa_id: currentEmpresaId,
-                rol: 'externo'
-            })
-        });
+        const { error } = await sb.from('activos').insert(nuevoActivo);
         
-        const resultado = await response.json();
-        if (!resultado.success) throw new Error(resultado.error);
+        if (error) {
+            mostrarMensaje("Error: " + error.message, 'error');
+            return;
+        }
         
-        // Actualizar perfil con datos adicionales
-        const { error: updateError } = await sb.from('perfiles').update({
-            telefono: telefono || null,
-            nif: nif || null,
-            direccion: direccion || null,
-            tipo_externo: tipoExterno,
-            especialidad: especialidad,
-            iban: iban || null,
-            banco: banco || null
-        }).eq('id', resultado.user_id);
+        mostrarMensaje("✅ Activo guardado");
+        document.getElementById('formNuevoActivo').style.display = 'none';
         
-        if (updateError) throw updateError;
-        
-        mostrarMensaje(`✅ Externo ${nombre} creado correctamente`);
-        
-        // Limpiar formulario
-        const campos = ['externoNombre', 'externoEmail', 'externoPassword', 'externoTelefono',
-            'externoNif', 'externoDireccion', 'externoIban', 'externoBanco'];
+        const campos = ['activoNombre', 'activoDireccion', 'activoNumero', 'activoPiso', 'activoCp', 
+            'activoCiudad', 'activoProvincia', 'activoPersonaContacto', 'activoTelefonoContacto',
+            'activoHorario', 'activoCodigo', 'activoNotas'];
         campos.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
         
-        cargarExternos();
-        cargarStats();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarMensaje(`❌ Error: ${error.message}`, 'error');
-    } finally {
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
+        cargarActivosCliente(clienteId);
     }
-}
+
+    async function abrirModalEditarActivo(id) {
+        const { data: a, error } = await sb.from('activos').select('*').eq('id', id).single();
+        if (error) {
+            mostrarMensaje("Error al cargar activo", 'error');
+            return;
+        }
+        if (!a) return;
+        
+        document.getElementById('editActivoId').value = a.id;
+        document.getElementById('editActivoTipo').value = a.tipo_servicio || 'PISCINA';
+        document.getElementById('editActivoNombre').value = a.nombre || '';
+        document.getElementById('editActivoDireccion').value = a.direccion || '';
+        document.getElementById('editActivoNumero').value = a.numero || '';
+        document.getElementById('editActivoPiso').value = a.piso || '';
+        document.getElementById('editActivoCp').value = a.codigo_postal || '';
+        document.getElementById('editActivoCiudad').value = a.localidad || '';
+        document.getElementById('editActivoProvincia').value = a.provincia || '';
+        document.getElementById('editActivoContacto').value = a.persona_contacto || '';
+        document.getElementById('editActivoTelefono').value = a.telefono_contacto || '';
+        document.getElementById('editActivoHorario').value = a.horario_acceso || '';
+        document.getElementById('editActivoCodigo').value = a.codigo_acceso || '';
+        document.getElementById('editActivoNotas').value = a.notas_lugar || '';
+        
+        document.getElementById('modalEditarActivo').style.display = 'flex';
+    }
+
+    async function guardarEdicionActivo() {
+        const id = document.getElementById('editActivoId').value;
+        
+        const activoActualizado = {
+            tipo_servicio: document.getElementById('editActivoTipo').value,
+            nombre: document.getElementById('editActivoNombre').value,
+            direccion: document.getElementById('editActivoDireccion').value || null,
+            numero: document.getElementById('editActivoNumero').value || null,
+            piso: document.getElementById('editActivoPiso').value || null,
+            codigo_postal: document.getElementById('editActivoCp').value || null,
+            localidad: document.getElementById('editActivoCiudad').value || null,
+            provincia: document.getElementById('editActivoProvincia').value || null,
+            persona_contacto: document.getElementById('editActivoContacto').value || null,
+            telefono_contacto: document.getElementById('editActivoTelefono').value || null,
+            horario_acceso: document.getElementById('editActivoHorario').value || null,
+            codigo_acceso: document.getElementById('editActivoCodigo').value || null,
+            notas_lugar: document.getElementById('editActivoNotas').value || null
+        };
+        
+        const { error } = await sb.from('activos').update(activoActualizado).eq('id', id);
+        
+        if (error) {
+            mostrarMensaje("Error: " + error.message, 'error');
+            return;
+        }
+        
+        mostrarMensaje("✅ Activo actualizado");
+        document.getElementById('modalEditarActivo').style.display = 'none';
+        
+        const clienteId = document.getElementById('selectorClienteActivo').value;
+        if (clienteId) cargarActivosCliente(clienteId);
+    }
+
+    async function cargarExternos() {
+        const { data, error } = await sb.from('perfiles')
+            .select('*')
+            .eq('empresa_id', currentEmpresaId)
+            .eq('rol', 'tecnico')
+            .not('tipo_externo', 'is', null);
+        
+        if (error) {
+            console.error('Error cargando externos:', error);
+            return;
+        }
+        
+        const tbody = document.getElementById('externosBody');
+        if (!data || data.length === 0) { 
+            tbody.innerHTML = '<td><td colspan="6">No hay personal externo</td></tr>';
+            return; 
+        }
+        
+        tbody.innerHTML = data.map(e => `
+            <tr>
+                <td>${e.nombre || '-'}</td>
+                <td>${e.nif || '-'}</td>
+                <td>${e.email || '-'}</td>
+                <td>${e.telefono || '-'}</td>
+                <td><span class="badge badge-externo">${e.tipo_externo === 'empresa' ? '🏭 Empresa' : '👤 Autónomo'}</span></td>
+                <td>
+                    <button class="btn-sm btn-warning editar-externo" data-id="${e.id}">✏️</button>
+                    <button class="btn-sm btn-danger eliminar-externo" data-id="${e.id}" data-nombre="${e.nombre}">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.editar-externo').forEach(btn => {
+            btn.onclick = () => abrirModalEditarExterno(btn.dataset.id);
+        });
+        
+        document.querySelectorAll('.eliminar-externo').forEach(btn => {
+            btn.onclick = async () => {
+                if (confirm(`¿Eliminar externo "${btn.dataset.nombre}"?`)) {
+                    await sb.from('perfiles').delete().eq('id', btn.dataset.id);
+                    cargarExternos();
+                    mostrarMensaje("✅ Externo eliminado");
+                }
+            };
+        });
+    }
+
+    async function crearExterno() {
+        const nombre = document.getElementById('externoNombre').value.trim();
+        const email = document.getElementById('externoEmail').value.trim();
+        const password = document.getElementById('externoPassword').value;
+        const telefono = document.getElementById('externoTelefono').value.trim();
+        const nif = document.getElementById('externoNif').value.trim();
+        const direccion = document.getElementById('externoDireccion').value.trim();
+        const tipoExterno = document.getElementById('externoTipo').value;
+        const especialidad = document.getElementById('externoEspecialidad').value;
+        const iban = document.getElementById('externoIban').value.trim();
+        const banco = document.getElementById('externoBanco').value.trim();
+        
+        if (!nombre) { mostrarMensaje("❌ Nombre es obligatorio", 'error'); return; }
+        if (!email) { mostrarMensaje("❌ Email es obligatorio", 'error'); return; }
+        if (!password || password.length < 6) { mostrarMensaje("❌ Contraseña (mínimo 6 caracteres)", 'error'); return; }
+        
+        const btn = document.getElementById('btnCrearExterno');
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner"></span> Creando...';
+        btn.disabled = true;
+        
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    nombre: nombre,
+                    empresa_id: currentEmpresaId,
+                    rol: 'externo'
+                })
+            });
+            
+            const resultado = await response.json();
+            if (!resultado.success) throw new Error(resultado.error);
+            
+            const { error: updateError } = await sb.from('perfiles').update({
+                telefono: telefono || null,
+                nif: nif || null,
+                direccion: direccion || null,
+                tipo_externo: tipoExterno,
+                especialidad: especialidad,
+                iban: iban || null,
+                banco: banco || null
+            }).eq('id', resultado.user_id);
+            
+            if (updateError) throw updateError;
+            
+            mostrarMensaje(`✅ Externo ${nombre} creado correctamente`);
+            
+            const campos = ['externoNombre', 'externoEmail', 'externoPassword', 'externoTelefono',
+                'externoNif', 'externoDireccion', 'externoIban', 'externoBanco'];
+            campos.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            
+            cargarExternos();
+            cargarStats();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+        } finally {
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        }
+    }
 
     async function abrirModalEditarExterno(id) {
         const { data: e } = await sb.from('perfiles').select('*').eq('id', id).single();
@@ -1164,48 +1555,48 @@
     }
 
     async function cargarTecnicos() {
-    const { data, error } = await sb.from('perfiles')
-        .select('*')
-        .eq('empresa_id', currentEmpresaId)
-        .eq('rol', 'tecnico')
-        .is('tipo_externo', null);  // 👈 Solo técnicos internos (sin tipo_externo)
-    
-    if (error) return;
-    
-    const tbody = document.getElementById('tecnicosBody');
-    if (!data?.length) { 
-        tbody.innerHTML = '<tr><td colspan="6">No hay técnicos</td>'; 
-        return; 
+        const { data, error } = await sb.from('perfiles')
+            .select('*')
+            .eq('empresa_id', currentEmpresaId)
+            .eq('rol', 'tecnico')
+            .is('tipo_externo', null);
+        
+        if (error) return;
+        
+        const tbody = document.getElementById('tecnicosBody');
+        if (!data?.length) { 
+            tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td></tr>'; 
+            return; 
+        }
+        
+        tbody.innerHTML = data.map(t => `
+            <tr>
+                <td>${t.nombre || t.nick}</td>
+                <td>${t.nif || '-'}</td>
+                <td>${t.email}</td>
+                <td>${t.telefono || '-'}</td>
+                <td><span class="badge badge-activo">Activo</span></td>
+                <td>
+                    <button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button>
+                    <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.btn-editar-tecnico').forEach(btn => {
+            btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id);
+        });
+        
+        document.querySelectorAll('.btn-eliminar-tecnico').forEach(btn => {
+            btn.onclick = () => eliminarTecnico(btn.dataset.id, btn.dataset.nombre);
+        });
+        
+        const select = document.getElementById('tareaTecnico');
+        if (select) {
+            select.innerHTML = '<option value="">-- Seleccionar --</option>' + 
+                data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
+        }
     }
-    
-    tbody.innerHTML = data.map(t => `
-        <tr>
-            <td>${t.nombre || t.nick}</td>
-            <td>${t.nif || '-'}</td>
-            <td>${t.email}</td>
-            <td>${t.telefono || '-'}</td>
-            <td><span class="badge badge-activo">Activo</span></td>
-            <td>
-                <button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button>
-                <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button>
-            </td>
-        </tr>
-    `).join('');
-    
-    document.querySelectorAll('.btn-editar-tecnico').forEach(btn => {
-        btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id);
-    });
-    
-    document.querySelectorAll('.btn-eliminar-tecnico').forEach(btn => {
-        btn.onclick = () => eliminarTecnico(btn.dataset.id, btn.dataset.nombre);
-    });
-    
-    const select = document.getElementById('tareaTecnico');
-    if (select) {
-        select.innerHTML = '<option value="">-- Seleccionar --</option>' + 
-            data.map(t => `<option value="${t.id}">${t.nombre || t.nick}</option>`).join('');
-    }
-}
 
     async function abrirModalEditarTecnico(id) {
         const { data: t } = await sb.from('perfiles').select('*').eq('id', id).single();
@@ -1298,9 +1689,46 @@
     }
 
     async function cargarActivos() {
-        const { data } = await sb.from('activos').select('*').eq('empresa_id', currentEmpresaId).order('nombre');
+        const clienteId = document.getElementById('tareaCliente')?.value;
+        if (clienteId) {
+            await cargarActivosPorCliente(clienteId);
+        } else {
+            const selectActivo = document.getElementById('tareaActivo');
+            if (selectActivo) {
+                selectActivo.innerHTML = '<option value="">-- Primero selecciona un cliente --</option>';
+            }
+        }
+    }
+
+    async function cargarActivosPorCliente(clienteId) {
+        if (!clienteId) {
+            const selectActivo = document.getElementById('tareaActivo');
+            if (selectActivo) {
+                selectActivo.innerHTML = '<option value="">-- Primero selecciona un cliente --</option>';
+            }
+            return;
+        }
+        
+        const { data: activos, error } = await sb.from('activos')
+            .select('*')
+            .eq('empresa_id', clienteId)
+            .eq('activo', true)
+            .order('nombre');
+        
+        if (error) {
+            console.error("Error cargando activos:", error);
+            return;
+        }
+        
         const select = document.getElementById('tareaActivo');
-        if (select && data) select.innerHTML = '<option value="">-- Seleccionar --</option>' + data.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+        if (select) {
+            if (activos && activos.length > 0) {
+                select.innerHTML = '<option value="">-- Seleccionar activo --</option>' + 
+                    activos.map(a => `<option value="${a.id}">${a.nombre} (${a.tipo_servicio})</option>`).join('');
+            } else {
+                select.innerHTML = '<option value="">-- No hay activos para este cliente --</option>';
+            }
+        }
     }
 
     async function cargarPlantillas() {
@@ -1321,8 +1749,8 @@
     async function cargarFacturas() {
         const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId);
         const tbody = document.getElementById('facturasBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7">No hay facturas</tr>'; return; }
-        tbody.innerHTML = data.map(f => `<td><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.concepto || '-'}</td><td>${f.total}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td>`).join('');
+        if (!data?.length) { tbody.innerHTML = '</td><td colspan="7">No hay facturas</tr>'; return; }
+        tbody.innerHTML = data.map(f => `<tr><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.concepto || '-'}</td><td>${f.total}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td></tr>`).join('');
         document.querySelectorAll('.toggle-factura').forEach(btn => btn.onclick = async () => { const pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', btn.dataset.id); cargarFacturas(); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); });
     }
 
@@ -1344,152 +1772,163 @@
     }
 
     function inicializarTabs() {
-    // Tabs principales
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.onclick = () => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabExternos', 'tabGastos', 'tabFacturas', 'tabExportar'];
-            tabIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
-            });
-            
-            const tabId = tab.dataset.tab;
-            const tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1);
-            const tabElement = document.getElementById(tabName);
-            if (tabElement) tabElement.style.display = 'block';
-            
-            if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
-            if (tabId === 'clientes') cargarClientes();
-            if (tabId === 'personal') cargarTecnicos();
-            if (tabId === 'externos') cargarExternos();
-            if (tabId === 'gastos') cargarGastos();
-            if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); }
-        };
-    });
-    
-    // Sub-tabs de Tareas
-    document.querySelectorAll('#tabTareas .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabTareas .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabTareas [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            if (subId === 'crearTarea') { cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
-        };
-    });
-    
-    // Sub-tabs de Clientes (CORREGIDO - con async/await)
-    document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => {
-        sub.onclick = async () => {
-            document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            
-            if (subId === 'activosCliente') {
-                // Cargar clientes en el selector
-                const { data: clientes, error } = await sb.from('empresas').select('id, nombre').eq('created_by', currentUser.id);
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
                 
-                const selectClienteActivo = document.getElementById('selectorClienteActivo');
-                if (selectClienteActivo) {
-                    if (clientes && clientes.length > 0) {
-                        selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
-                            clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-                        console.log('✅ Selector actualizado');
-                    } else {
-                        selectClienteActivo.innerHTML = '<option value="">-- No hay clientes --</option>';
-                    }
+                const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabExternos', 'tabGastos', 'tabFacturas', 'tabExportar'];
+                tabIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+                
+                const tabId = tab.dataset.tab;
+                const tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1);
+                const tabElement = document.getElementById(tabName);
+                if (tabElement) tabElement.style.display = 'block';
+                
+                if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); }
+                if (tabId === 'clientes') cargarClientes();
+                if (tabId === 'personal') cargarTecnicos();
+                if (tabId === 'externos') cargarExternos();
+                if (tabId === 'gastos') cargarGastos();
+                if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); }
+            };
+        });
+        
+        document.querySelectorAll('#tabTareas .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabTareas .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabTareas [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                if (subId === 'crearTarea') { 
+                    cargarClientesParaTarea();
+                    cargarActivos(); 
+                    cargarTecnicos(); 
+                    cargarPlantillas(); 
                 }
+            };
+        });
+        
+        document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => {
+            sub.onclick = async () => {
+                document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
                 
-                // Limpiar lista de activos
-                document.getElementById('activosClienteBody').innerHTML = '<tr><td colspan="5">Selecciona un cliente para ver sus activos</td></tr>';
-                document.getElementById('clienteSeleccionadoInfo').style.display = 'none';
-                document.getElementById('formNuevoActivo').style.display = 'none';
-            }
-        };
-    });
-    
-    // Sub-tabs de Personal
-    document.querySelectorAll('#tabPersonal .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabPersonal .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            if (subId === 'listaTecnicos') {
-                document.getElementById('subListaTecnicos').style.display = 'block';
-                document.getElementById('subCrearTecnico').style.display = 'none';
-                cargarTecnicos();
-            } else if (subId === 'crearTecnico') {
-                document.getElementById('subListaTecnicos').style.display = 'none';
-                document.getElementById('subCrearTecnico').style.display = 'block';
-            }
-        };
-    });
-    
-    // Sub-tabs de Externos
-    document.querySelectorAll('#tabExternos .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabExternos .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            if (subId === 'listaExternos') {
-                document.getElementById('subListaExternos').style.display = 'block';
-                document.getElementById('subCrearExterno').style.display = 'none';
-                cargarExternos();
-            } else if (subId === 'crearExterno') {
-                document.getElementById('subListaExternos').style.display = 'none';
-                document.getElementById('subCrearExterno').style.display = 'block';
-            }
-        };
-    });
-    
-    // Sub-tabs de Gastos
-    document.querySelectorAll('#tabGastos .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabGastos .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabGastos [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            cargarGastos();
-        };
-    });
-    
-    // Sub-tabs de Facturas
-    document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-            if (subId === 'crearFactura') cargarClientes();
-        };
-    });
-    
-    // Sub-tabs de Exportar
-    document.querySelectorAll('#tabExportar .sub-tab').forEach(sub => {
-        sub.onclick = () => {
-            document.querySelectorAll('#tabExportar .sub-tab').forEach(s => s.classList.remove('active'));
-            sub.classList.add('active');
-            const subId = sub.dataset.sub;
-            document.querySelectorAll('#tabExportar [id^="sub"]').forEach(s => s.style.display = 'none');
-            document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
-        };
-    });
-}
+                if (subId === 'activosCliente') {
+                    const { data: clientes, error } = await sb.from('empresas').select('id, nombre').eq('created_by', currentUser.id);
+                    
+                    const selectClienteActivo = document.getElementById('selectorClienteActivo');
+                    if (selectClienteActivo) {
+                        if (clientes && clientes.length > 0) {
+                            selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + 
+                                clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+                        } else {
+                            selectClienteActivo.innerHTML = '<option value="">-- No hay clientes --</option>';
+                        }
+                    }
+                    
+                    document.getElementById('activosClienteBody').innerHTML = '<td><td colspan="5">Selecciona un cliente para ver sus activos</tr>';
+                    document.getElementById('clienteSeleccionadoInfo').style.display = 'none';
+                    document.getElementById('formNuevoActivo').style.display = 'none';
+                }
+            };
+        });
+        
+        document.querySelectorAll('#tabPersonal .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabPersonal .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                if (subId === 'listaTecnicos') {
+                    document.getElementById('subListaTecnicos').style.display = 'block';
+                    document.getElementById('subCrearTecnico').style.display = 'none';
+                    cargarTecnicos();
+                } else if (subId === 'crearTecnico') {
+                    document.getElementById('subListaTecnicos').style.display = 'none';
+                    document.getElementById('subCrearTecnico').style.display = 'block';
+                }
+            };
+        });
+        
+        document.querySelectorAll('#tabExternos .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabExternos .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                if (subId === 'listaExternos') {
+                    document.getElementById('subListaExternos').style.display = 'block';
+                    document.getElementById('subCrearExterno').style.display = 'none';
+                    cargarExternos();
+                } else if (subId === 'crearExterno') {
+                    document.getElementById('subListaExternos').style.display = 'none';
+                    document.getElementById('subCrearExterno').style.display = 'block';
+                }
+            };
+        });
+        
+        document.querySelectorAll('#tabGastos .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabGastos .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabGastos [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                cargarGastos();
+            };
+        });
+        
+        document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+                if (subId === 'crearFactura') cargarClientes();
+            };
+        });
+        
+        document.querySelectorAll('#tabExportar .sub-tab').forEach(sub => {
+            sub.onclick = () => {
+                document.querySelectorAll('#tabExportar .sub-tab').forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                const subId = sub.dataset.sub;
+                document.querySelectorAll('#tabExportar [id^="sub"]').forEach(s => s.style.display = 'none');
+                document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block';
+            };
+        });
+    }
 
-    // EVENTOS
-    document.getElementById('btnLogin').onclick = async () => { if (await hacerLogin()) { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; inicializarTabs(); await cargarStats(); await cargarTareas(); await cargarActivos(); await cargarTecnicos(); await cargarClientes(); await cargarGastos(); await cargarFacturas(); await cargarPlantillas(); await cargarExternos(); } };
+    // Eventos principales
+    document.getElementById('btnLogin').onclick = async () => { 
+        if (await hacerLogin()) { 
+            document.getElementById('loginPanel').style.display = 'none'; 
+            document.getElementById('dashboardPanel').style.display = 'block'; 
+            inicializarTabs(); 
+            await cargarStats(); 
+            await cargarTareas(); 
+            await cargarActivos(); 
+            await cargarTecnicos(); 
+            await cargarClientes(); 
+            await cargarGastos(); 
+            await cargarFacturas(); 
+            await cargarPlantillas(); 
+            await cargarExternos(); 
+        } 
+    };
+    
     document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
     document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
     document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
     document.getElementById('btnCrearTarea').onclick = crearTarea;
+    document.getElementById('btnGenerarIA').onclick = generarOrdenConIA;
     document.getElementById('btnRecargarActivos').onclick = cargarActivos;
     document.getElementById('btnGuardarCliente').onclick = guardarCliente;
     document.getElementById('btnBuscarCliente').onclick = cargarClientes;
@@ -1532,7 +1971,11 @@
     document.getElementById('btnGuardarActivoCliente').onclick = guardarActivoCliente;
     document.getElementById('btnCancelarFormActivo').onclick = () => { document.getElementById('formNuevoActivo').style.display = 'none'; };
     document.getElementById('tareaTipo').addEventListener('change', function() { const campos = document.getElementById('camposPresupuesto'); if (campos) campos.style.display = this.value === 'PRESUPUESTO' ? 'block' : 'none'; });
+    document.getElementById('btnGuardarEdicionTarea').onclick = guardarEdicionTarea;
+    document.getElementById('btnCancelarEdicionTarea').onclick = () => document.getElementById('modalEditarTarea').style.display = 'none';
+    
     window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+    
     window.abrirModalEditarCliente = async (id) => {
         const { data: c } = await sb.from('empresas').select('*').eq('id', id).single();
         if (!c) return;
@@ -1555,10 +1998,49 @@
         document.getElementById('editClienteFechaAlta').value = c.fecha_alta || '';
         document.getElementById('modalEditarCliente').style.display = 'flex';
     };
+    
     function asignarEventosEditarCliente() { document.querySelectorAll('.editar-cliente').forEach(btn => btn.onclick = () => window.abrirModalEditarCliente(btn.dataset.id)); }
     const originalCargarClientes = cargarClientes;
     window.cargarClientes = async function() { await originalCargarClientes(); asignarEventosEditarCliente(); };
     cargarClientes = window.cargarClientes;
+
+    async function cargarClientesParaTarea() {
+        const { data: clientes, error } = await sb.from('empresas')
+            .select('id, nombre')
+            .eq('created_by', currentUser.id)
+            .eq('activo', true)
+            .order('nombre');
+        
+        if (error) {
+            console.error("Error cargando clientes:", error);
+            return;
+        }
+        
+        const select = document.getElementById('tareaCliente');
+        if (select) {
+            if (clientes && clientes.length > 0) {
+                select.innerHTML = '<option value="">-- Seleccionar cliente --</option>' + 
+                    clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+            } else {
+                select.innerHTML = '<option value="">-- No hay clientes disponibles --</option>';
+            }
+        }
+    }
+
+    const selectorCliente = document.getElementById('tareaCliente');
+    if (selectorCliente) {
+        selectorCliente.addEventListener('change', function(e) {
+            const clienteId = e.target.value;
+            if (clienteId) {
+                cargarActivosPorCliente(clienteId);
+            } else {
+                const selectActivo = document.getElementById('tareaActivo');
+                if (selectActivo) {
+                    selectActivo.innerHTML = '<option value="">-- Primero selecciona un cliente --</option>';
+                }
+            }
+        });
+    }
 </script>
 </body>
 </html>
