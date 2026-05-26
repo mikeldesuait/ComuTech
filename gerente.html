@@ -628,7 +628,7 @@
                     </div>
                 </div>
 
-                <!-- ==================== TAB EXTERNOS ==================== -->
+                                <!-- ==================== TAB EXTERNOS ==================== -->
                 <div id="tabExternos" style="display: none;">
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="listaExternos">📋 Personal externo</button>
@@ -654,7 +654,43 @@
                             </div>
                             <div class="row-flex">
                                 <div class="grupo"><label class="required">🆔 NIF / CIF</label><input type="text" id="externoNif" placeholder="12345678A"></div>
-                                <div class="grupo"><label>👤 Tipo</label>
+                                <div class="grupo"><label>📅 Fecha nacimiento</label><input type="date" id="externoFechaNacimiento"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>📍 Dirección</label><input type="text" id="externoDireccion" placeholder="Dirección"></div>
+                                <div class="grupo"><label>🔢 Nº Seguridad Social</label><input type="text" id="externoSS" placeholder="Nº Seguridad Social"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>🏦 IBAN</label><input type="text" id="externoIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
+                                <div class="grupo"><label>🏦 Banco</label><input type="text" id="externoBanco" placeholder="Nombre del banco"></div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>🏷️ Tipo contrato</label>
+                                    <select id="externoTipoContrato">
+                                        <option value="INDEFINIDO">Indefinido</option>
+                                        <option value="TEMPORAL">Temporal</option>
+                                        <option value="POR_OBRA">Por obra/servicio</option>
+                                    </select>
+                                </div>
+                                <div class="grupo"><label>⏱️ Jornada</label>
+                                    <select id="externoJornada">
+                                        <option value="COMPLETA">Completa (40h)</option>
+                                        <option value="PARCIAL_50">Parcial 50%</option>
+                                        <option value="PARCIAL_75">Parcial 75%</option>
+                                    </select>
+                                </div>
+                                <div class="grupo"><label>🔧 Puesto</label>
+                                    <select id="externoPuesto">
+                                        <option value="TECNICO_BASE">Técnico base</option>
+                                        <option value="TECNICO_ESPECIALISTA">Técnico especialista</option>
+                                        <option value="SUPERVISOR">Supervisor</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-flex">
+                                <div class="grupo"><label>📅 Fecha de alta</label><input type="date" id="externoFechaAlta" value="2026-05-24"></div>
+                                <div class="grupo"><label>👤 Nick (alias)</label><input type="text" id="externoNick" placeholder="Usuario para login"></div>
+                                <div class="grupo"><label>👤 Tipo de externo</label>
                                     <select id="externoTipo">
                                         <option value="autonomo">👤 Autónomo</option>
                                         <option value="empresa">🏭 Empresa subcontrata</option>
@@ -662,7 +698,6 @@
                                 </div>
                             </div>
                             <div class="row-flex">
-                                <div class="grupo"><label>📍 Dirección</label><input type="text" id="externoDireccion" placeholder="Dirección"></div>
                                 <div class="grupo"><label>📋 Especialidad</label>
                                     <select id="externoEspecialidad">
                                         <option value="PISCINA">🏊 Piscinas</option>
@@ -673,17 +708,13 @@
                                         <option value="OTRO">📋 Otro</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="row-flex">
-                                <div class="grupo"><label>🏦 IBAN</label><input type="text" id="externoIban" placeholder="ES00 0000 0000 0000 0000 0000"></div>
-                                <div class="grupo"><label>🏦 Banco</label><input type="text" id="externoBanco" placeholder="Nombre del banco"></div>
+                                <div class="grupo"></div>
                             </div>
                             <hr>
                             <button id="btnCrearExterno" class="btn-success">✅ Dar de alta externo</button>
                         </form>
                     </div>
                 </div>
-
                 <!-- ==================== TAB PRODUCTOS (nueva pestaña independiente) ==================== -->
                 <div id="tabProductos" style="display: none;">
                     <div class="card-header" style="margin-bottom:16px;">🛒 Catálogo de productos / materiales</div>
