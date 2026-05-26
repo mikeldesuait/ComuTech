@@ -271,6 +271,8 @@
         .tiempo-linea { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; }
         .tiempo-titulo { font-weight: 600; color: #1e4663; }
         .detalle-info { background: #f8fafc; padding: 12px; border-radius: 12px; margin: 8px 0; }
+        .dia-group { background: #f8fafc; border-radius: 12px; margin-bottom: 16px; padding: 12px; border-left: 4px solid #2c7a4d; }
+        .dia-fecha { font-weight: 700; color: #1e4663; margin-bottom: 8px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -309,6 +311,7 @@
                 <button class="tab" data-tab="clientes">👥 CLIENTES</button>
                 <button class="tab" data-tab="personal">👨‍🔧 PERSONAL</button>
                 <button class="tab" data-tab="externos">🔄 EXTERNOS</button>
+                <button class="tab" data-tab="productos">🛒 PRODUCTOS</button>
                 <button class="tab" data-tab="gastos">💰 GASTOS</button>
                 <button class="tab" data-tab="facturas">🧾 FACTURAS</button>
                 <button class="tab" data-tab="exportar">📁 EXPORTAR</button>
@@ -327,8 +330,12 @@
                             <select id="filtroEstadoTarea">
                                 <option value="">Todos los estados</option>
                                 <option value="PENDIENTE">📋 Pendientes</option>
+                                <option value="ACEPTADA">✅ Aceptadas</option>
+                                <option value="DESPLAZAMIENTO">🚗 En desplazamiento</option>
                                 <option value="EN_CURSO">▶️ En curso</option>
-                                <option value="COMPLETADA">✅ Completadas</option>
+                                <option value="SUSPENDIDA">⏸️ Suspendidas</option>
+                                <option value="COMPLETADA">🏁 Completadas</option>
+                                <option value="CANCELADA">❌ Canceladas</option>
                             </select>
                             <input type="date" id="filtroFechaTarea" placeholder="Filtrar por fecha">
                             <button id="btnFiltrarTareas" class="btn-sm btn-info">🔍 Filtrar</button>
@@ -546,7 +553,7 @@
                             <div id="clienteSeleccionadoInfo" class="cliente-seleccionado" style="display:none;">Cliente: <span id="clienteSeleccionadoNombre"></span></div>
                             <table class="tabla">
                                 <thead><tr><th>Nombre</th><th>Dirección</th><th>Contacto</th><th>Tipo</th><th>Acciones</th></tr></thead>
-                                <tbody id="activosClienteBody"><tr><td colspan="5">Selecciona un cliente<b>.</td> </tr>    
+                                <tbody id="activosClienteBody"><tr><td colspan="5">Selecciona un cliente<b>. </b></td></tr>
                             </tbody>
                         </table>
                         </div>
@@ -677,14 +684,41 @@
                     </div>
                 </div>
 
+                <!-- ==================== TAB PRODUCTOS (nueva pestaña independiente) ==================== -->
+                <div id="tabProductos" style="display: none;">
+                    <div class="card-header" style="margin-bottom:16px;">🛒 Catálogo de productos / materiales</div>
+                    <div class="row-flex">
+                        <div class="grupo">
+                            <label>Filtrar por servicio</label>
+                            <select id="filtroServicioProducto">
+                                <option value="">Todos</option>
+                                <option value="PISCINA">🏊 PISCINA</option>
+                                <option value="JARDIN">🌳 JARDIN</option>
+                                <option value="FONTANERIA">🔧 FONTANERIA</option>
+                                <option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option>
+                                <option value="LIMPIEZA">🧹 LIMPIEZA</option>
+                                <option value="OTRO">📋 OTRO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button id="btnSincronizarProductos" class="btn-info">🔄 Sincronizar</button>
+                            <button id="btnNuevoProducto" class="btn-success">➕ Nuevo producto</button>
+                        </div>
+                    </div>
+                    <table class="tabla">
+                        <thead><tr><th>Servicio</th><th>Producto</th><th>Unidad</th><th>Precio (€)</th><th>Acciones</th></tr></thead>
+                        <tbody id="productosBody"></tbody>
+                    </table>
+                </div>
+
                 <!-- ==================== TAB GASTOS ==================== -->
                 <div id="tabGastos" style="display: none;">
                     <div class="sub-tabs">
                         <button class="sub-tab active" data-sub="pendientesGastos">⏳ Pendientes</button>
                         <button class="sub-tab" data-sub="aprobadosGastos">✅ Aprobados</button>
                     </div>
-                    <div id="subPendientesGastos"><table class="tabla"><thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Acciones</th></table></thead><tbody id="gastosPendientesBody"></tbody><td></div>
-                    <div id="subAprobadosGastos" style="display: none;"><table class="tabla"><thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Estado</th></tr></thead><tbody id="gastosAprobadosBody"></tbody></tr></div>
+                    <div id="subPendientesGastos"><table class="tabla"><thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Acciones</th></tr></thead><tbody id="gastosPendientesBody"></tbody></table></div>
+                    <div id="subAprobadosGastos" style="display: none;"><table class="tabla"><thead><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>Concepto</th><th>Importe</th><th>Técnico</th><th>Estado</th></tr></thead><tbody id="gastosAprobadosBody"></tbody></table></div>
                 </div>
 
                 <!-- ==================== TAB FACTURAS ==================== -->
@@ -727,28 +761,11 @@
 
 <div id="modalEditarExterno" class="modal"><div class="modal-content"><div class="card-header">✏️ Editar externo</div><input type="hidden" id="editExternoId"><div class="row-flex"><div class="grupo"><label>👤 Nombre/Razón social</label><input type="text" id="editExternoNombre"></div><div class="grupo"><label>📧 Email</label><input type="email" id="editExternoEmail"></div></div><div class="row-flex"><div class="grupo"><label>📞 Teléfono</label><input type="text" id="editExternoTelefono"></div><div class="grupo"><label>🆔 NIF/CIF</label><input type="text" id="editExternoNif"></div></div><div class="row-flex"><div class="grupo"><label>📍 Dirección</label><input type="text" id="editExternoDireccion"></div><div class="grupo"><label>🏷️ Tipo</label><select id="editExternoTipo"><option value="autonomo">Autónomo</option><option value="empresa">Empresa</option></select></div></div><div class="row-flex"><div class="grupo"><label>🔧 Especialidad</label><select id="editExternoEspecialidad"><option value="PISCINA">Piscinas</option><option value="JARDIN">Jardinería</option><option value="FONTANERIA">Fontanería</option><option value="ELECTRICIDAD">Electricidad</option></select></div><div class="grupo"><label>🏦 IBAN</label><input type="text" id="editExternoIban"></div></div><div class="btn-group"><button id="btnGuardarEdicionExterno" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicionExterno" class="btn-danger">✖ Cancelar</button></div></div></div>
 
-<!-- MODAL EDITAR TAREA COMPLETO -->
-<div id="modalEditarTarea" class="modal">
-    <div class="modal-content">
-        <div class="card-header">✏️ Editar tarea</div>
-        <input type="hidden" id="editTareaId">
-        <div class="row-flex"><div class="grupo"><label>🏢 Cliente</label><input type="text" id="editTareaCliente" readonly></div><div class="grupo"><label>🔧 Activo</label><input type="text" id="editTareaActivo" readonly></div></div>
-        <div class="row-flex"><div class="grupo"><label>📋 Tipo de tarea</label><select id="editTareaTipo"><option value="MANTENIMIENTO">📋 Mantenimiento</option><option value="URGENCIA">🚨 Urgencia</option><option value="AVERIA">🔧 Avería</option><option value="REVISION">🔍 Revisión</option><option value="PRESUPUESTO">💰 Presupuesto</option></select></div><div class="grupo"><label>🔧 Servicio</label><select id="editTareaServicio"><option value="PISCINA">🏊 PISCINA</option><option value="JARDIN">🌳 JARDIN</option><option value="FONTANERIA">🔧 FONTANERIA</option><option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option><option value="LIMPIEZA">🧹 LIMPIEZA</option><option value="OTRO">📋 OTRO</option></select></div></div>
-        <div class="row-flex"><div class="grupo"><label>👨‍🔧 Técnico</label><select id="editTareaTecnico"></select></div><div class="grupo"><label>📅 Fecha asignación</label><input type="date" id="editTareaFecha"></div></div>
-        <div class="row-flex"><div class="grupo"><label>📌 Estado</label><select id="editTareaEstado"><option value="PENDIENTE">📋 Pendiente</option><option value="EN_CURSO">▶️ En curso</option><option value="COMPLETADA">✅ Completada</option><option value="CANCELADA">❌ Cancelada</option></select></div><div class="grupo"><label>💰 Coste estimado (€)</label><input type="number" id="editTareaCosteEstimado" step="0.01"></div></div>
-        <div class="grupo"><label>📋 Orden de trabajo</label><textarea id="editTareaOrden" rows="4"></textarea></div>
-        <div class="btn-group"><button id="btnGuardarEdicionTarea" class="btn-success">💾 Guardar cambios</button><button id="btnCancelarEdicionTarea" class="btn-danger">✖ Cancelar</button></div>
-    </div>
-</div>
+<div id="modalEditarTarea" class="modal"><div class="modal-content"><div class="card-header">✏️ Editar tarea</div><input type="hidden" id="editTareaId"><div class="row-flex"><div class="grupo"><label>🏢 Cliente</label><input type="text" id="editTareaCliente" readonly></div><div class="grupo"><label>🔧 Activo</label><input type="text" id="editTareaActivo" readonly></div></div><div class="row-flex"><div class="grupo"><label>📋 Tipo de tarea</label><select id="editTareaTipo"><option value="MANTENIMIENTO">📋 Mantenimiento</option><option value="URGENCIA">🚨 Urgencia</option><option value="AVERIA">🔧 Avería</option><option value="REVISION">🔍 Revisión</option><option value="PRESUPUESTO">💰 Presupuesto</option></select></div><div class="grupo"><label>🔧 Servicio</label><select id="editTareaServicio"><option value="PISCINA">🏊 PISCINA</option><option value="JARDIN">🌳 JARDIN</option><option value="FONTANERIA">🔧 FONTANERIA</option><option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option><option value="LIMPIEZA">🧹 LIMPIEZA</option><option value="OTRO">📋 OTRO</option></select></div></div><div class="row-flex"><div class="grupo"><label>👨‍🔧 Técnico</label><select id="editTareaTecnico"></select></div><div class="grupo"><label>📅 Fecha asignación</label><input type="date" id="editTareaFecha"></div></div><div class="row-flex"><div class="grupo"><label>📌 Estado</label><select id="editTareaEstado"><option value="PENDIENTE">📋 Pendiente</option><option value="ACEPTADA">✅ Aceptada</option><option value="DESPLAZAMIENTO">🚗 En desplazamiento</option><option value="EN_CURSO">▶️ En curso</option><option value="SUSPENDIDA">⏸️ Suspendida</option><option value="COMPLETADA">🏁 Completada</option><option value="CANCELADA">❌ Cancelada</option></select></div><div class="grupo"><label>💰 Coste estimado (€)</label><input type="number" id="editTareaCosteEstimado" step="0.01"></div></div><div class="grupo"><label>📋 Orden de trabajo</label><textarea id="editTareaOrden" rows="4"></textarea></div><div class="btn-group"><button id="btnGuardarEdicionTarea" class="btn-success">💾 Guardar cambios</button><button id="btnCancelarEdicionTarea" class="btn-danger">✖ Cancelar</button></div></div></div>
 
-<!-- MODAL DETALLE TAREA COMPLETO (para gerente) -->
-<div id="modalDetalleTareaGerente" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <div class="card-header">📋 Detalle completo de la tarea</div>
-        <div id="detalleTareaGerenteContent" style="max-height: 60vh; overflow-y: auto; padding: 8px;"></div>
-        <div class="btn-group" style="margin-top: 16px;"><button id="btnCerrarDetalleGerente" class="btn-info">✖ Cerrar</button></div>
-    </div>
-</div>
+<div id="modalDetalleTareaGerente" class="modal"><div class="modal-content" style="max-width: 800px;"><div class="card-header">📋 Detalle completo de la tarea</div><div id="detalleTareaGerenteContent" style="max-height: 60vh; overflow-y: auto; padding: 8px;"></div><div class="btn-group" style="margin-top: 16px;"><button id="btnCerrarDetalleGerente" class="btn-info">✖ Cerrar</button></div></div></div>
+
+<div id="modalProducto" class="modal"><div class="modal-content"><div class="card-header" id="modalProductoTitulo">➕ Nuevo producto</div><input type="hidden" id="productoId"><div class="row-flex"><div class="grupo"><label>Servicio</label><select id="productoServicio"><option value="PISCINA">🏊 PISCINA</option><option value="JARDIN">🌳 JARDIN</option><option value="FONTANERIA">🔧 FONTANERIA</option><option value="ELECTRICIDAD">⚡ ELECTRICIDAD</option><option value="LIMPIEZA">🧹 LIMPIEZA</option><option value="OTRO">📋 OTRO</option></select></div><div class="grupo"><label>Nombre del producto</label><input type="text" id="productoNombre" placeholder="Ej: Cloro granulado"></div></div><div class="row-flex"><div class="grupo"><label>Unidad</label><input type="text" id="productoUnidad" placeholder="Ej: gramos, litros, unidad"></div><div class="grupo"><label>Precio por unidad (€)</label><input type="number" id="productoPrecio" step="0.01" placeholder="0.00"></div></div><div class="btn-group"><button id="btnGuardarProducto" class="btn-success">💾 Guardar producto</button><button id="btnCancelarProducto" class="btn-danger">✖ Cancelar</button></div></div></div>
 
 <script>
     const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
@@ -761,6 +778,7 @@
     const registrosPorPagina = 10;
     let tareasData = [];
 
+    // ==================== FUNCIONES GENERALES ====================
     function mostrarMensaje(texto, tipo = 'exito') {
         const msg = document.createElement('div');
         msg.className = 'mensaje';
@@ -776,49 +794,7 @@
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
-    async function generarOrdenConIA() {
-        const clienteId = document.getElementById('tareaCliente').value;
-        const tipo = document.getElementById('tareaTipo').value;
-        const servicio = document.getElementById('tareaServicio').value;
-        const activoId = document.getElementById('tareaActivo').value;
-        const notas = document.getElementById('tareaNotasPresupuesto')?.value || '';
-        const ordenActual = document.getElementById('tareaOrden').value;
-        
-        if (ordenActual.trim() !== "") {
-            const mejorar = confirm("Ya has escrito una orden. ¿Quieres que la IA la mejore o prefieres mantener la original?\n\n✅ Aceptar = Mejorar con IA\n❌ Cancelar = Mantener tu versión");
-            if (!mejorar) return;
-        }
-        
-        if (!clienteId) { mostrarMensaje("❌ Selecciona un cliente primero", 'error'); return; }
-        
-        const iaLoading = document.getElementById('iaLoading');
-        iaLoading.style.display = 'block';
-        
-        try {
-            let nombreActivo = '';
-            if (activoId) {
-                const { data: activo } = await sb.from('activos').select('nombre').eq('id', activoId).single();
-                nombreActivo = activo?.nombre || '';
-            }
-            const textoBase = ordenActual.trim() !== "" ? ordenActual : (notas || `realizar ${tipo.toLowerCase()} del servicio de ${servicio.toLowerCase()} en ${nombreActivo || 'la instalación'}`);
-            const { data: sessionData } = await sb.auth.getSession();
-            const token = sessionData.session?.access_token;
-            if (!token) throw new Error("No hay sesión activa");
-            const response = await fetch(`${SUPABASE_URL}/functions/v1/generar-orden-trabajo`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ tipo, servicio, activoNombre: nombreActivo, notas: textoBase })
-            });
-            const resultado = await response.json();
-            if (resultado.success) {
-                document.getElementById('tareaOrden').value = resultado.orden;
-                mostrarMensaje("✅ Orden mejorada con IA. Puedes seguir editándola si lo deseas.", 'exito');
-            } else throw new Error(resultado.error || "Error desconocido");
-        } catch (error) {
-            console.error("Error en IA:", error);
-            mostrarMensaje("❌ Error al conectar con la IA. Puedes escribir la orden manualmente.", 'error');
-        } finally { iaLoading.style.display = 'none'; }
-    }
-
+    // ==================== LOGIN ====================
     async function hacerLogin() {
         const identificador = document.getElementById('identificador').value.trim();
         const password = document.getElementById('password').value;
@@ -853,6 +829,7 @@
         document.getElementById('statsPanel').innerHTML = `<div class="stat-card"><div class="stat-number">${tareas?.length || 0}</div><div class="stat-label">Tareas</div></div><div class="stat-card"><div class="stat-number">${tecnicos?.length || 0}</div><div class="stat-label">Técnicos</div></div><div class="stat-card"><div class="stat-number">${externos?.length || 0}</div><div class="stat-label">Externos</div></div><div class="stat-card"><div class="stat-number">${clientes?.length || 0}</div><div class="stat-label">Clientes</div></div>`;
     }
 
+    // ==================== TAREAS ====================
     async function cargarTareas() {
         const estado = document.getElementById('filtroEstadoTarea')?.value || '';
         const fecha = document.getElementById('filtroFechaTarea')?.value || '';
@@ -872,13 +849,19 @@
         const start = (paginaTareas - 1) * registrosPorPagina;
         const paginados = tareasData.slice(start, start + registrosPorPagina);
         const tbody = document.getElementById('tareasBody');
-        if (!paginados.length) { tbody.innerHTML = '<tr><td colspan="8">No hay tareas</td></tr>'; return; }
+        if (!paginados.length) { tbody.innerHTML = '<tr><td colspan="8">No hay tareas</td><tr>'; return; }
         const estadoClass = { 'PENDIENTE': 'badge-pendiente', 'EN_CURSO': 'badge-curso', 'COMPLETADA': 'badge-completada', 'ACEPTADA': 'badge-aceptada', 'DESPLAZAMIENTO': 'badge-desplazamiento', 'SUSPENDIDA': 'badge-suspendida', 'CANCELADA': 'badge-cancelada' };
         const estadoTexto = { 'PENDIENTE': 'Pendiente', 'EN_CURSO': 'En curso', 'COMPLETADA': 'Completada', 'ACEPTADA': 'Aceptada', 'DESPLAZAMIENTO': 'Desplazamiento', 'SUSPENDIDA': 'Suspendida', 'CANCELADA': 'Cancelada' };
         tbody.innerHTML = paginados.map(t => `
-            <tr><td>${t.id.substring(0,12)}...</td><td>${t.tipo}</td><td>${t.activos?.nombre || '-'}</td><td>${t.perfiles?.nombre || '-'}</td><td>${t.fecha_asignacion}</td><td><span class="badge ${estadoClass[t.estado] || 'badge-pendiente'}">${estadoTexto[t.estado] || t.estado}</span></td>
-            <td><button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️</button> <button class="btn-sm btn-warning editar-tarea" data-id="${t.id}">✏️</button> <button class="btn-sm btn-danger eliminar-tarea" data-id="${t.id}">🗑️</button> <button class="btn-sm btn-info ver-detalle-completo" data-id="${t.id}" style="background:#6b21a5;">📋 Detalle</button></td>
-         </tr>`).join('');
+            <tr>
+                <td>${t.id.substring(0,12)}...</td>
+                <td>${t.tipo}</td>
+                <td>${t.activos?.nombre || '-'}</td>
+                <td>${t.perfiles?.nombre || '-'}</td>
+                <td>${t.fecha_asignacion}</td>
+                <td><span class="badge ${estadoClass[t.estado] || 'badge-pendiente'}">${estadoTexto[t.estado] || t.estado}</span></td>
+                <td><button class="btn-sm btn-info ver-tarea" data-id="${t.id}">👁️</button> <button class="btn-sm btn-warning editar-tarea" data-id="${t.id}">✏️</button> <button class="btn-sm btn-danger eliminar-tarea" data-id="${t.id}">🗑️</button> <button class="btn-sm btn-info ver-detalle-completo" data-id="${t.id}" style="background:#6b21a5;">📋 Detalle</button></td>
+            </tr>`).join('');
         document.querySelectorAll('.ver-tarea').forEach(btn => btn.onclick = () => verDetalleTarea(btn.dataset.id));
         document.querySelectorAll('.editar-tarea').forEach(btn => btn.onclick = () => editarTarea(btn.dataset.id));
         document.querySelectorAll('.eliminar-tarea').forEach(btn => btn.onclick = () => eliminarTarea(btn.dataset.id));
@@ -968,15 +951,15 @@
                 const { data: cliente } = await sb.from('empresas').select('nombre').eq('id', tarea.cliente_id).single();
                 if (cliente) clienteNombre = cliente.nombre;
             }
-            const { data: mediciones } = await sb.from('mediciones_dinamicas').select('*').eq('tarea_id', id).order('created_at', { ascending: false }).limit(1);
+            const { data: mediciones } = await sb.from('mediciones_dinamicas').select('*').eq('tarea_id', id).order('created_at', { ascending: true });
             const { data: materiales } = await sb.from('gastos_tarea').select('*').eq('tarea_id', id).eq('tipo_gasto', 'MATERIALES');
             const { data: seguimiento } = await sb.from('seguimiento_tareas').select('*').eq('tarea_id', id).order('inicio', { ascending: true });
+            const { data: adjuntos } = await sb.from('adjuntos_tarea').select('*').eq('tarea_id', id);
+
             let tiempoDesplazamiento = 0, tiempoTrabajo = 0;
-            if (seguimiento && seguimiento.length > 0) {
-                for (let ev of seguimiento) {
-                    if (ev.evento === 'LLEGADA' && ev.duracion_minutos) tiempoDesplazamiento += ev.duracion_minutos;
-                    if (ev.evento === 'FIN_TRABAJO' && ev.duracion_minutos) tiempoTrabajo += ev.duracion_minutos;
-                }
+            for (let ev of seguimiento) {
+                if (ev.evento === 'LLEGADA' && ev.duracion_minutos) tiempoDesplazamiento += ev.duracion_minutos;
+                if (ev.evento === 'FIN_TRABAJO' && ev.duracion_minutos) tiempoTrabajo += ev.duracion_minutos;
             }
             const formatTiempo = (minutos) => {
                 if (!minutos && minutos !== 0) return 'No registrado';
@@ -986,67 +969,122 @@
                 if (horas > 0) return `${horas}h`;
                 return `${mins}min`;
             };
-            let eventosHtml = '';
-            if (seguimiento && seguimiento.length > 0) {
-                let tempInicioDesplazamiento = null, tempInicioTrabajo = null;
-                for (let ev of seguimiento) {
-                    const fechaEvento = ev.inicio ? new Date(ev.inicio) : null;
-                    let duracionEvento = '';
-                    if (ev.evento === 'INICIO_DESPLAZAMIENTO') tempInicioDesplazamiento = fechaEvento;
-                    if (ev.evento === 'LLEGADA' && tempInicioDesplazamiento && fechaEvento) {
-                        const diffMin = Math.floor((fechaEvento - tempInicioDesplazamiento) / 1000 / 60);
-                        duracionEvento = ` (${diffMin} min)`;
-                        tempInicioDesplazamiento = null;
-                    }
-                    if (ev.evento === 'INICIO_TRABAJO') tempInicioTrabajo = fechaEvento;
-                    if (ev.evento === 'FIN_TRABAJO' && tempInicioTrabajo && fechaEvento) {
-                        const diffMin = Math.floor((fechaEvento - tempInicioTrabajo) / 1000 / 60);
-                        duracionEvento = ` (${diffMin} min)`;
-                        tempInicioTrabajo = null;
-                    }
-                    let eventoTexto = ev.evento === 'INICIO_DESPLAZAMIENTO' ? '🚗 Inicio desplazamiento' : ev.evento === 'LLEGADA' ? '📍 Llegada' : ev.evento === 'INICIO_TRABAJO' ? '⚙️ Inicio trabajo' : ev.evento === 'SUSPENSION' ? '⏸️ Suspendido' : ev.evento === 'REANUDACION' ? '▶️ Reanudado' : ev.evento === 'FIN_TRABAJO' ? '🏁 Fin trabajo' : ev.evento;
-                    eventosHtml += `<div class="tiempo-linea"><span class="tiempo-titulo">${eventoTexto}</span><span>${ev.inicio ? new Date(ev.inicio).toLocaleString('es-ES') : '-'}${duracionEvento}</span></div>`;
-                }
+            let eventosPorDia = new Map();
+            for (let ev of seguimiento) {
+                const fechaStr = ev.inicio ? ev.inicio.split('T')[0] : 'Sin fecha';
+                if (!eventosPorDia.has(fechaStr)) eventosPorDia.set(fechaStr, []);
+                eventosPorDia.get(fechaStr).push(ev);
             }
             let html = `<strong>📋 ID:</strong> ${tarea.id}<br><strong>🏢 Cliente:</strong> ${clienteNombre}<br><strong>🔧 Activo:</strong> ${tarea.activos?.nombre || '-'}<br><strong>📍 Dirección:</strong> ${tarea.activos?.direccion || ''} ${tarea.activos?.localidad || ''}<br><strong>📅 Fecha asignación:</strong> ${formatearFecha(tarea.fecha_asignacion)}<br>`;
             if (tarea.fecha_propuesta) html += `<strong>📅 Fecha propuesta:</strong> ${formatearFecha(tarea.fecha_propuesta)} a las ${tarea.hora_propuesta || '--:--'}<br>`;
             if (tarea.completada_en) html += `<strong>✅ Fecha finalización:</strong> ${new Date(tarea.completada_en).toLocaleString()}<br>`;
             html += `<hr><strong>⏱️ TIEMPOS TOTALES:</strong><br><div class="tiempo-linea"><span class="tiempo-titulo">🚗 Tiempo de desplazamiento:</span><span>${formatTiempo(tiempoDesplazamiento)}</span></div><div class="tiempo-linea"><span class="tiempo-titulo">⚙️ Tiempo de trabajo efectivo:</span><span>${formatTiempo(tiempoTrabajo)}</span></div>`;
-            if (eventosHtml) html += `<hr><strong>📋 REGISTRO DE EVENTOS:</strong><br>${eventosHtml}`;
-            html += `<hr><strong>📋 ORDEN DE TRABAJO:</strong><br><div class="detalle-info">${tarea.orden_trabajo || 'Sin instrucciones'}</div>`;
-            if (mediciones && mediciones[0]) {
-                html += `<strong>🔬 MEDICIONES REALIZADAS:</strong><br><div class="detalle-info">`;
-                const params = mediciones[0].parametros;
-                if (params.cloro) html += `Cloro: ${params.cloro} ppm<br>`;
-                if (params.ph) html += `pH: ${params.ph}<br>`;
-                if (params.temperatura) html += `Temperatura: ${params.temperatura} °C<br>`;
+            html += `<hr><strong>📋 REGISTRO POR DÍAS:</strong><br>`;
+            for (let [fecha, eventos] of eventosPorDia) {
+                html += `<div class="dia-group"><div class="dia-fecha">📅 ${fecha}</div>`;
+                for (let ev of eventos) {
+                    let eventoTexto = '';
+                    let duracionTexto = '';
+                    switch(ev.evento) {
+                        case 'INICIO_DESPLAZAMIENTO': eventoTexto = '🚗 Inicio desplazamiento'; break;
+                        case 'LLEGADA': eventoTexto = '📍 Llegada'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
+                        case 'INICIO_TRABAJO': eventoTexto = '⚙️ Inicio trabajo'; break;
+                        case 'SUSPENSION': eventoTexto = '⏸️ Suspensión'; break;
+                        case 'REANUDACION': eventoTexto = '▶️ Reanudación'; break;
+                        case 'FIN_TRABAJO': eventoTexto = '🏁 Fin trabajo'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
+                        default: eventoTexto = ev.evento;
+                    }
+                    const fechaHora = ev.inicio ? new Date(ev.inicio).toLocaleString('es-ES') : '-';
+                    html += `<div class="tiempo-linea"><span class="tiempo-titulo">${eventoTexto}</span><span>${fechaHora}${duracionTexto}</span></div>`;
+                }
+                let medicionesDia = mediciones.filter(m => m.created_at && m.created_at.split('T')[0] === fecha);
+                if (medicionesDia.length > 0) {
+                    html += `<div style="margin-top:8px;"><strong>🔬 Mediciones del día:</strong><br>`;
+                    for (let m of medicionesDia) {
+                        const params = m.parametros;
+                        html += `<small>📝 ${new Date(m.created_at).toLocaleTimeString()}</small><br>`;
+                        if (params.cloro) html += `Cloro: ${params.cloro} ppm<br>`;
+                        if (params.ph) html += `pH: ${params.ph}<br>`;
+                        if (params.temperatura) html += `Temperatura: ${params.temperatura} °C<br>`;
+                        if (params.altura) html += `Altura césped: ${params.altura} cm<br>`;
+                        if (params.observaciones) html += `Observaciones: ${params.observaciones}<br>`;
+                    }
+                    html += `</div>`;
+                }
                 html += `</div>`;
             }
             if (materiales && materiales.length > 0) {
-                html += `<strong>🧰 MATERIALES UTILIZADOS:</strong><br><div class="detalle-info">`;
-                materiales.forEach(m => html += `• ${m.descripcion}<br>`);
-                html += `</div>`;
+                let totalMateriales = 0;
+                html += `<hr><strong>🧰 MATERIALES UTILIZADOS:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px;">`;
+                materiales.forEach(m => { html += `• ${m.descripcion} - ${m.importe_total}€<br>`; totalMateriales += (m.importe_total || 0); });
+                html += `<strong>Total materiales: ${totalMateriales.toFixed(2)}€</strong>`;
+                html += `</div><br>`;
             }
-            if (tarea.nota_interna) html += `<strong>📝 NOTA INTERNA (técnico):</strong><br><div class="detalle-info">${tarea.nota_interna}</div>`;
-            if (tarea.nota_cliente) html += `<strong>📋 INFORME ENVIADO AL CLIENTE:</strong><br><div class="detalle-info">${tarea.nota_cliente}</div>`;
+            if (adjuntos && adjuntos.length > 0) {
+                html += `<hr><strong>📎 ADJUNTOS SUBIDOS POR EL TÉCNICO:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px;">`;
+                adjuntos.forEach(a => { html += `<div><a href="${a.url}" target="_blank">📄 ${a.nombre_archivo}</a> (${(a.tamano_bytes/1024).toFixed(1)} KB)</div>`; });
+                html += `</div><br>`;
+            }
+            html += `<hr><strong>📋 ORDEN DE TRABAJO:</strong><br><div class="detalle-info">${tarea.orden_trabajo || 'Sin instrucciones'}</div>`;
+            if (tarea.nota_interna) html += `<hr><strong>📝 NOTA INTERNA (técnico):</strong><br><div class="detalle-info">${tarea.nota_interna}</div>`;
+            if (tarea.nota_cliente) html += `<hr><strong>📋 INFORME ENVIADO AL CLIENTE:</strong><br><div class="detalle-info">${tarea.nota_cliente}</div>`;
             document.getElementById('detalleTareaGerenteContent').innerHTML = html;
             document.getElementById('modalDetalleTareaGerente').style.display = 'flex';
         } catch (error) { console.error("Error:", error); mostrarMensaje("Error al cargar el detalle completo", 'error'); }
     }
 
-    // Resto de funciones (cargarClientes, guardarCliente, cargarTecnicos, etc. - se mantienen igual)
+    // ==================== IA PARA ORDEN DE TRABAJO ====================
+    async function generarOrdenConIA() {
+        const clienteId = document.getElementById('tareaCliente').value;
+        const tipo = document.getElementById('tareaTipo').value;
+        const servicio = document.getElementById('tareaServicio').value;
+        const activoId = document.getElementById('tareaActivo').value;
+        const notas = document.getElementById('tareaNotasPresupuesto')?.value || '';
+        const ordenActual = document.getElementById('tareaOrden').value;
+        if (ordenActual.trim() !== "") {
+            const mejorar = confirm("Ya has escrito una orden. ¿Quieres que la IA la mejore o prefieres mantener la original?");
+            if (!mejorar) return;
+        }
+        if (!clienteId) { mostrarMensaje("❌ Selecciona un cliente primero", 'error'); return; }
+        const iaLoading = document.getElementById('iaLoading');
+        iaLoading.style.display = 'block';
+        try {
+            let nombreActivo = '';
+            if (activoId) {
+                const { data: activo } = await sb.from('activos').select('nombre').eq('id', activoId).single();
+                nombreActivo = activo?.nombre || '';
+            }
+            const textoBase = ordenActual.trim() !== "" ? ordenActual : (notas || `realizar ${tipo.toLowerCase()} del servicio de ${servicio.toLowerCase()} en ${nombreActivo || 'la instalación'}`);
+            const { data: sessionData } = await sb.auth.getSession();
+            const token = sessionData.session?.access_token;
+            if (!token) throw new Error("No hay sesión activa");
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/generar-orden-trabajo`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ tipo, servicio, activoNombre: nombreActivo, notas: textoBase })
+            });
+            const resultado = await response.json();
+            if (resultado.success) {
+                document.getElementById('tareaOrden').value = resultado.orden;
+                mostrarMensaje("✅ Orden mejorada con IA. Puedes seguir editándola si lo deseas.", 'exito');
+            } else throw new Error(resultado.error || "Error desconocido");
+        } catch (error) {
+            console.error("Error en IA:", error);
+            mostrarMensaje("❌ Error al conectar con la IA. Puedes escribir la orden manualmente.", 'error');
+        } finally { iaLoading.style.display = 'none'; }
+    }
+
+    // ==================== CLIENTES (CRUD) ====================
     async function cargarClientes() {
         const search = document.getElementById('buscadorCliente')?.value.toLowerCase() || '';
         const { data, error } = await sb.from('empresas').select('*').eq('created_by', currentUser.id).order('created_at', { ascending: false });
         if (error) return;
         const tbody = document.getElementById('clientesBody');
-        if (!data?.length) { tbody.innerHTML = '<td><td colspan="5">No hay clientes</td>'; }
-        else {
-            const filtrados = search ? data.filter(c => c.nombre?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search)) : data;
-            tbody.innerHTML = filtrados.map(c => `<tr><td>${c.nombre || '-'}</td><td>${c.email || '-'}</td><td>${c.telefono || '-'}</td><td>${c.nif || '-'}</td><td><button class="btn-sm btn-warning editar-cliente" data-id="${c.id}">✏️</button> <button class="btn-sm btn-danger eliminar-cliente" data-id="${c.id}" data-nombre="${c.nombre}">🗑️</button></td></tr>`).join('');
-        }
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5">No hay clientes</td></table>'; return; }
+        const filtrados = search ? data.filter(c => c.nombre?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search)) : data;
+        tbody.innerHTML = filtrados.map(c => `<tr><td>${c.nombre || '-'}</td><td>${c.email || '-'}</td><td>${c.telefono || '-'}</td><td>${c.nif || '-'}</td><td><button class="btn-sm btn-warning editar-cliente" data-id="${c.id}">✏️</button> <button class="btn-sm btn-danger eliminar-cliente" data-id="${c.id}" data-nombre="${c.nombre}">🗑️</button></td></tr>`).join('');
         const selectClienteActivo = document.getElementById('selectorClienteActivo');
         if (selectClienteActivo && data) selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + data.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+        asignarEventosEditarCliente();
     }
 
     async function guardarCliente() {
@@ -1066,11 +1104,17 @@
         finally { btn.innerHTML = '💾 Guardar cliente'; btn.disabled = false; }
     }
 
+    function asignarEventosEditarCliente() { document.querySelectorAll('.editar-cliente').forEach(btn => btn.onclick = () => abrirModalEditarCliente(btn.dataset.id)); }
+    window.abrirModalEditarCliente = async (id) => { const { data: c } = await sb.from('empresas').select('*').eq('id', id).single(); if (!c) return; document.getElementById('editClienteId').value = c.id; document.getElementById('editClienteNombre').value = c.nombre || ''; document.getElementById('editClienteEmail').value = c.email || ''; document.getElementById('editClienteNif').value = c.nif || ''; document.getElementById('editClienteTelefono').value = c.telefono || ''; document.getElementById('editClienteCalle').value = c.calle || ''; document.getElementById('editClienteNumero').value = c.numero || ''; document.getElementById('editClientePiso').value = c.piso || ''; document.getElementById('editClienteCp').value = c.codigo_postal || ''; document.getElementById('editClienteCiudad').value = c.ciudad || ''; document.getElementById('editClienteProvincia').value = c.provincia || ''; document.getElementById('editClienteContacto').value = c.contacto_nombre || ''; document.getElementById('editClienteCargo').value = c.contacto_cargo || ''; document.getElementById('editClienteIban').value = c.iban || ''; document.getElementById('editClienteBanco').value = c.banco || ''; document.getElementById('editClienteTipo').value = c.tipo_cliente || 'empresa'; document.getElementById('editClienteFechaAlta').value = c.fecha_alta || ''; document.getElementById('modalEditarCliente').style.display = 'flex'; };
+    document.getElementById('btnGuardarEdicionCliente').onclick = async () => { const id = document.getElementById('editClienteId').value; const { error } = await sb.from('empresas').update({ nombre: document.getElementById('editClienteNombre').value, email: document.getElementById('editClienteEmail').value, nif: document.getElementById('editClienteNif').value || null, telefono: document.getElementById('editClienteTelefono').value || null, calle: document.getElementById('editClienteCalle').value || null, numero: document.getElementById('editClienteNumero').value || null, piso: document.getElementById('editClientePiso').value || null, codigo_postal: document.getElementById('editClienteCp').value || null, ciudad: document.getElementById('editClienteCiudad').value || null, provincia: document.getElementById('editClienteProvincia').value || null, contacto_nombre: document.getElementById('editClienteContacto').value || null, contacto_cargo: document.getElementById('editClienteCargo').value || null, iban: document.getElementById('editClienteIban').value || null, banco: document.getElementById('editClienteBanco').value || null, tipo_cliente: document.getElementById('editClienteTipo').value, fecha_alta: document.getElementById('editClienteFechaAlta').value || null }).eq('id', id); if (error) mostrarMensaje("Error: " + error.message, 'error'); else { mostrarMensaje("✅ Cliente actualizado"); document.getElementById('modalEditarCliente').style.display = 'none'; cargarClientes(); } };
+    document.getElementById('btnCancelarEdicionCliente').onclick = () => document.getElementById('modalEditarCliente').style.display = 'none';
+
+    // ==================== ACTIVOS (clientes) ====================
     async function cargarActivosCliente(clienteId) {
         if (!clienteId) return;
         const { data } = await sb.from('activos').select('*').eq('empresa_id', clienteId).order('nombre');
         const tbody = document.getElementById('activosClienteBody');
-        if (!data?.length) { tbody.innerHTML = '<td><td colspan="5">No hay activos para este cliente</td>'; return; }
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5">No hay activos para este cliente</td></td>'; return; }
         tbody.innerHTML = data.map(a => `<tr><td>${a.nombre}</td><td>${a.direccion || ''} ${a.numero || ''} ${a.piso || ''} ${a.localidad || ''}</td><td>${a.persona_contacto || '-'}</td><td><span class="badge badge-activo">${a.tipo_servicio}</span></td><td><button class="btn-sm btn-warning editar-activo" data-id="${a.id}">✏️</button> <button class="btn-sm btn-danger eliminar-activo" data-id="${a.id}" data-nombre="${a.nombre}">🗑️</button></td></tr>`).join('');
         document.querySelectorAll('.editar-activo').forEach(btn => btn.onclick = () => abrirModalEditarActivo(btn.dataset.id));
         document.querySelectorAll('.eliminar-activo').forEach(btn => btn.onclick = async () => { if(confirm(`¿Eliminar activo "${btn.dataset.nombre}"?`)) { await sb.from('activos').delete().eq('id', btn.dataset.id); cargarActivosCliente(clienteId); mostrarMensaje("✅ Activo eliminado"); } });
@@ -1120,15 +1164,18 @@
         const clienteId = document.getElementById('selectorClienteActivo').value;
         if (clienteId) cargarActivosCliente(clienteId);
     }
+    document.getElementById('btnGuardarEdicionActivo').onclick = guardarEdicionActivo;
+    document.getElementById('btnCancelarEdicionActivo').onclick = () => document.getElementById('modalEditarActivo').style.display = 'none';
 
+    // ==================== TÉCNICOS ====================
     async function cargarTecnicos() {
         const { data, error } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico').order('nombre');
         if (error) return;
         const tbody = document.getElementById('tecnicosBody');
-        if (!data?.length) { tbody.innerHTML = '<td><td colspan="6">No hay técnicos</td>'; return; }
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6">No hay técnicos</td></tr>'; return; }
         const internos = data.filter(t => !t.tipo_externo), externos = data.filter(t => t.tipo_externo);
         let html = '';
-        if (internos.length > 0) { html += `<tr style="background:#e8f4e8;"><td colspan="6"><strong>👨‍🔧 TÉCNICOS INTERNOS</strong></td></tr>`; html += internos.map(t => `<tr><td>${t.nombre || t.nick}</td><td>${t.nif || '-'}</td><td>${t.email}</td><td>${t.telefono || '-'}</td><td><span class="badge badge-activo">Activo</span></td><td><button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button> <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td></tr>`).join(''); }
+        if (internos.length > 0) { html += `<tr style="background:#e8f4e8;"><td colspan="6"><strong>👨‍🔧 TÉCNICOS INTERNOS</strong></td><tr>`; html += internos.map(t => `<tr><td>${t.nombre || t.nick}</td><td>${t.nif || '-'}</td><td>${t.email}</td><td>${t.telefono || '-'}</td><td><span class="badge badge-activo">Activo</span></td><td><button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button> <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td></tr>`).join(''); }
         if (externos.length > 0) { html += `<tr style="background:#fef3c7;"><td colspan="6"><strong>🔄 TÉCNICOS EXTERNOS</strong></td></tr>`; html += externos.map(t => `<tr><td>${t.nombre || t.nick}</td><td>${t.nif || '-'}</td><td>${t.email}</td><td>${t.telefono || '-'}</td><td><span class="badge badge-externo">Externo</span></td><td><button class="btn-sm btn-warning btn-editar-tecnico" data-id="${t.id}">✏️</button> <button class="btn-sm btn-danger btn-eliminar-tecnico" data-id="${t.id}" data-nombre="${t.nombre}">🗑️</button></td></tr>`).join(''); }
         tbody.innerHTML = html;
         document.querySelectorAll('.btn-editar-tecnico').forEach(btn => btn.onclick = () => abrirModalEditarTecnico(btn.dataset.id));
@@ -1189,6 +1236,167 @@
         finally { btn.innerHTML = '✅ Dar de alta técnico'; btn.disabled = false; }
     }
 
+    // ==================== EXTERNOS ====================
+    async function cargarExternos() { 
+        const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico').not('tipo_externo', 'is', null); 
+        const tbody = document.getElementById('externosBody'); 
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6">No hay personal externo</td></tr>'; return; } 
+        tbody.innerHTML = data.map(e => `<tr><td>${e.nombre || '-'}</td><td>${e.nif || '-'}</td><td>${e.email || '-'}</td><td>${e.telefono || '-'}</td><td><span class="badge badge-externo">${e.tipo_externo === 'empresa' ? '🏭 Empresa' : '👤 Autónomo'}</span></td><td><button class="btn-sm btn-warning editar-externo" data-id="${e.id}">✏️</button> <button class="btn-sm btn-danger eliminar-externo" data-id="${e.id}" data-nombre="${e.nombre}">🗑️</button></td></tr>`).join(''); 
+        document.querySelectorAll('.editar-externo').forEach(btn => btn.onclick = () => abrirModalEditarExterno(btn.dataset.id)); 
+        document.querySelectorAll('.eliminar-externo').forEach(btn => btn.onclick = async () => { if (confirm(`¿Eliminar externo "${btn.dataset.nombre}"?`)) { await sb.from('perfiles').delete().eq('id', btn.dataset.id); cargarExternos(); mostrarMensaje("✅ Externo eliminado"); } }); 
+    }
+
+    async function crearExterno() { 
+        const nombre = document.getElementById('externoNombre').value.trim(), email = document.getElementById('externoEmail').value.trim(), password = document.getElementById('externoPassword').value, telefono = document.getElementById('externoTelefono').value.trim(), nif = document.getElementById('externoNif').value.trim(), direccion = document.getElementById('externoDireccion').value.trim(), tipoExterno = document.getElementById('externoTipo').value, especialidad = document.getElementById('externoEspecialidad').value, iban = document.getElementById('externoIban').value.trim(), banco = document.getElementById('externoBanco').value.trim(); 
+        if (!nombre || !email || !password || password.length < 6) { mostrarMensaje("❌ Nombre, email y contraseña (mínimo 6 caracteres) son obligatorios", 'error'); return; } 
+        const btn = document.getElementById('btnCrearExterno'); btn.innerHTML = '<span class="spinner"></span> Creando...'; btn.disabled = true; 
+        try { 
+            const { data: { session } } = await sb.auth.getSession(); 
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ email, password, nombre, empresa_id: currentEmpresaId, rol: 'externo' }) }); 
+            const resultado = await response.json(); 
+            if (!resultado.success) throw new Error(resultado.error); 
+            const { error: updateError } = await sb.from('perfiles').update({ telefono, nif, direccion, tipo_externo: tipoExterno, especialidad, iban, banco }).eq('id', resultado.user_id); 
+            if (updateError) throw updateError; 
+            mostrarMensaje(`✅ Externo ${nombre} creado correctamente`); 
+            ['externoNombre','externoEmail','externoPassword','externoTelefono','externoNif','externoDireccion','externoIban','externoBanco'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); 
+            cargarExternos(); cargarStats(); 
+        } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); } 
+        finally { btn.innerHTML = '✅ Dar de alta externo'; btn.disabled = false; } 
+    }
+
+    async function abrirModalEditarExterno(id) { 
+        const { data: e } = await sb.from('perfiles').select('*').eq('id', id).single(); 
+        if (!e) return; 
+        document.getElementById('editExternoId').value = e.id; 
+        document.getElementById('editExternoNombre').value = e.nombre || ''; 
+        document.getElementById('editExternoEmail').value = e.email || ''; 
+        document.getElementById('editExternoTelefono').value = e.telefono || ''; 
+        document.getElementById('editExternoNif').value = e.nif || ''; 
+        document.getElementById('editExternoDireccion').value = e.direccion || ''; 
+        document.getElementById('editExternoTipo').value = e.tipo_externo || 'autonomo'; 
+        document.getElementById('editExternoEspecialidad').value = e.especialidad || 'OTRO'; 
+        document.getElementById('editExternoIban').value = e.iban || ''; 
+        document.getElementById('modalEditarExterno').style.display = 'flex'; 
+    }
+
+    async function guardarEdicionExterno() { 
+        const id = document.getElementById('editExternoId').value; 
+        const { error } = await sb.from('perfiles').update({ nombre: document.getElementById('editExternoNombre').value, email: document.getElementById('editExternoEmail').value, telefono: document.getElementById('editExternoTelefono').value || null, nif: document.getElementById('editExternoNif').value || null, direccion: document.getElementById('editExternoDireccion').value || null, tipo_externo: document.getElementById('editExternoTipo').value, especialidad: document.getElementById('editExternoEspecialidad').value, iban: document.getElementById('editExternoIban').value || null }).eq('id', id); 
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; } 
+        mostrarMensaje("✅ Externo actualizado"); 
+        document.getElementById('modalEditarExterno').style.display = 'none'; 
+        cargarExternos(); 
+    }
+    document.getElementById('btnGuardarEdicionExterno').onclick = guardarEdicionExterno;
+    document.getElementById('btnCancelarEdicionExterno').onclick = () => document.getElementById('modalEditarExterno').style.display = 'none';
+    document.getElementById('btnCrearExterno').onclick = crearExterno;
+
+    // ==================== PRODUCTOS (Tab independiente) ====================
+    async function cargarProductos() {
+        const servicio = document.getElementById('filtroServicioProducto')?.value || '';
+        let query = sb.from('productos').select('*').eq('empresa_id', currentEmpresaId);
+        if (servicio) query = query.eq('servicio_tipo', servicio);
+        const { data, error } = await query.order('nombre');
+        if (error) { console.error(error); return; }
+        const tbody = document.getElementById('productosBody');
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="5">No hay productos registrados</td></tr>'; return; }
+        tbody.innerHTML = data.map(p => `
+            <tr>
+                <td>${p.servicio_tipo}</td>
+                <td>${p.nombre}</td>
+                <td>${p.unidad}</td>
+                <td>${p.precio} €</td>
+                <td><button class="btn-sm btn-warning editar-producto" data-id="${p.id}">✏️</button> <button class="btn-sm btn-danger eliminar-producto" data-id="${p.id}" data-nombre="${p.nombre}">🗑️</button></td>
+            </tr>
+        `).join('');
+        document.querySelectorAll('.editar-producto').forEach(btn => btn.onclick = () => abrirModalProducto(btn.dataset.id));
+        document.querySelectorAll('.eliminar-producto').forEach(btn => btn.onclick = async () => { if (confirm(`¿Eliminar producto "${btn.dataset.nombre}"?`)) { await sb.from('productos').delete().eq('id', btn.dataset.id); cargarProductos(); mostrarMensaje("✅ Producto eliminado"); } });
+    }
+
+    async function abrirModalProducto(id = null) {
+        if (id) {
+            const { data } = await sb.from('productos').select('*').eq('id', id).single();
+            if (data) {
+                document.getElementById('modalProductoTitulo').innerHTML = '✏️ Editar producto';
+                document.getElementById('productoId').value = data.id;
+                document.getElementById('productoServicio').value = data.servicio_tipo;
+                document.getElementById('productoNombre').value = data.nombre;
+                document.getElementById('productoUnidad').value = data.unidad;
+                document.getElementById('productoPrecio').value = data.precio;
+            }
+        } else {
+            document.getElementById('modalProductoTitulo').innerHTML = '➕ Nuevo producto';
+            document.getElementById('productoId').value = '';
+            document.getElementById('productoServicio').value = 'PISCINA';
+            document.getElementById('productoNombre').value = '';
+            document.getElementById('productoUnidad').value = '';
+            document.getElementById('productoPrecio').value = '';
+        }
+        document.getElementById('modalProducto').style.display = 'flex';
+    }
+
+    async function guardarProducto() {
+        const id = document.getElementById('productoId').value;
+        const datos = {
+            empresa_id: currentEmpresaId,
+            servicio_tipo: document.getElementById('productoServicio').value,
+            nombre: document.getElementById('productoNombre').value.trim(),
+            unidad: document.getElementById('productoUnidad').value.trim(),
+            precio: parseFloat(document.getElementById('productoPrecio').value) || 0
+        };
+        if (!datos.nombre) { mostrarMensaje("❌ Nombre del producto obligatorio", 'error'); return; }
+        let error;
+        if (id) {
+            const { error: err } = await sb.from('productos').update(datos).eq('id', id);
+            error = err;
+        } else {
+            const { error: err } = await sb.from('productos').insert(datos);
+            error = err;
+        }
+        if (error) { mostrarMensaje("Error al guardar: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Producto guardado", 'exito');
+        document.getElementById('modalProducto').style.display = 'none';
+        cargarProductos();
+    }
+
+    // ==================== GASTOS ====================
+    async function cargarGastos() {
+        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
+        document.getElementById('gastosPendientesBody').innerHTML = pendientes?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td><td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td></tr>`).join('') || '<tr><td colspan="7">No hay gastos pendientes</td></tr>';
+        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
+        document.getElementById('gastosAprobadosBody').innerHTML = aprobados?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td><td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></td></tr>`).join('') || '<tr><td colspan="7">No hay gastos procesados</td></tr>';
+        document.querySelectorAll('.aprobar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("✅ Gasto aprobado"); });
+        document.querySelectorAll('.rechazar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'RECHAZADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("❌ Gasto rechazado"); });
+    }
+
+    // ==================== FACTURAS ====================
+    async function cargarFacturas() {
+        const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId);
+        const tbody = document.getElementById('facturasBody');
+        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7">No hay facturas</td></tr>'; return; }
+        tbody.innerHTML = data.map(f => `<tr><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.concepto || '-'}</td><td>${f.total}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></td></tr>`).join('');
+        document.querySelectorAll('.toggle-factura').forEach(btn => btn.onclick = async () => { const pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', btn.dataset.id); cargarFacturas(); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); });
+    }
+
+    async function crearFactura() {
+        const clienteId = document.getElementById('facturaCliente').value;
+        if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
+        const importe = parseFloat(document.getElementById('facturaImporte').value);
+        if (isNaN(importe)) { mostrarMensaje("Importe inválido", 'error'); return; }
+        const { error } = await sb.from('facturas').insert({ empresa_id: clienteId, numero: `F${Date.now()}`, fecha: document.getElementById('facturaFecha').value, concepto: document.getElementById('facturaConcepto').value, total: importe, subtotal: importe / 1.21, iva: importe - (importe / 1.21), pagada: false });
+        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
+        mostrarMensaje("✅ Factura creada");
+        cargarFacturas();
+    }
+
+    // ==================== EXPORTAR ====================
+    async function exportarTareasPDF() {
+        const { data } = await sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId);
+        const html = `<html><body><h2>Reporte de Tareas</h2><pre>${JSON.stringify(data, null, 2)}</pre></body></html>`;
+        html2pdf().set({ margin: 10, filename: `tareas_${new Date().toISOString().split('T')[0]}.pdf` }).from(html).save();
+    }
+
+    // ==================== PLANTILLAS Y AUXILIARES ====================
     async function cargarActivos() {
         const clienteId = document.getElementById('tareaCliente')?.value;
         if (clienteId) { await cargarActivosPorCliente(clienteId); }
@@ -1208,52 +1416,26 @@
         if (select && data) select.innerHTML = '<option value="">-- Seleccionar plantilla --</option>' + data.map(p => `<option value="${p.contenido.replace(/"/g, '&quot;')}">${p.nombre_plantilla}</option>`).join('');
     }
 
-    async function cargarGastos() {
-        const { data: pendientes } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).eq('estado', 'PENDIENTE');
-        document.getElementById('gastosPendientesBody').innerHTML = pendientes?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td><td><button class="btn-sm btn-success aprobar-gasto" data-id="${g.id}">✅ Aprobar</button> <button class="btn-sm btn-danger rechazar-gasto" data-id="${g.id}">❌ Rechazar</button></td></tr>`).join('') || '<tr><td colspan="7">No hay gastos pendientes</tr>';
-        const { data: aprobados } = await sb.from('gastos_tarea').select('*, tareas!inner(cliente_id, activos(nombre)), perfiles!tecnico_id(nombre)').eq('tareas.cliente_id', currentEmpresaId).in('estado', ['APROBADO', 'RECHAZADO']);
-        document.getElementById('gastosAprobadosBody').innerHTML = aprobados?.map(g => `<tr><td>${g.fecha_gasto}</td><td>${g.tareas?.activos?.nombre || '-'}</td><td>${g.tipo_gasto}</td><td>${g.descripcion}</td><td>${g.importe_total}€</td><td>${g.perfiles?.nombre || '-'}</td><td><span class="badge ${g.estado === 'APROBADO' ? 'badge-completada' : 'badge-pendiente'}">${g.estado}</span></tr>`).join('') || '<tr><td colspan="7">No hay gastos procesados</tr>';
-        document.querySelectorAll('.aprobar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'APROBADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("✅ Gasto aprobado"); });
-        document.querySelectorAll('.rechazar-gasto').forEach(btn => btn.onclick = async () => { await sb.from('gastos_tarea').update({ estado: 'RECHAZADO' }).eq('id', btn.dataset.id); cargarGastos(); mostrarMensaje("❌ Gasto rechazado"); });
+    async function cargarClientesParaTarea() { 
+        const { data: clientes } = await sb.from('empresas').select('id, nombre').eq('created_by', currentUser.id).eq('activo', true).order('nombre'); 
+        const select = document.getElementById('tareaCliente'); 
+        if (select) { if (clientes && clientes.length > 0) select.innerHTML = '<option value="">-- Seleccionar cliente --</option>' + clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join(''); else select.innerHTML = '<option value="">-- No hay clientes disponibles --</option>'; } 
     }
 
-    async function cargarFacturas() {
-        const { data } = await sb.from('facturas').select('*, empresas(nombre)').eq('empresa_id', currentEmpresaId);
-        const tbody = document.getElementById('facturasBody');
-        if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7">No hay facturas</tr>'; return; }
-        tbody.innerHTML = data.map(f => `<td><td>${f.numero}</td><td>${f.empresas?.nombre || '-'}</td><td>${f.fecha}</td><td>${f.concepto || '-'}</td><td>${f.total}€</td><td><span class="badge ${f.pagada ? 'badge-pagada' : 'badge-pendiente'}">${f.pagada ? 'Pagada' : 'Pendiente'}</span></td><td><button class="btn-sm btn-info toggle-factura" data-id="${f.id}" data-pagada="${f.pagada}">${f.pagada ? '❌' : '✅'}</button></tr>`).join('');
-        document.querySelectorAll('.toggle-factura').forEach(btn => btn.onclick = async () => { const pagada = btn.dataset.pagada === 'true'; await sb.from('facturas').update({ pagada: !pagada }).eq('id', btn.dataset.id); cargarFacturas(); mostrarMensaje(pagada ? 'Marcada pendiente' : 'Marcada pagada'); });
-    }
-
-    async function crearFactura() {
-        const clienteId = document.getElementById('facturaCliente').value;
-        if (!clienteId) { mostrarMensaje("Selecciona un cliente", 'error'); return; }
-        const importe = parseFloat(document.getElementById('facturaImporte').value);
-        if (isNaN(importe)) { mostrarMensaje("Importe inválido", 'error'); return; }
-        const { error } = await sb.from('facturas').insert({ empresa_id: clienteId, numero: `F${Date.now()}`, fecha: document.getElementById('facturaFecha').value, concepto: document.getElementById('facturaConcepto').value, total: importe, subtotal: importe / 1.21, iva: importe - (importe / 1.21), pagada: false });
-        if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; }
-        mostrarMensaje("✅ Factura creada");
-        cargarFacturas();
-    }
-
-    async function exportarTareasPDF() {
-        const { data } = await sb.from('tareas').select('*, activos(nombre), perfiles!tecnico_id(nombre)').eq('cliente_id', currentEmpresaId);
-        const html = `<html><body><h2>Reporte de Tareas</h2><pre>${JSON.stringify(data, null, 2)}</pre></body></html>`;
-        html2pdf().set({ margin: 10, filename: `tareas_${new Date().toISOString().split('T')[0]}.pdf` }).from(html).save();
-    }
-
+    // ==================== NAVEGACIÓN Y TABS ====================
     function inicializarTabs() {
-        document.querySelectorAll('.tab').forEach(tab => { tab.onclick = () => { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabExternos', 'tabGastos', 'tabFacturas', 'tabExportar']; tabIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; }); const tabId = tab.dataset.tab, tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1); const tabElement = document.getElementById(tabName); if (tabElement) tabElement.style.display = 'block'; if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); } if (tabId === 'clientes') cargarClientes(); if (tabId === 'personal') cargarTecnicos(); if (tabId === 'externos') cargarExternos(); if (tabId === 'gastos') cargarGastos(); if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); } }; });
+        document.querySelectorAll('.tab').forEach(tab => { tab.onclick = () => { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); const tabIds = ['tabTareas', 'tabClientes', 'tabPersonal', 'tabExternos', 'tabProductos', 'tabGastos', 'tabFacturas', 'tabExportar']; tabIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; }); const tabId = tab.dataset.tab, tabName = 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1); const tabElement = document.getElementById(tabName); if (tabElement) tabElement.style.display = 'block'; if (tabId === 'tareas') { cargarTareas(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); } if (tabId === 'clientes') cargarClientes(); if (tabId === 'personal') cargarTecnicos(); if (tabId === 'externos') cargarExternos(); if (tabId === 'productos') cargarProductos(); if (tabId === 'gastos') cargarGastos(); if (tabId === 'facturas') { cargarFacturas(); cargarClientes(); } }; });
         document.querySelectorAll('#tabTareas .sub-tab').forEach(sub => { sub.onclick = () => { document.querySelectorAll('#tabTareas .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; document.querySelectorAll('#tabTareas [id^="sub"]').forEach(s => s.style.display = 'none'); document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block'; if (subId === 'crearTarea') { cargarClientesParaTarea(); cargarActivos(); cargarTecnicos(); cargarPlantillas(); } }; });
-        document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => { sub.onclick = async () => { document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none'); document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block'; if (subId === 'activosCliente') { const { data: clientes } = await sb.from('empresas').select('id, nombre').eq('created_by', currentUser.id); const selectClienteActivo = document.getElementById('selectorClienteActivo'); if (selectClienteActivo) { if (clientes && clientes.length > 0) selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join(''); else selectClienteActivo.innerHTML = '<option value="">-- No hay clientes --</option>'; } document.getElementById('activosClienteBody').innerHTML = '<tr><td colspan="5">Selecciona un cliente para ver sus activos</tr>'; document.getElementById('clienteSeleccionadoInfo').style.display = 'none'; document.getElementById('formNuevoActivo').style.display = 'none'; } }; });
+        document.querySelectorAll('#tabClientes .sub-tab').forEach(sub => { sub.onclick = async () => { document.querySelectorAll('#tabClientes .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; document.querySelectorAll('#tabClientes [id^="sub"]').forEach(s => s.style.display = 'none'); document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block'; if (subId === 'activosCliente') { const { data: clientes } = await sb.from('empresas').select('id, nombre').eq('created_by', currentUser.id); const selectClienteActivo = document.getElementById('selectorClienteActivo'); if (selectClienteActivo) { if (clientes && clientes.length > 0) selectClienteActivo.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join(''); else selectClienteActivo.innerHTML = '<option value="">-- No hay clientes --</option>'; } document.getElementById('activosClienteBody').innerHTML = '<tr><td colspan="5">Selecciona un cliente para ver sus activos</td></tr>'; document.getElementById('clienteSeleccionadoInfo').style.display = 'none'; document.getElementById('formNuevoActivo').style.display = 'none'; } }; });
         document.querySelectorAll('#tabPersonal .sub-tab').forEach(sub => { sub.onclick = () => { document.querySelectorAll('#tabPersonal .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; if (subId === 'listaTecnicos') { document.getElementById('subListaTecnicos').style.display = 'block'; document.getElementById('subCrearTecnico').style.display = 'none'; cargarTecnicos(); } else if (subId === 'crearTecnico') { document.getElementById('subListaTecnicos').style.display = 'none'; document.getElementById('subCrearTecnico').style.display = 'block'; } }; });
         document.querySelectorAll('#tabExternos .sub-tab').forEach(sub => { sub.onclick = () => { document.querySelectorAll('#tabExternos .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; if (subId === 'listaExternos') { document.getElementById('subListaExternos').style.display = 'block'; document.getElementById('subCrearExterno').style.display = 'none'; cargarExternos(); } else if (subId === 'crearExterno') { document.getElementById('subListaExternos').style.display = 'none'; document.getElementById('subCrearExterno').style.display = 'block'; } }; });
         document.querySelectorAll('#tabGastos .sub-tab').forEach(sub => { sub.onclick = () => { document.querySelectorAll('#tabGastos .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; document.querySelectorAll('#tabGastos [id^="sub"]').forEach(s => s.style.display = 'none'); document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block'; cargarGastos(); }; });
-        document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => { sub.onclick = () => { document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none'); document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block'; if (subId === 'crearFactura') cargarClientes(); }; });
+        document.querySelectorAll('#tabFacturas .sub-tab').forEach(sub => { sub.onclick = () => { document.querySelectorAll('#tabFacturas .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; document.querySelectorAll('#tabFacturas [id^="sub"]').forEach(s => s.style.display = 'none'); document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block'; if (subId === 'crearFactura') cargarClientesParaTarea(); }; });
         document.querySelectorAll('#tabExportar .sub-tab').forEach(sub => { sub.onclick = () => { document.querySelectorAll('#tabExportar .sub-tab').forEach(s => s.classList.remove('active')); sub.classList.add('active'); const subId = sub.dataset.sub; document.querySelectorAll('#tabExportar [id^="sub"]').forEach(s => s.style.display = 'none'); document.getElementById(`sub${subId.charAt(0).toUpperCase() + subId.slice(1)}`).style.display = 'block'; }; });
     }
 
-    document.getElementById('btnLogin').onclick = async () => { if (await hacerLogin()) { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; inicializarTabs(); await cargarStats(); await cargarTareas(); await cargarActivos(); await cargarTecnicos(); await cargarClientes(); await cargarGastos(); await cargarFacturas(); await cargarPlantillas(); await cargarExternos(); } };
+    // ==================== EVENTOS PRINCIPALES ====================
+    document.getElementById('btnLogin').onclick = async () => { if (await hacerLogin()) { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; inicializarTabs(); await cargarStats(); await cargarTareas(); await cargarActivos(); await cargarTecnicos(); await cargarClientes(); await cargarGastos(); await cargarFacturas(); await cargarPlantillas(); await cargarExternos(); await cargarProductos(); } };
     document.getElementById('btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
     document.getElementById('btnFiltrarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
     document.getElementById('btnRefrescarTareas').onclick = () => { paginaTareas = 1; cargarTareas(); };
@@ -1266,42 +1448,24 @@
     document.getElementById('btnCrearFactura').onclick = crearFactura;
     document.getElementById('btnExportarTareasPDF').onclick = exportarTareasPDF;
     document.getElementById('btnGenerarBackup').onclick = () => mostrarMensaje("Backup generado", 'exito');
-    document.getElementById('btnGuardarEdicionCliente').onclick = async () => { const id = document.getElementById('editClienteId').value; const { error } = await sb.from('empresas').update({ nombre: document.getElementById('editClienteNombre').value, email: document.getElementById('editClienteEmail').value, nif: document.getElementById('editClienteNif').value || null, telefono: document.getElementById('editClienteTelefono').value || null, calle: document.getElementById('editClienteCalle').value || null, numero: document.getElementById('editClienteNumero').value || null, piso: document.getElementById('editClientePiso').value || null, codigo_postal: document.getElementById('editClienteCp').value || null, ciudad: document.getElementById('editClienteCiudad').value || null, provincia: document.getElementById('editClienteProvincia').value || null, contacto_nombre: document.getElementById('editClienteContacto').value || null, contacto_cargo: document.getElementById('editClienteCargo').value || null, iban: document.getElementById('editClienteIban').value || null, banco: document.getElementById('editClienteBanco').value || null, tipo_cliente: document.getElementById('editClienteTipo').value, fecha_alta: document.getElementById('editClienteFechaAlta').value || null }).eq('id', id); if (error) { mostrarMensaje("Error: " + error.message, 'error'); } else { mostrarMensaje("✅ Cliente actualizado"); document.getElementById('modalEditarCliente').style.display = 'none'; cargarClientes(); } };
-    document.getElementById('btnCancelarEdicionCliente').onclick = () => document.getElementById('modalEditarCliente').style.display = 'none';
+    document.getElementById('btnSincronizarProductos').onclick = cargarProductos;
+    document.getElementById('btnNuevoProducto').onclick = () => abrirModalProducto();
+    document.getElementById('btnGuardarProducto').onclick = guardarProducto;
+    document.getElementById('btnCancelarProducto').onclick = () => document.getElementById('modalProducto').style.display = 'none';
+    document.getElementById('filtroServicioProducto').addEventListener('change', () => cargarProductos());
+
+    document.getElementById('btnGuardarEdicionTarea').onclick = guardarEdicionTarea;
+    document.getElementById('btnCancelarEdicionTarea').onclick = () => document.getElementById('modalEditarTarea').style.display = 'none';
+    document.getElementById('btnCerrarDetalleGerente').onclick = () => document.getElementById('modalDetalleTareaGerente').style.display = 'none';
     document.getElementById('btnGuardarEdicionCompleta').onclick = guardarEdicionTecnico;
     document.getElementById('btnCancelarEdicionCompleta').onclick = () => document.getElementById('modalEditarTecnicoCompleto').style.display = 'none';
-    document.getElementById('btnGuardarEdicionActivo').onclick = guardarEdicionActivo;
-    document.getElementById('btnCancelarEdicionActivo').onclick = () => document.getElementById('modalEditarActivo').style.display = 'none';
-    document.getElementById('btnGuardarEdicionExterno').onclick = guardarEdicionExterno;
-    document.getElementById('btnCancelarEdicionExterno').onclick = () => document.getElementById('modalEditarExterno').style.display = 'none';
-    document.getElementById('btnCrearExterno').onclick = crearExterno;
     document.getElementById('btnCargarActivosCliente').onclick = () => { const clienteId = document.getElementById('selectorClienteActivo').value; if (clienteId) { cargarActivosCliente(clienteId); document.getElementById('clienteSeleccionadoInfo').style.display = 'block'; document.getElementById('clienteSeleccionadoNombre').innerHTML = document.getElementById('selectorClienteActivo').options[document.getElementById('selectorClienteActivo').selectedIndex]?.text || ''; } else { mostrarMensaje("Selecciona un cliente", 'error'); } };
     document.getElementById('btnMostrarFormActivo').onclick = () => { document.getElementById('formNuevoActivo').style.display = 'block'; };
     document.getElementById('btnGuardarActivoCliente').onclick = guardarActivoCliente;
     document.getElementById('btnCancelarFormActivo').onclick = () => { document.getElementById('formNuevoActivo').style.display = 'none'; };
     document.getElementById('tareaTipo').addEventListener('change', function() { const campos = document.getElementById('camposPresupuesto'); if (campos) campos.style.display = this.value === 'PRESUPUESTO' ? 'block' : 'none'; });
-    document.getElementById('btnGuardarEdicionTarea').onclick = guardarEdicionTarea;
-    document.getElementById('btnCancelarEdicionTarea').onclick = () => document.getElementById('modalEditarTarea').style.display = 'none';
-    document.getElementById('btnCerrarDetalleGerente').onclick = () => document.getElementById('modalDetalleTareaGerente').style.display = 'none';
     window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
-
-    window.abrirModalEditarCliente = async (id) => { const { data: c } = await sb.from('empresas').select('*').eq('id', id).single(); if (!c) return; document.getElementById('editClienteId').value = c.id; document.getElementById('editClienteNombre').value = c.nombre || ''; document.getElementById('editClienteEmail').value = c.email || ''; document.getElementById('editClienteNif').value = c.nif || ''; document.getElementById('editClienteTelefono').value = c.telefono || ''; document.getElementById('editClienteCalle').value = c.calle || ''; document.getElementById('editClienteNumero').value = c.numero || ''; document.getElementById('editClientePiso').value = c.piso || ''; document.getElementById('editClienteCp').value = c.codigo_postal || ''; document.getElementById('editClienteCiudad').value = c.ciudad || ''; document.getElementById('editClienteProvincia').value = c.provincia || ''; document.getElementById('editClienteContacto').value = c.contacto_nombre || ''; document.getElementById('editClienteCargo').value = c.contacto_cargo || ''; document.getElementById('editClienteIban').value = c.iban || ''; document.getElementById('editClienteBanco').value = c.banco || ''; document.getElementById('editClienteTipo').value = c.tipo_cliente || 'empresa'; document.getElementById('editClienteFechaAlta').value = c.fecha_alta || ''; document.getElementById('modalEditarCliente').style.display = 'flex'; };
-    function asignarEventosEditarCliente() { document.querySelectorAll('.editar-cliente').forEach(btn => btn.onclick = () => window.abrirModalEditarCliente(btn.dataset.id)); }
-    const originalCargarClientes = cargarClientes;
-    window.cargarClientes = async function() { await originalCargarClientes(); asignarEventosEditarCliente(); };
-    cargarClientes = window.cargarClientes;
-
-    async function cargarClientesParaTarea() { const { data: clientes } = await sb.from('empresas').select('id, nombre').eq('created_by', currentUser.id).eq('activo', true).order('nombre'); const select = document.getElementById('tareaCliente'); if (select) { if (clientes && clientes.length > 0) select.innerHTML = '<option value="">-- Seleccionar cliente --</option>' + clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join(''); else select.innerHTML = '<option value="">-- No hay clientes disponibles --</option>'; } }
-
     const selectorCliente = document.getElementById('tareaCliente'); if (selectorCliente) { selectorCliente.addEventListener('change', function(e) { const clienteId = e.target.value; if (clienteId) { cargarActivosPorCliente(clienteId); } else { const selectActivo = document.getElementById('tareaActivo'); if (selectActivo) selectActivo.innerHTML = '<option value="">-- Primero selecciona un cliente --</option>'; } }); }
-
-    async function cargarExternos() { const { data } = await sb.from('perfiles').select('*').eq('empresa_id', currentEmpresaId).eq('rol', 'tecnico').not('tipo_externo', 'is', null); const tbody = document.getElementById('externosBody'); if (!data?.length) { tbody.innerHTML = '<td><td colspan="6">No hay personal externo</tr>'; return; } tbody.innerHTML = data.map(e => `<tr><td>${e.nombre || '-'}</td><td>${e.nif || '-'}</td><td>${e.email || '-'}</td><td>${e.telefono || '-'}</td><td><span class="badge badge-externo">${e.tipo_externo === 'empresa' ? '🏭 Empresa' : '👤 Autónomo'}</span></td><td><button class="btn-sm btn-warning editar-externo" data-id="${e.id}">✏️</button> <button class="btn-sm btn-danger eliminar-externo" data-id="${e.id}" data-nombre="${e.nombre}">🗑️</button></tr>`).join(''); document.querySelectorAll('.editar-externo').forEach(btn => btn.onclick = () => abrirModalEditarExterno(btn.dataset.id)); document.querySelectorAll('.eliminar-externo').forEach(btn => btn.onclick = async () => { if (confirm(`¿Eliminar externo "${btn.dataset.nombre}"?`)) { await sb.from('perfiles').delete().eq('id', btn.dataset.id); cargarExternos(); mostrarMensaje("✅ Externo eliminado"); } }); }
-
-    async function crearExterno() { const nombre = document.getElementById('externoNombre').value.trim(), email = document.getElementById('externoEmail').value.trim(), password = document.getElementById('externoPassword').value, telefono = document.getElementById('externoTelefono').value.trim(), nif = document.getElementById('externoNif').value.trim(), direccion = document.getElementById('externoDireccion').value.trim(), tipoExterno = document.getElementById('externoTipo').value, especialidad = document.getElementById('externoEspecialidad').value, iban = document.getElementById('externoIban').value.trim(), banco = document.getElementById('externoBanco').value.trim(); if (!nombre || !email || !password || password.length < 6) { mostrarMensaje("❌ Nombre, email y contraseña (mínimo 6 caracteres) son obligatorios", 'error'); return; } const btn = document.getElementById('btnCrearExterno'); btn.innerHTML = '<span class="spinner"></span> Creando...'; btn.disabled = true; try { const { data: { session } } = await sb.auth.getSession(); const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ email, password, nombre, empresa_id: currentEmpresaId, rol: 'externo' }) }); const resultado = await response.json(); if (!resultado.success) throw new Error(resultado.error); const { error: updateError } = await sb.from('perfiles').update({ telefono, nif, direccion, tipo_externo: tipoExterno, especialidad, iban, banco }).eq('id', resultado.user_id); if (updateError) throw updateError; mostrarMensaje(`✅ Externo ${nombre} creado correctamente`); ['externoNombre','externoEmail','externoPassword','externoTelefono','externoNif','externoDireccion','externoIban','externoBanco'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); cargarExternos(); cargarStats(); } catch (error) { mostrarMensaje(`❌ Error: ${error.message}`, 'error'); } finally { btn.innerHTML = '✅ Dar de alta externo'; btn.disabled = false; } }
-
-    async function abrirModalEditarExterno(id) { const { data: e } = await sb.from('perfiles').select('*').eq('id', id).single(); if (!e) return; document.getElementById('editExternoId').value = e.id; document.getElementById('editExternoNombre').value = e.nombre || ''; document.getElementById('editExternoEmail').value = e.email || ''; document.getElementById('editExternoTelefono').value = e.telefono || ''; document.getElementById('editExternoNif').value = e.nif || ''; document.getElementById('editExternoDireccion').value = e.direccion || ''; document.getElementById('editExternoTipo').value = e.tipo_externo || 'autonomo'; document.getElementById('editExternoEspecialidad').value = e.especialidad || 'OTRO'; document.getElementById('editExternoIban').value = e.iban || ''; document.getElementById('modalEditarExterno').style.display = 'flex'; }
-
-    async function guardarEdicionExterno() { const id = document.getElementById('editExternoId').value; const { error } = await sb.from('perfiles').update({ nombre: document.getElementById('editExternoNombre').value, email: document.getElementById('editExternoEmail').value, telefono: document.getElementById('editExternoTelefono').value || null, nif: document.getElementById('editExternoNif').value || null, direccion: document.getElementById('editExternoDireccion').value || null, tipo_externo: document.getElementById('editExternoTipo').value, especialidad: document.getElementById('editExternoEspecialidad').value, iban: document.getElementById('editExternoIban').value || null }).eq('id', id); if (error) { mostrarMensaje("Error: " + error.message, 'error'); return; } mostrarMensaje("✅ Externo actualizado"); document.getElementById('modalEditarExterno').style.display = 'none'; cargarExternos(); }
 </script>
 </body>
 </html>
