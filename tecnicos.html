@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Panel Técnico</title>
+    <title>Panel Técnico · COMUTECH</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f5f5; padding: 0; padding-bottom: 70px; }
         
-        /* Colores por tipo de tarea */
         .tipo-urgente { background: #dc2626; color: white; }
         .tipo-averia { background: #ea580c; color: white; }
         .tipo-mantenimiento { background: #16a34a; color: white; }
         .tipo-revision { background: #2563eb; color: white; }
         .tipo-presupuesto { background: #d97706; color: white; }
         
-        /* Colores por estado */
         .estado-pendiente { background: #ca8a04; color: white; }
         .estado-aceptada { background: #16a34a; color: white; }
         .estado-curso { background: #0284c7; color: white; }
+        .estado-suspendida { background: #eab308; color: white; }
         .estado-completada { background: #6b7280; color: white; }
         .estado-cancelada { background: #4b5563; color: white; }
         
@@ -30,25 +29,21 @@
         .card-tarea.prioridad-revision { border-left: 5px solid #2563eb; }
         .card-tarea.prioridad-presupuesto { border-left: 5px solid #d97706; }
         
-        /* Header */
         .header { background: linear-gradient(135deg, #1e4663 0%, #2c7a4d 100%); color: white; padding: 16px; position: sticky; top: 0; z-index: 100; }
         .header h1 { font-size: 1.1rem; margin-bottom: 8px; text-align: center; }
         .header-tecnico { font-size: 0.7rem; opacity: 0.9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
         .btn-logout { background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 30px; border: none; color: white; font-size: 0.7rem; cursor: pointer; }
         
-        /* Contadores */
         .contadores { display: flex; justify-content: space-around; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); }
         .contador-item { text-align: center; }
         .contador-numero { display: block; font-size: 1.3rem; font-weight: 700; }
         .contador-label { font-size: 0.6rem; opacity: 0.8; }
         
-        /* Navegación inferior */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 20px; border-top: 1px solid #e2e8f0; z-index: 100; }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; font-size: 0.7rem; color: #64748b; cursor: pointer; padding: 8px 16px; border-radius: 30px; transition: all 0.2s; }
         .nav-item.active { color: #2c7a4d; background: #e8f4e8; border-bottom: 3px solid #2c7a4d; border-radius: 30px 30px 0 0; }
         .nav-item span:first-child { font-size: 1.3rem; }
         
-        /* Tarjetas de tarea */
         .container { padding: 16px; }
         .card-tarea { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; border-left-width: 5px; }
         .card-header-tarea { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
@@ -57,7 +52,6 @@
         .btn-leer { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 40px; font-weight: 600; width: 100%; margin-top: 12px; font-size: 0.9rem; cursor: pointer; }
         .btn-ver-detalle { background: #64748b; color: white; border: none; padding: 10px; border-radius: 40px; font-weight: 600; width: 100%; margin-top: 8px; font-size: 0.8rem; cursor: pointer; }
         
-        /* Filtros con sugerencias */
         .filtros-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; position: relative; }
         .filtros-bar input, .filtros-bar select { flex: 1; min-width: 120px; padding: 10px; border-radius: 40px; border: 1px solid #cbd5e1; font-size: 0.8rem; }
         .buscador-container { flex: 2; position: relative; }
@@ -79,49 +73,71 @@
         .sugerencia-item:hover { background: #e8f4e8; }
         .btn-filtrar { background: #2c7a4d; color: white; border: none; padding: 10px 16px; border-radius: 40px; font-size: 0.8rem; cursor: pointer; }
         
-        /* Pantalla de detalle/trabajo */
         .screen { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f5f5f5; z-index: 200; overflow-y: auto; padding-bottom: 80px; }
         .screen-header { position: sticky; top: 0; background: white; padding: 16px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 16px; z-index: 10; }
         .btn-back { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 8px; }
         .screen-content { padding: 16px; }
         
-        /* Stepper */
         .stepper { display: flex; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 4px; }
         .step { flex: 1; text-align: center; font-size: 0.6rem; color: #cbd5e1; }
         .step.active { color: #2c7a4d; font-weight: 600; }
         .step.completed { color: #16a34a; }
         .step-icon { font-size: 1rem; display: block; }
         
-        /* Botones */
-        .action-btn { background: #2c7a4d; color: white; border: none; padding: 16px; border-radius: 50px; font-weight: 600; font-size: 1rem; width: 100%; margin: 8px 0; cursor: pointer; }
+        .action-btn { 
+            background: #2c7a4d; 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 50px; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            width: 100%; 
+            margin: 8px 0; 
+            cursor: pointer; 
+            text-align: center; 
+            display: block;
+        }
         .action-btn-danger { background: #dc2626; }
         .action-btn-secondary { background: #6b21a5; }
         
-        /* Formularios */
+        .btn-orden-trabajo {
+            background: #6b21a5;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            width: auto;
+            min-width: 200px;
+            margin: 8px auto;
+            cursor: pointer;
+            text-align: center;
+            display: block;
+        }
+        
         .form-group { margin-bottom: 16px; }
         .form-group label { font-size: 0.7rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 1rem; font-family: inherit; }
         textarea { resize: vertical; min-height: 80px; }
         
-        /* Grid mediciones */
         .mediciones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         
-        /* Materiales */
         .material-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
         .material-select { flex: 2; min-width: 150px; }
-        .material-cantidad { flex: 1; min-width: 80px; }
-        .material-unidad { flex: 1; min-width: 80px; background: #f0f0f0; }
+        .material-cantidad { width: 100px; }
+        .material-precio { width: 100px; }
+        .material-unidad { width: 100px; background: #f0f0f0; }
         .btn-add-material { background: #2c7a4d; color: white; border: none; padding: 12px 16px; border-radius: 40px; font-size: 0.8rem; cursor: pointer; }
         .material-listado-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px; border-radius: 12px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
         .material-listado-info { flex: 1; font-size: 0.85rem; }
         .btn-eliminar-material-listado { background: #fee2e2; border: none; padding: 6px 12px; border-radius: 20px; color: #dc2626; cursor: pointer; }
         
-        /* IA */
         .btn-ia { background: #6b21a5; color: white; border: none; padding: 8px 12px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; margin-left: 8px; }
         .btn-ia:hover { background: #581c87; }
         .nota-obligatoria { border-left: 3px solid #dc2626; background: #fef2f2; padding-left: 12px; }
         
-        /* Modales */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -167,9 +183,32 @@
         
         .tiempo-linea { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; }
         .tiempo-titulo { font-weight: 600; color: #1e4663; }
-        
-        .botones-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-        .botones-acciones button { flex: 1; min-width: 100px; }
+        .dia-group { background: #f8fafc; border-radius: 12px; margin-bottom: 16px; padding: 12px; border-left: 4px solid #2c7a4d; }
+        .dia-fecha { font-weight: 700; color: #1e4663; margin-bottom: 8px; font-size: 0.9rem; }
+        .historico-dias {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .historico-dias summary {
+            font-weight: bold;
+            cursor: pointer;
+            color: #1e4663;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8fafc;
+        }
+        .upload-area:hover { background: #e2e8f0; }
+        .adjuntos-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .adjunto-item { background: white; border-radius: 8px; padding: 4px 8px; font-size: 0.7rem; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -220,14 +259,19 @@
     <div class="screen-header">
         <button class="btn-back" id="btnBackTrabajo">←</button>
         <span style="font-weight: 600; flex:1;" id="trabajoTitulo">Cargando...</span>
+        <button id="btnAutoSaveIndicator" class="btn-logout" style="background:#e2e8f0; color:#475569;">💾 Guardado</button>
     </div>
     <div class="screen-content" id="trabajoContent"></div>
 </div>
 
-<!-- MODAL ACEPTAR TAREA -->
+<!-- MODAL ACEPTAR TAREA CON ORDEN DE TRABAJO -->
 <div id="modalAceptarTarea" class="modal-overlay">
     <div class="modal-content">
         <h3>✅ Aceptar tarea</h3>
+        <div class="form-group">
+            <label>📋 ORDEN DE TRABAJO</label>
+            <div class="detalle-info" id="modalOrdenTrabajo" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;"></div>
+        </div>
         <div class="form-group"><label>📅 Fecha propuesta</label><input type="date" id="modalFechaPropuesta"></div>
         <div class="form-group"><label>⏰ Hora propuesta</label><input type="time" id="modalHoraPropuesta"></div>
         <div class="modal-buttons">
@@ -277,6 +321,17 @@
     </div>
 </div>
 
+<!-- MODAL VER ORDEN DE TRABAJO -->
+<div id="modalVerOrden" class="modal-overlay">
+    <div class="modal-content">
+        <h3>📋 ORDEN DE TRABAJO</h3>
+        <div class="detalle-info" id="ordenTrabajoContent" style="white-space: pre-wrap;"></div>
+        <div class="modal-buttons">
+            <button id="btnCerrarOrden" class="btn-cancelar">✖ Cerrar</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
     const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
@@ -294,56 +349,55 @@
     let pendingInformeCallback = null;
     let completadasFiltradas = [];
     let todasTareasCache = [];
-    let tiempoInicioDesplazamiento = null;
-    let tiempoInicioTrabajo = null;
-    let tiempoEnSuspension = false;
+    let autoSaveInterval = null;
+    let adjuntosTemp = [];
 
     const materialesPorServicio = {
         'PISCINA': [
-            { nombre: 'Cloro granulado', unidad: 'gramos' },
-            { nombre: 'Cloro líquido', unidad: 'litros' },
-            { nombre: 'Alguicida', unidad: 'litros' },
-            { nombre: 'Floculante', unidad: 'litros' },
-            { nombre: 'Regulador pH +', unidad: 'gramos' },
-            { nombre: 'Regulador pH -', unidad: 'gramos' },
-            { nombre: 'Filtro de arena', unidad: 'unidad' },
-            { nombre: 'Junta de bomba', unidad: 'unidad' },
-            { nombre: 'Cesto de skimmer', unidad: 'unidad' }
+            { nombre: 'Cloro granulado', unidad: 'gramos', precio_por_unidad: 0.5 },
+            { nombre: 'Cloro líquido', unidad: 'litros', precio_por_unidad: 1.2 },
+            { nombre: 'Alguicida', unidad: 'litros', precio_por_unidad: 3.0 },
+            { nombre: 'Floculante', unidad: 'litros', precio_por_unidad: 2.5 },
+            { nombre: 'Regulador pH +', unidad: 'gramos', precio_por_unidad: 0.8 },
+            { nombre: 'Regulador pH -', unidad: 'gramos', precio_por_unidad: 0.8 },
+            { nombre: 'Filtro de arena', unidad: 'unidad', precio_por_unidad: 85.0 },
+            { nombre: 'Junta de bomba', unidad: 'unidad', precio_por_unidad: 12.0 },
+            { nombre: 'Cesto de skimmer', unidad: 'unidad', precio_por_unidad: 6.5 }
         ],
         'JARDIN': [
-            { nombre: 'Abono orgánico', unidad: 'gramos' },
-            { nombre: 'Fertilizante líquido', unidad: 'litros' },
-            { nombre: 'Herbicida', unidad: 'litros' },
-            { nombre: 'Tierra vegetal', unidad: 'gramos' },
-            { nombre: 'Semillas césped', unidad: 'gramos' },
-            { nombre: 'Fitosanitarios', unidad: 'litros' }
+            { nombre: 'Abono orgánico', unidad: 'gramos', precio_por_unidad: 0.2 },
+            { nombre: 'Fertilizante líquido', unidad: 'litros', precio_por_unidad: 1.5 },
+            { nombre: 'Herbicida', unidad: 'litros', precio_por_unidad: 4.0 },
+            { nombre: 'Tierra vegetal', unidad: 'gramos', precio_por_unidad: 0.1 },
+            { nombre: 'Semillas césped', unidad: 'gramos', precio_por_unidad: 0.3 },
+            { nombre: 'Fitosanitarios', unidad: 'litros', precio_por_unidad: 5.0 }
         ],
         'FONTANERIA': [
-            { nombre: 'Tubería PVC', unidad: 'metros' },
-            { nombre: 'Codo 90º', unidad: 'unidad' },
-            { nombre: 'Llave de paso', unidad: 'unidad' },
-            { nombre: 'Teflón', unidad: 'rollo' },
-            { nombre: 'Junta tórica', unidad: 'unidad' },
-            { nombre: 'Silicona', unidad: 'unidad' }
+            { nombre: 'Tubería PVC', unidad: 'metros', precio_por_unidad: 2.0 },
+            { nombre: 'Codo 90º', unidad: 'unidad', precio_por_unidad: 0.8 },
+            { nombre: 'Llave de paso', unidad: 'unidad', precio_por_unidad: 5.0 },
+            { nombre: 'Teflón', unidad: 'rollo', precio_por_unidad: 1.5 },
+            { nombre: 'Junta tórica', unidad: 'unidad', precio_por_unidad: 0.2 },
+            { nombre: 'Silicona', unidad: 'unidad', precio_por_unidad: 2.0 }
         ],
         'ELECTRICIDAD': [
-            { nombre: 'Cable eléctrico', unidad: 'metros' },
-            { nombre: 'Interruptor', unidad: 'unidad' },
-            { nombre: 'Toma de corriente', unidad: 'unidad' },
-            { nombre: 'Caja de conexiones', unidad: 'unidad' },
-            { nombre: 'Termomagnético', unidad: 'unidad' },
-            { nombre: 'Cinta aislante', unidad: 'rollo' }
+            { nombre: 'Cable eléctrico', unidad: 'metros', precio_por_unidad: 0.8 },
+            { nombre: 'Interruptor', unidad: 'unidad', precio_por_unidad: 3.0 },
+            { nombre: 'Toma de corriente', unidad: 'unidad', precio_por_unidad: 2.5 },
+            { nombre: 'Caja de conexiones', unidad: 'unidad', precio_por_unidad: 1.2 },
+            { nombre: 'Termomagnético', unidad: 'unidad', precio_por_unidad: 7.0 },
+            { nombre: 'Cinta aislante', unidad: 'rollo', precio_por_unidad: 0.5 }
         ],
         'LIMPIEZA': [
-            { nombre: 'Detergente', unidad: 'litros' },
-            { nombre: 'Desinfectante', unidad: 'litros' },
-            { nombre: 'Bayetas', unidad: 'unidad' },
-            { nombre: 'Fregona', unidad: 'unidad' },
-            { nombre: 'Cubo', unidad: 'unidad' },
-            { nombre: 'Lejía', unidad: 'litros' }
+            { nombre: 'Detergente', unidad: 'litros', precio_por_unidad: 1.0 },
+            { nombre: 'Desinfectante', unidad: 'litros', precio_por_unidad: 2.0 },
+            { nombre: 'Bayetas', unidad: 'unidad', precio_por_unidad: 0.3 },
+            { nombre: 'Fregona', unidad: 'unidad', precio_por_unidad: 5.0 },
+            { nombre: 'Cubo', unidad: 'unidad', precio_por_unidad: 3.0 },
+            { nombre: 'Lejía', unidad: 'litros', precio_por_unidad: 0.8 }
         ],
         'OTRO': [
-            { nombre: 'Material varios', unidad: 'unidad' }
+            { nombre: 'Material varios', unidad: 'unidad', precio_por_unidad: 1.0 }
         ]
     };
 
@@ -362,23 +416,15 @@
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
-    function formatearFechaHora(fechaHora) {
-        if (!fechaHora) return 'Sin fecha';
-        const fecha = new Date(fechaHora);
-        return fecha.toLocaleString('es-ES');
-    }
-
     function formatearDuracion(minutos) {
-    if (!minutos && minutos !== 0) return 'No registrado';
-    if (minutos === 0) return '0min';
-    
-    const horas = Math.floor(minutos / 60);
-    const mins = minutos % 60;
-    
-    if (horas > 0 && mins > 0) return `${horas}h ${mins}min`;
-    if (horas > 0) return `${horas}h`;
-    return `${mins}min`;
-}
+        if (!minutos && minutos !== 0) return 'No registrado';
+        if (minutos === 0) return '0min';
+        const horas = Math.floor(minutos / 60);
+        const mins = minutos % 60;
+        if (horas > 0 && mins > 0) return `${horas}h ${mins}min`;
+        if (horas > 0) return `${horas}h`;
+        return `${mins}min`;
+    }
 
     function getPrioridadClass(tipo) {
         const prioridades = { 'URGENCIA': 'prioridad-urgente', 'AVERIA': 'prioridad-averia', 'MANTENIMIENTO': 'prioridad-mantenimiento', 'REVISION': 'prioridad-revision', 'PRESUPUESTO': 'prioridad-presupuesto' };
@@ -396,13 +442,122 @@
     }
     
     function getEstadoClass(estado) { 
-        const estados = { 'PENDIENTE': 'estado-pendiente', 'ACEPTADA': 'estado-aceptada', 'EN_CURSO': 'estado-curso', 'COMPLETADA': 'estado-completada', 'CANCELADA': 'estado-cancelada' }; 
+        const estados = { 
+            'PENDIENTE': 'estado-pendiente', 
+            'ACEPTADA': 'estado-aceptada', 
+            'EN_CURSO': 'estado-curso', 
+            'SUSPENDIDA': 'estado-suspendida', 
+            'COMPLETADA': 'estado-completada', 
+            'CANCELADA': 'estado-cancelada' 
+        }; 
         return estados[estado] || 'estado-pendiente'; 
     }
     
     function getEstadoTexto(estado) { 
-        const textos = { 'PENDIENTE': 'Pendiente', 'ACEPTADA': 'Aceptada', 'EN_CURSO': 'En curso', 'COMPLETADA': 'Completada', 'CANCELADA': 'Cancelada' }; 
+        const textos = { 
+            'PENDIENTE': 'Pendiente', 
+            'ACEPTADA': 'Aceptada', 
+            'EN_CURSO': 'En curso', 
+            'SUSPENDIDA': 'Suspendida', 
+            'COMPLETADA': 'Completada', 
+            'CANCELADA': 'Cancelada' 
+        }; 
         return textos[estado] || estado; 
+    }
+
+    // Auto-guardado en localStorage
+    function guardarProgresoLocal() {
+        if (!tareaActual) return;
+        const progreso = {
+            tareaId: tareaActual.id,
+            pasoActual: pasoActual,
+            mediciones: obtenerMediciones(),
+            notaInterna: document.getElementById('notaInterna')?.value || '',
+            notaCliente: document.getElementById('notaCliente')?.value || '',
+            materiales: materialesTemp,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(`progreso_tarea_${tareaActual.id}`, JSON.stringify(progreso));
+        const indicator = document.getElementById('btnAutoSaveIndicator');
+        if (indicator) {
+            indicator.innerHTML = '💾 Guardado automático';
+            setTimeout(() => { if(indicator) indicator.innerHTML = '💾 Guardado'; }, 2000);
+        }
+    }
+
+    function cargarProgresoLocal(tareaId) {
+        const stored = localStorage.getItem(`progreso_tarea_${tareaId}`);
+        if (!stored) return false;
+        try {
+            const progreso = JSON.parse(stored);
+            // Solo restaurar si es de la misma tarea y no ha pasado más de 24h
+            if (progreso.tareaId === tareaId && (Date.now() - progreso.timestamp) < 86400000) {
+                pasoActual = progreso.pasoActual;
+                if (progreso.mediciones) {
+                    if (progreso.mediciones.cloro) document.getElementById('medCloro').value = progreso.mediciones.cloro;
+                    if (progreso.mediciones.ph) document.getElementById('medPh').value = progreso.mediciones.ph;
+                    if (progreso.mediciones.temperatura) document.getElementById('medTemp').value = progreso.mediciones.temperatura;
+                    if (progreso.mediciones.altura) document.getElementById('medAltura').value = progreso.mediciones.altura;
+                    if (progreso.mediciones.estado) document.getElementById('medEstado').value = progreso.mediciones.estado;
+                    if (progreso.mediciones.observaciones) document.getElementById('medObservaciones').value = progreso.mediciones.observaciones;
+                }
+                if (progreso.notaInterna) document.getElementById('notaInterna').value = progreso.notaInterna;
+                if (progreso.notaCliente) document.getElementById('notaCliente').value = progreso.notaCliente;
+                if (progreso.materiales) materialesTemp = progreso.materiales;
+                mostrarMensaje("📦 Progreso recuperado automáticamente", 'exito');
+                return true;
+            }
+        } catch(e) { console.error(e); }
+        return false;
+    }
+
+    function limpiarProgresoLocal(tareaId) {
+        localStorage.removeItem(`progreso_tarea_${tareaId}`);
+    }
+
+    // Subida de fotos
+    async function subirAdjunto(file) {
+        if (!tareaActual) return null;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${currentTecnicoId}/${tareaActual.id}/${fileName}`;
+        const { error } = await sb.storage.from('tarea-adjuntos').upload(filePath, file);
+        if (error) {
+            mostrarMensaje("Error al subir archivo: " + error.message, 'error');
+            return null;
+        }
+        const { data: urlData } = sb.storage.from('tarea-adjuntos').getPublicUrl(filePath);
+        const adjunto = {
+            tarea_id: tareaActual.id,
+            tecnico_id: currentTecnicoId,
+            nombre_archivo: file.name,
+            tipo_archivo: file.type,
+            url: urlData.publicUrl,
+            tamano_bytes: file.size,
+            subido_en: new Date().toISOString(),
+            es_justificante: true
+        };
+        const { error: insertError } = await sb.from('adjuntos_tarea').insert(adjunto);
+        if (insertError) console.error("Error guardar adjunto en BD:", insertError);
+        return adjunto;
+    }
+
+    async function cargarAdjuntos() {
+        if (!tareaActual) return [];
+        const { data, error } = await sb.from('adjuntos_tarea').select('*').eq('tarea_id', tareaActual.id);
+        if (error) return [];
+        return data;
+    }
+
+    async function mostrarAdjuntos() {
+        const adjuntos = await cargarAdjuntos();
+        const container = document.getElementById('adjuntosContainer');
+        if (!container) return;
+        if (adjuntos.length === 0) {
+            container.innerHTML = '<div class="adjunto-item">No hay adjuntos</div>';
+            return;
+        }
+        container.innerHTML = adjuntos.map(a => `<div class="adjunto-item"><a href="${a.url}" target="_blank">📎 ${a.nombre_archivo}</a> <small>${(a.tamano_bytes/1024).toFixed(1)}KB</small></div>`).join('');
     }
 
     async function hacerLogin() {
@@ -455,7 +610,7 @@
         
         tareasData = {
             nuevas: ordenar(todas.filter(t => t.estado === 'PENDIENTE' && !t.leida)),
-            activas: ordenar(todas.filter(t => t.estado === 'ACEPTADA' || t.estado === 'DESPLAZAMIENTO' || t.estado === 'EN_CURSO')),
+            activas: ordenar(todas.filter(t => t.estado === 'ACEPTADA' || t.estado === 'DESPLAZAMIENTO' || t.estado === 'EN_CURSO' || t.estado === 'SUSPENDIDA')),
             completadas: ordenar(todas.filter(t => t.estado === 'COMPLETADA' || t.estado === 'CANCELADA'))
         };
         
@@ -590,113 +745,102 @@
     }
 
     async function verDetalleCompletada(id) {
-    const { data: tarea } = await sb.from('tareas')
-        .select('*, activos(*), empresas!cliente_id(*)')
-        .eq('id', id)
-        .single();
-    
-    if (!tarea) return;
-    
-    const { data: mediciones } = await sb.from('mediciones_dinamicas').select('*').eq('tarea_id', id).order('fecha_registro', { ascending: false }).limit(1);
-    const { data: materiales } = await sb.from('gastos_tarea').select('*').eq('tarea_id', id).eq('tipo_gasto', 'MATERIALES');
-    const { data: seguimiento } = await sb.from('seguimiento_tareas').select('*').eq('tarea_id', id).order('inicio', { ascending: true });
-    
-    // Calcular tiempos totales sumando duracion_minutos
-    let tiempoDesplazamiento = 0;
-    let tiempoTrabajo = 0;
-    
-    for (let i = 0; i < seguimiento.length; i++) {
-        const ev = seguimiento[i];
-        if (ev.evento === 'LLEGADA' && ev.duracion_minutos) {
-            tiempoDesplazamiento += ev.duracion_minutos;
-        }
-        if (ev.evento === 'FIN_TRABAJO' && ev.duracion_minutos) {
-            tiempoTrabajo += ev.duracion_minutos;
-        }
-    }
-    
-    // Formatear tiempos
-    const formatTiempo = (minutos) => {
-        if (!minutos && minutos !== 0) return 'No registrado';
-        if (minutos === 0) return '0min';
-        const horas = Math.floor(minutos / 60);
-        const mins = minutos % 60;
-        if (horas > 0 && mins > 0) return `${horas}h ${mins}min`;
-        if (horas > 0) return `${horas}h`;
-        return `${mins}min`;
-    };
-    
-    // Generar HTML de eventos
-    let eventosHtml = '';
-    for (let i = 0; i < seguimiento.length; i++) {
-        const ev = seguimiento[i];
-        let eventoTexto = '';
-        let duracionTexto = '';
+        const { data: tarea } = await sb.from('tareas')
+            .select('*, activos(*), empresas!cliente_id(*)')
+            .eq('id', id)
+            .single();
         
-        switch(ev.evento) {
-            case 'INICIO_DESPLAZAMIENTO': eventoTexto = '🚗 Inicio desplazamiento'; break;
-            case 'LLEGADA': eventoTexto = '📍 Llegada'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
-            case 'INICIO_TRABAJO': eventoTexto = '⚙️ Inicio trabajo'; break;
-            case 'FIN_TRABAJO': eventoTexto = '🏁 Fin trabajo'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
-            default: eventoTexto = ev.evento;
+        if (!tarea) return;
+        
+        const { data: mediciones } = await sb.from('mediciones_dinamicas').select('*').eq('tarea_id', id).order('created_at', { ascending: true });
+        const { data: materiales } = await sb.from('gastos_tarea').select('*').eq('tarea_id', id).eq('tipo_gasto', 'MATERIALES');
+        const { data: seguimiento } = await sb.from('seguimiento_tareas').select('*').eq('tarea_id', id).order('inicio', { ascending: true });
+        
+        let eventosPorDia = new Map();
+        for (let ev of seguimiento) {
+            const fechaStr = ev.inicio ? ev.inicio.split('T')[0] : 'Sin fecha';
+            if (!eventosPorDia.has(fechaStr)) eventosPorDia.set(fechaStr, []);
+            eventosPorDia.get(fechaStr).push(ev);
         }
         
-        const fechaHora = ev.inicio ? new Date(ev.inicio).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '-';
+        let tiempoDesplazamientoTotal = 0;
+        let tiempoTrabajoTotal = 0;
+        for (let ev of seguimiento) {
+            if (ev.evento === 'LLEGADA' && ev.duracion_minutos) tiempoDesplazamientoTotal += ev.duracion_minutos;
+            if (ev.evento === 'FIN_TRABAJO' && ev.duracion_minutos) tiempoTrabajoTotal += ev.duracion_minutos;
+        }
         
-        eventosHtml += `<div class="tiempo-linea">
-            <span class="tiempo-titulo">${eventoTexto}</span>
-            <span>${fechaHora}${duracionTexto}</span>
-        </div>`;
+        let html = `<strong>📋 ID:</strong> ${tarea.id}<br>`;
+        html += `<strong>🏢 Cliente:</strong> ${tarea.empresas?.nombre || '-'}<br>`;
+        html += `<strong>🔧 Activo:</strong> ${tarea.activos?.nombre || '-'}<br>`;
+        html += `<strong>📍 Dirección:</strong> ${tarea.activos?.direccion || ''} ${tarea.activos?.localidad || ''}<br>`;
+        html += `<strong>📅 Fecha asignación:</strong> ${formatearFecha(tarea.fecha_asignacion)}<br>`;
+        if (tarea.fecha_propuesta) html += `<strong>📅 Fecha propuesta:</strong> ${formatearFecha(tarea.fecha_propuesta)} a las ${tarea.hora_propuesta || '--:--'}<br>`;
+        if (tarea.completada_en) html += `<strong>✅ Fecha finalización:</strong> ${new Date(tarea.completada_en).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}<br>`;
+        
+        html += `<hr><strong>⏱️ TIEMPOS TOTALES:</strong><br>`;
+        html += `<div class="tiempo-linea"><span class="tiempo-titulo">🚗 Tiempo de desplazamiento:</span><span>${formatearDuracion(tiempoDesplazamientoTotal)}</span></div>`;
+        html += `<div class="tiempo-linea"><span class="tiempo-titulo">⚙️ Tiempo de trabajo efectivo:</span><span>${formatearDuracion(tiempoTrabajoTotal)}</span></div>`;
+        
+        html += `<hr><strong>📋 REGISTRO POR DÍAS:</strong><br>`;
+        for (let [fecha, eventos] of eventosPorDia) {
+            html += `<div class="dia-group"><div class="dia-fecha">📅 ${fecha}</div>`;
+            for (let ev of eventos) {
+                let eventoTexto = '';
+                let duracionTexto = '';
+                switch(ev.evento) {
+                    case 'INICIO_DESPLAZAMIENTO': eventoTexto = '🚗 Inicio desplazamiento'; break;
+                    case 'LLEGADA': eventoTexto = '📍 Llegada'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
+                    case 'INICIO_TRABAJO': eventoTexto = '⚙️ Inicio trabajo'; break;
+                    case 'SUSPENSION': eventoTexto = '⏸️ Suspensión'; break;
+                    case 'REANUDACION': eventoTexto = '▶️ Reanudación'; break;
+                    case 'FIN_TRABAJO': eventoTexto = '🏁 Fin trabajo'; duracionTexto = ev.duracion_minutos ? ` (${ev.duracion_minutos} min)` : ''; break;
+                    default: eventoTexto = ev.evento;
+                }
+                const fechaHora = ev.inicio ? new Date(ev.inicio).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '-';
+                html += `<div class="tiempo-linea"><span class="tiempo-titulo">${eventoTexto}</span><span>${fechaHora}${duracionTexto}</span></div>`;
+            }
+            let medicionesDia = mediciones.filter(m => m.created_at && m.created_at.split('T')[0] === fecha);
+            if (medicionesDia.length > 0) {
+                html += `<div style="margin-top:8px;"><strong>🔬 Mediciones del día:</strong><br>`;
+                for (let m of medicionesDia) {
+                    const params = m.parametros;
+                    html += `<small>📝 ${new Date(m.created_at).toLocaleTimeString()}</small><br>`;
+                    if (params.cloro) html += `Cloro: ${params.cloro} ppm<br>`;
+                    if (params.ph) html += `pH: ${params.ph}<br>`;
+                    if (params.temperatura) html += `Temperatura: ${params.temperatura} °C<br>`;
+                    if (params.altura) html += `Altura césped: ${params.altura} cm<br>`;
+                    if (params.observaciones) html += `Observaciones: ${params.observaciones}<br>`;
+                }
+                html += `</div>`;
+            }
+            html += `</div>`;
+        }
+        
+        html += `<hr><strong>📋 ORDEN DE TRABAJO:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.orden_trabajo || 'Sin instrucciones'}</div><br>`;
+        
+        if (materiales && materiales.length > 0) {
+            html += `<strong>🧰 MATERIALES UTILIZADOS:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">`;
+            materiales.forEach(m => html += `• ${m.descripcion} - ${m.importe_total}€<br>`);
+            html += `</div><br>`;
+        }
+        
+        if (tarea.nota_interna) {
+            html += `<strong>📝 NOTA INTERNA (técnico):</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.nota_interna}</div><br>`;
+        }
+        
+        if (tarea.nota_cliente) {
+            html += `<strong>📋 INFORME ENVIADO AL CLIENTE:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.nota_cliente}</div><br>`;
+        }
+        
+        document.getElementById('detalleTareaContent').innerHTML = html;
+        document.getElementById('modalDetalleTarea').style.display = 'flex';
     }
-    
-    // Construir HTML completo
-    let html = `<strong>📋 ID:</strong> ${tarea.id}<br>`;
-    html += `<strong>🏢 Cliente:</strong> ${tarea.empresas?.nombre || '-'}<br>`;
-    html += `<strong>🔧 Activo:</strong> ${tarea.activos?.nombre || '-'}<br>`;
-    html += `<strong>📍 Dirección:</strong> ${tarea.activos?.direccion || ''} ${tarea.activos?.localidad || ''}<br>`;
-    html += `<strong>📅 Fecha asignación:</strong> ${formatearFecha(tarea.fecha_asignacion)}<br>`;
-    if (tarea.fecha_propuesta) html += `<strong>📅 Fecha propuesta:</strong> ${formatearFecha(tarea.fecha_propuesta)} a las ${tarea.hora_propuesta || '--:--'}<br>`;
-    if (tarea.completada_en) html += `<strong>✅ Fecha finalización:</strong> ${new Date(tarea.completada_en).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}<br>`;
-    
-    html += `<hr><strong>⏱️ TIEMPOS TOTALES:</strong><br>`;
-    html += `<div class="tiempo-linea"><span class="tiempo-titulo">🚗 Tiempo de desplazamiento:</span><span>${formatTiempo(tiempoDesplazamiento)}</span></div>`;
-    html += `<div class="tiempo-linea"><span class="tiempo-titulo">⚙️ Tiempo de trabajo efectivo:</span><span>${formatTiempo(tiempoTrabajo)}</span></div>`;
-    
-    html += `<hr><strong>📋 REGISTRO DE EVENTOS:</strong><br>${eventosHtml}`;
-    html += `<hr><strong>📋 ORDEN DE TRABAJO:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.orden_trabajo || 'Sin instrucciones'}</div><br>`;
-    
-    if (mediciones && mediciones[0]) {
-        html += `<strong>🔬 MEDICIONES REALIZADAS:</strong><br>`;
-        const params = mediciones[0].parametros;
-        html += `<div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">`;
-        if (params.cloro) html += `Cloro: ${params.cloro} ppm<br>`;
-        if (params.ph) html += `pH: ${params.ph}<br>`;
-        if (params.temperatura) html += `Temperatura: ${params.temperatura} °C<br>`;
-        html += `</div><br>`;
-    }
-    
-    if (materiales && materiales.length > 0) {
-        html += `<strong>🧰 MATERIALES UTILIZADOS:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">`;
-        materiales.forEach(m => html += `• ${m.descripcion}<br>`);
-        html += `</div><br>`;
-    }
-    
-    if (tarea.nota_interna) {
-        html += `<strong>📝 NOTA INTERNA (técnico):</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.nota_interna}</div><br>`;
-    }
-    
-    if (tarea.nota_cliente) {
-        html += `<strong>📋 INFORME ENVIADO AL CLIENTE:</strong><br><div style="background:#f0f0f0; padding:8px; border-radius:8px; margin-top:4px;">${tarea.nota_cliente}</div><br>`;
-    }
-    
-    document.getElementById('detalleTareaContent').innerHTML = html;
-    document.getElementById('modalDetalleTarea').style.display = 'flex';
-}
 
     function renderizarTareas(tareas, tipo) {
         if (!tareas.length) return `<div class="container"><div class="card-tarea text-center">📭 No hay tareas</div></div>`;
         return `<div class="container">${tareas.map(t => {
-            let botonTexto = tipo === 'nueva' ? '👁️ Leer y aceptar' : (t.estado === 'ACEPTADA' ? '🚗 Iniciar desplazamiento' : '🔧 Continuar trabajo');
+            let botonTexto = tipo === 'nueva' ? '👁️ Leer y aceptar' : (t.estado === 'ACEPTADA' ? '🚗 Iniciar desplazamiento' : (t.estado === 'SUSPENDIDA' ? '⏸️ Continuar (suspendida)' : '🔧 Continuar trabajo'));
             return `<div class="card-tarea ${getPrioridadClass(t.tipo)}">
                 <div class="card-header-tarea">
                     <span class="badge ${getTipoClass(t.tipo)}">${getTipoIcono(t.tipo)} ${t.tipo}</span>
@@ -714,122 +858,255 @@
         return `<div class="container"><div class="card-tarea"><h3>👤 Mi perfil</h3><p><strong>Nombre:</strong> ${document.getElementById('nombreTecnico').innerText}</p><p><strong>Email:</strong> ${document.getElementById('emailTecnico').innerText}</p>${isExterno ? '<p><strong>Tipo:</strong> Técnico externo</p>' : ''}<hr><button class="btn-leer" onclick="cerrarSesion()">🚪 Cerrar sesión</button></div></div>`;
     }
 
+    function verOrdenTrabajo() {
+        if (tareaActual && tareaActual.orden_trabajo) {
+            document.getElementById('ordenTrabajoContent').innerHTML = tareaActual.orden_trabajo;
+            document.getElementById('modalVerOrden').style.display = 'flex';
+        } else {
+            mostrarMensaje("No hay orden de trabajo disponible", 'error');
+        }
+    }
+
+    function renderizarMediciones(soloLectura = false) {
+        const servicio = tareaActual?.servicio_tipo || 'OTRO';
+        
+        if (servicio === 'PISCINA') {
+            return `<div class="form-group">
+                <label>🔬 MEDICIONES PISCINA</label>
+                <div class="mediciones-grid">
+                    <input type="number" step="0.1" min="0" max="10" id="medCloro" placeholder="Cloro (ppm)" ${soloLectura ? 'disabled' : ''}>
+                    <input type="number" step="0.1" min="0" max="14" id="medPh" placeholder="pH" ${soloLectura ? 'disabled' : ''}>
+                    <input type="number" step="1" id="medTemp" placeholder="Temperatura (°C)" ${soloLectura ? 'disabled' : ''}>
+                </div>
+            </div>`;
+        } else if (servicio === 'JARDIN') {
+            return `<div class="form-group">
+                <label>🌳 MEDICIONES JARDÍN</label>
+                <div class="mediciones-grid">
+                    <input type="number" step="0.5" id="medAltura" placeholder="Altura césped (cm)" ${soloLectura ? 'disabled' : ''}>
+                    <select id="medEstado" ${soloLectura ? 'disabled' : ''}>
+                        <option value="">-- Estado del césped --</option>
+                        <option value="Excelente">🌿 Excelente</option>
+                        <option value="Bueno">✅ Bueno</option>
+                        <option value="Regular">⚠️ Regular</option>
+                        <option value="Malo">❌ Malo</option>
+                    </select>
+                </div>
+            </div>`;
+        } else {
+            return `<div class="form-group">
+                <label>📝 OBSERVACIONES</label>
+                <textarea id="medObservaciones" rows="2" placeholder="Observaciones del trabajo..." ${soloLectura ? 'disabled' : ''}></textarea>
+            </div>`;
+        }
+    }
+
+    function obtenerMediciones() {
+        const servicio = tareaActual?.servicio_tipo || 'OTRO';
+        if (servicio === 'PISCINA') {
+            return {
+                cloro: document.getElementById('medCloro')?.value || null,
+                ph: document.getElementById('medPh')?.value || null,
+                temperatura: document.getElementById('medTemp')?.value || null
+            };
+        } else if (servicio === 'JARDIN') {
+            return {
+                altura: document.getElementById('medAltura')?.value || null,
+                estado: document.getElementById('medEstado')?.value || null
+            };
+        } else {
+            return {
+                observaciones: document.getElementById('medObservaciones')?.value || null
+            };
+        }
+    }
+
     async function abrirTarea(id) {
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
         const { data: tarea } = await sb.from('tareas').select('*, activos(*), empresas!cliente_id(*)').eq('id', id).single();
         if (!tarea) return;
         tareaActual = tarea;
         servicioActual = tarea.servicio_tipo || 'OTRO';
-        if (tarea.estado === 'PENDIENTE' && !tarea.leida) { await sb.from('tareas').update({ leida: true }).eq('id', id); await cargarTareas(); }
         
-        // Determinar paso actual basado en el estado y seguimiento
-        if (tarea.estado === 'PENDIENTE') pasoActual = 0;
-        else if (tarea.estado === 'ACEPTADA') pasoActual = 0;
+        if (tarea.estado === 'PENDIENTE' && !tarea.leida) {
+            const ordenDiv = document.getElementById('modalOrdenTrabajo');
+            if (ordenDiv && tareaActual.orden_trabajo) ordenDiv.innerHTML = tareaActual.orden_trabajo;
+            mostrarModalAceptar();
+            return;
+        }
+        
+        // Determinar paso según estado
+        if (tarea.estado === 'ACEPTADA') pasoActual = 0;
         else if (tarea.estado === 'DESPLAZAMIENTO') pasoActual = 1;
-        else if (tarea.estado === 'EN_CURSO') {
-            // Verificar si hay un trabajo en curso (sin fin)
-            const { data: trabajoActivo } = await sb.from('seguimiento_tareas')
-                .select('*').eq('tarea_id', id).eq('evento', 'INICIO_TRABAJO').is('fin', null).single();
-            if (trabajoActivo) {
-                pasoActual = 3;
-                tiempoEnSuspension = false;
-            } else {
-                pasoActual = 3;
-            }
-        } else pasoActual = 0;
+        else if (tarea.estado === 'EN_CURSO') pasoActual = 3;
+        else if (tarea.estado === 'SUSPENDIDA') pasoActual = 3;
+        else pasoActual = 0;
         
         const { data: gastos } = await sb.from('gastos_tarea').select('*').eq('tarea_id', id).eq('tipo_gasto', 'MATERIALES');
         materialesTemp = gastos || [];
         
         document.getElementById('trabajoTitulo').innerHTML = tarea.activos?.nombre || 'Tarea';
         document.getElementById('trabajoScreen').style.display = 'block';
+        
+        // Restaurar progreso local si existe
+        const restaurado = cargarProgresoLocal(id);
+        if (!restaurado) {
+            // Cargar datos desde la BD si no hay progreso local
+            if (tarea.nota_interna) document.getElementById('notaInterna').value = tarea.nota_interna;
+            if (tarea.nota_cliente) document.getElementById('notaCliente').value = tarea.nota_cliente;
+        }
+        
         renderizarPantallaTrabajo();
+        // Mostrar histórico de días anteriores
+        mostrarHistoricoDias();
+        // Mostrar adjuntos existentes
+        mostrarAdjuntos();
+        
+        // Iniciar auto-guardado cada 30 segundos
+        autoSaveInterval = setInterval(() => guardarProgresoLocal(), 30000);
+    }
+
+    async function mostrarHistoricoDias() {
+        if (!tareaActual) return;
+        const { data: seguimiento } = await sb.from('seguimiento_tareas').select('*').eq('tarea_id', tareaActual.id).order('inicio', { ascending: true });
+        const { data: mediciones } = await sb.from('mediciones_dinamicas').select('*').eq('tarea_id', tareaActual.id).order('created_at', { ascending: true });
+        
+        let eventosPorDia = new Map();
+        for (let ev of seguimiento) {
+            if (ev.evento === 'INICIO_DESPLAZAMIENTO' || ev.evento === 'LLEGADA' || ev.evento === 'INICIO_TRABAJO' || ev.evento === 'SUSPENSION' || ev.evento === 'REANUDACION' || ev.evento === 'FIN_TRABAJO') {
+                const fechaStr = ev.inicio ? ev.inicio.split('T')[0] : 'Sin fecha';
+                if (!eventosPorDia.has(fechaStr)) eventosPorDia.set(fechaStr, []);
+                eventosPorDia.get(fechaStr).push(ev);
+            }
+        }
+        
+        const container = document.getElementById('historicoContainer');
+        if (!container) return;
+        if (eventosPorDia.size === 0) {
+            container.innerHTML = '<summary>📜 Historial de días anteriores</summary><div>No hay jornadas previas</div>';
+            return;
+        }
+        let html = '<summary>📜 Historial de días anteriores (click para ver)</summary>';
+        for (let [fecha, eventos] of eventosPorDia) {
+            html += `<div style="margin-top:8px;"><strong>📅 ${fecha}</strong><br>`;
+            for (let ev of eventos) {
+                let eventoTexto = '';
+                switch(ev.evento) {
+                    case 'INICIO_DESPLAZAMIENTO': eventoTexto = '🚗 Inicio desplazamiento'; break;
+                    case 'LLEGADA': eventoTexto = '📍 Llegada'; break;
+                    case 'INICIO_TRABAJO': eventoTexto = '⚙️ Inicio trabajo'; break;
+                    case 'SUSPENSION': eventoTexto = '⏸️ Suspensión'; break;
+                    case 'REANUDACION': eventoTexto = '▶️ Reanudación'; break;
+                    case 'FIN_TRABAJO': eventoTexto = '🏁 Fin trabajo'; break;
+                    default: eventoTexto = ev.evento;
+                }
+                html += `<div style="font-size:0.7rem; margin-left:12px;">${eventoTexto} - ${ev.inicio ? new Date(ev.inicio).toLocaleTimeString() : ''}</div>`;
+            }
+            let medicionesDia = mediciones.filter(m => m.created_at && m.created_at.split('T')[0] === fecha);
+            if (medicionesDia.length > 0) {
+                html += `<div style="margin-left:12px; font-size:0.7rem; color:#475569;">🔬 Mediciones: ${medicionesDia.length} registro(s)</div>`;
+            }
+            html += `</div>`;
+        }
+        container.innerHTML = html;
     }
 
     async function registrarEvento(evento, motivo = null) {
-    const ahoraLocal = new Date();
-    const offset = ahoraLocal.getTimezoneOffset();
-    const ahoraLocalISO = new Date(ahoraLocal.getTime() - offset * 60000).toISOString().slice(0, 19);
-    
-    let duracion = null;
-    
-    try {
-        // Buscar evento anterior sin fin para calcular duración
-        let eventoAnterior = null;
+        const ahoraLocal = new Date();
+        const offset = ahoraLocal.getTimezoneOffset();
+        const ahoraLocalISO = new Date(ahoraLocal.getTime() - offset * 60000).toISOString().slice(0, 19);
+        let duracion = null;
         
-        if (evento === 'LLEGADA') {
-            const { data: desplazamiento } = await sb.from('seguimiento_tareas')
+        try {
+            // Verificar si ya existe un evento activo del mismo tipo
+            const { data: eventoExistente } = await sb.from('seguimiento_tareas')
                 .select('*')
                 .eq('tarea_id', tareaActual.id)
-                .eq('evento', 'INICIO_DESPLAZAMIENTO')
+                .eq('evento', evento)
                 .is('fin', null)
-                .single();
-            if (desplazamiento) eventoAnterior = desplazamiento;
-        } else if (evento === 'FIN_TRABAJO') {
-            const { data: trabajo } = await sb.from('seguimiento_tareas')
-                .select('*')
-                .eq('tarea_id', tareaActual.id)
-                .eq('evento', 'INICIO_TRABAJO')
-                .is('fin', null)
-                .single();
-            if (trabajo) eventoAnterior = trabajo;
-        } else if (evento === 'SUSPENSION') {
-            const { data: trabajo } = await sb.from('seguimiento_tareas')
-                .select('*')
-                .eq('tarea_id', tareaActual.id)
-                .eq('evento', 'INICIO_TRABAJO')
-                .is('fin', null)
-                .single();
-            if (trabajo) eventoAnterior = trabajo;
-        } else if (evento === 'REANUDACION') {
-            const { data: suspension } = await sb.from('seguimiento_tareas')
-                .select('*')
-                .eq('tarea_id', tareaActual.id)
-                .eq('evento', 'SUSPENSION')
-                .is('fin', null)
-                .single();
-            if (suspension) eventoAnterior = suspension;
-        }
-        
-        if (eventoAnterior && eventoAnterior.inicio) {
-            const inicio = new Date(eventoAnterior.inicio);
-            const fin = new Date(ahoraLocalISO);
-            duracion = Math.floor((fin - inicio) / 1000 / 60);
+                .maybeSingle();
             
-            await sb.from('seguimiento_tareas')
-                .update({ fin: ahoraLocalISO, duracion_minutos: duracion })
-                .eq('id', eventoAnterior.id);
+            if (eventoExistente && evento !== 'SUSPENSION' && evento !== 'FIN_TRABAJO') {
+                mostrarMensaje(`⚠️ Ya hay un evento ${evento} activo. Continuando con el flujo.`, 'exito');
+                if (evento === 'INICIO_DESPLAZAMIENTO') {
+                    tareaActual.estado = 'DESPLAZAMIENTO';
+                    pasoActual = 1;
+                } else if (evento === 'LLEGADA') {
+                    tareaActual.estado = 'EN_CURSO';
+                    pasoActual = 2;
+                } else if (evento === 'INICIO_TRABAJO') {
+                    pasoActual = 3;
+                }
+                renderizarPantallaTrabajo();
+                return true;
+            }
+            
+            let eventoAnterior = null;
+            
+            if (evento === 'LLEGADA') {
+                const { data: desplazamiento } = await sb.from('seguimiento_tareas')
+                    .select('*')
+                    .eq('tarea_id', tareaActual.id)
+                    .eq('evento', 'INICIO_DESPLAZAMIENTO')
+                    .is('fin', null)
+                    .maybeSingle();
+                if (desplazamiento) eventoAnterior = desplazamiento;
+            } else if (evento === 'FIN_TRABAJO' || evento === 'SUSPENSION') {
+                const { data: trabajo } = await sb.from('seguimiento_tareas')
+                    .select('*')
+                    .eq('tarea_id', tareaActual.id)
+                    .eq('evento', 'INICIO_TRABAJO')
+                    .is('fin', null)
+                    .maybeSingle();
+                if (trabajo) eventoAnterior = trabajo;
+            }
+            
+            if (eventoAnterior && eventoAnterior.inicio) {
+                const inicio = new Date(eventoAnterior.inicio);
+                const fin = new Date(ahoraLocalISO);
+                duracion = Math.floor((fin - inicio) / 1000 / 60);
+                if (duracion === 0) duracion = 1;
+                
+                await sb.from('seguimiento_tareas')
+                    .update({ fin: ahoraLocalISO, duracion_minutos: duracion })
+                    .eq('id', eventoAnterior.id);
+            }
+            
+            const nuevoEvento = {
+                tarea_id: tareaActual.id,
+                evento: evento,
+                inicio: ahoraLocalISO,
+                duracion_minutos: null,
+                motivo: motivo
+            };
+            
+            const { error } = await sb.from('seguimiento_tareas').insert(nuevoEvento);
+            if (error) throw error;
+            
+            if (evento === 'INICIO_DESPLAZAMIENTO') {
+                await sb.from('tareas').update({ estado: 'DESPLAZAMIENTO', iniciada_en: ahoraLocalISO }).eq('id', tareaActual.id);
+                tareaActual.estado = 'DESPLAZAMIENTO';
+                pasoActual = 1;
+            } else if (evento === 'LLEGADA') {
+                await sb.from('tareas').update({ estado: 'EN_CURSO' }).eq('id', tareaActual.id);
+                tareaActual.estado = 'EN_CURSO';
+                pasoActual = 2;
+            } else if (evento === 'INICIO_TRABAJO') {
+                pasoActual = 3;
+            } else if (evento === 'FIN_TRABAJO') {
+                pasoActual = 4;
+            }
+            
+            mostrarMensaje(`✅ ${evento} registrado`, 'exito');
+            renderizarPantallaTrabajo();
+            return true;
+            
+        } catch (error) {
+            console.error("Error:", error);
+            mostrarMensaje(`❌ Error al registrar ${evento}`, 'error');
+            return false;
         }
-        
-        // Insertar el nuevo evento
-        const nuevoEvento = {
-            tarea_id: tareaActual.id,
-            evento: evento,
-            inicio: ahoraLocalISO,
-            duracion_minutos: null,
-            motivo: motivo
-        };
-        
-        const { error } = await sb.from('seguimiento_tareas').insert(nuevoEvento);
-        if (error) throw error;
-        
-        // Actualizar estado de la tarea
-        if (evento === 'INICIO_DESPLAZAMIENTO') {
-            await sb.from('tareas').update({ estado: 'DESPLAZAMIENTO', iniciada_en: ahoraLocalISO }).eq('id', tareaActual.id);
-            tareaActual.estado = 'DESPLAZAMIENTO';
-        } else if (evento === 'LLEGADA') {
-            await sb.from('tareas').update({ estado: 'EN_CURSO' }).eq('id', tareaActual.id);
-            tareaActual.estado = 'EN_CURSO';
-        }
-        
-        mostrarMensaje(`✅ ${evento} registrado`, 'exito');
-        return true;
-        
-    } catch (error) {
-        console.error("Error:", error);
-        mostrarMensaje(`❌ Error al registrar ${evento}`, 'error');
-        return false;
     }
-}
 
     async function mejorarNotaInternaIA(texto) {
         if (!texto || texto.trim() === "") { mostrarMensaje("❌ Escribe algo antes de usar la IA", 'error'); return null; }
@@ -855,8 +1132,8 @@
             const { data: session } = await sb.auth.getSession();
             const { data: empresa } = await sb.from('empresas').select('nombre').eq('id', tareaActual.cliente_id).single();
             const empresaNombre = empresa?.nombre || 'La empresa';
-            const mediciones = { cloro: document.getElementById('medCloro')?.value || null, ph: document.getElementById('medPh')?.value || null, temperatura: document.getElementById('medTemp')?.value || null };
-            const materialesLista = materialesTemp.map(m => m.descripcion).join(', ');
+            const mediciones = obtenerMediciones();
+            const materialesLista = materialesTemp.map(m => `${m.descripcion} (${m.importe_total}€)`).join(', ');
             
             const response = await fetch(`${SUPABASE_URL}/functions/v1/generar-informe-cliente`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -884,45 +1161,552 @@
                 document.getElementById('modalInformeCliente').style.display = 'flex';
                 pendingInformeCallback = (aceptar) => {
                     if (aceptar) {
-                        document.getElementById('notaCliente').value = informe;
+                        let textoLimpio = informe;
+                        textoLimpio = textoLimpio.replace(/\*\*/g, '').replace(/\*/g, '').replace(/#/g, '');
+                        document.getElementById('notaCliente').value = textoLimpio;
                         mostrarMensaje("✅ Informe aceptado", 'exito');
                     }
                     document.getElementById('modalInformeCliente').style.display = 'none';
+                    pendingInformeCallback = null;
                 };
             }
         });
     }
 
-    function calcularTotalMateriales() { return 0; }
+    function renderizarPantallaTrabajo() {
+        const content = document.getElementById('trabajoContent');
+        
+        let html = `<div class="stepper">
+            <div class="step ${pasoActual >= 0 ? 'completed' : ''} ${pasoActual === 0 ? 'active' : ''}"><span class="step-icon">✅</span><span>Aceptada</span></div>
+            <div class="step ${pasoActual >= 1 ? 'completed' : ''} ${pasoActual === 1 ? 'active' : ''}"><span class="step-icon">🚗</span><span>Desplaz.</span></div>
+            <div class="step ${pasoActual >= 2 ? 'completed' : ''} ${pasoActual === 2 ? 'active' : ''}"><span class="step-icon">📍</span><span>Llegada</span></div>
+            <div class="step ${pasoActual >= 3 ? 'completed' : ''} ${pasoActual === 3 ? 'active' : ''}"><span class="step-icon">⚙️</span><span>Trabajo</span></div>
+            <div class="step ${pasoActual >= 4 ? 'completed' : ''} ${pasoActual === 4 ? 'active' : ''}"><span class="step-icon">📝</span><span>Registros</span></div>
+            <div class="step ${pasoActual >= 5 ? 'completed' : ''} ${pasoActual === 5 ? 'active' : ''}"><span class="step-icon">🏁</span><span>Cierre</span></div>
+        </div>`;
 
+        html += `<div class="form-group">
+            <label>📋 ORDEN DE TRABAJO</label>
+            <button class="btn-orden-trabajo" onclick="verOrdenTrabajo()">📄 Ver orden de trabajo</button>
+        </div>`;
+
+        // Historial de días
+        html += `<details class="historico-dias" id="historicoContainer" open><summary>📜 Historial de días anteriores</summary>Cargando...</details>`;
+
+        if (pasoActual === 0) {
+            if (tareaActual.estado === 'PENDIENTE') {
+                html += `<button class="action-btn" onclick="mostrarModalAceptar()">✅ ACEPTAR TAREA</button>`;
+                html += `<button class="action-btn action-btn-danger" onclick="mostrarCancelarModal()">❌ CANCELAR TAREA</button>`;
+            } else if (tareaActual.estado === 'ACEPTADA') {
+                html += `<button class="action-btn" onclick="iniciarDesplazamiento()">🚗 INICIAR DESPLAZAMIENTO</button>`;
+                html += `<button class="action-btn action-btn-danger" onclick="mostrarCancelarModal()">❌ CANCELAR TAREA</button>`;
+            } else if (tareaActual.estado === 'SUSPENDIDA') {
+                html += `<button class="action-btn" onclick="reanudarTrabajo()">▶️ REANUDAR TRABAJO (nuevo día)</button>`;
+            }
+        }
+        else if (pasoActual === 1) {
+            if (!tareaActual.iniciada_en) {
+                html += `<button class="action-btn" onclick="iniciarDesplazamiento()">🚗 INICIAR DESPLAZAMIENTO</button>`;
+            } else {
+                html += `<button class="action-btn" onclick="registrarLlegada()">📍 REGISTRAR LLEGADA</button>`;
+            }
+        }
+        else if (pasoActual === 2) {
+            html += `<button class="action-btn" onclick="iniciarTrabajo()">▶️ INICIAR TRABAJO</button>`;
+        }
+        else if (pasoActual === 3) {
+            html += renderizarMediciones();
+            html += `<div class="form-group"><label>🧰 MATERIALES USADOS</label>
+                <div class="material-row">
+                    <select id="selectMaterial" class="material-select">
+                        <option value="">-- Seleccionar material --</option>
+                        ${materialesPorServicio[servicioActual].map(m => `<option value="${m.nombre}" data-unidad="${m.unidad}" data-precio="${m.precio_por_unidad}">${m.nombre} (${m.precio_por_unidad}€/${m.unidad})</option>`).join('')}
+                    </select>
+                    <input type="number" id="materialCantidad" class="material-cantidad" placeholder="Cantidad" step="0.01" value="1">
+                    <input type="number" id="materialPrecio" class="material-precio" placeholder="Precio unitario (€)" step="0.01" readonly>
+                    <input type="text" id="materialUnidad" class="material-unidad" placeholder="Unidad" readonly>
+                    <button class="btn-add-material" onclick="agregarMaterial()">➕ Añadir</button>
+                </div>
+                <div id="listadoMateriales">${materialesTemp.map((m, idx) => `<div class="material-listado-item"><span class="material-listado-info">${m.descripcion} - ${m.importe_total}€</span><button class="btn-eliminar-material-listado" onclick="eliminarMaterialListado(${idx})">✖</button></div>`).join('')}</div>
+            </div>`;
+            html += `<div class="form-group"><label>📝 NOTA INTERNA <button type="button" class="btn-ia" onclick="mejorarNotaInternaIA(document.getElementById('notaInterna').value)">🤖 Mejorar</button></label>
+                <textarea id="notaInterna" rows="2" placeholder="Escribe aquí tus notas...">${tareaActual.nota_interna || ''}</textarea>
+            </div>`;
+            html += `<div class="form-group nota-obligatoria">
+                <label>📝 INFORME PARA CLIENTE <button type="button" class="btn-ia" onclick="mostrarModalInformeCliente()">🤖 Generar informe</button></label>
+                <textarea id="notaCliente" rows="3" placeholder="El informe se generará automáticamente...">${tareaActual.nota_cliente || ''}</textarea>
+                <small>⚠️ Usa el botón IA para generar el informe</small>
+            </div>`;
+            html += `<div class="form-group">
+                <label>📎 ADJUNTAR FOTOS / JUSTIFICANTES</label>
+                <div class="upload-area" id="uploadArea">📸 Haz clic o arrastra para subir foto</div>
+                <input type="file" id="fileInput" accept="image/*,application/pdf" style="display:none;" multiple>
+                <div id="adjuntosContainer" class="adjuntos-list"></div>
+            </div>`;
+            
+            if (isExterno) html += `<button class="action-btn" onclick="mostrarModalAlbaran()" style="background:#6b21a5; margin-top:8px;">💰 REGISTRAR ALBARÁN</button>`;
+            html += `<button class="action-btn" onclick="guardarRegistros()">💾 GUARDAR REGISTROS</button>`;
+            html += `<button class="action-btn action-btn-secondary" onclick="suspenderTarea()">⏸️ SUSPENDER TAREA</button>`;
+            html += `<button class="action-btn" onclick="finalizarTrabajo()">🏁 FINALIZAR TRABAJO</button>`;
+        }
+        else if (pasoActual === 4) {
+            html += renderizarMediciones(true);
+            html += `<div class="form-group"><label>🧰 MATERIALES USADOS</label>${materialesTemp.map(m => `<div class="material-listado-item"><span class="material-listado-info">${m.descripcion} - ${m.importe_total}€</span></div>`).join('')}</div>`;
+            html += `<div class="form-group"><label>📝 NOTA INTERNA</label><textarea readonly rows="2">${document.getElementById('notaInterna')?.value || ''}</textarea></div>`;
+            html += `<div class="form-group"><label>📝 INFORME PARA CLIENTE</label><textarea readonly rows="3">${document.getElementById('notaCliente')?.value || ''}</textarea></div>`;
+            html += `<button class="action-btn" onclick="cerrarTarea()">🏁 CERRAR TAREA</button>`;
+        }
+        
+        document.getElementById('trabajoContent').innerHTML = html;
+        
+        const selectMaterial = document.getElementById('selectMaterial');
+        if (selectMaterial) {
+            selectMaterial.addEventListener('change', function() {
+                const selected = this.options[this.selectedIndex];
+                const unidad = selected?.dataset?.unidad || '';
+                const precio = selected?.dataset?.precio || '';
+                document.getElementById('materialUnidad').value = unidad;
+                document.getElementById('materialPrecio').value = precio;
+            });
+        }
+        
+        // Configurar subida de fotos
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        if (uploadArea && fileInput) {
+            uploadArea.onclick = () => fileInput.click();
+            fileInput.onchange = async (e) => {
+                const files = Array.from(e.target.files);
+                for (let file of files) {
+                    await subirAdjunto(file);
+                }
+                mostrarAdjuntos();
+                fileInput.value = '';
+            };
+            uploadArea.ondragover = (e) => e.preventDefault();
+            uploadArea.ondrop = async (e) => {
+                e.preventDefault();
+                const files = Array.from(e.dataTransfer.files);
+                for (let file of files) {
+                    await subirAdjunto(file);
+                }
+                mostrarAdjuntos();
+            };
+        }
+        
+        mostrarAdjuntos();
+        mostrarHistoricoDias();
+    }
+
+    async function guardarRegistros() {
+        const notaInterna = document.getElementById('notaInterna')?.value || '';
+        const notaCliente = document.getElementById('notaCliente')?.value || '';
+        
+        if (!notaCliente.trim()) { 
+            mostrarMensaje("❌ Debes generar el informe para el cliente", 'error'); 
+            return; 
+        }
+        
+        const mediciones = obtenerMediciones();
+        
+        if (mediciones && Object.values(mediciones).some(v => v && v !== '')) {
+            try {
+                await sb.from('mediciones_dinamicas').insert({
+                    tarea_id: tareaActual.id,
+                    tecnico_id: currentTecnicoId,
+                    parametros: mediciones,
+                    notas_tecnico: notaInterna
+                });
+            } catch(e) { console.error("Error mediciones:", e); }
+        }
+        
+        await sb.from('tareas').update({ 
+            nota_interna: notaInterna, 
+            nota_cliente: notaCliente 
+        }).eq('id', tareaActual.id);
+        
+        for (const m of materialesTemp) {
+            const { data: existente } = await sb.from('gastos_tarea')
+                .select('id')
+                .eq('tarea_id', tareaActual.id)
+                .eq('descripcion', m.descripcion)
+                .maybeSingle();
+            if (!existente) {
+                try {
+                    await sb.from('gastos_tarea').insert({
+                        tarea_id: tareaActual.id,
+                        tecnico_id: currentTecnicoId,
+                        tipo_gasto: 'MATERIALES',
+                        descripcion: m.descripcion,
+                        importe_total: m.importe_total,
+                        fecha_gasto: new Date().toISOString().split('T')[0],
+                        estado: 'PENDIENTE'
+                    });
+                } catch(e) { console.error("Error material:", e); }
+            }
+        }
+        
+        mostrarMensaje("✅ Registros guardados correctamente", 'exito');
+        pasoActual = 3;
+        renderizarPantallaTrabajo();
+        limpiarProgresoLocal(tareaActual.id);
+    }
+
+    function agregarMaterial() {
+        const nombre = document.getElementById('selectMaterial')?.value;
+        const cantidad = parseFloat(document.getElementById('materialCantidad')?.value) || 0;
+        const precioUnitario = parseFloat(document.getElementById('materialPrecio')?.value) || 0;
+        const unidad = document.getElementById('materialUnidad')?.value || 'unidad';
+        if (!nombre) { mostrarMensaje("❌ Selecciona un material", 'error'); return; }
+        if (cantidad <= 0) { mostrarMensaje("❌ Cantidad válida", 'error'); return; }
+        const importeTotal = cantidad * precioUnitario;
+        materialesTemp.push({ 
+            descripcion: `${nombre}: ${cantidad} ${unidad} (${precioUnitario}€/${unidad})`, 
+            tipo_gasto: 'MATERIALES',
+            importe_total: importeTotal
+        });
+        document.getElementById('selectMaterial').value = '';
+        document.getElementById('materialCantidad').value = '1';
+        document.getElementById('materialPrecio').value = '';
+        document.getElementById('materialUnidad').value = '';
+        renderizarPantallaTrabajo();
+        guardarProgresoLocal();
+    }
+
+    function eliminarMaterialListado(idx) { materialesTemp.splice(idx, 1); renderizarPantallaTrabajo(); guardarProgresoLocal(); }
+
+    async function iniciarDesplazamiento() {
+        const btn = document.querySelector('button[onclick="iniciarDesplazamiento()"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Registrando...'; }
+        const resultado = await registrarEvento('INICIO_DESPLAZAMIENTO');
+        if (resultado) {
+            pasoActual = 1;
+            renderizarPantallaTrabajo();
+            await cargarTareas();
+        }
+        if (btn) btn.disabled = false;
+    }
+
+    async function registrarLlegada() {
+        const btn = document.querySelector('button[onclick="registrarLlegada()"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Registrando...'; }
+        const resultado = await registrarEvento('LLEGADA');
+        if (resultado) {
+            pasoActual = 2;
+            renderizarPantallaTrabajo();
+            await cargarTareas();
+        }
+        if (btn) btn.disabled = false;
+    }
+
+    async function iniciarTrabajo() {
+        const btn = document.querySelector('button[onclick="iniciarTrabajo()"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Registrando...'; }
+        const resultado = await registrarEvento('INICIO_TRABAJO');
+        if (resultado) {
+            pasoActual = 3;
+            renderizarPantallaTrabajo();
+            await cargarTareas();
+        }
+        if (btn) btn.disabled = false;
+    }
+
+    async function suspenderTarea() {
+        if (!confirm("¿Estás seguro de suspender la tarea? Se guardará el progreso y podrás continuar otro día.")) return;
+        if (!tareaActual) return;
+        
+        const btn = document.querySelector('button[onclick="suspenderTarea()"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Suspendiendo...'; }
+        
+        const notaInterna = document.getElementById('notaInterna')?.value || '';
+        const notaCliente = document.getElementById('notaCliente')?.value || '';
+        const mediciones = obtenerMediciones();
+        
+        if (mediciones && Object.values(mediciones).some(v => v && v !== '')) {
+            await sb.from('mediciones_dinamicas').insert({
+                tarea_id: tareaActual.id,
+                tecnico_id: currentTecnicoId,
+                parametros: mediciones,
+                notas_tecnico: notaInterna
+            });
+        }
+        
+        await sb.from('tareas').update({
+            nota_interna: notaInterna,
+            nota_cliente: notaCliente
+        }).eq('id', tareaActual.id);
+        
+        const ahoraLocal = new Date();
+        const offset = ahoraLocal.getTimezoneOffset();
+        const ahoraLocalISO = new Date(ahoraLocal.getTime() - offset * 60000).toISOString().slice(0, 19);
+        
+        const { data: trabajoActivo } = await sb.from('seguimiento_tareas')
+            .select('*')
+            .eq('tarea_id', tareaActual.id)
+            .eq('evento', 'INICIO_TRABAJO')
+            .is('fin', null)
+            .maybeSingle();
+        if (trabajoActivo) {
+            const duracion = Math.max(1, Math.floor((new Date(ahoraLocalISO) - new Date(trabajoActivo.inicio)) / 1000 / 60));
+            await sb.from('seguimiento_tareas')
+                .update({ fin: ahoraLocalISO, duracion_minutos: duracion })
+                .eq('id', trabajoActivo.id);
+        }
+        
+        await sb.from('seguimiento_tareas').insert({
+            tarea_id: tareaActual.id,
+            evento: 'SUSPENSION',
+            inicio: ahoraLocalISO,
+            motivo: 'Fin de jornada'
+        });
+        
+        await sb.from('tareas').update({ estado: 'SUSPENDIDA' }).eq('id', tareaActual.id);
+        tareaActual.estado = 'SUSPENDIDA';
+        
+        limpiarProgresoLocal(tareaActual.id);
+        mostrarMensaje("⏸️ Tarea suspendida. Puedes continuar otro día.", 'exito');
+        document.getElementById('trabajoScreen').style.display = 'none';
+        await cargarTareas();
+        document.querySelector('.nav-item[data-tab="activas"]').click();
+        if (btn) btn.disabled = false;
+    }
+
+    async function reanudarTrabajo() {
+        if (!confirm("Reanudar tarea iniciará un nuevo ciclo de desplazamiento/llegada/trabajo para hoy. ¿Continuar?")) return;
+        if (!tareaActual) return;
+        
+        const ahoraLocal = new Date();
+        const offset = ahoraLocal.getTimezoneOffset();
+        const ahoraLocalISO = new Date(ahoraLocal.getTime() - offset * 60000).toISOString().slice(0, 19);
+        
+        await sb.from('seguimiento_tareas').insert({
+            tarea_id: tareaActual.id,
+            evento: 'REANUDACION',
+            inicio: ahoraLocalISO,
+            motivo: 'Nueva jornada'
+        });
+        
+        await sb.from('tareas').update({ estado: 'ACEPTADA' }).eq('id', tareaActual.id);
+        tareaActual.estado = 'ACEPTADA';
+        pasoActual = 0;
+        renderizarPantallaTrabajo();
+        guardarProgresoLocal();
+        
+        mostrarMensaje("✅ Tarea reanudada. Inicia el desplazamiento para hoy.", 'exito');
+        await cargarTareas();
+    }
+
+    async function finalizarTrabajo() {
+        try {
+            if (!tareaActual || !tareaActual.id) {
+                mostrarMensaje("❌ Error: No hay tarea activa", 'error');
+                return;
+            }
+
+            let notaCliente = document.getElementById('notaCliente')?.value || '';
+            
+            if (!notaCliente.trim()) {
+                mostrarMensaje("📝 Generando informe automático...", 'exito');
+                const informe = await generarInformeCliente();
+                if (informe && informe.trim()) {
+                    let textoLimpio = informe.replace(/\*\*/g, '').replace(/\*/g, '').replace(/#/g, '');
+                    document.getElementById('notaCliente').value = textoLimpio;
+                    notaCliente = textoLimpio;
+                } else {
+                    mostrarMensaje("❌ No se pudo generar el informe. Por favor, genera el informe manualmente.", 'error');
+                    return;
+                }
+            }
+            
+            const { data: medicionesExistentes } = await sb.from('mediciones_dinamicas')
+                .select('id')
+                .eq('tarea_id', tareaActual.id)
+                .limit(1);
+            
+            if (!medicionesExistentes || medicionesExistentes.length === 0) {
+                const notaInterna = document.getElementById('notaInterna')?.value || '';
+                const mediciones = obtenerMediciones();
+                
+                if (mediciones && Object.values(mediciones).some(v => v && v !== '')) {
+                    await sb.from('mediciones_dinamicas').insert({
+                        tarea_id: tareaActual.id,
+                        tecnico_id: currentTecnicoId,
+                        parametros: mediciones,
+                        notas_tecnico: notaInterna
+                    });
+                }
+                
+                await sb.from('tareas').update({ 
+                    nota_interna: notaInterna, 
+                    nota_cliente: notaCliente 
+                }).eq('id', tareaActual.id);
+                
+                for (const m of materialesTemp) {
+                    const { data: existente } = await sb.from('gastos_tarea')
+                        .select('id')
+                        .eq('tarea_id', tareaActual.id)
+                        .eq('descripcion', m.descripcion)
+                        .maybeSingle();
+                    if (!existente) {
+                        await sb.from('gastos_tarea').insert({
+                            tarea_id: tareaActual.id,
+                            tecnico_id: currentTecnicoId,
+                            tipo_gasto: 'MATERIALES',
+                            descripcion: m.descripcion,
+                            importe_total: m.importe_total || 0,
+                            fecha_gasto: new Date().toISOString().split('T')[0],
+                            estado: 'PENDIENTE'
+                        });
+                    }
+                }
+                mostrarMensaje("✅ Registros guardados automáticamente", 'exito');
+            } else {
+                await sb.from('tareas').update({ nota_cliente: notaCliente }).eq('id', tareaActual.id);
+            }
+            
+            const ahoraLocal = new Date();
+            const offset = ahoraLocal.getTimezoneOffset();
+            const ahoraLocalISO = new Date(ahoraLocal.getTime() - offset * 60000).toISOString().slice(0, 19);
+            
+            const { data: trabajo } = await sb.from('seguimiento_tareas')
+                .select('*')
+                .eq('tarea_id', tareaActual.id)
+                .eq('evento', 'INICIO_TRABAJO')
+                .is('fin', null)
+                .maybeSingle();
+            
+            if (trabajo && trabajo.inicio) {
+                const duracion = Math.max(1, Math.floor((new Date(ahoraLocalISO) - new Date(trabajo.inicio)) / 1000 / 60));
+                await sb.from('seguimiento_tareas')
+                    .update({ fin: ahoraLocalISO, duracion_minutos: duracion })
+                    .eq('id', trabajo.id);
+            }
+            
+            const { data: finExistente } = await sb.from('seguimiento_tareas')
+                .select('id')
+                .eq('tarea_id', tareaActual.id)
+                .eq('evento', 'FIN_TRABAJO')
+                .maybeSingle();
+            
+            if (!finExistente) {
+                await sb.from('seguimiento_tareas').insert({
+                    tarea_id: tareaActual.id,
+                    evento: 'FIN_TRABAJO',
+                    inicio: ahoraLocalISO,
+                    duracion_minutos: null
+                });
+            }
+            
+            mostrarMensaje("✅ Trabajo finalizado correctamente", 'exito');
+            pasoActual = 4;
+            renderizarPantallaTrabajo();
+            limpiarProgresoLocal(tareaActual.id);
+            await cargarTareas();
+            
+        } catch (error) {
+            console.error("Error en finalizarTrabajo:", error);
+            mostrarMensaje("❌ Error al finalizar: " + error.message, 'error');
+        }
+    }
+
+    async function cerrarTarea() {
+        await sb.from('tareas').update({ estado: 'COMPLETADA', completada_en: new Date().toISOString() }).eq('id', tareaActual.id);
+        mostrarMensaje("🏁 Tarea completada");
+        document.getElementById('trabajoScreen').style.display = 'none';
+        limpiarProgresoLocal(tareaActual.id);
+        await cargarTareas();
+    }
+
+    function mostrarModalAceptar() {
+        const modal = document.getElementById('modalAceptarTarea');
+        const hoy = new Date();
+        const fechaDefault = hoy.toISOString().split('T')[0];
+        document.getElementById('modalFechaPropuesta').value = fechaDefault;
+        document.getElementById('modalHoraPropuesta').value = '10:00';
+        
+        const ordenDiv = document.getElementById('modalOrdenTrabajo');
+        if (ordenDiv && tareaActual && tareaActual.orden_trabajo) ordenDiv.innerHTML = tareaActual.orden_trabajo;
+        
+        modal.style.display = 'flex';
+        
+        const confirmar = document.getElementById('btnConfirmarAceptar');
+        const cancelar = document.getElementById('btnCancelarAceptar');
+        
+        const handlerConfirmar = async () => {
+            const fechaPropuesta = document.getElementById('modalFechaPropuesta').value;
+            const horaPropuesta = document.getElementById('modalHoraPropuesta').value;
+            
+            if (!fechaPropuesta || !horaPropuesta) {
+                mostrarMensaje("❌ Completa fecha y hora", 'error');
+                return;
+            }
+            
+            const { error } = await sb.from('tareas').update({ 
+                estado: 'ACEPTADA',
+                fecha_propuesta: fechaPropuesta,
+                hora_propuesta: horaPropuesta + ':00',
+                leida: true
+            }).eq('id', tareaActual.id);
+            
+            if (error) {
+                mostrarMensaje("❌ Error al aceptar: " + error.message, 'error');
+                return;
+            }
+            
+            tareaActual.estado = 'ACEPTADA';
+            tareaActual.fecha_propuesta = fechaPropuesta;
+            tareaActual.hora_propuesta = horaPropuesta;
+            
+            mostrarMensaje(`✅ Tarea aceptada. Previsión: ${fechaPropuesta} a las ${horaPropuesta}`);
+            
+            modal.style.display = 'none';
+            
+            document.getElementById('trabajoScreen').style.display = 'block';
+            pasoActual = 0;
+            renderizarPantallaTrabajo();
+            
+            await cargarTareas();
+            
+            confirmar.removeEventListener('click', handlerConfirmar);
+            cancelar.removeEventListener('click', handlerCancelar);
+        };
+        
+        const handlerCancelar = () => {
+            modal.style.display = 'none';
+            confirmar.removeEventListener('click', handlerConfirmar);
+            cancelar.removeEventListener('click', handlerCancelar);
+        };
+        
+        confirmar.addEventListener('click', handlerConfirmar);
+        cancelar.addEventListener('click', handlerCancelar);
+    }
+
+    function mostrarCancelarModal() { const motivo = prompt("Motivo de cancelación:", "No tengo disponibilidad"); if (motivo) cancelarTarea(motivo); }
+    async function cancelarTarea(motivo) { await sb.from('tareas').update({ estado: 'CANCELADA', motivo_cancelacion: motivo }).eq('id', tareaActual.id); mostrarMensaje("❌ Tarea cancelada"); document.getElementById('trabajoScreen').style.display = 'none'; limpiarProgresoLocal(tareaActual.id); await cargarTareas(); }
+    function cerrarSesion() { if(autoSaveInterval) clearInterval(autoSaveInterval); sb.auth.signOut(); location.reload(); }
+
+    function calcularTotalMateriales() { return materialesTemp.reduce((sum, m) => sum + (m.importe_total || 0), 0); }
     function actualizarTotalAlbaran() {
         const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0;
         const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0;
-        const materiales = parseFloat(document.getElementById('albaranMateriales')?.value) || 0;
+        const materiales = calcularTotalMateriales();
         const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0;
         const total = (horas * precioHora) + materiales + dietas;
+        document.getElementById('albaranMateriales').value = materiales.toFixed(2);
         document.getElementById('albaranTotal').value = total.toFixed(2) + ' €';
     }
-
     function mostrarModalAlbaran() {
-        document.getElementById('albaranMateriales').value = calcularTotalMateriales().toFixed(2);
         actualizarTotalAlbaran();
         document.getElementById('modalAlbaran').style.display = 'flex';
-        
         const inputs = ['albaranHoras', 'albaranPrecioHora', 'albaranDietas'];
-        inputs.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', actualizarTotalAlbaran);
-        });
+        inputs.forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', actualizarTotalAlbaran); });
     }
-
     async function guardarAlbaran() {
         const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0;
         const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0;
-        const materiales = parseFloat(document.getElementById('albaranMateriales')?.value) || 0;
+        const materiales = calcularTotalMateriales();
         const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0;
         const total = (horas * precioHora) + materiales + dietas;
-        
         try {
             const { error } = await sb.from('facturas_externas').insert({
                 tarea_id: tareaActual.id,
@@ -937,194 +1721,9 @@
             if (error) throw error;
             mostrarMensaje("✅ Albarán guardado correctamente", 'exito');
             document.getElementById('modalAlbaran').style.display = 'none';
-        } catch (error) {
-            mostrarMensaje("❌ Error al guardar albarán", 'error');
-        }
+        } catch (error) { mostrarMensaje("❌ Error al guardar albarán", 'error'); }
     }
 
-    function renderizarPantallaTrabajo() {
-        const content = document.getElementById('trabajoContent');
-        let html = `<div class="stepper"><div class="step ${pasoActual >= 0 ? 'completed' : ''} ${pasoActual === 0 ? 'active' : ''}"><span class="step-icon">✅</span><span>Aceptada</span></div>
-            <div class="step ${pasoActual >= 1 ? 'completed' : ''} ${pasoActual === 1 ? 'active' : ''}"><span class="step-icon">🚗</span><span>Desplaz.</span></div>
-            <div class="step ${pasoActual >= 2 ? 'completed' : ''} ${pasoActual === 2 ? 'active' : ''}"><span class="step-icon">📍</span><span>Llegada</span></div>
-            <div class="step ${pasoActual >= 3 ? 'completed' : ''} ${pasoActual === 3 ? 'active' : ''}"><span class="step-icon">⚙️</span><span>Trabajo</span></div>
-            <div class="step ${pasoActual >= 4 ? 'completed' : ''} ${pasoActual === 4 ? 'active' : ''}"><span class="step-icon">📝</span><span>Registros</span></div>
-            <div class="step ${pasoActual >= 5 ? 'completed' : ''} ${pasoActual === 5 ? 'active' : ''}"><span class="step-icon">🏁</span><span>Cierre</span></div>
-        </div>
-        <div class="form-group"><label>📋 ORDEN DE TRABAJO</label><textarea readonly rows="4">${tareaActual.orden_trabajo || 'Sin instrucciones'}</textarea></div>`;
-        
-        if (pasoActual === 0) {
-            if (tareaActual.estado === 'PENDIENTE') html += `<button class="action-btn" onclick="mostrarModalAceptar()">✅ ACEPTAR TAREA</button><button class="action-btn action-btn-danger" onclick="mostrarCancelarModal()">❌ CANCELAR TAREA</button>`;
-            else if (tareaActual.estado === 'ACEPTADA') html += `<button class="action-btn" onclick="iniciarDesplazamiento()">🚗 INICIAR DESPLAZAMIENTO</button><button class="action-btn action-btn-danger" onclick="mostrarCancelarModal()">❌ CANCELAR TAREA</button>`;
-        }
-        else if (pasoActual === 1 && !tareaActual.iniciada_en) {
-            html += `<button class="action-btn" onclick="iniciarDesplazamiento()">🚗 INICIAR DESPLAZAMIENTO</button>`;
-        }
-        else if (pasoActual === 1 && tareaActual.iniciada_en) {
-            html += `<button class="action-btn" onclick="registrarLlegada()">📍 REGISTRAR LLEGADA</button>`;
-        }
-        else if (pasoActual === 2) {
-            html += `<button class="action-btn" onclick="iniciarTrabajo()">▶️ INICIAR TRABAJO</button>`;
-        }
-        else if (pasoActual === 3) {
-            html += `<div class="form-group"><label>🔬 MEDICIONES</label><div class="mediciones-grid">
-                <input type="number" step="0.1" id="medCloro" placeholder="Cloro (ppm)">
-                <input type="number" step="0.1" id="medPh" placeholder="pH">
-                <input type="number" step="1" id="medTemp" placeholder="Temperatura (°C)">
-            </div></div>`;
-            html += `<div class="form-group"><label>🧰 MATERIALES USADOS</label>
-                <div class="material-row">
-                    <select id="selectMaterial" class="material-select">
-                        <option value="">-- Seleccionar material --</option>
-                        ${materialesPorServicio[servicioActual].map(m => `<option value="${m.nombre}" data-unidad="${m.unidad}">${m.nombre}</option>`).join('')}
-                    </select>
-                    <input type="number" id="materialCantidad" class="material-cantidad" placeholder="Cantidad" step="0.01" value="1">
-                    <input type="text" id="materialUnidad" class="material-unidad" placeholder="Unidad" readonly>
-                    <button class="btn-add-material" onclick="agregarMaterial()">➕ Añadir</button>
-                </div>
-                <div id="listadoMateriales">${materialesTemp.map((m, idx) => `<div class="material-listado-item"><span class="material-listado-info">${m.descripcion}</span><button class="btn-eliminar-material-listado" onclick="eliminarMaterialListado(${idx})">✖</button></div>`).join('')}</div></div>`;
-            html += `<div class="form-group"><label>📝 NOTA INTERNA <button type="button" class="btn-ia" onclick="mejorarNotaInternaIA(document.getElementById('notaInterna').value)">🤖 Mejorar</button></label><textarea id="notaInterna" rows="2" placeholder="Escribe aquí tus notas...">${tareaActual.nota_interna || ''}</textarea></div>`;
-            html += `<div class="form-group nota-obligatoria"><label>📝 INFORME PARA CLIENTE <button type="button" class="btn-ia" onclick="mostrarModalInformeCliente()">🤖 Generar informe</button></label><textarea id="notaCliente" rows="3" placeholder="El informe se generará automáticamente...">${tareaActual.nota_cliente || ''}</textarea><small>⚠️ Usa el botón IA para generar el informe</small></div>`;
-            
-            html += `<div class="botones-acciones">`;
-            html += `<button class="action-btn-secondary" onclick="suspenderTarea()">⏸️ SUSPENDER</button>`;
-            if (tiempoEnSuspension) html += `<button class="action-btn-secondary" onclick="reanudarTarea()">▶️ REANUDAR</button>`;
-            html += `<button class="action-btn" onclick="finalizarTrabajo()">🏁 FINALIZAR TRABAJO</button>`;
-            html += `</div>`;
-            
-            if (isExterno) html += `<button class="action-btn" onclick="mostrarModalAlbaran()" style="background:#6b21a5; margin-top:8px;">💰 REGISTRAR ALBARÁN</button>`;
-            html += `<button class="action-btn" onclick="finalizarRegistros()">📝 FINALIZAR REGISTROS</button>`;
-        }
-        else if (pasoActual === 4) {
-            html += `<div class="form-group"><label>🔬 MEDICIONES</label><div class="mediciones-grid">
-                <input type="text" disabled value="${document.getElementById('medCloro')?.value || '-'} ppm">
-                <input type="text" disabled value="${document.getElementById('medPh')?.value || '-'} pH">
-                <input type="text" disabled value="${document.getElementById('medTemp')?.value || '-'} °C"></div></div>`;
-            html += `<div class="form-group"><label>🧰 MATERIALES USADOS</label>${materialesTemp.map(m => `<div class="material-listado-item"><span class="material-listado-info">${m.descripcion}</span></div>`).join('')}</div>`;
-            html += `<div class="form-group"><label>📝 NOTA INTERNA</label><textarea readonly rows="2">${document.getElementById('notaInterna')?.value || ''}</textarea></div>`;
-            html += `<div class="form-group"><label>📝 INFORME PARA CLIENTE</label><textarea readonly rows="3">${document.getElementById('notaCliente')?.value || ''}</textarea></div>`;
-            html += `<button class="action-btn" onclick="cerrarTarea()">🏁 CERRAR TAREA</button>`;
-        }
-        document.getElementById('trabajoContent').innerHTML = html;
-        
-        const selectMaterial = document.getElementById('selectMaterial');
-        if (selectMaterial) {
-            selectMaterial.addEventListener('change', function() {
-                const selected = this.options[this.selectedIndex];
-                const unidad = selected?.dataset?.unidad || '';
-                document.getElementById('materialUnidad').value = unidad;
-            });
-        }
-    }
-
-    function agregarMaterial() {
-        const nombre = document.getElementById('selectMaterial')?.value;
-        const cantidad = parseFloat(document.getElementById('materialCantidad')?.value) || 0;
-        const unidad = document.getElementById('materialUnidad')?.value || 'unidad';
-        if (!nombre) { mostrarMensaje("❌ Selecciona un material", 'error'); return; }
-        if (cantidad <= 0) { mostrarMensaje("❌ Cantidad válida", 'error'); return; }
-        materialesTemp.push({ descripcion: `${nombre}: ${cantidad} ${unidad}`, tipo_gasto: 'MATERIALES' });
-        document.getElementById('selectMaterial').value = '';
-        document.getElementById('materialCantidad').value = '1';
-        document.getElementById('materialUnidad').value = '';
-        renderizarPantallaTrabajo();
-    }
-
-    function eliminarMaterialListado(idx) { materialesTemp.splice(idx, 1); renderizarPantallaTrabajo(); }
-
-    async function iniciarDesplazamiento() {
-        await registrarEvento('INICIO_DESPLAZAMIENTO');
-        pasoActual = 1;
-        renderizarPantallaTrabajo();
-        await cargarTareas();
-    }
-    
-    async function registrarLlegada() {
-        await registrarEvento('LLEGADA');
-        pasoActual = 2;
-        renderizarPantallaTrabajo();
-        await cargarTareas();
-    }
-    
-    async function iniciarTrabajo() {
-        await registrarEvento('INICIO_TRABAJO');
-        pasoActual = 3;
-        renderizarPantallaTrabajo();
-    }
-    
-    async function suspenderTarea() {
-        await registrarEvento('SUSPENSION');
-        mostrarMensaje("⏸️ Tarea suspendida. Puedes reanudarla más tarde.", 'exito');
-        renderizarPantallaTrabajo();
-    }
-    
-    async function reanudarTarea() {
-        await registrarEvento('REANUDACION');
-        tiempoEnSuspension = false;
-        mostrarMensaje("▶️ Tarea reanudada", 'exito');
-        renderizarPantallaTrabajo();
-    }
-    
-    async function finalizarTrabajo() {
-        await registrarEvento('FIN_TRABAJO');
-        mostrarMensaje("🏁 Trabajo finalizado. Ahora puedes completar los registros.", 'exito');
-        pasoActual = 4;
-        renderizarPantallaTrabajo();
-        await cargarTareas();
-    }
-
-    function mostrarModalAceptar() {
-        const modal = document.getElementById('modalAceptarTarea');
-        const hoy = new Date(); const fechaDefault = hoy.toISOString().split('T')[0];
-        document.getElementById('modalFechaPropuesta').value = fechaDefault;
-        document.getElementById('modalHoraPropuesta').value = '10:00';
-        modal.style.display = 'flex';
-        const confirmar = document.getElementById('btnConfirmarAceptar');
-        const cancelar = document.getElementById('btnCancelarAceptar');
-        const handlerConfirmar = async () => {
-            const fechaPropuesta = document.getElementById('modalFechaPropuesta').value;
-            const horaPropuesta = document.getElementById('modalHoraPropuesta').value;
-            if (!fechaPropuesta || !horaPropuesta) { mostrarMensaje("❌ Completa fecha y hora", 'error'); return; }
-            const { error } = await sb.from('tareas').update({ estado: 'ACEPTADA', fecha_propuesta: fechaPropuesta, hora_propuesta: horaPropuesta + ':00', leida: true }).eq('id', tareaActual.id);
-            if (error) { mostrarMensaje("❌ Error: " + error.message, 'error'); return; }
-            mostrarMensaje(`✅ Tarea aceptada. Previsión: ${fechaPropuesta} a las ${horaPropuesta}`);
-            modal.style.display = 'none';
-            document.getElementById('trabajoScreen').style.display = 'none';
-            await cargarTareas();
-            document.querySelector('.nav-item[data-tab="activas"]').click();
-            confirmar.removeEventListener('click', handlerConfirmar);
-            cancelar.removeEventListener('click', handlerCancelar);
-        };
-        const handlerCancelar = () => { modal.style.display = 'none'; confirmar.removeEventListener('click', handlerConfirmar); cancelar.removeEventListener('click', handlerCancelar); };
-        confirmar.addEventListener('click', handlerConfirmar);
-        cancelar.addEventListener('click', handlerCancelar);
-    }
-
-    async function finalizarRegistros() {
-        const notaCliente = document.getElementById('notaCliente')?.value || '';
-        if (!notaCliente.trim()) { mostrarMensaje("❌ Debes generar el informe para el cliente", 'error'); return; }
-        const mediciones = { cloro: document.getElementById('medCloro')?.value, ph: document.getElementById('medPh')?.value, temperatura: document.getElementById('medTemp')?.value };
-        await sb.from('mediciones_dinamicas').insert({ tarea_id: tareaActual.id, tecnico_id: currentTecnicoId, parametros: mediciones, notas_tecnico: document.getElementById('notaInterna')?.value || '' });
-        await sb.from('tareas').update({ nota_interna: document.getElementById('notaInterna')?.value || '', nota_cliente: notaCliente }).eq('id', tareaActual.id);
-        for (const m of materialesTemp) await sb.from('gastos_tarea').insert({ tarea_id: tareaActual.id, tecnico_id: currentTecnicoId, tipo_gasto: 'MATERIALES', descripcion: m.descripcion, importe_total: 0, fecha_gasto: new Date().toISOString().split('T')[0], estado: 'PENDIENTE' });
-        pasoActual = 4;
-        mostrarMensaje("✅ Registros guardados");
-        renderizarPantallaTrabajo();
-        await cargarTareas();
-    }
-    
-    async function cerrarTarea() {
-        await sb.from('tareas').update({ estado: 'COMPLETADA', completada_en: new Date().toISOString() }).eq('id', tareaActual.id);
-        mostrarMensaje("🏁 Tarea completada");
-        document.getElementById('trabajoScreen').style.display = 'none';
-        await cargarTareas();
-    }
-    
-    function mostrarCancelarModal() { const motivo = prompt("Motivo de cancelación:", "No tengo disponibilidad"); if (motivo) cancelarTarea(motivo); }
-    async function cancelarTarea(motivo) { await sb.from('tareas').update({ estado: 'CANCELADA', motivo_cancelacion: motivo }).eq('id', tareaActual.id); mostrarMensaje("❌ Tarea cancelada"); document.getElementById('trabajoScreen').style.display = 'none'; await cargarTareas(); }
-    function cerrarSesion() { sb.auth.signOut(); location.reload(); }
-
-    // Eventos modales
     document.getElementById('btnAceptarInforme').onclick = () => { if (pendingInformeCallback) pendingInformeCallback(true); };
     document.getElementById('btnRegenerarInforme').onclick = () => {
         generarInformeCliente().then(informe => {
@@ -1135,25 +1734,41 @@
     document.getElementById('btnAceptarAlbaran').onclick = guardarAlbaran;
     document.getElementById('btnCancelarAlbaran').onclick = () => document.getElementById('modalAlbaran').style.display = 'none';
     document.getElementById('btnCerrarDetalle').onclick = () => document.getElementById('modalDetalleTarea').style.display = 'none';
+    document.getElementById('btnCerrarOrden').onclick = () => document.getElementById('modalVerOrden').style.display = 'none';
 
-    // Navegación
     document.querySelectorAll('.nav-item').forEach(btn => { btn.onclick = () => { document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderizarPanel(); }; });
-    document.getElementById('btnBackTrabajo').onclick = () => { document.getElementById('trabajoScreen').style.display = 'none'; cargarTareas(); };
+    document.getElementById('btnBackTrabajo').onclick = async () => {
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        guardarProgresoLocal();
+        if (tareaActual && (tareaActual.estado === 'ACEPTADA' || tareaActual.estado === 'DESPLAZAMIENTO' || tareaActual.estado === 'EN_CURSO' || tareaActual.estado === 'SUSPENDIDA')) {
+            document.getElementById('trabajoScreen').style.display = 'none';
+            await cargarTareas();
+            document.querySelector('.nav-item[data-tab="activas"]').click();
+        } else {
+            document.getElementById('trabajoScreen').style.display = 'none';
+            await cargarTareas();
+            renderizarPanel();
+        }
+    };
     document.getElementById('btnLogin').onclick = async () => { if (await hacerLogin()) { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; await cargarTareas(); } };
     document.getElementById('btnLogout').onclick = cerrarSesion;
     document.getElementById('btnRefrescar').onclick = async () => { mostrarMensaje("🔄 Refrescando...", 'exito'); await cargarTareas(); renderizarPanel(); };
 
-    // Exponer funciones globales
     window.abrirTarea = abrirTarea; window.mostrarModalAceptar = mostrarModalAceptar;
     window.iniciarDesplazamiento = iniciarDesplazamiento; window.registrarLlegada = registrarLlegada;
-    window.iniciarTrabajo = iniciarTrabajo; window.suspenderTarea = suspenderTarea; window.reanudarTarea = reanudarTarea;
-    window.finalizarTrabajo = finalizarTrabajo; window.agregarMaterial = agregarMaterial;
-    window.eliminarMaterialListado = eliminarMaterialListado; window.finalizarRegistros = finalizarRegistros;
+    window.iniciarTrabajo = iniciarTrabajo;
+    window.agregarMaterial = agregarMaterial;
+    window.eliminarMaterialListado = eliminarMaterialListado;
     window.cerrarTarea = cerrarTarea; window.mostrarCancelarModal = mostrarCancelarModal;
     window.cerrarSesion = cerrarSesion; window.mejorarNotaInternaIA = mejorarNotaInternaIA;
     window.mostrarModalInformeCliente = mostrarModalInformeCliente; window.mostrarModalAlbaran = mostrarModalAlbaran;
     window.aplicarFiltrosCompletadas = aplicarFiltrosCompletadas; window.limpiarFiltrosCompletadas = limpiarFiltrosCompletadas;
     window.verDetalleCompletada = verDetalleCompletada; window.aplicarSugerencia = aplicarSugerencia;
+    window.verOrdenTrabajo = verOrdenTrabajo;
+    window.guardarRegistros = guardarRegistros;
+    window.finalizarTrabajo = finalizarTrabajo;
+    window.suspenderTarea = suspenderTarea;
+    window.reanudarTrabajo = reanudarTrabajo;
 </script>
 </body>
 </html>
