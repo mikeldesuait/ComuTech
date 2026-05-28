@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>COMUTECH · Super Admin · Cumplimiento Normativo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- ============================================================= -->
+    <!-- LOGIN PANEL                                                   -->
+    <!-- ============================================================= -->
+    <div id="loginPanel" class="card">
+        <div class="card-header" style="cursor:default;">👑 COMUTECH · Super Admin · Cumplimiento Normativo</div>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="btnLogin">Iniciar sesión</button>
+        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- DASHBOARD PANEL                                              -->
+    <!-- ============================================================= -->
+    <div id="dashboardPanel" style="display: none;">
+        
+        <!-- CARD DE BIENVENIDA (SUPER ADMIN) -->
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c6e9e 100%); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">👑 Super Admin</div>
+                    <div style="font-size: 1.3rem; font-weight: 700;" id="nombreAdmin">Cargando...</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailAdmin"></div>
+                </div>
+                <div><button id="btnLogoutHeader" style="background: rgba(255,255,255,0.2);">🚪 Salir</button></div>
+            </div>
+        </div>
+
+        <!-- ESTADÍSTICAS (TARJETAS) -->
+        <div class="stats-grid" id="statsPanel"></div>
+
+        <!-- BOTONES PRINCIPALES -->
+        <div class="card">
+            <div class="row-flex">
+                <button id="btnMostrarAlta" class="btn-success">➕ Nuevo cliente</button>
+                <button id="btnRefrescar" class="btn-info">🔄 Refrescar</button>
+                <button id="btnExportarPDF" class="btn-warning">📄 Exportar PDF</button>
+            </div>
+        </div>
+
+        <!-- NAVEGADOR DE PESTAÑAS -->
+        <div class="card">
+            <div class="browser-tabs">
+                <button class="browser-tab active" data-tab="clientes">📋 Clientes</button>
+                <button class="browser-tab" data-tab="facturacion">💰 Facturación</button>
+                <button class="browser-tab" data-tab="cumplimiento">⚖️ Cumplimiento Normativo</button>
+            </div>
+            <div id="moduloContainer" class="browser-content">
+                <div style="text-align:center; padding:40px;">Selecciona una pestaña</div>
+            </div>
+        </div>
+        
+        <button id="btnLogoutFooter" style="background:#475569; margin-top:16px;">🚪 Cerrar sesión</button>
+    </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- MODALES GLOBALES                                             -->
+<!-- ============================================================= -->
+
+<!-- MODAL ALTA CLIENTE -->
+<div id="modalAltaCliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">📝 Dar de alta nuevo cliente (RGPD + Ley Antifraude)</div>
+        
+        <!-- SELECTOR TIPO DE SUJETO -->
+        <div class="consentimiento-card">
+            <strong>📌 Tipo de sujeto *</strong>
+            <div class="tipo-sujeto-selector">
+                <button type="button" class="tipo-sujeto-btn active" data-tipo="juridica">🏢 Persona Jurídica (Empresa)</button>
+                <button type="button" class="tipo-sujeto-btn" data-tipo="fisica">👤 Persona Física (Autónomo)</button>
+            </div>
+        </div>
+        
+        <!-- DATOS PERSONA JURÍDICA (EMPRESA) -->
+        <div id="datosJuridica" class="seccion-datos">
+            <div class="row-flex">
+                <div class="grupo"><label>🏢 Razón Social *</label><input type="text" id="razonSocial" placeholder="Ej: Gestión Norte S.L."></div>
+                <div class="grupo"><label>📧 Email contacto *</label><input type="email" id="emailContacto" placeholder="admin@empresa.com"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="nifCif" placeholder="B12345678"></div>
+                <div class="grupo"><label>📞 Teléfono</label><input type="text" id="telefonoContacto" placeholder="Teléfono"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📱 WhatsApp</label><input type="text" id="whatsappContactoJuridica" placeholder="Número de WhatsApp"></div>
+                <div class="grupo" style="display: flex; align-items: center; justify-content: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+                        <input type="checkbox" id="mismoWhatsappJuridica"> Usar mismo que teléfono
+                    </label>
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>👤 Nombre contacto</label><input type="text" id="nombreContacto" placeholder="Persona de contacto"></div>
+                <div class="grupo"><label>📋 Forma Social</label>
+                    <select id="formaSocial">
+                        <option value="">Selecciona</option>
+                        <option value="A">Sociedad Anónima (S.A.)</option>
+                        <option value="B">Sociedad Limitada (S.L.)</option>
+                        <option value="C">Sociedad Colectiva</option>
+                        <option value="D">Sociedad Comanditaria</option>
+                        <option value="J">Sociedad Civil</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATOS PERSONA FÍSICA (AUTÓNOMO) -->
+        <div id="datosFisica" class="seccion-datos" style="display: none;">
+            <div class="row-flex">
+                <div class="grupo"><label>👤 Nombre *</label><input type="text" id="nombreFisica" placeholder="Nombre"></div>
+                <div class="grupo"><label>👤 Primer Apellido</label><input type="text" id="primerApellido" placeholder="Primer apellido"></div>
+                <div class="grupo"><label>👤 Segundo Apellido</label><input type="text" id="segundoApellido" placeholder="Segundo apellido"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📧 Email *</label><input type="email" id="emailFisica" placeholder="email@ejemplo.com"></div>
+                <div class="grupo"><label>📋 NIF</label><input type="text" id="nifFisica" placeholder="12345678A"></div>
+                <div class="grupo"><label>📞 Teléfono</label><input type="text" id="telefonoFisica" placeholder="Teléfono"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📱 WhatsApp</label><input type="text" id="whatsappContactoFisica" placeholder="Número de WhatsApp"></div>
+                <div class="grupo" style="display: flex; align-items: center; justify-content: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+                        <input type="checkbox" id="mismoWhatsappFisica"> Usar mismo que teléfono
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATOS DE DOMICILIO -->
+        <div class="card-header" style="margin-top:16px;">📍 Datos de domicilio</div>
+        <div class="row-flex">
+            <div class="grupo"><label>Calle</label><input type="text" id="direccionCalle" placeholder="Calle"></div>
+            <div class="grupo"><label>Número</label><input type="text" id="direccionNumero" placeholder="Número"></div>
+            <div class="grupo"><label>Piso/Puerta</label><input type="text" id="direccionPiso" placeholder="Piso/Puerta"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Código postal</label><input type="text" id="direccionCp" placeholder="Código postal"></div>
+            <div class="grupo"><label>Municipio</label><input type="text" id="direccionMunicipio" placeholder="Municipio"></div>
+            <div class="grupo"><label>Provincia</label><input type="text" id="direccionProvincia" placeholder="Provincia"></div>
+        </div>
+
+        <!-- DATOS BANCARIOS -->
+        <div class="card-header" style="margin-top:16px;">🏦 Datos bancarios</div>
+        <div class="row-flex">
+            <div class="grupo"><label>IBAN</label><input type="text" id="ibanCuenta" placeholder="ES00 0000 0000 0000 0000 0000"></div>
+            <div class="grupo"><label>Banco</label><input type="text" id="bancoNombre" placeholder="Nombre del banco"></div>
+            <div class="grupo"><label>SWIFT/BIC</label><input type="text" id="swiftCodigo" placeholder="Código SWIFT"></div>
+        </div>
+
+        <!-- DATOS DE ACTIVIDAD -->
+        <div class="card-header" style="margin-top:16px;">📊 Datos de actividad</div>
+        <div class="row-flex">
+            <div class="grupo"><label>🏷️ Plan</label>
+                <select id="planSeleccionado">
+                    <option value="BASICO">Básico (49€/mes)</option>
+                    <option value="PRO">Pro (99€/mes)</option>
+                    <option value="EMPRESA">Empresa (199€/mes)</option>
+                </select>
+            </div>
+            <div class="grupo"><label>📋 CNAE</label><input type="text" id="cnaeCodigo" placeholder="Código CNAE (opcional)"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📅 Fecha inicio actividad</label><input type="date" id="fechaInicioActividad"></div>
+            <div id="tipoClienteDiv" style="display: block;">
+                <div class="grupo"><label>🏷️ Tipo de cliente</label>
+                    <select id="tipoClienteSelect">
+                        <option value="administrador">🏢 Administrador de comunidades</option>
+                        <option value="comunidad">🏘️ Comunidad de propietarios</option>
+                        <option value="empresa_piscinas">🌊 Empresa de piscinas</option>
+                        <option value="empresa_jardineria">🌳 Empresa de jardinería</option>
+                        <option value="empresa_fontaneria">🔧 Empresa de fontanería</option>
+                        <option value="empresa_electricidad">⚡ Empresa de electricidad</option>
+                        <option value="empresa_limpieza">🧹 Empresa de limpieza</option>
+                        <option value="empresa_cerrajeria">🔒 Empresa de cerrajería</option>
+                        <option value="empresa_reformas">🏗️ Empresa de reformas</option>
+                        <option value="empresa_antenas">📡 Empresa de antenas</option>
+                        <option value="empresa_climatizacion">❄️ Climatización/Calefacción</option>
+                        <option value="otro">📋 Otro</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- RGPD (CONSENTIMIENTO) -->
+        <div class="consentimiento-card" style="margin-top:16px;">
+            <strong>⚖️ Base legal RGPD</strong>
+            <p style="font-size:0.75rem; margin-top:8px;">De acuerdo con el RGPD (UE) 2016/679 y la LOPDGDD 3/2018, sus datos serán tratados para la gestión de facturación, prestación de servicios y cumplimiento de obligaciones legales.</p>
+            <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+                <input type="checkbox" id="consentimientoAceptado"> Acepto el tratamiento de mis datos según la normativa
+            </label>
+        </div>
+
+        <!-- BOTONES DEL MODAL -->
+        <div class="btn-group">
+            <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+            <button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR CLIENTE -->
+<div id="modalEditarCliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">✏️ Editar cliente</div>
+        <input type="hidden" id="editClienteId">
+        <input type="hidden" id="editPerfilId">
+        
+        <div class="row-flex">
+            <div class="grupo"><label>🏢 Nombre / Razón Social</label><input type="text" id="editNombre"></div>
+            <div class="grupo"><label>📧 Email</label><input type="email" id="editEmail"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="editNif"></div>
+            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefono"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>👤 Contacto</label><input type="text" id="editContacto"></div>
+            <div class="grupo"><label>📱 WhatsApp</label><input type="text" id="editWhatsapp"></div>
+        </div>
+        
+        <div id="editEmpresaFields">
+            <div class="row-flex">
+                <div class="grupo"><label>🏷️ Plan</label><select id="editPlan"><option value="BASICO">Básico</option><option value="PRO">Pro</option><option value="EMPRESA">Empresa</option></select></div>
+                <div class="grupo"><label>🏢 Tipo de cliente</label><select id="editTipo">
+                    <option value="administrador">🏢 Administrador</option><option value="comunidad">🏘️ Comunidad</option>
+                    <option value="empresa_piscinas">🌊 Piscinas</option>
+                    <option value="empresa_jardineria">🌳 Jardinería</option>
+                    <option value="empresa_fontaneria">🔧 Fontanería</option>
+                    <option value="empresa_electricidad">⚡ Electricidad</option>
+                    <option value="empresa_limpieza">🧹 Limpieza</option>
+                    <option value="empresa_cerrajeria">🔒 Cerrajería</option>
+                    <option value="empresa_reformas">🏗️ Reformas</option>
+                    <option value="empresa_antenas">📡 Antenas</option>
+                    <option value="empresa_climatizacion">❄️ Climatización</option>
+                    <option value="otro">📋 Otro</option>
+                </select>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📋 Forma Social</label><select id="editFormaSocial"><option value="">Selecciona</option><option value="A">S.A.</option><option value="B">S.L.</option><option value="C">Colectiva</option><option value="D">Comanditaria</option><option value="J">Civil</option></select></div>
+                <div class="grupo"><label>📅 Fecha constitución</label><input type="date" id="editFechaConstitucion"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📋 Registro Mercantil</label><input type="text" id="editRegistroMercantil"></div>
+                <div class="grupo"><label>👤 Representante legal</label><input type="text" id="editRepresentante"></div>
+            </div>
+        </div>
+        
+        <div id="editAutonomoFields" style="display: none;">
+            <div class="row-flex">
+                <div class="grupo"><label>🏷️ Plan</label><select id="editPlanAutonomo"><option value="BASICO">Básico</option><option value="PRO">Pro</option><option value="EMPRESA">Empresa</option></select></div>
+                <div class="grupo"><label>🔧 Oficio</label><select id="editOficio">
+                    <option value="">Selecciona</option>
+                    <option value="electricidad">⚡ Electricidad</option>
+                    <option value="fontaneria">🔧 Fontanería</option>
+                    <option value="pintura">🎨 Pintura</option>
+                    <option value="albañileria">🏗️ Albañilería</option>
+                    <option value="jardineria">🌳 Jardinería</option>
+                    <option value="limpieza">🧹 Limpieza</option>
+                    <option value="cerrajeria">🔒 Cerrajería</option>
+                    <option value="piscinas">🏊 Piscinas</option>
+                    <option value="climatizacion">❄️ Climatización</option>
+                    <option value="reformas">🔨 Reformas</option>
+                    <option value="informatica">💻 Informática</option>
+                    <option value="otro">📋 Otro</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="card-header" style="margin-top:16px;">📍 Datos de domicilio</div>
+        <div class="row-flex">
+            <div class="grupo"><label>Calle</label><input type="text" id="editCalle"></div>
+            <div class="grupo"><label>Número</label><input type="text" id="editNumero"></div>
+            <div class="grupo"><label>Piso</label><input type="text" id="editPiso"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>CP</label><input type="text" id="editCp"></div>
+            <div class="grupo"><label>Ciudad</label><input type="text" id="editCiudad"></div>
+            <div class="grupo"><label>Provincia</label><input type="text" id="editProvincia"></div>
+        </div>
+        
+        <div class="card-header" style="margin-top:16px;">🏦 Datos bancarios</div>
+        <div class="row-flex">
+            <div class="grupo"><label>IBAN</label><input type="text" id="editIban"></div>
+            <div class="grupo"><label>Banco</label><input type="text" id="editBanco"></div>
+            <div class="grupo"><label>SWIFT</label><input type="text" id="editSwift"></div>
+        </div>
+        
+        <div class="card-header" style="margin-top:16px;">📊 Datos de actividad</div>
+        <div class="row-flex">
+            <div class="grupo"><label>📋 CNAE</label><input type="text" id="editCnae"></div>
+            <div class="grupo"><label>📅 Fecha inicio actividad</label><input type="date" id="editFechaInicioActividad"></div>
+        </div>
+        
+        <div class="card-header" style="margin-top:16px;">🔐 Seguridad</div>
+        <div class="row-flex">
+            <div class="grupo"><button id="btnResetPassword" class="btn-warning" style="width: 100%;">🔄 Resetear contraseña del gerente</button></div>
+        </div>
+        
+        <div class="btn-group">
+            <button id="btnGuardarEdicion" class="btn-success">💾 Guardar cambios</button>
+            <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VER CLIENTE -->
+<div id="modalVerCliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">📋 Detalle del cliente</div>
+        <div id="detalleCliente"></div>
+        <div id="historicoConsentimientos"></div>
+        <div class="btn-group"><button id="btnCerrarDetalle" class="btn-info">Cerrar</button></div>
+    </div>
+</div>
+
+<!-- MODAL CREAR FACTURA -->
+<div id="modalCrearFactura" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">💰 Nueva factura</div>
+        <input type="hidden" id="facturaEmpresaId">
+        <div class="row-flex">
+            <div class="grupo"><label>🏢 Cliente</label><input type="text" id="facturaClienteNombre" readonly></div>
+            <div class="grupo"><label>📅 Fecha</label><input type="date" id="facturaFecha"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🔢 Número</label><input type="text" id="facturaNumero"></div>
+            <div class="grupo"><label>📅 Vencimiento</label><input type="date" id="facturaVencimiento"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>⚙️ Modalidad Veri*Factu</label>
+                <select id="modalidadVerifactu"><option value="SI">SI (Envío automático a AEAT)</option><option value="NO">NO (Factura local con firma)</option></select>
+            </div>
+        </div>
+        <div class="card-header">📦 Conceptos</div>
+        <div id="facturaLineas"></div>
+        <button id="btnAgregarLinea" class="btn-sm btn-info">➕ Añadir línea</button>
+        <div class="row-flex"><div class="grupo"><label>📝 Observaciones</label><textarea id="facturaNotas" rows="2"></textarea></div></div>
+        <div id="facturaPreview"></div>
+        <div id="hashPreview" class="hash-text" style="margin:12px 0;">Hash: Pendiente de cálculo...</div>
+        <div id="qrContainer" class="qr-container"></div>
+        <div class="btn-group">
+            <button id="btnGuardarFactura" class="btn-success">💾 Guardar</button>
+            <button id="btnDescargarFacturaPDF" class="btn-warning">📄 PDF</button>
+            <button id="btnCancelarFactura" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL GENERAR CONTRASEÑA -->
+<div id="modalGenerarPassword" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">🔐 Generar contraseña para el acceso</div>
+        <div id="passwordAleatorioContainer">
+            <p style="margin-bottom: 16px;">Contraseña generada automáticamente:</p>
+            <div style="background: #f1f5f9; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 16px;">
+                <code id="passwordGenerada" style="font-size: 1.3rem; font-weight: bold; letter-spacing: 1px;"></code>
+            </div>
+            <button id="btnAceptarPassword" class="btn-success">✅ Aceptar contraseña</button>
+            <button id="btnCrearManual" class="btn-info" style="margin-left: 12px;">✏️ Crear manualmente</button>
+        </div>
+        <div id="passwordManualContainer" style="display: none;">
+            <p style="margin-bottom: 16px;">Introduce la contraseña manualmente (mínimo 6 caracteres):</p>
+            <input type="password" id="passwordManual" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 16px;">
+            <button id="btnAceptarPasswordManual" class="btn-success">✅ Aceptar</button>
+            <button id="btnVolverAleatorio" class="btn-info">↩️ Volver</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CLIENTE CREADO -->
+<div id="modalClienteCreado" class="modal">
+    <div class="modal-content" style="max-width: 500px; text-align: center;">
+        <div class="modal-header">🎉 Cliente creado correctamente</div>
+        <div style="padding: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 16px;">✅</div>
+            <p id="mensajeClienteCreado" style="font-size: 1.1rem; margin-bottom: 20px;"></p>
+            <button id="btnCerrarClienteCreado" class="btn-success">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMAR ELIMINACIÓN -->
+<div id="modalConfirmarEliminacion" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">⚠️ Confirmar eliminación</div>
+        <div style="padding: 10px 0;">
+            <p style="margin-bottom: 20px; color: #c2410c;"><strong>¡ATENCIÓN!</strong> Esta acción es irreversible.</p>
+            <p style="margin-bottom: 20px;" id="mensajeEliminacionCliente"></p>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🔐 Introduce tu contraseña para confirmar</label>
+                    <input type="password" id="passwordConfirmacion" placeholder="Tu contraseña de Super Admin">
+                </div>
+            </div>
+            <div id="errorPasswordConfirmacion" style="color: #c2410c; font-size: 0.8rem; margin-top: 8px; display: none;"></div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button id="btnConfirmarEliminacion" class="btn-danger">🗑️ Sí, eliminar cliente</button>
+                <button id="btnCancelarEliminacion" class="btn-info">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/main.js"></script>
+<script src="js/clientes.js"></script>
+<script src="js/facturacion.js"></script>
+<script src="js/cumplimiento.js"></script>
+</body>
+</html>
