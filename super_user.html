@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="es">
+<!-- ================================================================ -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>COMUTECH · Super Admin · Cumplimiento Normativo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    
+<!-- ================================================================ -->
+<style>
+    /* --------------------------------------------------------------- */
+    /* RESET Y BASE                                                   */
+    /* --------------------------------------------------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+        background: #f0f4f8;
+        padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    /* --------------------------------------------------------------- */
+    /* TARJETAS                                                       */
+    /* --------------------------------------------------------------- */
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+    .card-header {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        border-left: 4px solid #1e4663;
+        padding-left: 16px;
+        color: #1e4663;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    /* --------------------------------------------------------------- */
+    /* ESTADÍSTICAS                                                   */
+    /* --------------------------------------------------------------- */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 1.8rem; font-weight: 700; color: #1e4663; }
+    .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+    
+    /* --------------------------------------------------------------- */
+    /* PESTAÑAS                                                       */
+    /* --------------------------------------------------------------- */
+    .browser-tabs {
+        display: flex;
+        background: #f1f5f9;
+        padding: 8px 12px 0 12px;
+        border-radius: 12px 12px 0 0;
+        border-bottom: 1px solid #e2e8f0;
+        gap: 4px;
+        overflow-x: auto;
+        flex-wrap: wrap;
+    }
+    .browser-tab {
+        padding: 10px 20px;
+        background: #e2e8f0;
+        border: none;
+        border-radius: 10px 10px 0 0;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.8rem;
+        color: #475569;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .browser-tab:hover { background: #cbd5e1; }
+    .browser-tab.active {
+        background: white;
+        color: #1e4663;
+        border-top: 2px solid #1e4663;
+    }
+    .browser-content {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        padding: 20px;
+    }
+    
+    /* --------------------------------------------------------------- */
+    /* BÚSQUEDA Y FILTROS                                             */
+    /* --------------------------------------------------------------- */
+    .search-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .search-bar input, .search-bar select {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 40px;
+        font-size: 0.9rem;
+        background: white;
+        min-width: 150px;
+    }
+    .search-bar input:focus, .search-bar select:focus { outline: none; border-color: #1e4663; }
+    
+    /* --------------------------------------------------------------- */
+    /* TABLAS                                                         */
+    /* --------------------------------------------------------------- */
+    .clientes-tabla {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .clientes-tabla th, .clientes-tabla td {
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.85rem;
+    }
+    .clientes-tabla th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #1e4663;
+        position: sticky;
+        top: 0;
+    }
+    .clientes-tabla tr:hover { background: #f8fafc; }
+    
+    /* --------------------------------------------------------------- */
+    /* BADGES                                                         */
+    /* --------------------------------------------------------------- */
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .badge-activo { background: #d4edda; color: #155724; }
+    .badge-inactivo { background: #f8d7da; color: #721c24; }
+    .badge-pagada { background: #d4edda; color: #155724; }
+    .badge-pendiente { background: #fff3cd; color: #856404; }
+    .badge-administrador { background: #1e4663; color: white; }
+    .badge-comunidad { background: #0284c7; color: white; }
+    .badge-empresa { background: #2c7a4d; color: white; }
+    .badge-autonomo { background: #e67e22; color: white; }
+    .badge-basico { background: #e0e7ff; color: #1e4663; }
+    .badge-pro { background: #fef3c7; color: #92400e; }
+    .badge-empresa-plan { background: #d1ecf1; color: #0c5460; }
+    .badge-verifactu { background: #8b5cf6; color: white; }
+    
+    /* --------------------------------------------------------------- */
+    /* BOTONES                                                        */
+    /* --------------------------------------------------------------- */
+    button {
+        background: #1e4663;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 0.85rem;
+    }
+    button:hover { background: #0f2e45; transform: translateY(-1px); }
+    .btn-success { background: #2c7a4d; }
+    .btn-success:hover { background: #1e5a3a; }
+    .btn-danger { background: #c2410c; }
+    .btn-danger:hover { background: #9a2f07; }
+    .btn-warning { background: #e67e22; }
+    .btn-info { background: #0284c7; }
+    .btn-sm { padding: 6px 10px; font-size: 0.7rem; }
+    
+    /* --------------------------------------------------------------- */
+    /* FORMULARIOS                                                    */
+    /* --------------------------------------------------------------- */
+    .row-flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 16px;
+        align-items: flex-end;
+    }
+    .grupo { flex: 1; min-width: 180px; }
+    label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; }
+    textarea { resize: vertical; }
+    
+    /* --------------------------------------------------------------- */
+    /* MODALES                                                        */
+    /* --------------------------------------------------------------- */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        max-width: 850px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    .modal-header { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; border-left: 4px solid #1e4663; padding-left: 16px; color: #1e4663; }
+    
+    /* --------------------------------------------------------------- */
+    /* MENSAJES Y UTILIDADES                                          */
+    /* --------------------------------------------------------------- */
+    .mensaje {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 40px;
+        color: white;
+        z-index: 1000;
+        animation: fadeOut 3s ease forwards;
+    }
+    @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+    .pagination button {
+        background: #e2e8f0;
+        color: #1e4663;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    .pagination button.active { background: #1e4663; color: white; }
+    
+    .detalle-info { background: #f8fafc; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+    .btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .btn-group button { flex: 1; }
+    
+    /* --------------------------------------------------------------- */
+    /* FACTURACIÓN                                                    */
+    /* --------------------------------------------------------------- */
+    .factura-linea {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .factura-total {
+        font-weight: bold;
+        border-top: 2px solid #1e4663;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    
+    /* --------------------------------------------------------------- */
+    /* RGPD Y CONSENTIMIENTO                                          */
+    /* --------------------------------------------------------------- */
+    .consentimiento-card {
+        background: #f0f9ff;
+        border-left: 4px solid #0284c7;
+        padding: 16px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+    }
+    .hash-text {
+        font-family: monospace;
+        font-size: 0.7rem;
+        background: #f1f5f9;
+        padding: 8px;
+        border-radius: 8px;
+        word-break: break-all;
+    }
+    .qr-container {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0;
+    }
+    
+    /* --------------------------------------------------------------- */
+    /* SELECTOR TIPO SUJETO                                           */
+    /* --------------------------------------------------------------- */
+    .tipo-sujeto-selector {
+        background: #f1f5f9;
+        border-radius: 12px;
+        padding: 4px;
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .tipo-sujeto-btn {
+        flex: 1;
+        background: transparent;
+        color: #1e4663;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .tipo-sujeto-btn.active {
+        background: #1e4663;
+        color: white;
+    }
+    .seccion-datos {
+        transition: all 0.3s ease;
+    }
+    .campo-opcional {
+        opacity: 0.7;
+    }
+    
+    /* --------------------------------------------------------------- */
+    /* FORZAR VISIBILIDAD                                             */
+    /* --------------------------------------------------------------- */
+    .browser-content {
+        display: block !important;
+        height: auto !important;
+        min-height: 400px !important;
+        overflow: visible !important;
+    }
+    #tabClientes {
+        display: block !important;
+        height: auto !important;
+        min-height: 350px !important;
+    }
+    .clientes-tabla {
+        display: table !important;
+        width: 100% !important;
+    }
+    .clientes-tabla tbody {
+        display: table-row-group !important;
+    }
+    .clientes-tabla tr {
+        display: table-row !important;
+    }
+    
+    /* --------------------------------------------------------------- */
+    /* MEDIA QUERIES                                                  */
+    /* --------------------------------------------------------------- */
+    @media (max-width: 768px) {
+        .clientes-tabla th, .clientes-tabla td { padding: 6px; font-size: 0.7rem; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .modal-content { padding: 16px; }
+        .grupo { min-width: 100%; }
+        .row-flex { flex-direction: column; align-items: stretch; }
+    }
+</style>
+</head>
+
+<!-- ================================================================ -->
+<body>
+
+<!-- --------------------------------------------------------------- -->
+<!-- LOGIN PANEL                                                     -->
+<!-- --------------------------------------------------------------- -->
+<div class="container">
+    <div id="loginPanel" class="card">
+        <div class="card-header" style="cursor:default;">👑 COMUTECH · Super Admin · Cumplimiento Normativo</div>
+        <!-- ........................................................ -->
+        <input type="email" id="email" placeholder="Email">
+        <!-- ........................................................ -->
+        <input type="password" id="password" placeholder="Contraseña">
+        <!-- ........................................................ -->
+        <button id="btnLogin">Iniciar sesión</button>
+        <!-- ........................................................ -->
+        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+    </div>
+
+<!-- --------------------------------------------------------------- -->
+<!-- DASHBOARD PANEL                                                -->
+<!-- --------------------------------------------------------------- -->
+    <div id="dashboardPanel" style="display: none;">
+        
+<!-- ----------------------------------------------------------- -->
+<!-- CARD DE BIENVENIDA (SUPER ADMIN)                            -->
+<!-- ----------------------------------------------------------- -->
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c6e9e 100%); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <!-- ................................................ -->
+                    <div style="font-size: 0.8rem; opacity: 0.8;">👑 Super Admin</div>
+                    <!-- ................................................ -->
+                    <div style="font-size: 1.3rem; font-weight: 700;" id="nombreAdmin">Cargando...</div>
+                    <!-- ................................................ -->
+                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailAdmin"></div>
+                </div>
+                <!-- ................................................ -->
+                <div><button id="btnLogoutHeader" style="background: rgba(255,255,255,0.2);">🚪 Salir</button></div>
+            </div>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- ESTADÍSTICAS (TARJETAS)                                     -->
+<!-- ----------------------------------------------------------- -->
+        <div class="stats-grid" id="statsPanel"></div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- BOTONES PRINCIPALES                                         -->
+<!-- ----------------------------------------------------------- -->
+        <div class="card">
+            <div class="row-flex">
+                <!-- ................................................ -->
+                <button id="btnMostrarAlta" class="btn-success">➕ Nuevo cliente</button>
+                <!-- ................................................ -->
+                <button id="btnRefrescar" class="btn-info">🔄 Refrescar</button>
+                <!-- ................................................ -->
+                <button id="btnExportarPDF" class="btn-warning">📄 Exportar PDF</button>
+            </div>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- NAVEGADOR DE PESTAÑAS                                       -->
+<!-- ----------------------------------------------------------- -->
+        <div class="card">
+            
+<!-- ----------------------------------------------------------- -->
+<!-- CABECERA DE PESTAÑAS (BOTONES)                              -->
+<!-- ----------------------------------------------------------- -->
+<div class="browser-tabs">
+    <!-- ................................................ -->
+    <button class="browser-tab active" data-tab="todos">📋 Todos</button>
+    <!-- ................................................ -->
+    <button class="browser-tab" data-tab="empresas">🏭 Empresas</button>
+    <!-- ................................................ -->
+    <button class="browser-tab" data-tab="autonomo">👤 Autónomos</button>
+    <!-- ................................................ -->
+    <button class="browser-tab" data-tab="facturas">💰 Facturación</button>
+    <!-- ................................................ -->
+    <button class="browser-tab" data-tab="cumplimiento">⚖️ Cumplimiento Normativo</button>
+</div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- CONTENIDO DE LAS PESTAÑAS                                   -->
+<!-- ----------------------------------------------------------- -->
+            <div class="browser-content">
+                
+<!-- ........................................................ -->
+<!-- PESTAÑA 1: TODOS                                           -->
+<!-- ........................................................ -->
+                <div id="tabClientes" style="display: block;">
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: BÚSQUEDA                                       -->
+<!-- ........................................................ -->
+                    <div class="search-bar">
+                        <!-- ........................................ -->
+                        <input type="text" id="buscadorCliente" placeholder="🔍 Buscar por nombre, email, NIF...">
+                        <!-- ........................................ -->
+                        <select id="filtroPlan">
+                            <option value="">Todos los planes</option>
+                            <option value="BASICO">Básico</option>
+                            <option value="PRO">Profesional</option>
+                            <option value="EMPRESA">Empresa</option>
+                        </select>
+                        <!-- ........................................ -->
+                        <select id="filtroEstado">
+                            <option value="">Todos los estados</option>
+                            <option value="activo">Activos</option>
+                            <option value="inactivo">Inactivos</option>
+                        </select>
+                        <!-- ........................................ -->
+                        <select id="filtroProvincia">
+                            <option value="">Todas las provincias</option>
+                        </select>
+                    </div>
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: TABLA CLIENTES                                 -->
+<!-- ........................................................ -->
+                    <div style="overflow-x: auto;">
+                        <table class="clientes-tabla" id="clientesTabla">
+                            <thead>
+                                <tr><th>Tipo</th><th>Empresa</th><th>Contacto</th><th>Email</th><th>Plan</th><th>Estado</th><th>Consentimiento</th><th>Acciones</th>
+                            </thead>
+                            <tbody id="clientesBody"></tbody>
+                        </table>
+                    </div>
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: PAGINACIÓN                                     -->
+<!-- ........................................................ -->
+                    <div id="paginacion" class="pagination"></div>
+                    <div id="totalClientes" style="text-align: center; margin-top: 16px; font-size: 0.75rem; color: #64748b;"></div>
+                </div>
+
+<!-- ........................................................ -->
+<!-- PESTAÑA 2: FACTURACIÓN                                     -->
+<!-- ........................................................ -->
+                <div id="tabFacturacion" style="display: none;">
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: SELECCIÓN CLIENTE                              -->
+<!-- ........................................................ -->
+                    <div class="row-flex" style="margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 20px;">
+                        <div class="grupo" style="flex: 2;">
+                            <!-- ........................................ -->
+                            <label>🏢 Seleccionar cliente</label>
+                            <!-- ........................................ -->
+                            <select id="selectorClienteFactura">
+                                <option value="">-- Selecciona un cliente --</option>
+                            </select>
+                        </div>
+                        <div class="grupo" style="flex: 0.5;">
+                            <!-- ........................................ -->
+                            <button id="btnCrearFacturaDesdeSelector" class="btn-success" style="margin-top: 24px;">💰 Crear factura</button>
+                        </div>
+                    </div>
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: FILTROS FACTURAS                               -->
+<!-- ........................................................ -->
+                    <div class="search-bar">
+                        <!-- ........................................ -->
+                        <input type="date" id="facturaDesde" placeholder="Desde">
+                        <!-- ........................................ -->
+                        <input type="date" id="facturaHasta" placeholder="Hasta">
+                        <!-- ........................................ -->
+                        <select id="filtroFacturaCliente"><option value="">Todos los clientes</option></select>
+                        <!-- ........................................ -->
+                        <button id="btnFiltrarFacturas" class="btn-info">🔍 Filtrar</button>
+                    </div>
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: TABLA FACTURAS                                 -->
+<!-- ........................................................ -->
+                    <div style="overflow-x: auto;">
+                        <table class="clientes-tabla">
+                            <thead>
+                                <tr><th>Fecha</th><th>Cliente</th><th>Nº Factura</th><th>Concepto</th><th>Total</th><th>Hash</th><th>Estado</th><th>Acciones</th>
+                            </thead>
+                            <tbody id="facturasBody"></td><td colspan="8" style="text-align:center;">📋 No hay facturas</td></tbody>
+                        </table>
+                    </div>
+                </div>
+
+<!-- ........................................................ -->
+<!-- PESTAÑA 3: CUMPLIMIENTO NORMATIVO                          -->
+<!-- ........................................................ -->
+                <div id="tabCumplimiento" style="display: none;">
+                    <!-- ................................................ -->
+                    <div class="card-header" style="margin-top:0;">⚖️ Panel de Cumplimiento Normativo</div>
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: RGPD / CONSENTIMIENTOS                         -->
+<!-- ........................................................ -->
+                    <div class="consentimiento-card">
+                        <strong>📋 RGPD / Consentimientos</strong>
+                        <div id="consentimientosList" style="margin-top:12px;">Cargando...</div>
+                    </div>
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: LEY ANTIFRAUDE                                 -->
+<!-- ........................................................ -->
+                    <div class="consentimiento-card">
+                        <strong>🔗 Ley Antifraude 11/2021</strong>
+                        <div id="hashEncadenadoInfo" style="margin-top:12px;">Cargando...</div>
+                    </div>
+                    
+<!-- ........................................................ -->
+<!-- SUBPESTAÑA: DASHBOARD CUMPLIMIENTO                         -->
+<!-- ........................................................ -->
+                    <div class="consentimiento-card">
+                        <strong>📊 Dashboard de Cumplimiento</strong>
+                        <div id="cumplimientoStats" style="margin-top:12px;">Cargando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+<!-- ----------------------------------------------------------- -->
+<!-- BOTÓN LOGOUT PIE                                           -->
+<!-- ----------------------------------------------------------- -->
+        <button id="btnLogoutFooter" style="background:#475569; margin-top:16px;">🚪 Cerrar sesión</button>
+    </div>
+</div>
+
+<!-- --------------------------------------------------------------- -->
+<!-- MODAL ALTA CLIENTE                                              -->
+<!-- --------------------------------------------------------------- -->
+<div id="modalAltaCliente" class="modal">
+    <div class="modal-content">
+        <!-- ................................................ -->
+        <div class="modal-header">📝 Dar de alta nuevo cliente (RGPD + Ley Antifraude)</div>
+        
+<!-- ----------------------------------------------------------- -->
+<!-- SELECTOR TIPO DE SUJETO                                     -->
+<!-- ----------------------------------------------------------- -->
+        <div class="consentimiento-card">
+            <strong>📌 Tipo de sujeto *</strong>
+            <div class="tipo-sujeto-selector">
+                <!-- ........................................ -->
+                <button type="button" class="tipo-sujeto-btn active" data-tipo="juridica">🏢 Persona Jurídica (Empresa)</button>
+                <!-- ........................................ -->
+                <button type="button" class="tipo-sujeto-btn" data-tipo="fisica">👤 Persona Física (Autónomo)</button>
+            </div>
+        </div>
+        
+<!-- ----------------------------------------------------------- -->
+<!-- DATOS PERSONA JURÍDICA (EMPRESA)                            -->
+<!-- ----------------------------------------------------------- -->
+        <div id="datosJuridica" class="seccion-datos">
+            <div class="row-flex">
+                <div class="grupo"><label>🏢 Razón Social *</label><input type="text" id="razonSocial" placeholder="Ej: Gestión Norte S.L."></div>
+                <div class="grupo"><label>📧 Email contacto *</label><input type="email" id="emailContacto" placeholder="admin@empresa.com"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="nifCif" placeholder="B12345678"></div>
+                <div class="grupo"><label>📞 Teléfono</label><input type="text" id="telefonoContacto" placeholder="Teléfono"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📱 WhatsApp</label><input type="text" id="whatsappContactoJuridica" placeholder="Número de WhatsApp"></div>
+                <div class="grupo" style="display: flex; align-items: center; justify-content: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+                        <input type="checkbox" id="mismoWhatsappJuridica"> Usar mismo que teléfono
+                    </label>
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>👤 Nombre contacto</label><input type="text" id="nombreContacto" placeholder="Persona de contacto"></div>
+                <div class="grupo"><label>📋 Forma Social</label>
+                    <select id="formaSocial">
+                        <option value="">Selecciona</option>
+                        <option value="A">Sociedad Anónima (S.A.)</option>
+                        <option value="B">Sociedad Limitada (S.L.)</option>
+                        <option value="C">Sociedad Colectiva</option>
+                        <option value="D">Sociedad Comanditaria</option>
+                        <option value="J">Sociedad Civil</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- DATOS PERSONA FÍSICA (AUTÓNOMO)                            -->
+<!-- ----------------------------------------------------------- -->
+        <div id="datosFisica" class="seccion-datos" style="display: none;">
+            <div class="row-flex">
+                <div class="grupo"><label>👤 Nombre *</label><input type="text" id="nombreFisica" placeholder="Nombre"></div>
+                <div class="grupo"><label>👤 Primer Apellido</label><input type="text" id="primerApellido" placeholder="Primer apellido"></div>
+                <div class="grupo"><label>👤 Segundo Apellido</label><input type="text" id="segundoApellido" placeholder="Segundo apellido"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📧 Email *</label><input type="email" id="emailFisica" placeholder="email@ejemplo.com"></div>
+                <div class="grupo"><label>📋 NIF</label><input type="text" id="nifFisica" placeholder="12345678A"></div>
+                <div class="grupo"><label>📞 Teléfono</label><input type="text" id="telefonoFisica" placeholder="Teléfono"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📱 WhatsApp</label><input type="text" id="whatsappContactoFisica" placeholder="Número de WhatsApp"></div>
+                <div class="grupo" style="display: flex; align-items: center; justify-content: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+                        <input type="checkbox" id="mismoWhatsappFisica"> Usar mismo que teléfono
+                    </label>
+                </div>
+            </div>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- DATOS DE DOMICILIO                                         -->
+<!-- ----------------------------------------------------------- -->
+        <div class="card-header" style="margin-top:16px;">📍 Datos de domicilio</div>
+        <div class="row-flex">
+            <div class="grupo"><label>Calle</label><input type="text" id="direccionCalle" placeholder="Calle"></div>
+            <div class="grupo"><label>Número</label><input type="text" id="direccionNumero" placeholder="Número"></div>
+            <div class="grupo"><label>Piso/Puerta</label><input type="text" id="direccionPiso" placeholder="Piso/Puerta"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>Código postal</label><input type="text" id="direccionCp" placeholder="Código postal"></div>
+            <div class="grupo"><label>Municipio</label><input type="text" id="direccionMunicipio" placeholder="Municipio"></div>
+            <div class="grupo"><label>Provincia</label><input type="text" id="direccionProvincia" placeholder="Provincia"></div>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- DATOS BANCARIOS                                            -->
+<!-- ----------------------------------------------------------- -->
+        <div class="card-header" style="margin-top:16px;">🏦 Datos bancarios</div>
+        <div class="row-flex">
+            <div class="grupo"><label>IBAN</label><input type="text" id="ibanCuenta" placeholder="ES00 0000 0000 0000 0000 0000"></div>
+            <div class="grupo"><label>Banco</label><input type="text" id="bancoNombre" placeholder="Nombre del banco"></div>
+            <div class="grupo"><label>SWIFT/BIC</label><input type="text" id="swiftCodigo" placeholder="Código SWIFT"></div>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- DATOS DE ACTIVIDAD                                         -->
+<!-- ----------------------------------------------------------- -->
+        <div class="card-header" style="margin-top:16px;">📊 Datos de actividad</div>
+        <div class="row-flex">
+            <div class="grupo"><label>🏷️ Plan</label>
+                <select id="planSeleccionado">
+                    <option value="BASICO">Básico (49€/mes)</option>
+                    <option value="PRO">Pro (99€/mes)</option>
+                    <option value="EMPRESA">Empresa (199€/mes)</option>
+                </select>
+            </div>
+            <div class="grupo"><label>📋 CNAE</label><input type="text" id="cnaeCodigo" placeholder="Código CNAE (opcional)"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📅 Fecha inicio actividad</label><input type="date" id="fechaInicioActividad"></div>
+            <div id="tipoClienteDiv" style="display: block;">
+                <div class="grupo"><label>🏷️ Tipo de cliente</label>
+                    <select id="tipoClienteSelect">
+                        <option value="administrador">🏢 Administrador de comunidades</option>
+                        <option value="comunidad">🏘️ Comunidad de propietarios</option>
+                        <option value="empresa_piscinas">🌊 Empresa de piscinas</option>
+                        <option value="empresa_jardineria">🌳 Empresa de jardinería</option>
+                        <option value="empresa_fontaneria">🔧 Empresa de fontanería</option>
+                        <option value="empresa_electricidad">⚡ Empresa de electricidad</option>
+                        <option value="empresa_limpieza">🧹 Empresa de limpieza</option>
+                        <option value="empresa_cerrajeria">🔒 Empresa de cerrajería</option>
+                        <option value="empresa_reformas">🏗️ Empresa de reformas</option>
+                        <option value="empresa_antenas">📡 Empresa de antenas</option>
+                        <option value="empresa_climatizacion">❄️ Climatización/Calefacción</option>
+                        <option value="otro">📋 Otro</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- RGPD (CONSENTIMIENTO)                                      -->
+<!-- ----------------------------------------------------------- -->
+        <div class="consentimiento-card" style="margin-top:16px;">
+            <strong>⚖️ Base legal RGPD</strong>
+            <p style="font-size:0.75rem; margin-top:8px;">De acuerdo con el RGPD (UE) 2016/679 y la LOPDGDD 3/2018, sus datos serán tratados para la gestión de facturación, prestación de servicios y cumplimiento de obligaciones legales.</p>
+            <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+                <input type="checkbox" id="consentimientoAceptado"> Acepto el tratamiento de mis datos según la normativa
+            </label>
+        </div>
+
+<!-- ----------------------------------------------------------- -->
+<!-- BOTONES DEL MODAL                                          -->
+<!-- ----------------------------------------------------------- -->
+        <div class="btn-group">
+            <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+            <button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- --------------------------------------------------------------- -->
+<!-- MODAL EDITAR CLIENTE (MEJORADO)                                 -->
+<!-- --------------------------------------------------------------- -->
+<div id="modalEditarCliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">✏️ Editar cliente</div>
+        <input type="hidden" id="editClienteId">
+        <input type="hidden" id="editPerfilId">
+        
+        <!-- Campos comunes -->
+        <div class="row-flex">
+            <div class="grupo"><label>🏢 Nombre / Razón Social</label><input type="text" id="editNombre"></div>
+            <div class="grupo"><label>📧 Email</label><input type="email" id="editEmail"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>📋 NIF/CIF</label><input type="text" id="editNif"></div>
+            <div class="grupo"><label>📞 Teléfono</label><input type="text" id="editTelefono"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>👤 Contacto</label><input type="text" id="editContacto"></div>
+            <div class="grupo"><label>📱 WhatsApp</label><input type="text" id="editWhatsapp"></div>
+        </div>
+        
+        <!-- Campos específicos de EMPRESA (se ocultan para autónomo) -->
+        <div id="editEmpresaFields">
+            <div class="row-flex">
+                <div class="grupo"><label>🏷️ Plan</label>
+                    <select id="editPlan">
+                        <option value="BASICO">Básico (49€/mes)</option>
+                        <option value="PRO">Pro (99€/mes)</option>
+                        <option value="EMPRESA">Empresa (199€/mes)</option>
+                    </select>
+                </div>
+                <div class="grupo"><label>🏢 Tipo de cliente</label>
+                    <select id="editTipo">
+                        <option value="administrador">🏢 Administrador de comunidades</option>
+                        <option value="comunidad">🏘️ Comunidad de propietarios</option>
+                        <option value="empresa_piscinas">🌊 Empresa de piscinas</option>
+                        <option value="empresa_jardineria">🌳 Empresa de jardinería</option>
+                        <option value="empresa_fontaneria">🔧 Empresa de fontanería</option>
+                        <option value="empresa_electricidad">⚡ Empresa de electricidad</option>
+                        <option value="empresa_limpieza">🧹 Empresa de limpieza</option>
+                        <option value="empresa_cerrajeria">🔒 Empresa de cerrajería</option>
+                        <option value="empresa_reformas">🏗️ Empresa de reformas</option>
+                        <option value="empresa_antenas">📡 Empresa de antenas</option>
+                        <option value="empresa_climatizacion">❄️ Climatización/Calefacción</option>
+                        <option value="otro">📋 Otro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📋 Forma Social</label>
+                    <select id="editFormaSocial">
+                        <option value="">Selecciona</option>
+                        <option value="A">Sociedad Anónima (S.A.)</option>
+                        <option value="B">Sociedad Limitada (S.L.)</option>
+                        <option value="C">Sociedad Colectiva</option>
+                        <option value="D">Sociedad Comanditaria</option>
+                        <option value="J">Sociedad Civil</option>
+                    </select>
+                </div>
+                <div class="grupo"><label>📅 Fecha constitución</label><input type="date" id="editFechaConstitucion"></div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo"><label>📋 Registro Mercantil</label><input type="text" id="editRegistroMercantil" placeholder="Tomo, Folio, Hoja"></div>
+                <div class="grupo"><label>👤 Representante legal</label><input type="text" id="editRepresentante" placeholder="Nombre del representante"></div>
+            </div>
+        </div>
+        
+        <!-- Campos específicos de AUTÓNOMO (se ocultan para empresa) -->
+        <div id="editAutonomoFields" style="display: none;">
+            <div class="row-flex">
+                <div class="grupo"><label>🏷️ Plan</label>
+                    <select id="editPlanAutonomo">
+                        <option value="BASICO">Básico (49€/mes)</option>
+                        <option value="PRO">Pro (99€/mes)</option>
+                        <option value="EMPRESA">Empresa (199€/mes)</option>
+                    </select>
+                </div>
+                <div class="grupo"><label>🔧 Oficio</label>
+                    <select id="editOficio">
+                        <option value="">Selecciona</option>
+                        <option value="electricidad">⚡ Electricidad</option>
+                        <option value="fontaneria">🔧 Fontanería</option>
+                        <option value="pintura">🎨 Pintura</option>
+                        <option value="albañileria">🏗️ Albañilería</option>
+                        <option value="jardineria">🌳 Jardinería</option>
+                        <option value="limpieza">🧹 Limpieza</option>
+                        <option value="cerrajeria">🔒 Cerrajería</option>
+                        <option value="piscinas">🏊 Piscinas</option>
+                        <option value="climatizacion">❄️ Climatización</option>
+                        <option value="reformas">🔨 Reformas</option>
+                        <option value="informatica">💻 Informática</option>
+                        <option value="otro">📋 Otro</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dirección (común) -->
+        <div class="card-header" style="margin-top:16px;">📍 Datos de domicilio</div>
+        <div class="row-flex">
+            <div class="grupo"><label>Calle</label><input type="text" id="editCalle"></div>
+            <div class="grupo"><label>Número</label><input type="text" id="editNumero"></div>
+            <div class="grupo"><label>Piso</label><input type="text" id="editPiso"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>CP</label><input type="text" id="editCp"></div>
+            <div class="grupo"><label>Ciudad</label><input type="text" id="editCiudad"></div>
+            <div class="grupo"><label>Provincia</label><input type="text" id="editProvincia"></div>
+        </div>
+        
+        <!-- Datos bancarios -->
+        <div class="card-header" style="margin-top:16px;">🏦 Datos bancarios</div>
+        <div class="row-flex">
+            <div class="grupo"><label>IBAN</label><input type="text" id="editIban"></div>
+            <div class="grupo"><label>Banco</label><input type="text" id="editBanco"></div>
+            <div class="grupo"><label>SWIFT</label><input type="text" id="editSwift"></div>
+        </div>
+        
+        <!-- Datos de actividad -->
+        <div class="card-header" style="margin-top:16px;">📊 Datos de actividad</div>
+        <div class="row-flex">
+            <div class="grupo"><label>📋 CNAE</label><input type="text" id="editCnae"></div>
+            <div class="grupo"><label>📅 Fecha inicio actividad</label><input type="date" id="editFechaInicioActividad"></div>
+        </div>
+        
+        <!-- Botón resetear contraseña -->
+        <div class="card-header" style="margin-top:16px;">🔐 Seguridad</div>
+        <div class="row-flex">
+            <div class="grupo">
+                <button id="btnResetPassword" class="btn-warning" style="width: 100%;">🔄 Resetear contraseña del gerente</button>
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <button id="btnGuardarEdicion" class="btn-success">💾 Guardar cambios</button>
+            <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- --------------------------------------------------------------- -->
+<!-- MODAL VER CLIENTE                                               -->
+<!-- --------------------------------------------------------------- -->
+<div id="modalVerCliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">📋 Detalle del cliente</div>
+        <div id="detalleCliente"></div>
+        <div id="historicoConsentimientos"></div>
+        <div class="btn-group"><button id="btnCerrarDetalle" class="btn-info">Cerrar</button></div>
+    </div>
+</div>
+
+<!-- --------------------------------------------------------------- -->
+<!-- MODAL CREAR FACTURA                                             -->
+<!-- --------------------------------------------------------------- -->
+<div id="modalCrearFactura" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">💰 Nueva factura</div>
+        <input type="hidden" id="facturaEmpresaId">
+        <div class="row-flex">
+            <div class="grupo"><label>🏢 Cliente</label><input type="text" id="facturaClienteNombre" readonly></div>
+            <div class="grupo"><label>📅 Fecha</label><input type="date" id="facturaFecha"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>🔢 Número</label><input type="text" id="facturaNumero"></div>
+            <div class="grupo"><label>📅 Vencimiento</label><input type="date" id="facturaVencimiento"></div>
+        </div>
+        <div class="row-flex">
+            <div class="grupo"><label>⚙️ Modalidad Veri*Factu</label>
+                <select id="modalidadVerifactu">
+                    <option value="SI">SI (Envío automático a AEAT)</option>
+                    <option value="NO">NO (Factura local con firma)</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-header">📦 Conceptos</div>
+        <div id="facturaLineas"></div>
+        <button id="btnAgregarLinea" class="btn-sm btn-info">➕ Añadir línea</button>
+        <div class="row-flex">
+            <div class="grupo"><label>📝 Observaciones</label><textarea id="facturaNotas" rows="2"></textarea></div>
+        </div>
+        <div id="facturaPreview"></div>
+        <div id="hashPreview" class="hash-text" style="margin:12px 0;">Hash: Pendiente de cálculo...</div>
+        <div id="qrContainer" class="qr-container"></div>
+        <div class="btn-group">
+            <button id="btnGuardarFactura" class="btn-success">💾 Guardar</button>
+            <button id="btnDescargarFacturaPDF" class="btn-warning">📄 PDF</button>
+            <button id="btnCancelarFactura" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- --------------------------------------------------------------- -->
+<!-- MODAL GENERAR CONTRASEÑA                                        -->
+<!-- --------------------------------------------------------------- -->
+<div id="modalGenerarPassword" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">🔐 Generar contraseña para el acceso</div>
+        
+        <div id="passwordAleatorioContainer">
+            <p style="margin-bottom: 16px;">Contraseña generada automáticamente:</p>
+            <div style="background: #f1f5f9; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 16px;">
+                <code id="passwordGenerada" style="font-size: 1.3rem; font-weight: bold; letter-spacing: 1px;"></code>
+            </div>
+            <button id="btnAceptarPassword" class="btn-success">✅ Aceptar contraseña</button>
+            <button id="btnCrearManual" class="btn-info" style="margin-left: 12px;">✏️ Crear manualmente</button>
+        </div>
+        
+        <div id="passwordManualContainer" style="display: none;">
+            <p style="margin-bottom: 16px;">Introduce la contraseña manualmente (mínimo 6 caracteres):</p>
+            <input type="password" id="passwordManual" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 16px;">
+            <button id="btnAceptarPasswordManual" class="btn-success">✅ Aceptar</button>
+            <button id="btnVolverAleatorio" class="btn-info">↩️ Volver</button>
+        </div>
+    </div>
+</div>
+
+<!-- --------------------------------------------------------------- -->
+<!-- MODAL CLIENTE CREADO                                            -->
+<!-- --------------------------------------------------------------- -->
+<div id="modalClienteCreado" class="modal">
+    <div class="modal-content" style="max-width: 500px; text-align: center;">
+        <div class="modal-header">🎉 Cliente creado correctamente</div>
+        <div style="padding: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 16px;">✅</div>
+            <p id="mensajeClienteCreado" style="font-size: 1.1rem; margin-bottom: 20px;"></p>
+            <button id="btnCerrarClienteCreado" class="btn-success">Aceptar</button>
+        </div>
+    </div>
+</div>
+<!-- --------------------------------------------------------------- -->
+<!-- MODAL CONFIRMAR ELIMINACIÓN (requiere contraseña)               -->
+<!-- --------------------------------------------------------------- -->
+<div id="modalConfirmarEliminacion" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">⚠️ Confirmar eliminación</div>
+        <div style="padding: 10px 0;">
+            <p style="margin-bottom: 20px; color: #c2410c;">
+                <strong>¡ATENCIÓN!</strong> Esta acción es irreversible.
+            </p>
+            <p style="margin-bottom: 20px;" id="mensajeEliminacionCliente"></p>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🔐 Introduce tu contraseña para confirmar</label>
+                    <input type="password" id="passwordConfirmacion" placeholder="Tu contraseña de Super Admin">
+                </div>
+            </div>
+            <div id="errorPasswordConfirmacion" style="color: #c2410c; font-size: 0.8rem; margin-top: 8px; display: none;"></div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button id="btnConfirmarEliminacion" class="btn-danger">🗑️ Sí, eliminar cliente</button>
+                <button id="btnCancelarEliminacion" class="btn-info">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+<!-- ================================================================ -->
+<!-- ================================================================ -->
+<!-- SCRIPT                                                          -->
+<!-- ================================================================ -->
+<!-- ================================================================ -->
+<script>
+// --------------------------------------------------------------- //
+// VARIABLES GLOBALES                                              //
+// --------------------------------------------------------------- //
+const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uNWQl8gDfrmrPWS_1uEVcg_gMeqjO2U";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let empresasData = [];
+let clientesFiltrados = [];
+let paginaActual = 1;
+let lineasFactura = [{ descripcion: "Suscripción COMUTECH", cantidad: 1, precio: 49 }];
+let currentHash = null;
+const registrosPorPagina = 10;
+let datosClientePendiente = null;  // Almacena los datos del cliente antes de crear la contraseña
+let clientePendienteEliminar = null;  // Almacena { id, nombre } del cliente a eliminar
+
+// --------------------------------------------------------------- //
+// FUNCIONES AUXILIARES                                            //
+// --------------------------------------------------------------- //
+function getTipoIcono(tipo) {
+    const tipos = {
+        'administrador': '🏢 Administrador',
+        'comunidad': '🏘️ Comunidad',
+        'empresa_piscinas': '🌊 Piscinas',
+        'empresa_jardineria': '🌳 Jardinería',
+        'empresa_fontaneria': '🔧 Fontanería',
+        'empresa_electricidad': '⚡ Electricidad',
+        'empresa_limpieza': '🧹 Limpieza',
+        'empresa_cerrajeria': '🔒 Cerrajería',
+        'empresa_reformas': '🏗️ Reformas',
+        'empresa_antenas': '📡 Antenas',
+        'empresa_climatizacion': '❄️ Climatización',
+        'autonomo': '👤 Autónomo',
+        'otro': '📋 Otro'
+    };
+    return tipos[tipo] || '📋 ' + tipo;
+}
+
+function getBadgeTipo(tipo) {
+    if (tipo === 'administrador') return '<span class="badge badge-administrador">🏢 Administrador</span>';
+    if (tipo === 'comunidad') return '<span class="badge badge-comunidad">🏘️ Comunidad</span>';
+    if (tipo === 'autonomo') return '<span class="badge badge-autonomo">👤 Autónomo</span>';
+    return '<span class="badge badge-empresa">🏭 Empresa</span>';
+}
+
+function formatDate(date) {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('es-ES');
+}
+
+function mostrarMensaje(texto, tipo = 'exito') {
+    const msg = document.createElement('div');
+    msg.className = 'mensaje';
+    msg.style.background = tipo === 'exito' ? '#2c7a4d' : '#c2410c';
+    msg.innerHTML = texto;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+}
+
+async function generarHash(contenido) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(contenido);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function obtenerUltimoHash(nifEmisor) {
+    const { data } = await sb.from('registros_facturacion')
+        .select('hash_factura')
+        .eq('nif_emisor', nifEmisor)
+        .order('created_at', { ascending: false })
+        .limit(1);
+    return data && data.length > 0 ? data[0].hash_factura : null;
+}
+
+// --------------------------------------------------------------- //
+// WHATSAPP CHECKBOX                                               //
+// --------------------------------------------------------------- //
+function initWhatsappCheckbox(telefonoId, whatsappId, checkId) {
+    const check = document.getElementById(checkId);
+    const telefono = document.getElementById(telefonoId);
+    const whatsapp = document.getElementById(whatsappId);
+    if (!check || !telefono || !whatsapp) return;
+    
+    const newCheck = check.cloneNode(true);
+    check.parentNode.replaceChild(newCheck, check);
+    const newTelefono = telefono.cloneNode(true);
+    telefono.parentNode.replaceChild(newTelefono, telefono);
+    const newWhatsapp = whatsapp.cloneNode(true);
+    whatsapp.parentNode.replaceChild(newWhatsapp, whatsapp);
+    
+    const finalCheck = document.getElementById(checkId);
+    const finalTelefono = document.getElementById(telefonoId);
+    const finalWhatsapp = document.getElementById(whatsappId);
+    
+    finalCheck.addEventListener('change', () => {
+        if (finalCheck.checked) {
+            finalWhatsapp.value = finalTelefono.value;
+            finalWhatsapp.disabled = true;
+        } else {
+            finalWhatsapp.disabled = false;
+        }
+    });
+    
+    finalTelefono.addEventListener('input', () => {
+        if (finalCheck.checked) {
+            finalWhatsapp.value = finalTelefono.value;
+        }
+    });
+}
+
+// --------------------------------------------------------------- //
+// SELECTOR TIPO SUJETO                                            //
+// --------------------------------------------------------------- //
+function initTipoSujetoSelector() {
+    const btns = document.querySelectorAll('.tipo-sujeto-btn');
+    const datosJuridica = document.getElementById('datosJuridica');
+    const datosFisica = document.getElementById('datosFisica');
+    const tipoClienteDiv = document.getElementById('tipoClienteDiv');
+
+    if (!btns.length) return;
+
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const tipo = btn.dataset.tipo;
+            if (tipo === 'juridica') {
+                datosJuridica.style.display = 'block';
+                datosFisica.style.display = 'none';
+                if (tipoClienteDiv) tipoClienteDiv.style.display = 'block';
+                setTimeout(() => {
+                    initWhatsappCheckbox('telefonoContacto', 'whatsappContactoJuridica', 'mismoWhatsappJuridica');
+                }, 50);
+            } else {
+                datosJuridica.style.display = 'none';
+                datosFisica.style.display = 'block';
+                if (tipoClienteDiv) tipoClienteDiv.style.display = 'none';
+                setTimeout(() => {
+                    initWhatsappCheckbox('telefonoFisica', 'whatsappContactoFisica', 'mismoWhatsappFisica');
+                }, 50);
+            }
+        };
+    });
+    
+    const tipoActivo = document.querySelector('.tipo-sujeto-btn.active')?.dataset.tipo || 'juridica';
+    if (tipoActivo === 'juridica') {
+        setTimeout(() => {
+            initWhatsappCheckbox('telefonoContacto', 'whatsappContactoJuridica', 'mismoWhatsappJuridica');
+        }, 50);
+    } else {
+        setTimeout(() => {
+            initWhatsappCheckbox('telefonoFisica', 'whatsappContactoFisica', 'mismoWhatsappFisica');
+        }, 50);
+    }
+}
+
+// --------------------------------------------------------------- //
+// LOGIN                                                           //
+// --------------------------------------------------------------- //
+async function hacerLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) { document.getElementById('errorMsg').innerText = "Introduce email y contraseña"; return false; }
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { document.getElementById('errorMsg').innerText = error.message; return false; }
+    const { data: perfil } = await sb.from('perfiles').select('rol, nombre_razon_social').eq('user_id', data.user.id).maybeSingle();
+    if (!perfil || perfil.rol !== 'super_admin') { await sb.auth.signOut(); document.getElementById('errorMsg').innerText = "Acceso no autorizado"; return false; }
+    currentUser = data.user;
+    document.getElementById('nombreAdmin').innerHTML = perfil.nombre_razon_social || 'Super Admin';
+    document.getElementById('emailAdmin').innerHTML = currentUser.email;
+    return true;
+}
+
+// --------------------------------------------------------------- //
+// ESTADÍSTICAS                                                    //
+// --------------------------------------------------------------- //
+async function cargarStats() {
+    const { data: empresas } = await sb.from('empresas').select('*');
+    const total = empresas?.length || 0;
+    const activos = empresas?.filter(e => e.activo).length || 0;
+    const administradores = empresas?.filter(e => e.tipo_cliente === 'administrador').length || 0;
+    const comunidades = empresas?.filter(e => e.tipo_cliente === 'comunidad').length || 0;
+    const { count: consentimientos } = await sb.from('historico_consentimientos').select('*', { count: 'exact', head: true });
+    document.getElementById('statsPanel').innerHTML = `
+        <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total Clientes</div></div>
+        <div class="stat-card"><div class="stat-number">${activos}</div><div class="stat-label">Activos</div></div>
+        <div class="stat-card"><div class="stat-number">${administradores}</div><div class="stat-label">Administradores</div></div>
+        <div class="stat-card"><div class="stat-number">${comunidades}</div><div class="stat-label">Comunidades</div></div>
+        <div class="stat-card"><div class="stat-number">${consentimientos || 0}</div><div class="stat-label">Consentimientos RGPD</div></div>
+    `;
+}
+
+// --------------------------------------------------------------- //
+// CLIENTES                                                        //
+// --------------------------------------------------------------- //
+async function cargarClientes() {
+    const { data: empresas, error } = await sb.from('empresas').select('*').order('created_at', { ascending: false });
+    if (error) { mostrarMensaje("Error cargando clientes: " + error.message, 'error'); return; }
+    empresasData = empresas || [];
+    for (const emp of empresasData) {
+        const { data: perfil } = await sb.from('perfiles').select('nombre_razon_social, email, telefono, consentimiento_tratamiento_datos').eq('empresa_id', emp.id).eq('rol', 'gerente').maybeSingle();
+        emp.contacto_nombre = perfil?.nombre_razon_social || '';
+        emp.contacto_email = perfil?.email || emp.email || '';
+        emp.consentimiento = perfil?.consentimiento_tratamiento_datos || false;
+    }
+    const provincias = [...new Set(empresasData.map(e => e.provincia).filter(p => p))];
+    const selectProvincia = document.getElementById('filtroProvincia');
+    if (selectProvincia) {
+        selectProvincia.innerHTML = '<option value="">Todas las provincias</option>' + provincias.map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+    aplicarFiltros();
+    await cargarFacturas();
+    await cargarSelectorClientesFactura();
+    initSelectorFactura();
+    await cargarCumplimiento();
+}
+
+function aplicarFiltros() {
+    const searchText = document.getElementById('buscadorCliente')?.value.toLowerCase() || '';
+    const planFiltro = document.getElementById('filtroPlan')?.value || '';
+    const estadoFiltro = document.getElementById('filtroEstado')?.value || '';
+    const provinciaFiltro = document.getElementById('filtroProvincia')?.value || '';
+    const tabActiva = document.querySelector('.browser-tab.active')?.dataset.tab || 'todos';
+    let filtrados = [...empresasData];
+    
+    // ============================================================= //
+    // FILTRO POR PESTAÑA (simplificado: Empresas vs Autónomos)      //
+    // ============================================================= //
+    if (tabActiva !== 'todos' && tabActiva !== 'facturas' && tabActiva !== 'cumplimiento') {
+        if (tabActiva === 'empresas') {
+            // Empresas: todo lo que NO sea autónomo
+            filtrados = filtrados.filter(e => e.tipo_cliente !== 'autonomo');
+        } else if (tabActiva === 'autonomo') {
+            // Autónomos: solo tipo_cliente === 'autonomo'
+            filtrados = filtrados.filter(e => e.tipo_cliente === 'autonomo');
+        }
+    }
+    
+    // ============================================================= //
+    // FILTRO POR BÚSQUEDA (nombre, NIF, email, contacto)           //
+    // ============================================================= //
+    if (searchText) {
+        filtrados = filtrados.filter(e => 
+            e.nombre_empresa?.toLowerCase().includes(searchText) || 
+            e.nif_cif?.toLowerCase().includes(searchText) || 
+            e.contacto_email?.toLowerCase().includes(searchText) || 
+            e.contacto_nombre?.toLowerCase().includes(searchText)
+        );
+    }
+    
+    // ============================================================= //
+    // FILTRO POR PLAN                                              //
+    // ============================================================= //
+    if (planFiltro) {
+        filtrados = filtrados.filter(e => e.plan === planFiltro);
+    }
+    
+    // ============================================================= //
+    // FILTRO POR ESTADO (activo/inactivo)                          //
+    // ============================================================= //
+    if (estadoFiltro === 'activo') {
+        filtrados = filtrados.filter(e => e.activo === true);
+    } else if (estadoFiltro === 'inactivo') {
+        filtrados = filtrados.filter(e => e.activo === false);
+    }
+    
+    // ============================================================= //
+    // FILTRO POR PROVINCIA                                         //
+    // ============================================================= //
+    if (provinciaFiltro) {
+        filtrados = filtrados.filter(e => e.provincia === provinciaFiltro);
+    }
+    
+    // ============================================================= //
+    // ACTUALIZAR DATOS Y RENDERIZAR                                 //
+    // ============================================================= //
+    clientesFiltrados = filtrados;
+    paginaActual = 1;
+    renderizarClientes();
+}
+
+function renderizarClientes() {
+    const start = (paginaActual - 1) * registrosPorPagina;
+    const end = start + registrosPorPagina;
+    const paginados = clientesFiltrados.slice(start, end);
+    const tbody = document.getElementById('clientesBody');
+    if (!tbody) return;
+    if (paginados.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px;">📋 No hay clientes que coincidan</td><tr>'; document.getElementById('paginacion').innerHTML = ''; document.getElementById('totalClientes').innerHTML = ''; return; }
+    tbody.innerHTML = paginados.map(emp => `
+        <tr>
+            <td>${getBadgeTipo(emp.tipo_cliente)}</td>
+            <td><strong>${emp.nombre_empresa || '-'}</strong><br><small>${emp.nif_cif || ''}</small></td>
+            <td>${emp.contacto_nombre || '-'}</td>
+            <td>${emp.contacto_email || '-'}</td>
+            <td><span class="badge ${emp.plan === 'BASICO' ? 'badge-basico' : (emp.plan === 'PRO' ? 'badge-pro' : 'badge-empresa-plan')}">${emp.plan || 'BASICO'}</span></td>
+            <td><span class="badge ${emp.activo ? 'badge-activo' : 'badge-inactivo'}">${emp.activo ? 'Activo' : 'Inactivo'}</span></td>
+            <td><span class="badge ${emp.consentimiento ? 'badge-activo' : 'badge-inactivo'}">${emp.consentimiento ? '✅ Aceptado' : '❌ Pendiente'}</span></td>
+            <td>
+                <button class="btn-sm ver-cliente" data-id="${emp.id}">👁️</button>
+                <button class="btn-sm editar-cliente" data-id="${emp.id}">✏️</button>
+                <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}">${emp.activo ? '❌' : '✅'}</button>
+                <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${(emp.nombre_empresa || '').replace(/"/g, '&quot;')}">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+    const totalPaginas = Math.ceil(clientesFiltrados.length / registrosPorPagina);
+    let pagHtml = '';
+    for (let i = 1; i <= Math.min(totalPaginas, 10); i++) pagHtml += `<button class="${i === paginaActual ? 'active' : ''}" onclick="cambiarPagina(${i})">${i}</button>`;
+    document.getElementById('paginacion').innerHTML = pagHtml;
+    document.getElementById('totalClientes').innerHTML = `Mostrando ${clientesFiltrados.length} clientes · Página ${paginaActual} de ${totalPaginas}`;
+    
+    document.querySelectorAll('.toggle-cliente').forEach(btn => { btn.onclick = async () => { const id = btn.dataset.id, activo = btn.dataset.activo === 'true'; await sb.from('empresas').update({ activo: !activo }).eq('id', id); mostrarMensaje(activo ? 'Desactivado' : 'Activado'); await cargarClientes(); await cargarStats(); }; });
+    document.querySelectorAll('.editar-cliente').forEach(btn => { btn.onclick = () => editarCliente(btn.dataset.id); });
+    document.querySelectorAll('.ver-cliente').forEach(btn => { btn.onclick = () => verCliente(btn.dataset.id); });
+    document.querySelectorAll('.eliminar-cliente').forEach(btn => { btn.onclick = () => eliminarCliente(btn.dataset.id, btn.dataset.nombre); });
+}
+
+window.cambiarPagina = (pagina) => { paginaActual = pagina; renderizarClientes(); };
+
+async function editarCliente(id) {
+    const empresa = empresasData.find(e => e.id === id);
+    if (!empresa) return;
+    
+    // Guardar ID de la empresa y del perfil (si existe)
+    document.getElementById('editClienteId').value = id;
+    
+    // Obtener el perfil del gerente
+    const { data: perfil } = await sb.from('perfiles')
+        .select('id, nombre_razon_social, user_id')
+        .eq('empresa_id', id)
+        .eq('rol', 'gerente')
+        .maybeSingle();
+    
+    if (perfil) {
+        document.getElementById('editPerfilId').value = perfil.id;
+    }
+    
+    // Detectar si es autónomo
+    const esAutonomo = (empresa.tipo_cliente === 'autonomo');
+    
+    // Campos comunes
+    document.getElementById('editNombre').value = empresa.nombre_empresa || '';
+    document.getElementById('editEmail').value = empresa.contacto_email || empresa.email || '';
+    document.getElementById('editNif').value = empresa.nif_cif || '';
+    document.getElementById('editTelefono').value = empresa.telefono || '';
+    document.getElementById('editContacto').value = empresa.contacto_nombre || '';
+    document.getElementById('editWhatsapp').value = empresa.whatsapp_contacto || '';
+    
+    // Dirección
+    document.getElementById('editCalle').value = empresa.calle || '';
+    document.getElementById('editNumero').value = empresa.numero || '';
+    document.getElementById('editPiso').value = empresa.piso || '';
+    document.getElementById('editCp').value = empresa.codigo_postal || '';
+    document.getElementById('editCiudad').value = empresa.ciudad || '';
+    document.getElementById('editProvincia').value = empresa.provincia || '';
+    
+    // Datos bancarios
+    document.getElementById('editIban').value = empresa.iban || '';
+    document.getElementById('editBanco').value = empresa.banco || '';
+    document.getElementById('editSwift').value = empresa.swift || '';
+    
+    // Datos de actividad
+    document.getElementById('editCnae').value = empresa.cnae || '';
+    document.getElementById('editFechaInicioActividad').value = empresa.fecha_inicio_actividad || '';
+    
+    if (esAutonomo) {
+        // ========== MODO AUTÓNOMO ==========
+        document.getElementById('editEmpresaFields').style.display = 'none';
+        document.getElementById('editAutonomoFields').style.display = 'block';
+        
+        document.getElementById('editPlanAutonomo').value = empresa.plan || 'BASICO';
+        document.getElementById('editOficio').value = empresa.oficio || '';
+        
+        // Limpiar campos de empresa (por si acaso)
+        document.getElementById('editPlan').value = 'BASICO';
+        document.getElementById('editTipo').value = 'autonomo';
+        document.getElementById('editFormaSocial').value = '';
+        document.getElementById('editFechaConstitucion').value = '';
+        document.getElementById('editRegistroMercantil').value = '';
+        document.getElementById('editRepresentante').value = '';
+        
+    } else {
+        // ========== MODO EMPRESA ==========
+        document.getElementById('editEmpresaFields').style.display = 'block';
+        document.getElementById('editAutonomoFields').style.display = 'none';
+        
+        document.getElementById('editPlan').value = empresa.plan || 'BASICO';
+        document.getElementById('editTipo').value = empresa.tipo_cliente || 'administrador';
+        document.getElementById('editFormaSocial').value = empresa.forma_social || '';
+        document.getElementById('editFechaConstitucion').value = empresa.fecha_constitucion || '';
+        document.getElementById('editRegistroMercantil').value = empresa.registro_mercantil || '';
+        document.getElementById('editRepresentante').value = empresa.representante_nombre || '';
+        
+        // Limpiar campos de autónomo
+        document.getElementById('editPlanAutonomo').value = 'BASICO';
+        document.getElementById('editOficio').value = '';
+    }
+    
+    document.getElementById('modalEditarCliente').style.display = 'flex';
+}
+
+async function guardarEdicionCliente() {
+    const id = document.getElementById('editClienteId').value;
+    const esAutonomo = (document.getElementById('editAutonomoFields').style.display === 'block');
+    
+    // Preparar datos comunes
+    const updateData = {
+        nombre_empresa: document.getElementById('editNombre').value,
+        nif_cif: document.getElementById('editNif').value,
+        telefono: document.getElementById('editTelefono').value,
+        email: document.getElementById('editEmail').value,
+        whatsapp_contacto: document.getElementById('editWhatsapp').value,
+        calle: document.getElementById('editCalle').value,
+        numero: document.getElementById('editNumero').value,
+        piso: document.getElementById('editPiso').value,
+        codigo_postal: document.getElementById('editCp').value,
+        ciudad: document.getElementById('editCiudad').value,
+        provincia: document.getElementById('editProvincia').value,
+        iban: document.getElementById('editIban').value,
+        banco: document.getElementById('editBanco').value,
+        swift: document.getElementById('editSwift').value,
+        cnae: document.getElementById('editCnae').value,
+        fecha_inicio_actividad: document.getElementById('editFechaInicioActividad').value || null
+    };
+    
+    // Añadir campos según tipo
+    if (esAutonomo) {
+        updateData.plan = document.getElementById('editPlanAutonomo').value;
+        updateData.oficio = document.getElementById('editOficio').value;
+        updateData.tipo_cliente = 'autonomo';
+    } else {
+        updateData.plan = document.getElementById('editPlan').value;
+        updateData.tipo_cliente = document.getElementById('editTipo').value;
+        updateData.forma_social = document.getElementById('editFormaSocial').value;
+        updateData.fecha_constitucion = document.getElementById('editFechaConstitucion').value || null;
+        updateData.registro_mercantil = document.getElementById('editRegistroMercantil').value;
+        updateData.representante_nombre = document.getElementById('editRepresentante').value;
+    }
+    
+    await sb.from('empresas').update(updateData).eq('id', id);
+    
+    // Actualizar nombre de contacto en perfiles
+    const contacto = document.getElementById('editContacto').value;
+    if (contacto) {
+        await sb.from('perfiles').update({ 
+            nombre_razon_social: contacto 
+        }).eq('empresa_id', id).eq('rol', 'gerente');
+    }
+    
+    mostrarMensaje("✅ Cliente actualizado correctamente");
+    document.getElementById('modalEditarCliente').style.display = 'none';
+    await cargarClientes();
+    await cargarStats();
+}
+
+async function verCliente(id) {
+    const empresa = empresasData.find(e => e.id === id);
+    if (!empresa) return;
+    const { data: consentimientos } = await sb.from('historico_consentimientos').select('*').eq('perfil_id', empresa.perfil_id).order('fecha_aceptacion', { ascending: false });
+    let historicoHtml = '<div class="detalle-info" style="margin-top:16px;"><strong>📜 Histórico de consentimientos RGPD</strong>';
+    if (consentimientos && consentimientos.length > 0) {
+        consentimientos.forEach(c => {
+            historicoHtml += `<div style="border-bottom:1px solid #e2e8f0; padding:8px 0;"><small>📅 ${formatDate(c.fecha_aceptacion)} - Versión: ${c.consentimiento_version || '1.0'}</small><br><small>Finalidades: ${c.finalidades_aceptadas ? c.finalidades_aceptadas.join(', ') : 'Todas'}</small>${c.fecha_revocacion ? `<br><small style="color:#c2410c;">❌ Revocado: ${formatDate(c.fecha_revocacion)}</small>` : ''}</div>`;
+        });
+    } else { historicoHtml += '<p>No hay registros de consentimiento</p>'; }
+    historicoHtml += '</div>';
+    document.getElementById('detalleCliente').innerHTML = `<div class="detalle-info"><p><strong>🏢 ${empresa.nombre_empresa}</strong></p><p>📋 Tipo: ${getTipoIcono(empresa.tipo_cliente)}</p>${empresa.oficio ? `<p>🔧 Oficio: ${empresa.oficio}</p>` : ''}<p>📋 NIF: ${empresa.nif_cif || '-'}</p><p>📍 ${empresa.calle || ''} ${empresa.numero || ''} ${empresa.piso || ''}</p><p>📮 ${empresa.codigo_postal || ''} ${empresa.ciudad || ''} ${empresa.provincia || ''}</p><p>📞 ${empresa.telefono || '-'}</p><p>📧 ${empresa.contacto_email || '-'}</p><p>👤 Contacto: ${empresa.contacto_nombre || '-'}</p><p>📱 WhatsApp: ${empresa.whatsapp_contacto || '-'}</p><p>🏦 IBAN: ${empresa.iban || '-'}</p><p>🏷️ Plan: ${empresa.plan || 'BASICO'}</p><p>📅 Alta: ${formatDate(empresa.created_at)}</p></div>`;
+    document.getElementById('historicoConsentimientos').innerHTML = historicoHtml;
+    document.getElementById('modalVerCliente').style.display = 'flex';
+}
+
+async function eliminarCliente(id, nombre) {
+    // Guardar datos del cliente pendiente
+    clientePendienteEliminar = { id, nombre };
+    
+    // Mostrar mensaje en el modal
+    document.getElementById('mensajeEliminacionCliente').innerHTML = `¿Estás seguro de que quieres eliminar a <strong>"${nombre}"</strong> y todos sus datos?`;
+    document.getElementById('passwordConfirmacion').value = '';
+    document.getElementById('errorPasswordConfirmacion').style.display = 'none';
+    
+    // Abrir modal de confirmación
+    document.getElementById('modalConfirmarEliminacion').style.display = 'flex';
+}
+async function ejecutarEliminacionCliente() {
+    const id = clientePendienteEliminar.id;
+    const nombre = clientePendienteEliminar.nombre;
+    const passwordConfirm = document.getElementById('passwordConfirmacion').value;
+    
+    if (!passwordConfirm) {
+        document.getElementById('errorPasswordConfirmacion').innerText = '❌ Introduce tu contraseña para confirmar';
+        document.getElementById('errorPasswordConfirmacion').style.display = 'block';
+        return;
+    }
+    
+    document.getElementById('errorPasswordConfirmacion').style.display = 'none';
+    
+    try {
+        // Verificar contraseña del Super Admin
+        const { data, error } = await sb.auth.signInWithPassword({
+            email: currentUser.email,
+            password: passwordConfirm
+        });
+        
+        if (error) {
+            document.getElementById('errorPasswordConfirmacion').innerText = '❌ Contraseña incorrecta. No se puede eliminar el cliente.';
+            document.getElementById('errorPasswordConfirmacion').style.display = 'block';
+            return;
+        }
+        
+        document.getElementById('modalConfirmarEliminacion').style.display = 'none';
+        
+        const btnEliminar = document.querySelector(`.eliminar-cliente[data-id="${id}"]`);
+        let textoOriginal = '';
+        if (btnEliminar) {
+            textoOriginal = btnEliminar.innerHTML;
+            btnEliminar.innerHTML = '<span class="spinner"></span>';
+            btnEliminar.disabled = true;
+        }
+        
+        try {
+            // Obtener el perfil del gerente
+            const { data: perfil } = await sb.from('perfiles')
+                .select('id, user_id')
+                .eq('empresa_id', id)
+                .eq('rol', 'gerente')
+                .maybeSingle();
+            
+            const perfilId = perfil?.id;
+            const userId = perfil?.user_id;
+            
+            // ============================================================= //
+            // 1. DATOS QUE SE BORRAN COMPLETAMENTE                          //
+            // ============================================================= //
+            
+            await sb.from('tareas').delete().eq('empresa_id', id);
+            await sb.from('productos').delete().eq('empresa_id', id);
+            await sb.from('suscripciones').delete().eq('empresa_id', id);
+            await sb.from('facturacion_saas').delete().eq('empresa_id', id);
+            
+            if (perfilId) {
+                await sb.from('perfiles').delete().eq('id', perfilId);
+            }
+            
+            await sb.from('empresas').delete().eq('id', id);
+            
+            // ============================================================= //
+            // 2. DATOS QUE SE ANONIMIZAN (no se borran por ley)             //
+            // ============================================================= //
+            
+            if (perfilId) {
+                // Anonimizar histórico de consentimientos
+                await sb.from('historico_consentimientos')
+                    .update({
+                        perfil_id: null,
+                        consentimiento_texto: '[USUARIO ELIMINADO]',
+                        ip_aceptacion: null,
+                        user_agent_aceptacion: null
+                    })
+                    .eq('perfil_id', perfilId);
+                
+                // Anonimizar eventos (CORREGIDO - sin sb.raw)
+                await sb.from('registro_eventos')
+                    .update({
+                        perfil_id: null,
+                        descripcion: '[USUARIO ELIMINADO] - Cliente eliminado del sistema'
+                    })
+                    .eq('perfil_id', perfilId);
+            }
+            
+            // Anonimizar facturas
+            await sb.from('facturas')
+                .update({
+                    cliente_nombre: '[CLIENTE ELIMINADO]',
+                    cliente_nif: '[ELIMINADO]',
+                    cliente_direccion: null,
+                    perfil_id: null
+                })
+                .eq('empresa_id', id);
+            
+            // Anonimizar registros de facturación
+            if (perfilId) {
+                await sb.from('registros_facturacion')
+                    .update({
+                        perfil_id: null,
+                        nif_emisor: '[ELIMINADO]',
+                        nombre_razon_social_emisor: '[CLIENTE ELIMINADO]'
+                    })
+                    .eq('perfil_id', perfilId);
+            }
+            
+            // ============================================================= //
+            // 3. ELIMINAR USUARIO DE AUTH (Edge Function)                   //
+            // ============================================================= //
+            if (userId) {
+                try {
+                    const response = await fetch(`${SUPABASE_URL}/functions/v1/eliminar-usuario`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+                        body: JSON.stringify({ user_id: userId })
+                    });
+                    await response.json();
+                } catch (authError) {
+                    console.warn("Error eliminando de auth.users:", authError);
+                }
+            }
+            
+            // ============================================================= //
+            // 4. REGISTRAR EVENTO DE ELIMINACIÓN                            //
+            // ============================================================= //
+            try {
+                await sb.from('registro_eventos').insert({
+                    tipo_evento: 'ELIMINAR_CLIENTE',
+                    descripcion: `Cliente "${nombre}" (ID: ${id}) eliminado por ${currentUser.email}`
+                });
+            } catch (eventError) {
+                console.warn("No se pudo registrar el evento:", eventError);
+            }
+            
+            mostrarMensaje(`✅ Cliente "${nombre}" eliminado correctamente.\n\nLos datos fiscales y de facturación se conservan según normativa.`);
+            
+            await cargarClientes();
+            await cargarStats();
+            
+        } catch (error) {
+            console.error(error);
+            mostrarMensaje(`❌ Error al eliminar: ${error.message}`, 'error');
+        } finally {
+            if (btnEliminar) {
+                btnEliminar.innerHTML = textoOriginal;
+                btnEliminar.disabled = false;
+            }
+            clientePendienteEliminar = null;
+        }
+        
+    } catch (error) {
+        console.error(error);
+        document.getElementById('errorPasswordConfirmacion').innerText = '❌ Error al verificar la contraseña';
+        document.getElementById('errorPasswordConfirmacion').style.display = 'block';
+    }
+}
+
+// --------------------------------------------------------------- //
+// CREAR CLIENTE                                                   //
+// --------------------------------------------------------------- //
+async function crearCliente() {
+    const tipoSujetoActivo = document.querySelector('.tipo-sujeto-btn.active')?.dataset.tipo || 'juridica';
+    const consentimiento = document.getElementById('consentimientoAceptado')?.checked;
+    if (!consentimiento) { mostrarMensaje("❌ Debes aceptar el consentimiento RGPD", 'error'); return; }
+    
+    let nombre, email, nif, telefono, nombreContacto, whatsapp;
+    if (tipoSujetoActivo === 'juridica') {
+        nombre = document.getElementById('razonSocial')?.value.trim();
+        email = document.getElementById('emailContacto')?.value.trim();
+        nif = document.getElementById('nifCif')?.value.trim();
+        telefono = document.getElementById('telefonoContacto')?.value.trim();
+        nombreContacto = document.getElementById('nombreContacto')?.value.trim();
+        whatsapp = document.getElementById('whatsappContactoJuridica')?.value.trim() || null;
+    } else {
+        const nombreFisica = document.getElementById('nombreFisica')?.value.trim() || '';
+        const apellido1 = document.getElementById('primerApellido')?.value.trim() || '';
+        const apellido2 = document.getElementById('segundoApellido')?.value.trim() || '';
+        nombre = `${nombreFisica} ${apellido1} ${apellido2}`.trim();
+        email = document.getElementById('emailFisica')?.value.trim();
+        nif = document.getElementById('nifFisica')?.value.trim();
+        telefono = document.getElementById('telefonoFisica')?.value.trim();
+        nombreContacto = nombreFisica;
+        whatsapp = document.getElementById('whatsappContactoFisica')?.value.trim() || null;
+    }
+    
+    if (!nombre || !email) { mostrarMensaje("❌ Nombre y email son obligatorios", 'error'); return; }
+    
+    const direccionCompleta = `${document.getElementById('direccionCalle')?.value || ''} ${document.getElementById('direccionNumero')?.value || ''} ${document.getElementById('direccionPiso')?.value || ''}`.trim() || null;
+    
+    // Determinar tipo_cliente según el tipo de sujeto
+    let tipoClienteSeleccionado;
+    if (tipoSujetoActivo === 'fisica') {
+        tipoClienteSeleccionado = 'autonomo';
+    } else {
+        tipoClienteSeleccionado = document.getElementById('tipoClienteSelect')?.value || 'administrador';
+    }
+    
+    // Guardar datos temporalmente
+    datosClientePendiente = {
+        tipoSujetoActivo,
+        nombre,
+        email,
+        nif,
+        telefono,
+        nombreContacto,
+        whatsapp,
+        direccionCompleta,
+        tipoClienteSeleccionado,
+        plan: document.getElementById('planSeleccionado')?.value || 'BASICO',
+        oficio: document.getElementById('oficioEspecialidad')?.value || null,
+        cnae: document.getElementById('cnaeCodigo')?.value || null,
+        calle: document.getElementById('direccionCalle')?.value || null,
+        numero: document.getElementById('direccionNumero')?.value || null,
+        piso: document.getElementById('direccionPiso')?.value || null,
+        codigo_postal: document.getElementById('direccionCp')?.value || null,
+        ciudad: document.getElementById('direccionMunicipio')?.value || null,
+        provincia: document.getElementById('direccionProvincia')?.value || null,
+        iban: document.getElementById('ibanCuenta')?.value || null,
+        banco: document.getElementById('bancoNombre')?.value || null,
+        swift: document.getElementById('swiftCodigo')?.value || null,
+        fechaInicioActividad: document.getElementById('fechaInicioActividad')?.value || null
+    };
+    
+    // Generar contraseña aleatoria
+    const generarPasswordAleatoria = () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+        let password = '';
+        for (let i = 0; i < 12; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
+    };
+    
+    const passwordAleatoria = generarPasswordAleatoria();
+    document.getElementById('passwordGenerada').innerText = passwordAleatoria;
+    document.getElementById('passwordManual').value = '';
+    
+    // Resetear containers
+    document.getElementById('passwordAleatorioContainer').style.display = 'block';
+    document.getElementById('passwordManualContainer').style.display = 'none';
+    
+    // Mostrar modal de contraseña
+    document.getElementById('modalAltaCliente').style.display = 'none';
+    document.getElementById('modalGenerarPassword').style.display = 'flex';
+    
+    // Función para ejecutar la creación del cliente
+    const ejecutarCreacionCliente = async (password) => {
+        const btn = document.getElementById('btnGuardarCliente');
+        btn.innerHTML = '<span class="spinner"></span> Creando...';
+        btn.disabled = true;
+        
+        try {
+            // 1. Crear empresa
+            const { data: empresa, error: empError } = await sb.from('empresas').insert({
+                nombre_empresa: datosClientePendiente.nombre,
+                nif_cif: datosClientePendiente.nif || null,
+                direccion: datosClientePendiente.direccionCompleta,
+                telefono: datosClientePendiente.telefono || null,
+                email: datosClientePendiente.email,
+                plan: datosClientePendiente.plan,
+                tipo_cliente: datosClientePendiente.tipoClienteSeleccionado,
+                oficio: datosClientePendiente.oficio,
+                cnae: datosClientePendiente.cnae,
+                calle: datosClientePendiente.calle,
+                numero: datosClientePendiente.numero,
+                piso: datosClientePendiente.piso,
+                codigo_postal: datosClientePendiente.codigo_postal,
+                ciudad: datosClientePendiente.ciudad,
+                provincia: datosClientePendiente.provincia,
+                pais: 'ESPAÑA',
+                iban: datosClientePendiente.iban,
+                banco: datosClientePendiente.banco,
+                swift: datosClientePendiente.swift,
+                whatsapp_contacto: datosClientePendiente.whatsapp,
+                activo: true,
+                created_at: new Date(),
+                updated_at: new Date()
+            }).select().single();
+            
+            if (empError) throw empError;
+            
+            // 2. Llamar a la Edge Function
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+                body: JSON.stringify({
+                    email: datosClientePendiente.email,
+                    password: password,
+                    nombre: datosClientePendiente.nombreContacto || datosClientePendiente.nombre,
+                    empresa_id: empresa.id,
+                    tipo_sujeto: datosClientePendiente.tipoSujetoActivo,
+                    nif_cif: datosClientePendiente.nif || null
+                })
+            });
+            
+            const resultado = await response.json();
+            if (!resultado.success) throw new Error(resultado.error);
+            
+            // Cerrar modal de contraseña
+            document.getElementById('modalGenerarPassword').style.display = 'none';
+            
+            // Mostrar modal de éxito
+            document.getElementById('mensajeClienteCreado').innerHTML = `✅ Cliente creado correctamente:<br><strong>${datosClientePendiente.nombre}</strong><br><br>📧 Email: ${datosClientePendiente.email}<br>🔐 Contraseña: ${password}`;
+            document.getElementById('modalClienteCreado').style.display = 'flex';
+            
+            // Limpiar formulario
+            limpiarFormularioAlta();
+            
+            await cargarClientes();
+            await cargarStats();
+            
+        } catch (error) {
+            console.error(error);
+            mostrarMensaje(`❌ Error: ${error.message}`, 'error');
+            document.getElementById('modalGenerarPassword').style.display = 'none';
+        } finally {
+            btn.innerHTML = '💾 Guardar cliente';
+            btn.disabled = false;
+            datosClientePendiente = null;
+        }
+    };
+    
+    // Evento: Aceptar contraseña aleatoria
+    const aceptarBtn = document.getElementById('btnAceptarPassword');
+    const newAceptarBtn = aceptarBtn.cloneNode(true);
+    aceptarBtn.parentNode.replaceChild(newAceptarBtn, aceptarBtn);
+    newAceptarBtn.onclick = async () => {
+        await ejecutarCreacionCliente(document.getElementById('passwordGenerada').innerText);
+    };
+    
+    // Evento: Crear manualmente
+    const manualBtn = document.getElementById('btnCrearManual');
+    const newManualBtn = manualBtn.cloneNode(true);
+    manualBtn.parentNode.replaceChild(newManualBtn, manualBtn);
+    newManualBtn.onclick = () => {
+        document.getElementById('passwordAleatorioContainer').style.display = 'none';
+        document.getElementById('passwordManualContainer').style.display = 'block';
+    };
+    
+    // Evento: Aceptar contraseña manual
+    const aceptarManualBtn = document.getElementById('btnAceptarPasswordManual');
+    const newAceptarManualBtn = aceptarManualBtn.cloneNode(true);
+    aceptarManualBtn.parentNode.replaceChild(newAceptarManualBtn, aceptarManualBtn);
+    newAceptarManualBtn.onclick = async () => {
+        const passManual = document.getElementById('passwordManual').value;
+        if (!passManual || passManual.length < 6) {
+            mostrarMensaje("❌ La contraseña debe tener al menos 6 caracteres", 'error');
+            return;
+        }
+        await ejecutarCreacionCliente(passManual);
+    };
+    
+    // Evento: Volver a aleatorio
+    const volverBtn = document.getElementById('btnVolverAleatorio');
+    const newVolverBtn = volverBtn.cloneNode(true);
+    volverBtn.parentNode.replaceChild(newVolverBtn, volverBtn);
+    newVolverBtn.onclick = () => {
+        document.getElementById('passwordAleatorioContainer').style.display = 'block';
+        document.getElementById('passwordManualContainer').style.display = 'none';
+    };
+}
+
+// --------------------------------------------------------------- //
+// FACTURACIÓN                                                     //
+// --------------------------------------------------------------- //
+async function cargarFacturas() {
+    const desde = document.getElementById('facturaDesde')?.value;
+    const hasta = document.getElementById('facturaHasta')?.value;
+    let query = sb.from('facturas').select('*, empresas(nombre_empresa, nif_cif), registros_facturacion(hash_factura, modalidad_verifactu)').order('created_at', { ascending: false });
+    if (desde) query = query.gte('fecha_expedicion', desde);
+    if (hasta) query = query.lte('fecha_expedicion', hasta);
+    const { data: facturas, error } = await query;
+    const tbody = document.getElementById('facturasBody');
+    if (!tbody) return;
+    if (error || !facturas?.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">📋 No hay facturas</tr></tr>'; return; }
+    tbody.innerHTML = facturas.map(f => `
+        <tr>
+            <td>${formatDate(f.fecha_expedicion)}</td>
+            <td>${f.empresas?.nombre_empresa || '-'}</td>
+            <td>${f.numero_factura || f.id.slice(0,8)}</td>
+            <td>${f.concepto || '-'}</td>
+            <td>${(f.importe_total || 0).toFixed(2)}€</td>
+            <td><small class="hash-text">${f.registros_facturacion?.hash_factura?.slice(0,16) || 'Sin hash'}...</small></td>
+            <td><span class="badge ${f.estado === 'pagada' ? 'badge-pagada' : 'badge-pendiente'}">${f.estado === 'pagada' ? 'Pagada' : 'Pendiente'}</span></td>
+            <td><button class="btn-sm toggle-factura" data-id="${f.id}" data-estado="${f.estado}">${f.estado === 'pagada' ? '❌' : '✅'}</button></td>
+        </tr>
+    `).join('');
+    document.querySelectorAll('.toggle-factura').forEach(btn => { btn.onclick = async () => { 
+        const id = btn.dataset.id; 
+        const nuevoEstado = btn.dataset.estado === 'pagada' ? 'pendiente' : 'pagada';
+        await sb.from('facturas').update({ estado: nuevoEstado }).eq('id', id); 
+        mostrarMensaje(nuevoEstado === 'pagada' ? 'Marcada pagada' : 'Marcada pendiente'); 
+        await cargarFacturas(); 
+        await cargarStats(); 
+    }; });
+}
+
+async function cargarSelectorClientesFactura() {
+    const { data: empresas } = await sb.from('empresas').select('id, nombre_empresa, nif_cif').eq('activo', true).order('nombre_empresa');
+    const select = document.getElementById('selectorClienteFactura');
+    if (select && empresas) select.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + empresas.map(e => `<option value="${e.id}" data-nif="${e.nif_cif}">${e.nombre_empresa}</option>`).join('');
+}
+
+function initSelectorFactura() {
+    const btn = document.getElementById('btnCrearFacturaDesdeSelector');
+    if (btn) btn.onclick = () => { const select = document.getElementById('selectorClienteFactura'); const clienteId = select.value; const clienteNombre = select.options[select.selectedIndex]?.text; if (!clienteId) { mostrarMensaje("❌ Selecciona un cliente", 'error'); return; } mostrarModalFactura(clienteId, clienteNombre); };
+}
+
+function mostrarModalFactura(id, nombre) {
+    lineasFactura = [{ descripcion: "Suscripción COMUTECH", cantidad: 1, precio: 49 }];
+    renderizarLineasFactura();
+    document.getElementById('facturaEmpresaId').value = id;
+    document.getElementById('facturaClienteNombre').value = nombre;
+    document.getElementById('facturaFecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('facturaNumero').value = `F${new Date().getFullYear()}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+    document.getElementById('facturaVencimiento').value = '';
+    document.getElementById('facturaNotas').value = "Gracias por confiar en COMUTECH";
+    renderizarFacturaPreview();
+    document.getElementById('modalCrearFactura').style.display = 'flex';
+}
+
+function renderizarLineasFactura() {
+    const container = document.getElementById('facturaLineas');
+    if (!container) return;
+    container.innerHTML = '';
+    lineasFactura.forEach((linea, idx) => { 
+        const div = document.createElement('div'); 
+        div.className = 'row-flex'; 
+        div.style.alignItems = 'center'; 
+        div.innerHTML = `
+            <div class="grupo" style="flex:3;"><input type="text" placeholder="Descripción" value="${linea.descripcion.replace(/"/g, '&quot;')}" data-idx="${idx}" data-campo="descripcion" class="linea-input"></div>
+            <div class="grupo"><input type="number" placeholder="Cantidad" step="1" value="${linea.cantidad}" data-idx="${idx}" data-campo="cantidad" class="linea-input"></div>
+            <div class="grupo"><input type="number" placeholder="Precio (€)" step="0.01" value="${linea.precio}" data-idx="${idx}" data-campo="precio" class="linea-input"></div>
+            <div class="grupo" style="flex:0.5;"><button class="btn-sm btn-danger eliminar-linea" data-idx="${idx}">✖</button></div>
+        `; 
+        container.appendChild(div); 
+    });
+    document.querySelectorAll('.linea-input').forEach(input => { input.addEventListener('change', (e) => { const idx = parseInt(e.target.dataset.idx); const campo = e.target.dataset.campo; let valor = e.target.value; if (campo === 'precio') valor = parseFloat(valor); if (campo === 'cantidad') valor = parseInt(valor); lineasFactura[idx][campo] = valor; renderizarFacturaPreview(); }); });
+    document.querySelectorAll('.eliminar-linea').forEach(btn => { btn.onclick = () => { lineasFactura.splice(parseInt(btn.dataset.idx), 1); if (lineasFactura.length === 0) lineasFactura = [{ descripcion: "Suscripción COMUTECH", cantidad: 1, precio: 49 }]; renderizarLineasFactura(); renderizarFacturaPreview(); }; });
+}
+
+async function renderizarFacturaPreview() {
+    let subtotal = 0;
+    const lineasHtml = lineasFactura.map(linea => { const importe = linea.cantidad * linea.precio; subtotal += importe; return `<div class="factura-linea"><span>${linea.descripcion} (${linea.cantidad} x ${linea.precio.toFixed(2)}€)</span><span>${importe.toFixed(2)}€</span></div>`; }).join('');
+    const iva = subtotal * 0.21;
+    const total = subtotal + iva;
+    const empresaId = document.getElementById('facturaEmpresaId').value;
+    const select = document.getElementById('selectorClienteFactura');
+    const nifEmisor = select?.options[select.selectedIndex]?.dataset.nif || 'B00000000';
+    const numeroFactura = document.getElementById('facturaNumero').value || `F${Date.now()}`;
+    const fecha = document.getElementById('facturaFecha').value || new Date().toISOString().split('T')[0];
+    const hashAnterior = await obtenerUltimoHash(nifEmisor);
+    const contenidoHash = `${hashAnterior || ''}${numeroFactura}${fecha}${total}${nifEmisor}`;
+    currentHash = await generarHash(contenidoHash);
+    document.getElementById('facturaPreview').innerHTML = `<div><strong>COMUTECH SOLUCIONES S.L.</strong><br>C/ Tecnología 123, 28001 Madrid<br>NIF: B12345678</div><div style="margin:12px 0;">${lineasHtml}</div><div class="factura-linea"><span>Subtotal</span><span>${subtotal.toFixed(2)}€</span></div><div class="factura-linea"><span>IVA (21%)</span><span>${iva.toFixed(2)}€</span></div><div class="factura-linea factura-total"><span>TOTAL</span><span>${total.toFixed(2)}€</span></div>`;
+    document.getElementById('hashPreview').innerHTML = `🔗 Hash SHA256: ${currentHash}`;
+    const qrData = JSON.stringify({ factura: numeroFactura, fecha, total, emisor: "COMUTECH SOLUCIONES SL", nif_emisor: "B12345678", hash: currentHash, verificacion: `https://comutech.es/verificar/${currentHash}` });
+    const qrContainer = document.getElementById('qrContainer');
+    qrContainer.innerHTML = '';
+    new QRCode(qrContainer, { text: qrData, width: 128, height: 128 });
+}
+
+async function guardarFactura() {
+    const empresaId = document.getElementById('facturaEmpresaId').value;
+    const fecha = document.getElementById('facturaFecha').value;
+    const numero = document.getElementById('facturaNumero').value;
+    const vencimiento = document.getElementById('facturaVencimiento').value;
+    const notas = document.getElementById('facturaNotas').value;
+    const modalidadVerifactu = document.getElementById('modalidadVerifactu').value;
+    let subtotal = 0;
+    const lineas = lineasFactura.map(linea => { const importe = linea.cantidad * linea.precio; subtotal += importe; return { ...linea, importe }; });
+    const iva = subtotal * 0.21;
+    const total = subtotal + iva;
+    const { data: empresa } = await sb.from('empresas').select('nombre_empresa, nif_cif').eq('id', empresaId).single();
+    const select = document.getElementById('selectorClienteFactura');
+    const nifEmisor = select.options[select.selectedIndex]?.dataset.nif || empresa?.nif_cif || 'B00000000';
+    const hashAnterior = await obtenerUltimoHash(nifEmisor);
+    const contenidoHash = `${hashAnterior || ''}${numero}${fecha}${total}${nifEmisor}`;
+    const hashFactura = await generarHash(contenidoHash);
+    const { data: registro, error: regError } = await sb.from('registros_facturacion').insert({
+        perfil_id: currentUser.id,
+        nif_emisor: nifEmisor,
+        nombre_razon_social_emisor: "COMUTECH SOLUCIONES SL",
+        numero_factura: numero,
+        serie_factura: "F",
+        fecha_expedicion: new Date(fecha).toISOString(),
+        importe_total: total,
+        hash_factura: hashFactura,
+        hash_factura_anterior: hashAnterior,
+        modalidad_verifactu: modalidadVerifactu,
+        enviado_aeat: false
+    }).select().single();
+    if (regError) { mostrarMensaje("❌ Error en registro antifraude: " + regError.message, 'error'); return; }
+    const { error: factError } = await sb.from('facturas').insert({
+        registro_facturacion_id: registro.id,
+        empresa_id: empresaId,
+        perfil_id: currentUser.id,
+        numero_factura: numero,
+        fecha_expedicion: new Date(fecha).toISOString(),
+        fecha_vencimiento: vencimiento ? new Date(vencimiento).toISOString() : null,
+        cliente_nif: nifEmisor,
+        cliente_nombre: empresa?.nombre_empresa || '',
+        subtotal: subtotal,
+        iva_total: iva,
+        importe_total: total,
+        estado: 'pendiente',
+        observaciones: notas
+    });
+    if (factError) { mostrarMensaje("❌ Error: " + factError.message, 'error'); } else { mostrarMensaje("✅ Factura creada con hash"); document.getElementById('modalCrearFactura').style.display = 'none'; await cargarFacturas(); await cargarStats(); await cargarCumplimiento(); }
+}
+
+async function descargarFacturaPDF() { const element = document.getElementById('facturaPreview'); html2pdf().set({ margin: 10, filename: `factura_${new Date().toISOString().split('T')[0]}.pdf` }).from(element).save(); }
+async function exportarClientesPDF() { const element = document.getElementById('clientesTabla'); if(element) html2pdf().set({ margin: 10, filename: `clientes_comutech_${new Date().toISOString().split('T')[0]}.pdf`, orientation: 'landscape' }).from(element).save(); }
+
+// --------------------------------------------------------------- //
+// CUMPLIMIENTO                                                    //
+// --------------------------------------------------------------- //
+async function cargarCumplimiento() {
+    const { data: consentimientos, count: totalCons } = await sb.from('historico_consentimientos').select('*', { count: 'exact' });
+    const aceptados = consentimientos?.filter(c => !c.fecha_revocacion).length || 0;
+    const revocados = (totalCons || 0) - aceptados;
+    const { data: registros, count: totalReg } = await sb.from('registros_facturacion').select('*', { count: 'exact' });
+    const conHash = registros?.filter(r => r.hash_factura).length || 0;
+    document.getElementById('consentimientosList').innerHTML = `<p>📊 Total registros: ${totalCons || 0}</p><p>✅ Aceptados activos: ${aceptados}</p><p>❌ Revocados: ${revocados}</p><p>📅 Último consentimiento: ${consentimientos && consentimientos[0] ? formatDate(consentimientos[0].fecha_aceptacion) : 'Ninguno'}</p>`;
+    document.getElementById('hashEncadenadoInfo').innerHTML = `<p>🔗 Total facturas registradas: ${totalReg || 0}</p><p>✅ Con hash generado: ${conHash}</p><p>⚙️ Veri*Factu habilitado: ${registros?.filter(r => r.modalidad_verifactu === 'SI').length || 0} facturas</p><p>📄 Pendientes de envío AEAT: ${registros?.filter(r => r.modalidad_verifactu === 'SI' && !r.enviado_aeat).length || 0}</p>`;
+    document.getElementById('cumplimientoStats').innerHTML = `<p>✅ Ley Antifraude 11/2021: ${totalReg > 0 ? 'Cumpliendo con hash encadenado' : 'Pendiente'}</p><p>✅ RGPD / LOPDGDD: ${totalCons > 0 ? `${aceptados} consentimientos activos registrados` : 'Pendiente'}</p><p>✅ Ley de facturación: Facturas con trazabilidad hash</p><p>✅ Conservación 5 años: Todas las facturas tienen timestamp</p>`;
+}
+function limpiarFormularioAlta() {
+    document.getElementById('razonSocial').value = '';
+    document.getElementById('emailContacto').value = '';
+    document.getElementById('nifCif').value = '';
+    document.getElementById('telefonoContacto').value = '';
+    document.getElementById('nombreContacto').value = '';
+    document.getElementById('nombreFisica').value = '';
+    document.getElementById('primerApellido').value = '';
+    document.getElementById('segundoApellido').value = '';
+    document.getElementById('emailFisica').value = '';
+    document.getElementById('nifFisica').value = '';
+    document.getElementById('telefonoFisica').value = '';
+    document.getElementById('direccionCalle').value = '';
+    document.getElementById('direccionNumero').value = '';
+    document.getElementById('direccionPiso').value = '';
+    document.getElementById('direccionCp').value = '';
+    document.getElementById('direccionMunicipio').value = '';
+    document.getElementById('direccionProvincia').value = '';
+    document.getElementById('ibanCuenta').value = '';
+    document.getElementById('bancoNombre').value = '';
+    document.getElementById('swiftCodigo').value = '';
+    document.getElementById('cnaeCodigo').value = '';
+    document.getElementById('fechaInicioActividad').value = '';
+    document.getElementById('whatsappContactoJuridica').value = '';
+    document.getElementById('whatsappContactoFisica').value = '';
+    document.getElementById('consentimientoAceptado').checked = false;
+    
+    // Resetear selector tipo sujeto a su estado inicial
+    const btnJuridica = document.querySelector('.tipo-sujeto-btn[data-tipo="juridica"]');
+    const btnFisica = document.querySelector('.tipo-sujeto-btn[data-tipo="fisica"]');
+    if (btnJuridica && btnFisica) {
+        btnJuridica.classList.add('active');
+        btnFisica.classList.remove('active');
+        document.getElementById('datosJuridica').style.display = 'block';
+        document.getElementById('datosFisica').style.display = 'none';
+        document.getElementById('tipoClienteDiv').style.display = 'block';
+    }
+    
+    // 🔹 FORZAR SCROLL AL PRINCIPIO DEL MODAL
+    const modalContent = document.querySelector('#modalAltaCliente .modal-content');
+    if (modalContent) {
+        modalContent.scrollTop = 0;
+    }
+}
+
+// Función para resetear contraseña
+async function resetearPassword(empresaId, perfilId, email) {
+    const nuevaPassword = prompt("🔐 Introduce la nueva contraseña para el gerente:\n(mínimo 6 caracteres)", "GerenteNueva2026!");
+    if (!nuevaPassword || nuevaPassword.length < 6) {
+        mostrarMensaje("❌ Contraseña requerida (mínimo 6 caracteres)", 'error');
+        return false;
+    }
+    
+    // Mostrar loading
+    const btn = document.getElementById('btnResetPassword');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Actualizando...';
+    btn.disabled = true;
+    
+    try {
+        // 1. Obtener el user_id del perfil
+        const { data: perfil } = await sb.from('perfiles')
+            .select('user_id')
+            .eq('id', perfilId)
+            .single();
+        
+        if (!perfil || !perfil.user_id) {
+            throw new Error('No se encontró el usuario asociado');
+        }
+        
+        // 2. Actualizar contraseña en auth.users (requiere service_role)
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/resetear-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+            body: JSON.stringify({
+                user_id: perfil.user_id,
+                password: nuevaPassword,
+                email: email
+            })
+        });
+        
+        const resultado = await response.json();
+        if (!resultado.success) throw new Error(resultado.error);
+        
+        mostrarMensaje(`✅ Contraseña actualizada correctamente para ${email}`, 'exito');
+        return true;
+        
+    } catch (error) {
+        console.error(error);
+        mostrarMensaje(`❌ Error al resetear contraseña: ${error.message}`, 'error');
+        return false;
+    } finally {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    }
+}
+
+// --------------------------------------------------------------- //
+// EVENT LISTENERS (UNO POR LÍNEA - MODO ECONOMÍA)                 //
+// --------------------------------------------------------------- //
+
+document.getElementById('btnLogin').onclick = async()=>{if(await hacerLogin()){document.getElementById('loginPanel').style.display='none';document.getElementById('dashboardPanel').style.display='block';const bc=document.querySelector('.browser-content'),tc=document.getElementById('tabClientes');if(bc){bc.style.minHeight='400px';bc.style.height='auto'}if(tc){tc.style.minHeight='300px';tc.style.display='block'}setTimeout(async()=>{await cargarStats();await cargarClientes()},50)}};
+document.getElementById('btnLogoutHeader').onclick = async()=>{await sb.auth.signOut();location.reload()};
+document.getElementById('btnLogoutFooter').onclick = async()=>{await sb.auth.signOut();location.reload()};
+document.getElementById('btnMostrarAlta').onclick = () => { const mc = document.querySelector('#modalAltaCliente .modal-content'); if(mc) mc.scrollTop = 0; document.getElementById('modalAltaCliente').style.display = 'flex'; initTipoSujetoSelector(); };
+document.getElementById('btnCancelarAlta').onclick = ()=>{document.getElementById('modalAltaCliente').style.display='none'};
+document.getElementById('btnGuardarCliente').onclick = crearCliente;
+document.getElementById('btnRefrescar').onclick = ()=>{cargarClientes();cargarStats();cargarCumplimiento()};
+document.getElementById('btnExportarPDF').onclick = exportarClientesPDF;
+document.getElementById('btnGuardarEdicion').onclick = guardarEdicionCliente;
+document.getElementById('btnCancelarEdicion').onclick = ()=>document.getElementById('modalEditarCliente').style.display='none';
+document.getElementById('btnCerrarDetalle').onclick = ()=>document.getElementById('modalVerCliente').style.display='none';
+document.getElementById('btnResetPassword').onclick = async()=>{const eId=document.getElementById('editClienteId').value,pId=document.getElementById('editPerfilId').value,email=document.getElementById('editEmail').value;if(!eId||!pId){mostrarMensaje("❌ No se pudo identificar al gerente",'error');return}if(confirm(`¿Resetear contraseña de ${email}?`)){await resetearPassword(eId,pId,email)}};
+document.getElementById('btnGuardarFactura').onclick = guardarFactura;
+document.getElementById('btnDescargarFacturaPDF').onclick = descargarFacturaPDF;
+document.getElementById('btnCancelarFactura').onclick = ()=>document.getElementById('modalCrearFactura').style.display='none';
+document.getElementById('btnAgregarLinea').onclick = ()=>{lineasFactura.push({descripcion:"Nuevo servicio",cantidad:1,precio:0});renderizarLineasFactura();renderizarFacturaPreview()};
+document.getElementById('btnFiltrarFacturas').onclick = cargarFacturas;
+document.getElementById('btnCrearFacturaDesdeSelector').onclick = ()=>{const s=document.getElementById('selectorClienteFactura'),id=s.value,nombre=s.options[s.selectedIndex]?.text;if(!id){mostrarMensaje("❌ Selecciona un cliente",'error');return}mostrarModalFactura(id,nombre)};
+document.getElementById('btnConfirmarEliminacion').onclick = async()=>{await ejecutarEliminacionCliente()};
+document.getElementById('btnCancelarEliminacion').onclick = ()=>{document.getElementById('modalConfirmarEliminacion').style.display='none';clientePendienteEliminar=null;document.getElementById('passwordConfirmacion').value='';document.getElementById('errorPasswordConfirmacion').style.display='none'};
+document.getElementById('btnCerrarClienteCreado').onclick = ()=>{document.getElementById('modalClienteCreado').style.display='none'};
+document.getElementById('buscadorCliente')?.addEventListener('input',aplicarFiltros);
+document.getElementById('filtroPlan')?.addEventListener('change',aplicarFiltros);
+document.getElementById('filtroEstado')?.addEventListener('change',aplicarFiltros);
+document.getElementById('filtroProvincia')?.addEventListener('change',aplicarFiltros);
+document.querySelectorAll('.browser-tab').forEach(t=>{t.onclick=()=>{document.querySelectorAll('.browser-tab').forEach(tb=>tb.classList.remove('active'));t.classList.add('active');const id=t.dataset.tab;document.getElementById('tabClientes').style.display=(id==='facturas'||id==='cumplimiento')?'none':'block';document.getElementById('tabFacturacion').style.display=id==='facturas'?'block':'none';document.getElementById('tabCumplimiento').style.display=id==='cumplimiento'?'block':'none';if(id==='facturas'){cargarFacturas();cargarSelectorClientesFactura();initSelectorFactura()}else if(id==='cumplimiento'){cargarCumplimiento()}else{aplicarFiltros()}}});
+</script>
+</body>
+</html>
