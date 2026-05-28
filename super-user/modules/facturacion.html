@@ -1,1 +1,32 @@
+<!-- modules/facturacion.html -->
 
+<!-- SUBPESTAÑA: SELECCIÓN CLIENTE -->
+<div class="row-flex" style="margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 20px;">
+    <div class="grupo" style="flex: 2;">
+        <label>🏢 Seleccionar cliente</label>
+        <select id="selectorClienteFactura">
+            <option value="">-- Selecciona un cliente --</option>
+        </select>
+    </div>
+    <div class="grupo" style="flex: 0.5;">
+        <button id="btnCrearFacturaDesdeSelector" class="btn-success" style="margin-top: 24px;">💰 Crear factura</button>
+    </div>
+</div>
+
+<!-- SUBPESTAÑA: FILTROS FACTURAS -->
+<div class="search-bar">
+    <input type="date" id="facturaDesde" placeholder="Desde">
+    <input type="date" id="facturaHasta" placeholder="Hasta">
+    <select id="filtroFacturaCliente"><option value="">Todos los clientes</option></select>
+    <button id="btnFiltrarFacturas" class="btn-info">🔍 Filtrar</button>
+</div>
+
+<!-- SUBPESTAÑA: TABLA FACTURAS -->
+<div style="overflow-x: auto;">
+    <table class="clientes-tabla">
+        <thead>
+            <tr><th>Fecha</th><th>Cliente</th><th>Nº Factura</th><th>Concepto</th><th>Total</th><th>Hash</th><th>Estado</th><th>Acciones</th>
+        </thead>
+        <tbody id="facturasBody"><tr><td colspan="8" style="text-align:center;">📋 No hay facturas</td></tr></tbody>
+    </table>
+</div>
