@@ -157,28 +157,33 @@ body {
 .badge-empresa-plan { background: #d1ecf1; color: #0c5460; }
 .badge-verifactu { background: #8b5cf6; color: white; }
 
-/* --------------------------------------------------------------- */
-/* BOTONES                                                        */
-/* --------------------------------------------------------------- */
-button {
-    background: #1e4663;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 40px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 0.85rem;
+/* ============================================================ */
+/* BOTONES DE ACCIONES EN TABLA (corregidos)                    */
+/* ============================================================ */
+.clientes-tabla td:last-child,
+.clientes-tabla td:nth-child(8) {
+    white-space: nowrap;
+    min-width: 200px;
 }
-button:hover { background: #0f2e45; transform: translateY(-1px); }
-.btn-success { background: #2c7a4d; }
-.btn-success:hover { background: #1e5a3a; }
-.btn-danger { background: #c2410c; }
-.btn-danger:hover { background: #9a2f07; }
-.btn-warning { background: #e67e22; }
-.btn-info { background: #0284c7; }
-.btn-sm { padding: 6px 10px; font-size: 0.7rem; }
+
+.clientes-tabla .btn-sm {
+    display: inline-block;
+    margin: 2px 4px;
+    padding: 6px 10px;
+    font-size: 0.7rem;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.clientes-tabla .btn-sm.ver-cliente { background: #0284c7; color: white; }
+.clientes-tabla .btn-sm.editar-cliente { background: #e67e22; color: white; }
+.clientes-tabla .btn-sm.toggle-cliente { background: #2c7a4d; color: white; }
+.clientes-tabla .btn-sm.eliminar-cliente { background: #c2410c; color: white; }
+
+.clientes-tabla .btn-sm:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
 
 /* --------------------------------------------------------------- */
 /* FORMULARIOS                                                    */
