@@ -1,8 +1,5 @@
-<!-- modules/clientes.html -->
-
-<!-- SUBPESTAÑA: BÚSQUEDA -->
 <div class="search-bar">
-    <input type="text" id="buscadorCliente" placeholder="🔍 Buscar por nombre, email, NIF...">
+    <input type="text" id="buscadorCliente" placeholder="🔍 Buscar...">
     <select id="filtroPlan">
         <option value="">Todos los planes</option>
         <option value="BASICO">Básico</option>
@@ -10,7 +7,7 @@
         <option value="EMPRESA">Empresa</option>
     </select>
     <select id="filtroEstado">
-        <option value="">Todos los estados</option>
+        <option value="">Todos</option>
         <option value="activo">Activos</option>
         <option value="inactivo">Inactivos</option>
     </select>
@@ -19,16 +16,14 @@
     </select>
 </div>
 
-<!-- SUBPESTAÑA: TABLA CLIENTES -->
 <div style="overflow-x: auto;">
-    <table class="clientes-tabla" id="clientesTabla">
+    <table class="clientes-tabla">
         <thead>
-            <tr><th>Tipo</th><th>Empresa</th><th>Contacto</th><th>Email</th><th>Plan</th><th>Estado</th><th>Consentimiento</th><th>Acciones</th>
+            <tr><th>Tipo</th><th>Empresa</th><th>Contacto</th><th>Email</th><th>Plan</th><th>Estado</th><th>RGPD</th><th>Acciones</th></tr>
         </thead>
         <tbody id="clientesBody"></tbody>
     </table>
 </div>
 
-<!-- SUBPESTAÑA: PAGINACIÓN -->
 <div id="paginacion" class="pagination"></div>
-<div id="totalClientes" style="text-align: center; margin-top: 16px; font-size: 0.75rem; color: #64748b;"></div>
+<div id="totalClientes" style="text-align:center; margin-top:16px; font-size:0.75rem; color:#64748b;"></div>
