@@ -619,5 +619,29 @@ async function crearCliente() {
     }
 }
 
+// Añade esto al final de clientes.js (fuera de cualquier otra función)
+function initTipoSujetoSelector() {
+    const btns = document.querySelectorAll('.tipo-sujeto-btn')
+    const datosJuridica = document.getElementById('datosJuridica')
+    const datosFisica = document.getElementById('datosFisica')
+    
+    if (!btns.length) return
+    
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'))
+            btn.classList.add('active')
+            const tipo = btn.dataset.tipo
+            if (tipo === 'juridica') {
+                if (datosJuridica) datosJuridica.style.display = 'block'
+                if (datosFisica) datosFisica.style.display = 'none'
+            } else {
+                if (datosJuridica) datosJuridica.style.display = 'none'
+                if (datosFisica) datosFisica.style.display = 'block'
+            }
+        }
+    })
+}
+
 // Añadir window.cambiarPagina para que funcione desde el HTML onclick
 window.cambiarPagina = cambiarPagina
