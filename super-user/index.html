@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>COMUTECH · Super Admin · Cumplimiento Normativo</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- CDNs externos (html2pdf y qrcode) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
@@ -416,11 +416,19 @@
     </div>
 </div>
 
-<script src="js/supabase-client.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/main.js"></script>
-<script src="js/clientes.js"></script>
-<script src="js/facturacion.js"></script>
-<script src="js/cumplimiento.js"></script>
+<!-- ============================================================= -->
+<!-- SCRIPTS (VERSIÓN MÓDULOS)                                     -->
+<!-- ============================================================= -->
+
+<!-- CDNs externos (html2pdf y qrcode se mantienen) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<!-- Módulo principal (UN SOLO SCRIPT) -->
+<script type="module">
+    import { init } from './js/modules/main.js'
+    init()
+</script>
+
 </body>
 </html>
