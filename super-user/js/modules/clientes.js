@@ -142,6 +142,58 @@ export function iniciarModuloClientes() {
     if (filtroPlan) filtroPlan.addEventListener('change', aplicarFiltros)
     if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros)
     if (filtroProvincia) filtroProvincia.addEventListener('change', aplicarFiltros)
+    
+    // ============================================================
+    // DELEGACIÓN DE EVENTOS (para botones de la tabla)
+    // ============================================================
+    const container = document.getElementById('moduloContainer')
+    if (container) {
+        if (container._listener) {
+            container.removeEventListener('click', container._listener)
+        }
+        
+        const clickHandler = async (e) => {
+            const target = e.target
+            
+            if (target.classList.contains('ver-cliente')) {
+                e.preventDefault()
+                e.stopPropagation()
+                const id = target.dataset.id
+                console.log('🔍 Ver cliente:', id)
+                await verCliente(id)
+            }
+            else if (target.classList.contains('editar-cliente')) {
+                e.preventDefault()
+                e.stopPropagation()
+                const id = target.dataset.id
+                console.log('✏️ Editar cliente:', id)
+                await editarCliente(id)
+            }
+            else if (target.classList.contains('eliminar-cliente')) {
+                e.preventDefault()
+                e.stopPropagation()
+                const id = target.dataset.id
+                const nombre = target.dataset.nombre || 'cliente'
+                console.log('🗑️ Eliminar cliente:', id, nombre)
+                eliminarCliente(id, nombre)
+            }
+            else if (target.classList.contains('toggle-cliente')) {
+                e.preventDefault()
+                e.stopPropagation()
+                const id = target.dataset.id
+                const activo = target.dataset.activo === 'true'
+                await sb.from('empresas').update({ activo: !activo }).eq('id', id)
+                mostrarMensaje(activo ? 'Cliente desactivado' : 'Cliente activado')
+                await cargarClientes()
+                const { cargarStats } = await import('./main.js')
+                cargarStats()
+            }
+        }
+        
+        container.addEventListener('click', clickHandler)
+        container._listener = clickHandler
+        console.log('✅ Delegación de eventos configurada')
+    }
 }
 
 // ============================================================
@@ -239,40 +291,6 @@ function renderizarClientes() {
     }
     document.getElementById('paginacion').innerHTML = pagHtml
     document.getElementById('totalClientes').innerHTML = `Mostrando ${clientesFiltrados.length} clientes · Página ${paginaActual} de ${totalPaginas}`
-    
-    // ASIGNAR EVENTOS A LOS BOTONES DE LA TABLA
-    document.querySelectorAll('.toggle-cliente').forEach(btn => { 
-        btn.onclick = async (e) => {
-            e.stopPropagation()
-            const id = btn.dataset.id, activo = btn.dataset.activo === 'true'
-            await sb.from('empresas').update({ activo: !activo }).eq('id', id)
-            mostrarMensaje(activo ? 'Cliente desactivado' : 'Cliente activado')
-            await cargarClientes()
-            const { cargarStats } = await import('./main.js')
-            cargarStats()
-        }
-    })
-    
-    document.querySelectorAll('.editar-cliente').forEach(btn => { 
-        btn.onclick = (e) => {
-            e.stopPropagation()
-            editarCliente(btn.dataset.id)
-        }
-    })
-    
-    document.querySelectorAll('.ver-cliente').forEach(btn => { 
-        btn.onclick = (e) => {
-            e.stopPropagation()
-            verCliente(btn.dataset.id)
-        }
-    })
-    
-    document.querySelectorAll('.eliminar-cliente').forEach(btn => { 
-        btn.onclick = (e) => {
-            e.stopPropagation()
-            eliminarCliente(btn.dataset.id, btn.dataset.nombre)
-        }
-    })
 }
 
 // ============================================================
