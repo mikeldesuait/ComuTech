@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Módulos ES6</title>
+</head>
+<body>
+    <h1>Test de Módulos ES6</h1>
+    <button id="btn">Haz clic</button>
+    <div id="resultado"></div>
+
+    <script type="module">
+        import { saludar } from './test-modulo.js'
+        document.getElementById('btn').onclick = () => {
+            document.getElementById('resultado').innerHTML = saludar()
+        }
+    </script>
+</body>
+</html>
