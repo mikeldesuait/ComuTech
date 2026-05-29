@@ -3,12 +3,13 @@ import { sb } from './supabase.js'
 import { mostrarMensaje, formatDate, getBadgeTipo, getTipoIcono } from './utils.js'
 import { getCurrentUser } from './main.js'
 
-// Variables privadas del módulo (no globales)
+// Variables privadas del módulo
 let empresasData = []
 let clientesFiltrados = []
 let paginaActual = 1
 const registrosPorPagina = 10
 let clientePendienteEliminar = null
+let moduloInicializado = false
 
 // ============================================================
 // FUNCIONES PÚBLICAS (exportadas)
@@ -23,7 +24,7 @@ export async function cargarClientes() {
     empresasData = empresas || []
     for (const emp of empresasData) {
         const { data: perfil } = await sb.from('perfiles')
-            .select('nombre_razon_social, email, telefono, consentimiento_tratamiento_datos')
+            .select('nombre_razon_social, email, telefono, consentimiento_tratamiento_datos, id')
             .eq('empresa_id', emp.id)
             .eq('rol', 'gerente')
             .maybeSingle()
@@ -45,60 +46,133 @@ export function cambiarPagina(pagina) {
     renderizarClientes()
 }
 
+// Hacer disponible cambiarPagina globalmente para los onclick del HTML
+window.cambiarPagina = cambiarPagina
+
 export function iniciarModuloClientes() {
-    cargarClientes()
-    document.getElementById('btnMostrarAlta').onclick = () => {
-        const mc = document.querySelector('#modalAltaCliente .modal-content')
-        if (mc) mc.scrollTop = 0
-        document.getElementById('modalAltaCliente').style.display = 'flex'
-        if (typeof initTipoSujetoSelector === 'function') initTipoSujetoSelector()
+    if (moduloInicializado) {
+        console.log('⚠️ Módulo clientes ya inicializado')
+        return
     }
-    document.getElementById('btnGuardarCliente').onclick = crearCliente
-    document.getElementById('btnCancelarAlta').onclick = () => {
-        document.getElementById('modalAltaCliente').style.display = 'none'
-    }
-    document.getElementById('btnGuardarEdicion').onclick = guardarEdicionCliente
-    document.getElementById('btnCancelarEdicion').onclick = () => {
-        document.getElementById('modalEditarCliente').style.display = 'none'
-    }
-    document.getElementById('btnCerrarDetalle').onclick = () => {
-        document.getElementById('modalVerCliente').style.display = 'none'
-    }
-    document.getElementById('btnCerrarClienteCreado').onclick = () => {
-        document.getElementById('modalClienteCreado').style.display = 'none'
-    }
-    document.getElementById('btnConfirmarEliminacion').onclick = async() => {
-        await ejecutarEliminacionCliente()
-    }
-    document.getElementById('btnCancelarEliminacion').onclick = () => {
-        document.getElementById('modalConfirmarEliminacion').style.display = 'none'
-        clientePendienteEliminar = null
-        document.getElementById('passwordConfirmacion').value = ''
-        document.getElementById('errorPasswordConfirmacion').style.display = 'none'
-    }
-    document.getElementById('buscadorCliente')?.addEventListener('input', aplicarFiltros)
-    document.getElementById('filtroPlan')?.addEventListener('change', aplicarFiltros)
-    document.getElementById('filtroEstado')?.addEventListener('change', aplicarFiltros)
-    document.getElementById('filtroProvincia')?.addEventListener('change', aplicarFiltros)
+    moduloInicializado = true
+    console.log('🚀 Iniciando módulo clientes')
     
-    // Resetear contraseña
-    document.getElementById('btnResetPassword').onclick = async() => {
-        const eId = document.getElementById('editClienteId').value
-        const pId = document.getElementById('editPerfilId').value
-        const email = document.getElementById('editEmail').value
-        if (!eId || !pId) {
-            mostrarMensaje("❌ No se pudo identificar al gerente", 'error')
-            return
-        }
-        if (confirm(`¿Resetear contraseña de ${email}?`)) {
-            await resetearPassword(eId, pId, email)
+    cargarClientes()
+    
+    // Botón NUEVO CLIENTE
+    const btnAlta = document.getElementById('btnMostrarAlta')
+    const modalAlta = document.getElementById('modalAltaCliente')
+    if (btnAlta && modalAlta) {
+        btnAlta.onclick = (e) => {
+            e.preventDefault()
+            modalAlta.style.display = 'flex'
+            const mc = modalAlta.querySelector('.modal-content')
+            if (mc) mc.scrollTop = 0
+            initTipoSujetoSelector()
         }
     }
+    
+    // Botón GUARDAR CLIENTE
+    const btnGuardar = document.getElementById('btnGuardarCliente')
+    if (btnGuardar) btnGuardar.onclick = crearCliente
+    
+    // Botón CANCELAR ALTA
+    const btnCancelar = document.getElementById('btnCancelarAlta')
+    if (btnCancelar && modalAlta) btnCancelar.onclick = () => { modalAlta.style.display = 'none' }
+    
+    // Botón GUARDAR EDICIÓN
+    const btnGuardarEdicion = document.getElementById('btnGuardarEdicion')
+    if (btnGuardarEdicion) btnGuardarEdicion.onclick = guardarEdicionCliente
+    
+    // Botón CANCELAR EDICIÓN
+    const btnCancelarEdicion = document.getElementById('btnCancelarEdicion')
+    const modalEditar = document.getElementById('modalEditarCliente')
+    if (btnCancelarEdicion && modalEditar) btnCancelarEdicion.onclick = () => { modalEditar.style.display = 'none' }
+    
+    // Botón CERRAR DETALLE
+    const btnCerrarDetalle = document.getElementById('btnCerrarDetalle')
+    const modalVer = document.getElementById('modalVerCliente')
+    if (btnCerrarDetalle && modalVer) btnCerrarDetalle.onclick = () => { modalVer.style.display = 'none' }
+    
+    // Botón CERRAR CLIENTE CREADO
+    const btnCerrarCreado = document.getElementById('btnCerrarClienteCreado')
+    const modalCreado = document.getElementById('modalClienteCreado')
+    if (btnCerrarCreado && modalCreado) btnCerrarCreado.onclick = () => { modalCreado.style.display = 'none' }
+    
+    // Botón CONFIRMAR ELIMINACIÓN
+    const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminacion')
+    if (btnConfirmarEliminar) btnConfirmarEliminar.onclick = async () => { await ejecutarEliminacionCliente() }
+    
+    // Botón CANCELAR ELIMINACIÓN
+    const btnCancelarEliminar = document.getElementById('btnCancelarEliminacion')
+    const modalEliminar = document.getElementById('modalConfirmarEliminacion')
+    if (btnCancelarEliminar && modalEliminar) {
+        btnCancelarEliminar.onclick = () => {
+            modalEliminar.style.display = 'none'
+            clientePendienteEliminar = null
+            document.getElementById('passwordConfirmacion').value = ''
+            document.getElementById('errorPasswordConfirmacion').style.display = 'none'
+        }
+    }
+    
+    // Botón RESETEAR CONTRASEÑA
+    const btnResetPass = document.getElementById('btnResetPassword')
+    if (btnResetPass) {
+        btnResetPass.onclick = async () => {
+            const eId = document.getElementById('editClienteId').value
+            const pId = document.getElementById('editPerfilId').value
+            const email = document.getElementById('editEmail').value
+            if (!eId || !pId) {
+                mostrarMensaje("❌ No se pudo identificar al gerente", 'error')
+                return
+            }
+            if (confirm(`¿Resetear contraseña de ${email}?`)) {
+                await resetearPassword(eId, pId, email)
+            }
+        }
+    }
+    
+    // FILTROS
+    const buscador = document.getElementById('buscadorCliente')
+    const filtroPlan = document.getElementById('filtroPlan')
+    const filtroEstado = document.getElementById('filtroEstado')
+    const filtroProvincia = document.getElementById('filtroProvincia')
+    
+    if (buscador) buscador.addEventListener('input', aplicarFiltros)
+    if (filtroPlan) filtroPlan.addEventListener('change', aplicarFiltros)
+    if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros)
+    if (filtroProvincia) filtroProvincia.addEventListener('change', aplicarFiltros)
 }
 
 // ============================================================
-// FUNCIONES PRIVADAS (no exportadas)
+// FUNCIONES PRIVADAS
 // ============================================================
+
+function initTipoSujetoSelector() {
+    const btns = document.querySelectorAll('.tipo-sujeto-btn')
+    const datosJuridica = document.getElementById('datosJuridica')
+    const datosFisica = document.getElementById('datosFisica')
+    
+    if (!btns.length) return
+    
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'))
+            btn.classList.add('active')
+            if (btn.dataset.tipo === 'juridica') {
+                if (datosJuridica) datosJuridica.style.display = 'block'
+                if (datosFisica) datosFisica.style.display = 'none'
+            } else {
+                if (datosJuridica) datosJuridica.style.display = 'none'
+                if (datosFisica) datosFisica.style.display = 'block'
+            }
+        }
+    })
+    
+    // Estado inicial
+    if (datosJuridica) datosJuridica.style.display = 'block'
+    if (datosFisica) datosFisica.style.display = 'none'
+}
 
 function aplicarFiltros() {
     const searchText = document.getElementById('buscadorCliente')?.value.toLowerCase() || ''
@@ -131,12 +205,14 @@ function renderizarClientes() {
     const paginados = clientesFiltrados.slice(start, end)
     const tbody = document.getElementById('clientesBody')
     if (!tbody) return
+    
     if (paginados.length === 0) { 
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px;">📋 No hay clientes que coincidan</td></tr>'
         document.getElementById('paginacion').innerHTML = ''
         document.getElementById('totalClientes').innerHTML = ''
         return 
     }
+    
     tbody.innerHTML = paginados.map(emp => `
         <tr>
             <td>${getBadgeTipo(emp.tipo_cliente)}</td>
@@ -147,14 +223,15 @@ function renderizarClientes() {
             <td><span class="badge ${emp.activo ? 'badge-activo' : 'badge-inactivo'}">${emp.activo ? 'Activo' : 'Inactivo'}</span></td>
             <td><span class="badge ${emp.consentimiento ? 'badge-activo' : 'badge-inactivo'}">${emp.consentimiento ? '✅ Aceptado' : '❌ Pendiente'}</span></td>
             <td>
-                <button class="btn-sm ver-cliente" data-id="${emp.id}">👁️</button>
-                <button class="btn-sm editar-cliente" data-id="${emp.id}">✏️</button>
-                <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}">${emp.activo ? '❌' : '✅'}</button>
-                <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${(emp.nombre_empresa || '').replace(/"/g, '&quot;')}">🗑️</button>
+                <button class="btn-sm ver-cliente" data-id="${emp.id}" data-nombre="${(emp.nombre_empresa || '').replace(/"/g, '&quot;')}">👁️ Ver</button>
+                <button class="btn-sm editar-cliente" data-id="${emp.id}">✏️ Editar</button>
+                <button class="btn-sm toggle-cliente" data-id="${emp.id}" data-activo="${emp.activo}">${emp.activo ? '❌ Desactivar' : '✅ Activar'}</button>
+                <button class="btn-sm eliminar-cliente" data-id="${emp.id}" data-nombre="${(emp.nombre_empresa || '').replace(/"/g, '&quot;')}">🗑️ Eliminar</button>
               </td>
         </tr>
     `).join('')
     
+    // PAGINACIÓN
     const totalPaginas = Math.ceil(clientesFiltrados.length / registrosPorPagina)
     let pagHtml = ''
     for (let i = 1; i <= Math.min(totalPaginas, 10); i++) {
@@ -163,26 +240,44 @@ function renderizarClientes() {
     document.getElementById('paginacion').innerHTML = pagHtml
     document.getElementById('totalClientes').innerHTML = `Mostrando ${clientesFiltrados.length} clientes · Página ${paginaActual} de ${totalPaginas}`
     
+    // ASIGNAR EVENTOS A LOS BOTONES DE LA TABLA
     document.querySelectorAll('.toggle-cliente').forEach(btn => { 
-        btn.onclick = async () => { 
+        btn.onclick = async (e) => {
+            e.stopPropagation()
             const id = btn.dataset.id, activo = btn.dataset.activo === 'true'
             await sb.from('empresas').update({ activo: !activo }).eq('id', id)
-            mostrarMensaje(activo ? 'Desactivado' : 'Activado')
+            mostrarMensaje(activo ? 'Cliente desactivado' : 'Cliente activado')
             await cargarClientes()
             const { cargarStats } = await import('./main.js')
             cargarStats()
         }
     })
+    
     document.querySelectorAll('.editar-cliente').forEach(btn => { 
-        btn.onclick = () => editarCliente(btn.dataset.id)
+        btn.onclick = (e) => {
+            e.stopPropagation()
+            editarCliente(btn.dataset.id)
+        }
     })
+    
     document.querySelectorAll('.ver-cliente').forEach(btn => { 
-        btn.onclick = () => verCliente(btn.dataset.id)
+        btn.onclick = (e) => {
+            e.stopPropagation()
+            verCliente(btn.dataset.id)
+        }
     })
+    
     document.querySelectorAll('.eliminar-cliente').forEach(btn => { 
-        btn.onclick = () => eliminarCliente(btn.dataset.id, btn.dataset.nombre)
+        btn.onclick = (e) => {
+            e.stopPropagation()
+            eliminarCliente(btn.dataset.id, btn.dataset.nombre)
+        }
     })
 }
+
+// ============================================================
+// CRUD CLIENTES
+// ============================================================
 
 async function editarCliente(id) {
     const empresa = empresasData.find(e => e.id === id)
@@ -376,43 +471,6 @@ async function ejecutarEliminacionCliente() {
         if (perfilId) await sb.from('perfiles').delete().eq('id', perfilId)
         await sb.from('empresas').delete().eq('id', id)
         
-        if (perfilId) {
-            await sb.from('historico_consentimientos')
-                .update({ perfil_id: null, consentimiento_texto: '[USUARIO ELIMINADO]', ip_aceptacion: null, user_agent_aceptacion: null })
-                .eq('perfil_id', perfilId)
-            await sb.from('registro_eventos')
-                .update({ perfil_id: null, descripcion: '[USUARIO ELIMINADO] - Cliente eliminado del sistema' })
-                .eq('perfil_id', perfilId)
-        }
-        
-        await sb.from('facturas')
-            .update({ cliente_nombre: '[CLIENTE ELIMINADO]', cliente_nif: '[ELIMINADO]', cliente_direccion: null, perfil_id: null })
-            .eq('empresa_id', id)
-        
-        if (perfilId) {
-            await sb.from('registros_facturacion')
-                .update({ perfil_id: null, nif_emisor: '[ELIMINADO]', nombre_razon_social_emisor: '[CLIENTE ELIMINADO]' })
-                .eq('perfil_id', perfilId)
-        }
-        
-        if (userId) {
-            try {
-                const { SUPABASE_URL, SUPABASE_KEY } = await import('./supabase.js')
-                await fetch(`${SUPABASE_URL}/functions/v1/eliminar-usuario`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
-                    body: JSON.stringify({ user_id: userId })
-                })
-            } catch(e) { console.warn(e) }
-        }
-        
-        try {
-            await sb.from('registro_eventos').insert({
-                tipo_evento: 'ELIMINAR_CLIENTE',
-                descripcion: `Cliente "${nombre}" (ID: ${id}) eliminado por ${currentUser.email}`
-            })
-        } catch(e) { console.warn(e) }
-        
         mostrarMensaje(`✅ Cliente "${nombre}" eliminado correctamente.`)
         await cargarClientes()
         const { cargarStats } = await import('./main.js')
@@ -461,11 +519,10 @@ async function resetearPassword(empresaId, perfilId, email) {
 }
 
 // ============================================================
-// FUNCIÓN CREAR CLIENTE (completa)
+// CREAR CLIENTE
 // ============================================================
 
 async function crearCliente() {
-    // Obtener tipo de sujeto (jurídica/física)
     const tipoSujeto = document.querySelector('.tipo-sujeto-btn.active')?.dataset.tipo || 'juridica'
     
     let nombreEmpresa = ''
@@ -504,7 +561,6 @@ async function crearCliente() {
         }
     }
     
-    // Validaciones básicas
     if (!nombreEmpresa || !emailContacto) {
         mostrarMensaje("❌ Nombre y email son obligatorios", 'error')
         return
@@ -521,7 +577,6 @@ async function crearCliente() {
     const cnae = document.getElementById('cnaeCodigo')?.value || ''
     const fechaInicio = document.getElementById('fechaInicioActividad')?.value || null
     
-    // Datos de domicilio
     const calle = document.getElementById('direccionCalle')?.value || ''
     const numero = document.getElementById('direccionNumero')?.value || ''
     const piso = document.getElementById('direccionPiso')?.value || ''
@@ -529,13 +584,11 @@ async function crearCliente() {
     const municipio = document.getElementById('direccionMunicipio')?.value || ''
     const provincia = document.getElementById('direccionProvincia')?.value || ''
     
-    // Datos bancarios
     const iban = document.getElementById('ibanCuenta')?.value || ''
     const banco = document.getElementById('bancoNombre')?.value || ''
     const swift = document.getElementById('swiftCodigo')?.value || ''
     
     try {
-        // Crear la empresa
         const { data: empresa, error: empresaError } = await sb.from('empresas').insert({
             nombre_empresa: nombreEmpresa,
             nif_cif: nifCif,
@@ -562,14 +615,8 @@ async function crearCliente() {
         
         if (empresaError) throw empresaError
         
-        // Generar contraseña para el gerente
         const passwordGenerada = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10)
         
-        // Crear usuario en auth (requiere privilegios de admin)
-        // NOTA: Esto requiere habilitar la función edge o usar service_role
-        // Por ahora, creamos el perfil sin usuario auth o usamos la función edge
-        
-        // Crear perfil del gerente (sin auth user por ahora)
         const { error: perfilError } = await sb.from('perfiles').insert({
             empresa_id: empresa.id,
             rol: 'gerente',
@@ -581,8 +628,7 @@ async function crearCliente() {
         
         if (perfilError) throw perfilError
         
-        // Registrar consentimiento
-        const { error: consentError } = await sb.from('historico_consentimientos').insert({
+        await sb.from('historico_consentimientos').insert({
             perfil_id: empresa.id,
             consentimiento_version: "1.0",
             finalidades_aceptadas: ["gestion_facturacion", "prestacion_servicios", "obligaciones_legales"],
@@ -590,9 +636,6 @@ async function crearCliente() {
             user_agent_aceptacion: navigator.userAgent
         })
         
-        if (consentError) console.warn("Error registrando consentimiento:", consentError)
-        
-        // Mostrar mensaje con la contraseña
         document.getElementById('mensajeClienteCreado').innerHTML = `
             ✅ Cliente creado correctamente<br><br>
             <strong>Email de acceso:</strong> ${emailContacto}<br>
@@ -600,48 +643,13 @@ async function crearCliente() {
             <small>⚠️ Guarda esta contraseña o usa el botón "Resetear contraseña" desde la edición.</small>
         `
         document.getElementById('modalClienteCreado').style.display = 'flex'
-        
-        // Cerrar modal y recargar
         document.getElementById('modalAltaCliente').style.display = 'none'
         await cargarClientes()
         const { cargarStats } = await import('./main.js')
         cargarStats()
-        
-        // Limpiar formulario
-        document.getElementById('razonSocial').value = ''
-        document.getElementById('nifCif').value = ''
-        document.getElementById('emailContacto').value = ''
-        document.getElementById('consentimientoAceptado').checked = false
         
     } catch (error) {
         console.error(error)
         mostrarMensaje(`❌ Error al crear cliente: ${error.message}`, 'error')
     }
 }
-
-// Añade esto al final de clientes.js (fuera de cualquier otra función)
-function initTipoSujetoSelector() {
-    const btns = document.querySelectorAll('.tipo-sujeto-btn')
-    const datosJuridica = document.getElementById('datosJuridica')
-    const datosFisica = document.getElementById('datosFisica')
-    
-    if (!btns.length) return
-    
-    btns.forEach(btn => {
-        btn.onclick = () => {
-            btns.forEach(b => b.classList.remove('active'))
-            btn.classList.add('active')
-            const tipo = btn.dataset.tipo
-            if (tipo === 'juridica') {
-                if (datosJuridica) datosJuridica.style.display = 'block'
-                if (datosFisica) datosFisica.style.display = 'none'
-            } else {
-                if (datosJuridica) datosJuridica.style.display = 'none'
-                if (datosFisica) datosFisica.style.display = 'block'
-            }
-        }
-    })
-}
-
-// Añadir window.cambiarPagina para que funcione desde el HTML onclick
-window.cambiarPagina = cambiarPagina
