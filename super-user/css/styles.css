@@ -2,11 +2,13 @@
 /* RESET Y BASE                                                   */
 /* --------------------------------------------------------------- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
     font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
     background: #f0f4f8;
     padding: 20px;
 }
+
 .container { max-width: 1400px; margin: 0 auto; }
 
 /* --------------------------------------------------------------- */
@@ -20,6 +22,7 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     border: 1px solid #e2e8f0;
 }
+
 .card-header {
     font-size: 1.2rem;
     font-weight: 600;
@@ -42,16 +45,34 @@ body {
     gap: 16px;
     margin-bottom: 24px;
 }
+
 .stat-card {
     background: white;
     border-radius: 20px;
     padding: 20px;
     text-align: center;
     border: 1px solid #e2e8f0;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.stat-number { font-size: 1.8rem; font-weight: 700; color: #1e4663; }
-.stat-label { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+
+.stat-card:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+}
+
+.stat-number { 
+    font-size: 1.8rem; 
+    font-weight: 700; 
+    color: #1e4663; 
+}
+
+.stat-label { 
+    font-size: 0.7rem; 
+    color: #64748b; 
+    margin-top: 8px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+}
 
 /* --------------------------------------------------------------- */
 /* PESTAÑAS                                                       */
@@ -66,6 +87,7 @@ body {
     overflow-x: auto;
     flex-wrap: wrap;
 }
+
 .browser-tab {
     padding: 10px 20px;
     background: #e2e8f0;
@@ -78,18 +100,22 @@ body {
     transition: all 0.2s;
     white-space: nowrap;
 }
+
 .browser-tab:hover { background: #cbd5e1; }
+
 .browser-tab.active {
     background: white;
     color: #1e4663;
     border-top: 2px solid #1e4663;
 }
+
 .browser-content {
     background: white;
     border: 1px solid #e2e8f0;
     border-top: none;
     border-radius: 0 0 12px 12px;
     padding: 20px;
+    min-height: 400px;
 }
 
 /* --------------------------------------------------------------- */
@@ -101,6 +127,7 @@ body {
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
+
 .search-bar input, .search-bar select {
     flex: 1;
     padding: 12px 16px;
@@ -110,29 +137,110 @@ body {
     background: white;
     min-width: 150px;
 }
-.search-bar input:focus, .search-bar select:focus { outline: none; border-color: #1e4663; }
+
+.search-bar input:focus, .search-bar select:focus { 
+    outline: none; 
+    border-color: #1e4663; 
+    box-shadow: 0 0 0 2px rgba(30,70,99,0.1);
+}
+
+.filtros-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.filtros-grid input, .filtros-grid select {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
 
 /* --------------------------------------------------------------- */
 /* TABLAS                                                         */
 /* --------------------------------------------------------------- */
-.clientes-tabla {
+.clientes-tabla, .facturas-tabla {
     width: 100%;
     border-collapse: collapse;
+    font-size: 0.8rem;
 }
-.clientes-tabla th, .clientes-tabla td {
-    padding: 12px 10px;
+
+.clientes-tabla th, .clientes-tabla td,
+.facturas-tabla th, .facturas-tabla td {
+    padding: 12px 8px;
     text-align: left;
+    vertical-align: middle;
     border-bottom: 1px solid #e2e8f0;
-    font-size: 0.85rem;
 }
-.clientes-tabla th {
+
+.clientes-tabla th, .facturas-tabla th {
     background: #f8fafc;
     font-weight: 600;
     color: #1e4663;
     position: sticky;
     top: 0;
 }
-.clientes-tabla tr:hover { background: #f8fafc; }
+
+.clientes-tabla tr:hover, .facturas-tabla tr:hover { 
+    background: #f8fafc; 
+}
+
+/* --------------------------------------------------------------- */
+/* BOTONES DE ACCIONES EN TABLA (CORREGIDOS)                       */
+/* --------------------------------------------------------------- */
+.clientes-tabla td:last-child,
+.facturas-tabla td:last-child {
+    white-space: nowrap;
+    min-width: 220px;
+}
+
+.btn-sm {
+    display: inline-block;
+    margin: 2px 3px;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 20px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* Colores específicos para cada acción */
+.btn-sm.ver-cliente { 
+    background: #0284c7; 
+    color: white; 
+}
+.btn-sm.ver-cliente:hover { background: #0369a1; }
+
+.btn-sm.editar-cliente { 
+    background: #e67e22; 
+    color: white; 
+}
+.btn-sm.editar-cliente:hover { background: #d97706; }
+
+.btn-sm.toggle-cliente { 
+    background: #2c7a4d; 
+    color: white; 
+}
+.btn-sm.toggle-cliente:hover { background: #1e5a3a; }
+
+.btn-sm.eliminar-cliente { 
+    background: #c2410c; 
+    color: white; 
+}
+.btn-sm.eliminar-cliente:hover { background: #9a2f07; }
+
+.btn-sm:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+.btn-sm:active {
+    transform: translateY(0);
+}
 
 /* --------------------------------------------------------------- */
 /* BADGES                                                         */
@@ -144,6 +252,7 @@ body {
     font-size: 0.7rem;
     font-weight: 600;
 }
+
 .badge-activo { background: #d4edda; color: #155724; }
 .badge-inactivo { background: #f8d7da; color: #721c24; }
 .badge-pagada { background: #d4edda; color: #155724; }
@@ -155,35 +264,38 @@ body {
 .badge-basico { background: #e0e7ff; color: #1e4663; }
 .badge-pro { background: #fef3c7; color: #92400e; }
 .badge-empresa-plan { background: #d1ecf1; color: #0c5460; }
-.badge-verifactu { background: #8b5cf6; color: white; }
 
-/* ============================================================ */
-/* BOTONES DE ACCIONES EN TABLA (corregidos)                    */
-/* ============================================================ */
-.clientes-tabla td:last-child,
-.clientes-tabla td:nth-child(8) {
-    white-space: nowrap;
-    min-width: 200px;
-}
-
-.clientes-tabla .btn-sm {
-    display: inline-block;
-    margin: 2px 4px;
-    padding: 6px 10px;
-    font-size: 0.7rem;
-    border-radius: 20px;
+/* --------------------------------------------------------------- */
+/* BOTONES GENERALES                                              */
+/* --------------------------------------------------------------- */
+button {
+    background: #1e4663;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 40px;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
 }
 
-.clientes-tabla .btn-sm.ver-cliente { background: #0284c7; color: white; }
-.clientes-tabla .btn-sm.editar-cliente { background: #e67e22; color: white; }
-.clientes-tabla .btn-sm.toggle-cliente { background: #2c7a4d; color: white; }
-.clientes-tabla .btn-sm.eliminar-cliente { background: #c2410c; color: white; }
-
-.clientes-tabla .btn-sm:hover {
-    transform: translateY(-1px);
-    opacity: 0.9;
+button:hover { 
+    background: #0f2e45; 
+    transform: translateY(-1px); 
 }
+
+.btn-success { background: #2c7a4d; }
+.btn-success:hover { background: #1e5a3a; }
+
+.btn-danger { background: #c2410c; }
+.btn-danger:hover { background: #9a2f07; }
+
+.btn-warning { background: #e67e22; }
+.btn-warning:hover { background: #d97706; }
+
+.btn-info { background: #0284c7; }
+.btn-info:hover { background: #0369a1; }
 
 /* --------------------------------------------------------------- */
 /* FORMULARIOS                                                    */
@@ -195,10 +307,41 @@ body {
     margin-bottom: 16px;
     align-items: flex-end;
 }
-.grupo { flex: 1; min-width: 180px; }
-label { font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; }
-textarea { resize: vertical; }
+
+.grupo { 
+    flex: 1; 
+    min-width: 180px; 
+}
+
+label { 
+    font-size: 0.7rem; 
+    font-weight: 600; 
+    color: #475569; 
+    margin-bottom: 4px; 
+    display: block; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+}
+
+input, select, textarea { 
+    width: 100%; 
+    padding: 10px 12px; 
+    border-radius: 10px; 
+    border: 1px solid #cbd5e1; 
+    font-size: 0.85rem;
+    transition: border-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #1e4663;
+    box-shadow: 0 0 0 2px rgba(30,70,99,0.1);
+}
+
+textarea { 
+    resize: vertical; 
+    min-height: 60px;
+}
 
 /* --------------------------------------------------------------- */
 /* MODALES                                                        */
@@ -215,6 +358,7 @@ textarea { resize: vertical; }
     justify-content: center;
     align-items: center;
 }
+
 .modal-content {
     background: white;
     border-radius: 20px;
@@ -224,7 +368,15 @@ textarea { resize: vertical; }
     max-height: 85vh;
     overflow-y: auto;
 }
-.modal-header { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; border-left: 4px solid #1e4663; padding-left: 16px; color: #1e4663; }
+
+.modal-header { 
+    font-size: 1.2rem; 
+    font-weight: 600; 
+    margin-bottom: 20px; 
+    border-left: 4px solid #1e4663; 
+    padding-left: 16px; 
+    color: #1e4663; 
+}
 
 /* --------------------------------------------------------------- */
 /* MENSAJES Y UTILIDADES                                          */
@@ -238,11 +390,32 @@ textarea { resize: vertical; }
     color: white;
     z-index: 1000;
     animation: fadeOut 3s ease forwards;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
-@keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
+@keyframes fadeOut { 
+    0% { opacity: 1; } 
+    70% { opacity: 1; } 
+    100% { opacity: 0; visibility: hidden; } 
+}
+
+.spinner { 
+    display: inline-block; 
+    width: 14px; 
+    height: 14px; 
+    border: 2px solid rgba(255,255,255,0.3); 
+    border-radius: 50%; 
+    border-top-color: white; 
+    animation: spin 0.8s linear infinite; 
+}
+
+@keyframes spin { 
+    to { transform: rotate(360deg); } 
+}
+
+/* --------------------------------------------------------------- */
+/* PAGINACIÓN                                                     */
+/* --------------------------------------------------------------- */
 .pagination {
     display: flex;
     justify-content: center;
@@ -250,17 +423,19 @@ textarea { resize: vertical; }
     margin-top: 20px;
     flex-wrap: wrap;
 }
+
 .pagination button {
     background: #e2e8f0;
     color: #1e4663;
     padding: 6px 12px;
     font-size: 0.8rem;
+    min-width: 36px;
 }
-.pagination button.active { background: #1e4663; color: white; }
 
-.detalle-info { background: #f8fafc; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-.btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
-.btn-group button { flex: 1; }
+.pagination button.active { 
+    background: #1e4663; 
+    color: white; 
+}
 
 /* --------------------------------------------------------------- */
 /* FACTURACIÓN                                                    */
@@ -271,6 +446,7 @@ textarea { resize: vertical; }
     padding: 8px 0;
     border-bottom: 1px solid #e2e8f0;
 }
+
 .factura-total {
     font-weight: bold;
     border-top: 2px solid #1e4663;
@@ -288,6 +464,7 @@ textarea { resize: vertical; }
     margin-bottom: 16px;
     border-radius: 12px;
 }
+
 .hash-text {
     font-family: monospace;
     font-size: 0.7rem;
@@ -296,6 +473,7 @@ textarea { resize: vertical; }
     border-radius: 8px;
     word-break: break-all;
 }
+
 .qr-container {
     display: flex;
     justify-content: center;
@@ -313,6 +491,7 @@ textarea { resize: vertical; }
     gap: 8px;
     margin-bottom: 16px;
 }
+
 .tipo-sujeto-btn {
     flex: 1;
     background: transparent;
@@ -323,49 +502,101 @@ textarea { resize: vertical; }
     cursor: pointer;
     font-weight: 600;
 }
+
 .tipo-sujeto-btn.active {
     background: #1e4663;
     color: white;
 }
+
 .seccion-datos {
     transition: all 0.3s ease;
 }
-.campo-opcional {
-    opacity: 0.7;
-}
 
 /* --------------------------------------------------------------- */
-/* FORZAR VISIBILIDAD                                             */
+/* DETALLE CLIENTE                                                */
 /* --------------------------------------------------------------- */
-.browser-content {
-    display: block !important;
-    height: auto !important;
-    min-height: 400px !important;
-    overflow: visible !important;
+.detalle-info { 
+    background: #f8fafc; 
+    border-radius: 16px; 
+    padding: 16px; 
+    margin-bottom: 16px; 
 }
-#tabClientes {
-    display: block !important;
-    height: auto !important;
-    min-height: 350px !important;
+
+.btn-group { 
+    display: flex; 
+    gap: 12px; 
+    margin-top: 20px; 
+    flex-wrap: wrap; 
 }
-.clientes-tabla {
-    display: table !important;
-    width: 100% !important;
-}
-.clientes-tabla tbody {
-    display: table-row-group !important;
-}
-.clientes-tabla tr {
-    display: table-row !important;
+
+.btn-group button { 
+    flex: 1; 
 }
 
 /* --------------------------------------------------------------- */
 /* MEDIA QUERIES                                                  */
 /* --------------------------------------------------------------- */
 @media (max-width: 768px) {
-    .clientes-tabla th, .clientes-tabla td { padding: 6px; font-size: 0.7rem; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .modal-content { padding: 16px; }
-    .grupo { min-width: 100%; }
-    .row-flex { flex-direction: column; align-items: stretch; }
+    .clientes-tabla, .facturas-tabla {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .clientes-tabla td:last-child,
+    .facturas-tabla td:last-child {
+        min-width: 200px;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.65rem;
+        margin: 2px 2px;
+    }
+    
+    .stats-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+    }
+    
+    .modal-content { 
+        padding: 16px; 
+        width: 95%;
+    }
+    
+    .grupo { 
+        min-width: 100%; 
+    }
+    
+    .row-flex { 
+        flex-direction: column; 
+        align-items: stretch; 
+    }
+    
+    .browser-tab {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+    
+    .card {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .stat-number {
+        font-size: 1.4rem;
+    }
+    
+    .btn-sm {
+        padding: 3px 6px;
+        font-size: 0.6rem;
+    }
+    
+    .clientes-tabla td:last-child {
+        min-width: 170px;
+    }
 }
