@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMUTECH · Panel de Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f2e45 0%, #1e4663 50%, #2c6e9e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 50px;
+            font-size: 1.1rem;
+        }
+        
+        .grid-paneles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .panel-card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            text-decoration: none;
+            color: #1e4663;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: block;
+        }
+        
+        .panel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .panel-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .panel-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .panel-desc {
+            color: #64748b;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #e2e8f0;
+            color: #1e4663;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-top: 15px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.8rem;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .grid-paneles { gap: 16px; }
+            .panel-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 COMUTECH</h1>
+        <div class="subtitle">Plataforma de gestión integral</div>
+        
+        <div class="grid-paneles">
+            <!-- Panel Super Admin -->
+            <a href="super-user/" class="panel-card">
+                <div class="panel-icon">👑</div>
+                <div class="panel-title">Super Admin</div>
+                <div class="panel-desc">Gestión de clientes, facturación y cumplimiento normativo</div>
+                <div class="badge">Acceso restringido</div>
+            </a>
+            
+            <!-- Panel Gerente -->
+            <a href="gerente/" class="panel-card">
+                <div class="panel-icon">🏢</div>
+                <div class="panel-title">Panel Gerente</div>
+                <div class="panel-desc">Gestión de tu empresa, tareas, técnicos y clientes</div>
+                <div class="badge">Próximamente</div>
+            </a>
+            
+            <!-- Panel Técnico -->
+            <a href="tecnico/" class="panel-card">
+                <div class="panel-icon">🔧</div>
+                <div class="panel-title">Panel Técnico</div>
+                <div class="panel-desc">Gestión de tareas asignadas, horas e incidencias</div>
+                <div class="badge">Próximamente</div>
+            </a>
+            
+            <!-- Panel Cliente Final -->
+            <a href="cliente-final/" class="panel-card">
+                <div class="panel-icon">👤</div>
+                <div class="panel-title">Panel Cliente</div>
+                <div class="panel-desc">Seguimiento de servicios y resultados</div>
+                <div class="badge">Próximamente</div>
+            </a>
+        </div>
+        
+        <div class="footer">
+            © 2024 COMUTECH · Todos los derechos reservados
+        </div>
+    </div>
+</body>
+</html>
