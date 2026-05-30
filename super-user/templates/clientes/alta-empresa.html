@@ -1,0 +1,168 @@
+<!-- templates/clientes/alta-empresa.html -->
+<!-- 🏢 MANIQUÍ - FORMULARIO DE ALTA DE EMPRESA -->
+
+<!-- DATOS DE LA EMPRESA -->
+<div class="card-header">🏢 Datos de la empresa</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>🏢 Razón Social *</label>
+        <input type="text" id="razonSocial" placeholder="Ej: Gestión Norte S.L." autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>📧 Email contacto *</label>
+        <input type="email" id="emailContacto" placeholder="admin@empresa.com" autocomplete="off">
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📋 NIF/CIF</label>
+        <input type="text" id="nifCif" placeholder="B12345678" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>📞 Teléfono</label>
+        <input type="tel" id="telefonoContacto" placeholder="Teléfono" autocomplete="off">
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📱 WhatsApp</label>
+        <input type="tel" id="whatsappContacto" placeholder="Número de WhatsApp" autocomplete="off">
+    </div>
+    <div class="grupo" style="display: flex; align-items: center; justify-content: center;">
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+            <input type="checkbox" id="mismoWhatsappJuridica"> Usar mismo que teléfono
+        </label>
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>👤 Nombre contacto</label>
+        <input type="text" id="nombreContacto" placeholder="Persona de contacto" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>📋 Forma Social</label>
+        <select id="formaSocial">
+            <option value="">Selecciona</option>
+            <option value="A">Sociedad Anónima (S.A.)</option>
+            <option value="B">Sociedad Limitada (S.L.)</option>
+            <option value="C">Sociedad Colectiva</option>
+            <option value="D">Sociedad Comanditaria</option>
+            <option value="J">Sociedad Civil</option>
+        </select>
+    </div>
+</div>
+
+<!-- DATOS DE DOMICILIO -->
+<div class="card-header">📍 Datos de domicilio</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>Calle</label>
+        <input type="text" id="direccionCalle" placeholder="Calle" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Número</label>
+        <input type="text" id="direccionNumero" placeholder="Número" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Piso/Puerta</label>
+        <input type="text" id="direccionPiso" placeholder="Piso/Puerta" autocomplete="off">
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>Código postal</label>
+        <input type="text" id="codigoPostal" placeholder="Código postal" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Municipio</label>
+        <input type="text" id="municipio" placeholder="Municipio" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Provincia</label>
+        <input type="text" id="provincia" placeholder="Provincia" autocomplete="off">
+    </div>
+</div>
+
+<!-- DATOS BANCARIOS -->
+<div class="card-header">🏦 Datos bancarios</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>IBAN</label>
+        <input type="text" id="ibanCuenta" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Banco</label>
+        <input type="text" id="bancoNombre" placeholder="Nombre del banco" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>SWIFT/BIC</label>
+        <input type="text" id="swiftCodigo" placeholder="Código SWIFT" autocomplete="off">
+    </div>
+</div>
+
+<!-- DATOS DE ACTIVIDAD -->
+<div class="card-header">📊 Datos de actividad</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>🏷️ Plan *</label>
+        <select id="planSeleccionado">
+            <option value="BASICO">📒 Básico (49€/mes) - Hasta 50 facturas</option>
+            <option value="PRO">📘 Pro (99€/mes) - Facturas ilimitadas + soporte</option>
+            <option value="EMPRESA">📕 Empresa (199€/mes) - Todo incluido + API</option>
+        </select>
+    </div>
+    <div class="grupo">
+        <label>📋 CNAE</label>
+        <input type="text" id="cnaeCodigo" placeholder="Código CNAE" autocomplete="off">
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📅 Fecha inicio actividad</label>
+        <input type="date" id="fechaInicioActividad">
+    </div>
+    <div class="grupo">
+        <label>🏷️ Tipo de cliente</label>
+        <select id="tipoClienteSelect">
+            <option value="administrador">🏢 Administrador de comunidades</option>
+            <option value="comunidad">🏘️ Comunidad de propietarios</option>
+            <option value="empresa_piscinas">🌊 Empresa de piscinas</option>
+            <option value="empresa_jardineria">🌳 Empresa de jardinería</option>
+            <option value="empresa_fontaneria">🔧 Empresa de fontanería</option>
+            <option value="empresa_electricidad">⚡ Empresa de electricidad</option>
+            <option value="empresa_limpieza">🧹 Empresa de limpieza</option>
+            <option value="empresa_cerrajeria">🔒 Empresa de cerrajería</option>
+            <option value="empresa_reformas">🏗️ Empresa de reformas</option>
+            <option value="empresa_antenas">📡 Empresa de antenas</option>
+            <option value="empresa_climatizacion">❄️ Climatización</option>
+            <option value="otro">📋 Otro</option>
+        </select>
+    </div>
+</div>
+
+<!-- RGPD Y CONSENTIMIENTO -->
+<div class="card-header">⚖️ RGPD y protección de datos</div>
+
+<div class="consentimiento-card">
+    <strong>Base legal RGPD</strong>
+    <p>De acuerdo con el RGPD (UE) 2016/679 y la LOPDGDD 3/2018, sus datos serán tratados para la gestión de facturación, prestación de servicios y cumplimiento de obligaciones legales.</p>
+    <label>
+        <input type="checkbox" id="consentimientoAceptado">
+        Acepto el tratamiento de mis datos según la normativa
+    </label>
+</div>
+
+<!-- BOTONES -->
+<div class="btn-group">
+    <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+    <button id="btnCancelarAlta" class="btn-danger">✖ Cancelar</button>
+</div>

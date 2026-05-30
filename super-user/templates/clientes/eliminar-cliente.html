@@ -1,0 +1,25 @@
+<!-- templates/clientes/eliminar-cliente.html -->
+<!-- 🗑️ MANIQUÍ - MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+
+<div style="padding: 10px 0;">
+    <p style="margin-bottom: 20px; color: #c2410c;">
+        <strong>¡ATENCIÓN!</strong> Esta acción es irreversible.
+    </p>
+    <p style="margin-bottom: 20px;" id="mensajeEliminacionCliente">
+        ¿Estás seguro de que quieres eliminar este cliente?
+    </p>
+    
+    <div class="row-flex">
+        <div class="grupo">
+            <label>🔐 Introduce tu contraseña para confirmar</label>
+            <input type="password" id="passwordConfirmacion" placeholder="Tu contraseña de Super Admin">
+        </div>
+    </div>
+    
+    <div id="errorPasswordConfirmacion" style="color: #c2410c; font-size: 0.8rem; margin-top: 8px; display: none;"></div>
+    
+    <div class="btn-group" style="margin-top: 20px;">
+        <button id="btnConfirmarEliminacion" class="btn-danger">🗑️ Sí, eliminar cliente</button>
+        <button id="btnCancelarEliminacion" class="btn-info">Cancelar</button>
+    </div>
+</div>
