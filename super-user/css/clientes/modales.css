@@ -1,0 +1,213 @@
+/* css/clientes/modales.css */
+/* 🧠 ESTILOS DE TODOS LOS MODALES */
+
+/* ============================================================ */
+/* MODALES - BASE                                              */
+/* ============================================================ */
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+}
+
+.modal[style*="display: flex"] {
+    display: flex !important;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 28px;
+    padding: 28px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalFadeIn 0.25s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    border-left: 4px solid #1e4663;
+    padding-left: 16px;
+    color: #1e4663;
+}
+
+/* ============================================================ */
+/* MODAL INFORMATIVO                                           */
+/* ============================================================ */
+
+#modalInformativo .modal-content {
+    max-width: 480px;
+    text-align: center;
+}
+
+#modalInformativoIcono {
+    font-size: 3.5rem;
+}
+
+/* ============================================================ */
+/* MODAL DE CONFIRMACIÓN                                       */
+/* ============================================================ */
+
+#modalConfirmacion .modal-content {
+    max-width: 450px;
+}
+
+#mensajeConfirmacion {
+    margin-bottom: 20px;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* ============================================================ */
+/* MODAL ALTA CLIENTE                                          */
+/* ============================================================ */
+
+#modalAltaCliente .modal-content {
+    max-width: 750px;
+}
+
+#altaClienteContainer {
+    padding: 8px 0;
+}
+
+/* ============================================================ */
+/* MODAL GENERAR CONTRASEÑA                                    */
+/* ============================================================ */
+
+#modalGenerarPassword .modal-content {
+    max-width: 520px;
+}
+
+#passwordGenerada {
+    font-size: 1.3rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    background: #f1f5f9;
+    padding: 16px;
+    border-radius: 16px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-family: monospace;
+}
+
+/* ============================================================ */
+/* MODAL EDITAR CLIENTE                                        */
+/* ============================================================ */
+
+#modalEditarCliente .modal-content {
+    max-width: 750px;
+}
+
+#editarClienteContainer {
+    padding: 8px 0;
+}
+
+/* ============================================================ */
+/* MODAL VER CLIENTE                                           */
+/* ============================================================ */
+
+#modalVerCliente .modal-content {
+    max-width: 650px;
+}
+
+#detalleCliente {
+    margin-bottom: 16px;
+}
+
+.detalle-info {
+    background: #f8fafc;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.detalle-info p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+}
+
+/* ============================================================ */
+/* MODAL CONFIRMAR ELIMINACIÓN                                 */
+/* ============================================================ */
+
+#modalConfirmarEliminacion .modal-content {
+    max-width: 480px;
+}
+
+#mensajeEliminacionCliente {
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+#errorPasswordConfirmacion {
+    color: #c2410c;
+    font-size: 0.8rem;
+    margin-top: 8px;
+}
+
+/* ============================================================ */
+/* MODAL ELEGIR TIPO CLIENTE                                   */
+/* ============================================================ */
+
+#modalElegirTipoCliente .modal-content {
+    max-width: 420px;
+    text-align: center;
+}
+
+#modalElegirTipoCliente .btn-group {
+    flex-direction: column;
+    gap: 12px;
+}
+
+#modalElegirTipoCliente .btn-group button {
+    padding: 14px;
+    font-size: 1rem;
+}
+
+/* ============================================================ */
+/* RESPONSIVE MODALES                                          */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .modal-header {
+        font-size: 1.1rem;
+    }
+    
+    #modalElegirTipoCliente .btn-group button {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+    
+    .detalle-info p {
+        font-size: 0.85rem;
+    }
+}

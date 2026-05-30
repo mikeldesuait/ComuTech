@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SuperUser Panel · COMUTECH</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- ============================================================= -->
+    <!-- LOGIN PANEL                                                   -->
+    <!-- ============================================================= -->
+    <div id="loginPanel" class="card">
+        <div class="card-header" style="cursor:default;">👑 SuperUser Panel · COMUTECH</div>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="btnLogin">Iniciar sesión</button>
+        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- DASHBOARD PANEL                                              -->
+    <!-- ============================================================= -->
+    <div id="dashboardPanel" style="display: none;">
+        
+        <!-- CARD DE BIENVENIDA CON ESTADÍSTICAS INTEGRADAS -->
+        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c6e9e 100%); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">👑 Super Admin</div>
+                    <div style="font-size: 1.3rem; font-weight: 700;" id="nombreAdmin">Cargando...</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailAdmin"></div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button id="btnRefrescar" style="background: rgba(255,255,255,0.2);">🔄 Refrescar</button>
+                    <button id="btnLogoutHeader" style="background: rgba(255,255,255,0.2);">🚪 Salir</button>
+                </div>
+            </div>
+            
+            <!-- ESTADÍSTICAS CON CÍRCULOS BLANCOS DE 60px -->
+            <div style="display: flex; gap: 24px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); justify-content: center;">
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #1e4663;" id="statTotal">0</div>
+                    </div>
+                    <div style="font-size: 0.65rem; margin-top: 6px; opacity: 0.8;">Total</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #2c7a4d;" id="statActivos">0</div>
+                    </div>
+                    <div style="font-size: 0.65rem; margin-top: 6px; opacity: 0.8;">Activos</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #c2410c;" id="statInactivos">0</div>
+                    </div>
+                    <div style="font-size: 0.65rem; margin-top: 6px; opacity: 0.8;">Inactivos</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVEGADOR DE PESTAÑAS (HABITACIONES) -->
+        <div class="card">
+            <div class="browser-tabs">
+                <button class="browser-tab active" data-tab="clientes">🏢 Clientes</button>
+                <button class="browser-tab" data-tab="facturacion">💰 Facturación</button>
+                <button class="browser-tab" data-tab="normativa">⚖️ Normativa</button>
+            </div>
+            <div id="moduloContainer" class="browser-content">
+                <div style="text-align:center; padding:40px;">Selecciona una habitación</div>
+            </div>
+        </div>
+        
+        <button id="btnLogoutFooter" style="background:#475569; margin-top:16px;">🚪 Cerrar sesión</button>
+    </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- MODALES GLOBALES                                             -->
+<!-- ============================================================= -->
+
+<!-- MODAL INFORMATIVO -->
+<div id="modalInformativo" class="modal">
+    <div class="modal-content" style="max-width: 500px; text-align: center;">
+        <div class="modal-header" id="modalInformativoHeader">📢 Información</div>
+        <div style="padding: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 16px;" id="modalInformativoIcono">✅</div>
+            <p id="modalInformativoMensaje" style="font-size: 1.1rem; margin-bottom: 20px;"></p>
+            <button id="btnCerrarInformativo" class="btn-success">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<div id="modalConfirmacion" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">⚠️ Confirmar acción</div>
+        <div style="padding: 10px 0;">
+            <p id="mensajeConfirmacion" style="margin-bottom: 20px;"></p>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button id="btnConfirmarAccion" class="btn-danger">✅ Confirmar</button>
+                <button id="btnCancelarAccion" class="btn-info">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- MODALES DE CLIENTES                                          -->
+<!-- ============================================================= -->
+
+<!-- MODAL ALTA CLIENTE -->
+<div id="modalAltaCliente" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header" id="modalAltaClienteHeader">📝 Dar de alta cliente</div>
+        <div id="altaClienteContainer"></div>
+    </div>
+</div>
+
+<!-- MODAL GENERAR CONTRASEÑA -->
+<div id="modalGenerarPassword" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">🔐 Generar contraseña de acceso</div>
+        <div id="passwordAleatorioContainer">
+            <p style="margin-bottom: 16px;">Contraseña generada para el gerente:</p>
+            <div style="background: #f1f5f9; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 16px;">
+                <code id="passwordGenerada" style="font-size: 1.3rem; font-weight: bold;"></code>
+            </div>
+            <div class="btn-group">
+                <button id="btnAceptarPassword" class="btn-success">✅ Aceptar contraseña</button>
+                <button id="btnCrearManual" class="btn-info">✏️ Crear manualmente</button>
+            </div>
+        </div>
+        <div id="passwordManualContainer" style="display: none;">
+            <p style="margin-bottom: 16px;">Introduce la contraseña manualmente (mínimo 6 caracteres):</p>
+            <input type="password" id="passwordManual" placeholder="Contraseña" style="width: 100%; padding: 12px;">
+            <div class="btn-group" style="margin-top: 16px;">
+                <button id="btnAceptarPasswordManual" class="btn-success">✅ Aceptar</button>
+                <button id="btnVolverAleatorio" class="btn-info">↩️ Volver</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR CLIENTE (contenedor dinámico para empresa o autónomo) -->
+<div id="modalEditarCliente" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header" id="modalEditarClienteHeader">✏️ Editar cliente</div>
+        <div id="editarClienteContainer"></div>
+    </div>
+</div>
+
+<!-- MODAL VER CLIENTE -->
+<div id="modalVerCliente" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header" id="modalVerClienteHeader">📋 Detalle del cliente</div>
+        <div id="detalleCliente"></div>
+        <div id="historicoConsentimientos"></div>
+        <div class="btn-group">
+            <button id="btnCerrarDetalle" class="btn-info">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMAR ELIMINACIÓN -->
+<div id="modalConfirmarEliminacion" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">⚠️ Confirmar eliminación</div>
+        <div style="padding: 10px 0;">
+            <p style="margin-bottom: 20px; color: #c2410c;"><strong>¡ATENCIÓN!</strong> Esta acción es irreversible.</p>
+            <p id="mensajeEliminacionCliente" style="margin-bottom: 20px;"></p>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🔐 Introduce tu contraseña para confirmar</label>
+                    <input type="password" id="passwordConfirmacion" placeholder="Tu contraseña de Super Admin">
+                </div>
+            </div>
+            <div id="errorPasswordConfirmacion" style="color: #c2410c; font-size: 0.8rem; margin-top: 8px; display: none;"></div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button id="btnConfirmarEliminacion" class="btn-danger">🗑️ Sí, eliminar cliente</button>
+                <button id="btnCancelarEliminacion" class="btn-info">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ELEGIR TIPO DE CLIENTE -->
+<div id="modalElegirTipoCliente" class="modal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <div class="modal-header">📌 ¿Qué tipo de cliente quieres dar de alta?</div>
+        <div style="padding: 20px;">
+            <div class="btn-group" style="flex-direction: column; gap: 12px;">
+                <button id="btnElegirEmpresa" class="btn-success" style="padding: 16px;">🏢 Empresa / Persona Jurídica</button>
+                <button id="btnElegirAutonomo" class="btn-info" style="padding: 16px;">👤 Autónomo / Persona Física</button>
+                <button id="btnCancelarElegir" class="btn-danger">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- MODAL RESETEAR CONTRASEÑA                                     -->
+<!-- ============================================================= -->
+<div id="modalResetearPassword" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">🔐 Resetear contraseña</div>
+        <div style="padding: 10px 0;">
+            <p id="mensajeResetPassword" style="margin-bottom: 20px;">Introduce la nueva contraseña para el gerente</p>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📧 Email del gerente</label>
+                    <input type="email" id="resetEmail" readonly style="background: #f1f5f9;">
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🔑 Nueva contraseña *</label>
+                    <input type="password" id="resetNuevaPassword" placeholder="Mínimo 6 caracteres">
+                </div>
+            </div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🔑 Repetir nueva contraseña *</label>
+                    <input type="password" id="resetConfirmarPassword" placeholder="Repite la contraseña">
+                </div>
+            </div>
+            <div id="resetPasswordError" style="color: #c2410c; font-size: 0.8rem; margin-top: 8px; display: none;"></div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button id="btnConfirmarReset" class="btn-warning">🔄 Resetear contraseña</button>
+                <button id="btnCancelarReset" class="btn-info">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- SCRIPT PRINCIPAL                                              -->
+<!-- ============================================================= -->
+
+<script type="module">
+    import { init } from './js/modules/main.js'
+    init()
+</script>
+
+</body>
+</html>

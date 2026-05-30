@@ -1,0 +1,214 @@
+<!-- templates/clientes/editar-autonomo.html -->
+<!-- 👤 MANIQUÍ - FORMULARIO DE EDICIÓN DE AUTÓNOMO -->
+
+<input type="hidden" id="editClienteId">
+<input type="hidden" id="editPerfilId">
+
+<!-- ALERTA INFORMATIVA -->
+<div class="alert-info">
+    <strong>👤 Editando AUTÓNOMO</strong>
+    <p>Modifica los datos del autónomo</p>
+</div>
+
+<!-- DATOS PERSONALES -->
+<div class="card-header">📋 Datos personales</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>👤 Nombre *</label>
+        <input type="text" id="editNombreFisica" placeholder="Nombre" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Primer Apellido</label>
+        <input type="text" id="editPrimerApellido" placeholder="Primer apellido" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Segundo Apellido</label>
+        <input type="text" id="editSegundoApellido" placeholder="Segundo apellido" autocomplete="off">
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📧 Email *</label>
+        <input type="email" id="editEmailFisica" placeholder="email@ejemplo.com" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>📋 NIF</label>
+        <input type="text" id="editNifFisica" placeholder="12345678A" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>📞 Teléfono</label>
+        <input type="tel" id="editTelefonoFisica" placeholder="Teléfono" autocomplete="off">
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📱 WhatsApp</label>
+        <input type="tel" id="editWhatsappFisica" placeholder="Número de WhatsApp" autocomplete="off">
+    </div>
+    <div class="grupo" style="display: flex; align-items: center; justify-content: center;">
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+            <input type="checkbox" id="editMismoWhatsappFisica"> Usar mismo que teléfono
+        </label>
+    </div>
+</div>
+
+<!-- OFICIO / PROFESIÓN -->
+<div class="card-header">🔧 Oficio / Actividad profesional</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>🔧 Oficio *</label>
+        <select id="editOficioSelect">
+            <option value="">Selecciona tu oficio</option>
+            <option value="electricidad">⚡ Electricidad</option>
+            <option value="fontaneria">🔧 Fontanería</option>
+            <option value="pintura">🎨 Pintura</option>
+            <option value="albañileria">🏗️ Albañilería</option>
+            <option value="jardineria">🌳 Jardinería</option>
+            <option value="limpieza">🧹 Limpieza</option>
+            <option value="cerrajeria">🔒 Cerrajería</option>
+            <option value="piscinas">🏊 Piscinas</option>
+            <option value="climatizacion">❄️ Climatización</option>
+            <option value="reformas">🔨 Reformas</option>
+            <option value="informatica">💻 Informática</option>
+            <option value="transporte">🚚 Transporte</option>
+            <option value="fotografia">📸 Fotografía</option>
+            <option value="estetica">💇 Estética</option>
+            <option value="consultoria">📊 Consultoría</option>
+            <option value="otro">📋 Otro</option>
+        </select>
+    </div>
+    <div class="grupo">
+        <label>📅 Fecha inicio actividad</label>
+        <input type="date" id="editFechaInicioActividad">
+    </div>
+</div>
+
+<div id="editOtroOficioDiv" style="display: none; margin-bottom: 16px;">
+    <label>📝 Especificar otro oficio</label>
+    <input type="text" id="editOtroOficioTexto" placeholder="¿Cuál es tu oficio?" style="width: 100%;">
+</div>
+
+<!-- DOMICILIO -->
+<div class="card-header">📍 Datos de domicilio</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>Calle</label>
+        <input type="text" id="editCalle" placeholder="Calle" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Número</label>
+        <input type="text" id="editNumero" placeholder="Número" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Piso/Puerta</label>
+        <input type="text" id="editPiso" placeholder="Piso/Puerta" autocomplete="off">
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>Código postal</label>
+        <input type="text" id="editCodigoPostal" placeholder="Código postal" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Municipio</label>
+        <input type="text" id="editMunicipio" placeholder="Municipio" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Provincia</label>
+        <input type="text" id="editProvincia" placeholder="Provincia" autocomplete="off">
+    </div>
+</div>
+
+<!-- DATOS BANCARIOS (opcionales) -->
+<div class="card-header">🏦 Datos bancarios (opcional)</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>IBAN</label>
+        <input type="text" id="editIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>Banco</label>
+        <input type="text" id="editBanco" placeholder="Nombre del banco" autocomplete="off">
+    </div>
+    <div class="grupo">
+        <label>SWIFT/BIC</label>
+        <input type="text" id="editSwift" placeholder="Código SWIFT" autocomplete="off">
+    </div>
+</div>
+
+<!-- PLAN Y ACTIVIDAD -->
+<div class="card-header">🏷️ Plan de suscripción</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>🏷️ Plan *</label>
+        <select id="editPlan">
+            <option value="BASICO">📒 Básico (49€/mes) - Hasta 50 facturas</option>
+            <option value="PRO">📘 Pro (99€/mes) - Facturas ilimitadas + soporte</option>
+            <option value="EMPRESA">📕 Empresa (199€/mes) - Todo incluido + API</option>
+        </select>
+    </div>
+    <div class="grupo">
+        <label>📋 CNAE</label>
+        <input type="text" id="editCnae" placeholder="Código CNAE (opcional)" autocomplete="off">
+    </div>
+</div>
+
+<!-- SEGURIDAD -->
+<div class="card-header">🔐 Seguridad</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <button id="btnResetPassword" class="btn-warning" style="width: 100%;">🔄 Resetear contraseña del gerente</button>
+    </div>
+</div>
+
+<!-- BOTONES -->
+<div class="btn-group">
+    <button id="btnGuardarEdicion" class="btn-success">💾 Guardar cambios</button>
+    <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
+</div>
+
+<!-- SCRIPT PARA FUNCIONALIDADES DINÁMICAS -->
+<script>
+    (function() {
+        // Mostrar campo "otro" cuando se selecciona
+        const oficioSelect = document.getElementById('editOficioSelect')
+        const otroDiv = document.getElementById('editOtroOficioDiv')
+        
+        if (oficioSelect && otroDiv) {
+            oficioSelect.addEventListener('change', function() {
+                otroDiv.style.display = this.value === 'otro' ? 'block' : 'none'
+            })
+        }
+        
+        // Copiar teléfono a WhatsApp
+        const mismoWhatsapp = document.getElementById('editMismoWhatsappFisica')
+        const telefonoInput = document.getElementById('editTelefonoFisica')
+        const whatsappInput = document.getElementById('editWhatsappFisica')
+        
+        if (mismoWhatsapp && telefonoInput && whatsappInput) {
+            mismoWhatsapp.addEventListener('change', function() {
+                if (this.checked) {
+                    whatsappInput.value = telefonoInput.value
+                    whatsappInput.disabled = true
+                } else {
+                    whatsappInput.disabled = false
+                }
+            })
+            
+            telefonoInput.addEventListener('input', function() {
+                if (mismoWhatsapp.checked) {
+                    whatsappInput.value = this.value
+                }
+            })
+        }
+    })()
+</script>

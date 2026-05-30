@@ -1,0 +1,261 @@
+/* css/clientes/principal.css */
+/* 🏢 ESTILOS PRINCIPALES DE LA HABITACIÓN DE CLIENTES */
+
+/* ============================================================ */
+/* BARRA DE BÚSQUEDA Y FILTROS                                  */
+/* ============================================================ */
+
+.search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.search-bar input,
+.search-bar select {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 48px;
+    font-size: 0.9rem;
+    background: white;
+    min-width: 150px;
+    transition: all 0.2s;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+    outline: none;
+    border-color: #1e4663;
+    box-shadow: 0 0 0 3px rgba(30, 70, 99, 0.1);
+}
+
+/* ============================================================ */
+/* TABLA DE CLIENTES                                           */
+/* ============================================================ */
+
+.clientes-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.clientes-tabla th,
+.clientes-tabla td {
+    padding: 14px 10px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.clientes-tabla th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #1e4663;
+    position: sticky;
+    top: 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clientes-tabla tr:hover {
+    background: #f8fafc;
+}
+
+/* ============================================================ */
+/* CELDA DE ACCIONES                                           */
+/* ============================================================ */
+
+.clientes-tabla td:last-child {
+    white-space: nowrap;
+    min-width: 260px;
+}
+
+.acciones {
+    white-space: nowrap;
+}
+
+/* ============================================================ */
+/* BOTONES DE ACCIÓN                                           */
+/* ============================================================ */
+
+.btn-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 3px;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 24px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-sm.ver-cliente {
+    background: #0284c7;
+    color: white;
+}
+
+.btn-sm.ver-cliente:hover {
+    background: #0369a1;
+    transform: translateY(-1px);
+}
+
+.btn-sm.editar-cliente {
+    background: #e67e22;
+    color: white;
+}
+
+.btn-sm.editar-cliente:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
+.btn-sm.toggle-cliente {
+    background: #2c7a4d;
+    color: white;
+}
+
+.btn-sm.toggle-cliente:hover {
+    background: #1e5a3a;
+    transform: translateY(-1px);
+}
+
+.btn-sm.eliminar-cliente {
+    background: #c2410c;
+    color: white;
+}
+
+.btn-sm.eliminar-cliente:hover {
+    background: #9a2f07;
+    transform: translateY(-1px);
+}
+
+/* ============================================================ */
+/* BADGES                                                      */
+/* ============================================================ */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 24px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-activo {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-inactivo {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-administrador {
+    background: #1e4663;
+    color: white;
+}
+
+.badge-comunidad {
+    background: #0284c7;
+    color: white;
+}
+
+.badge-empresa {
+    background: #2c7a4d;
+    color: white;
+}
+
+.badge-autonomo {
+    background: #e67e22;
+    color: white;
+}
+
+.badge-basico {
+    background: #e0e7ff;
+    color: #1e4663;
+}
+
+.badge-pro {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-empresa-plan {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+/* ============================================================ */
+/* PAGINACIÓN                                                  */
+/* ============================================================ */
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    background: #e2e8f0;
+    color: #1e4663;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    min-width: 40px;
+    border-radius: 10px;
+}
+
+.pagination button:hover {
+    background: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.pagination button.active {
+    background: #1e4663;
+    color: white;
+}
+
+.total-clientes {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* ============================================================ */
+/* RESPONSIVE TABLA                                             */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    .clientes-tabla {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .clientes-tabla td:last-child {
+        min-width: 220px;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.65rem;
+    }
+    
+    .search-bar input,
+    .search-bar select {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+}
