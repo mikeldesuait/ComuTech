@@ -7,7 +7,7 @@
 <!-- ALERTA INFORMATIVA -->
 <div class="alert-info">
     <strong>👤 Editando AUTÓNOMO</strong>
-    <p>Modifica los datos del autónomo</p>
+    <p>Los campos marcados con * son obligatorios. El email NO se puede cambiar desde aquí.</p>
 </div>
 
 <!-- DATOS PERSONALES -->
@@ -30,26 +30,29 @@
 
 <div class="row-flex">
     <div class="grupo">
-        <label>📧 Email *</label>
-        <input type="email" id="editEmailFisica" placeholder="email@ejemplo.com" autocomplete="off">
+        <label>📧 Email actual (no editable)</label>
+        <input type="email" id="editEmailFisica" readonly style="background: #f1f5f9; cursor: not-allowed;">
     </div>
     <div class="grupo">
         <label>📋 NIF</label>
         <input type="text" id="editNifFisica" placeholder="12345678A" autocomplete="off">
     </div>
-    <div class="grupo">
-        <label>📞 Teléfono</label>
-        <input type="tel" id="editTelefonoFisica" placeholder="Teléfono" autocomplete="off">
-    </div>
 </div>
 
 <div class="row-flex">
     <div class="grupo">
+        <label>📞 Teléfono</label>
+        <input type="tel" id="editTelefonoFisica" placeholder="Teléfono" autocomplete="off">
+    </div>
+    <div class="grupo">
         <label>📱 WhatsApp</label>
         <input type="tel" id="editWhatsappFisica" placeholder="Número de WhatsApp" autocomplete="off">
     </div>
+</div>
+
+<div class="row-flex">
     <div class="grupo" style="display: flex; align-items: center; justify-content: center;">
-        <label style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+        <label style="display: flex; align-items: center; gap: 8px;">
             <input type="checkbox" id="editMismoWhatsappFisica"> Usar mismo que teléfono
         </label>
     </div>
@@ -96,51 +99,24 @@
 <div class="card-header">📍 Datos de domicilio</div>
 
 <div class="row-flex">
-    <div class="grupo">
-        <label>Calle</label>
-        <input type="text" id="editCalle" placeholder="Calle" autocomplete="off">
-    </div>
-    <div class="grupo">
-        <label>Número</label>
-        <input type="text" id="editNumero" placeholder="Número" autocomplete="off">
-    </div>
-    <div class="grupo">
-        <label>Piso/Puerta</label>
-        <input type="text" id="editPiso" placeholder="Piso/Puerta" autocomplete="off">
-    </div>
+    <div class="grupo"><label>Calle</label><input type="text" id="editCalle" placeholder="Calle" autocomplete="off"></div>
+    <div class="grupo"><label>Número</label><input type="text" id="editNumero" placeholder="Número" autocomplete="off"></div>
+    <div class="grupo"><label>Piso/Puerta</label><input type="text" id="editPiso" placeholder="Piso/Puerta" autocomplete="off"></div>
 </div>
 
 <div class="row-flex">
-    <div class="grupo">
-        <label>Código postal</label>
-        <input type="text" id="editCodigoPostal" placeholder="Código postal" autocomplete="off">
-    </div>
-    <div class="grupo">
-        <label>Municipio</label>
-        <input type="text" id="editMunicipio" placeholder="Municipio" autocomplete="off">
-    </div>
-    <div class="grupo">
-        <label>Provincia</label>
-        <input type="text" id="editProvincia" placeholder="Provincia" autocomplete="off">
-    </div>
+    <div class="grupo"><label>Código postal</label><input type="text" id="editCodigoPostal" placeholder="Código postal" autocomplete="off"></div>
+    <div class="grupo"><label>Municipio</label><input type="text" id="editMunicipio" placeholder="Municipio" autocomplete="off"></div>
+    <div class="grupo"><label>Provincia</label><input type="text" id="editProvincia" placeholder="Provincia" autocomplete="off"></div>
 </div>
 
 <!-- DATOS BANCARIOS (opcionales) -->
 <div class="card-header">🏦 Datos bancarios (opcional)</div>
 
 <div class="row-flex">
-    <div class="grupo">
-        <label>IBAN</label>
-        <input type="text" id="editIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off">
-    </div>
-    <div class="grupo">
-        <label>Banco</label>
-        <input type="text" id="editBanco" placeholder="Nombre del banco" autocomplete="off">
-    </div>
-    <div class="grupo">
-        <label>SWIFT/BIC</label>
-        <input type="text" id="editSwift" placeholder="Código SWIFT" autocomplete="off">
-    </div>
+    <div class="grupo"><label>IBAN</label><input type="text" id="editIban" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off"></div>
+    <div class="grupo"><label>Banco</label><input type="text" id="editBanco" placeholder="Nombre del banco" autocomplete="off"></div>
+    <div class="grupo"><label>SWIFT/BIC</label><input type="text" id="editSwift" placeholder="Código SWIFT" autocomplete="off"></div>
 </div>
 
 <!-- PLAN Y ACTIVIDAD -->
@@ -150,9 +126,9 @@
     <div class="grupo">
         <label>🏷️ Plan *</label>
         <select id="editPlan">
-            <option value="BASICO">📒 Básico (49€/mes) - Hasta 50 facturas</option>
-            <option value="PRO">📘 Pro (99€/mes) - Facturas ilimitadas + soporte</option>
-            <option value="EMPRESA">📕 Empresa (199€/mes) - Todo incluido + API</option>
+            <option value="BASICO">📒 Básico (49€/mes)</option>
+            <option value="PRO">📘 Pro (99€/mes)</option>
+            <option value="EMPRESA">📕 Empresa (199€/mes)</option>
         </select>
     </div>
     <div class="grupo">
@@ -176,7 +152,6 @@
     <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
 </div>
 
-<!-- SCRIPT PARA FUNCIONALIDADES DINÁMICAS -->
 <script>
     (function() {
         // Mostrar campo "otro" cuando se selecciona

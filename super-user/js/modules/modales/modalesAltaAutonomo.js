@@ -1,13 +1,10 @@
 // js/modules/modales/modalesAltaAutonomo.js
-// 🧠 LÓGICA DE ALTA DE CLIENTES TIPO AUTÓNOMO
+// 👤 LÓGICA DE ALTA DE CLIENTES TIPO AUTÓNOMO
 
-import { sb } from '../supabase.js'
 import { mostrarModalInformativo, abrirModal, cerrarModal } from './modalesGenerales.js'
 import { crearClienteCompleto } from './modalesPassword.js'
-
-// ============================================================
-// CONSTANTES
-// ============================================================
+import { mostrarModalConsentimiento } from './consentimiento.js'
+import { mostrarModalContrato } from './contrato.js'
 
 const TEMPLATE_URL = 'templates/clientes/alta-autonomo.html'
 const CONTAINER_ID = 'altaClienteContainer'
@@ -16,9 +13,6 @@ const CONTAINER_ID = 'altaClienteContainer'
 // FUNCIONES DE VALIDACIÓN Y ERRORES
 // ============================================================
 
-/**
- * Limpia los mensajes de error del formulario
- */
 function limpiarErroresFormulario() {
     document.querySelectorAll('.error-message').forEach(el => el.remove())
     document.querySelectorAll('#modalAltaCliente input, #modalAltaCliente select, #modalAltaCliente textarea').forEach(campo => {
@@ -27,10 +21,6 @@ function limpiarErroresFormulario() {
     })
 }
 
-/**
- * Muestra errores visualmente en el formulario
- * @param {string[]} errores - Lista de errores
- */
 function mostrarErroresEnFormulario(errores) {
     errores.forEach(error => {
         let campoId = null
@@ -64,10 +54,6 @@ function mostrarErroresEnFormulario(errores) {
     })
 }
 
-/**
- * Valida los campos del formulario
- * @returns {Object} - { valido: boolean, errores: string[] }
- */
 function validarFormulario() {
     const errores = []
     
@@ -98,9 +84,6 @@ function validarFormulario() {
 // FUNCIONES PRIVADAS
 // ============================================================
 
-/**
- * Carga el template HTML dentro del contenedor del modal
- */
 async function cargarTemplate() {
     try {
         const response = await fetch(TEMPLATE_URL)
@@ -115,9 +98,6 @@ async function cargarTemplate() {
     }
 }
 
-/**
- * Configura el selector de oficio (mostrar campo "otro")
- */
 function configurarSelectorOficio() {
     const oficioSelect = document.getElementById('oficioSelect')
     const otroDiv = document.getElementById('otroOficioDiv')
@@ -131,9 +111,6 @@ function configurarSelectorOficio() {
     }
 }
 
-/**
- * Configura el checkbox de WhatsApp (copiar teléfono)
- */
 function configurarWhatsappCheckbox() {
     const mismoWhatsapp = document.getElementById('mismoWhatsappFisica')
     const telefonoInput = document.getElementById('telefonoFisica')
@@ -157,10 +134,6 @@ function configurarWhatsappCheckbox() {
     }
 }
 
-/**
- * Recoge todos los datos del formulario
- * @returns {Object} - Datos para enviar a la Edge Function
- */
 function recogerDatosFormulario() {
     const nombre = document.getElementById('nombreFisica')?.value.trim() || ''
     const apellido1 = document.getElementById('primerApellido')?.value.trim() || ''
@@ -198,8 +171,6 @@ function recogerDatosFormulario() {
     const cnae = document.getElementById('cnaeCodigo')?.value.trim() || ''
     const fechaInicioActividad = document.getElementById('fechaInicioActividad')?.value || null
     
-    const consentimiento = true
-    
     return {
         nombre_empresa: nombreCompleto,
         nif_cif: nif,
@@ -211,6 +182,7 @@ function recogerDatosFormulario() {
         calle: calle,
         numero: numero,
         piso: piso,
+        direccion: direccionCompleta,
         codigo_postal: codigoPostal,
         ciudad: municipio,
         provincia: provincia,
@@ -221,7 +193,7 @@ function recogerDatosFormulario() {
         fecha_inicio_actividad: fechaInicioActividad,
         plan: plan,
         tipo_cliente: 'autonomo',
-        consentimiento: consentimiento
+        consentimiento: true
     }
 }
 
@@ -229,9 +201,6 @@ function recogerDatosFormulario() {
 // FUNCIONES PÚBLICAS (exportadas)
 // ============================================================
 
-/**
- * Abre el modal de alta de autónomo
- */
 export async function abrirModalAltaAutonomo() {
     const cargado = await cargarTemplate()
     if (!cargado) return
@@ -260,9 +229,6 @@ export async function abrirModalAltaAutonomo() {
     abrirModal('modalAltaCliente')
 }
 
-/**
- * Crea un nuevo autónomo usando la Edge Function
- */
 export async function crearAutonomo() {
     limpiarErroresFormulario()
     
@@ -274,12 +240,29 @@ export async function crearAutonomo() {
     }
     
     const datos = recogerDatosFormulario()
-    await crearClienteCompleto(datos)
+    
+    // Cerrar el modal de alta antes de mostrar los modales de aceptación
+    cerrarModal('modalAltaCliente')
+    
+    // Mostrar consentimiento RGPD
+    mostrarModalConsentimiento(async (aceptado) => {
+        if (!aceptado) {
+            mostrarModalInformativo('Consentimiento requerido', 'Debes aceptar el RGPD para continuar', 'error')
+            return
+        }
+        
+        // Mostrar contrato de servicios
+        mostrarModalContrato(datos, async (aceptadoContrato) => {
+            if (!aceptadoContrato) {
+                mostrarModalInformativo('Contrato requerido', 'Debes aceptar el contrato de servicios para continuar', 'error')
+                return
+            }
+            
+            datos.consentimiento = true
+            await crearClienteCompleto(datos)
+        })
+    })
 }
-
-// ============================================================
-// EXPORTAR TODO
-// ============================================================
 
 export default {
     abrirModalAltaAutonomo,

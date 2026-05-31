@@ -7,7 +7,7 @@
 <!-- ALERTA INFORMATIVA -->
 <div class="alert-info">
     <strong>🏢 Editando EMPRESA</strong>
-    <p>Modifica los datos de la empresa</p>
+    <p>Los campos marcados con * son obligatorios. El email NO se puede cambiar desde aquí.</p>
 </div>
 
 <!-- DATOS DE LA EMPRESA -->
@@ -15,34 +15,37 @@
 
 <div class="row-flex">
     <div class="grupo">
-        <label>🏢 Razón Social</label>
-        <input type="text" id="editRazonSocial" placeholder="Razón Social">
+        <label>🏢 Razón Social *</label>
+        <input type="text" id="editRazonSocial" placeholder="Razón Social" autocomplete="off">
     </div>
+</div>
+
+<div class="row-flex">
     <div class="grupo">
-        <label>📧 Email</label>
-        <input type="email" id="editEmail" placeholder="Email">
+        <label>📧 Email actual (no editable)</label>
+        <input type="email" id="editEmail" readonly style="background: #f1f5f9; cursor: not-allowed;">
     </div>
 </div>
 
 <div class="row-flex">
     <div class="grupo">
         <label>📋 NIF/CIF</label>
-        <input type="text" id="editNif" placeholder="NIF/CIF">
+        <input type="text" id="editNif" placeholder="NIF/CIF" autocomplete="off">
     </div>
     <div class="grupo">
         <label>📞 Teléfono</label>
-        <input type="tel" id="editTelefono" placeholder="Teléfono">
+        <input type="tel" id="editTelefono" placeholder="Teléfono" autocomplete="off">
     </div>
 </div>
 
 <div class="row-flex">
     <div class="grupo">
         <label>📱 WhatsApp</label>
-        <input type="tel" id="editWhatsapp" placeholder="Número de WhatsApp">
+        <input type="tel" id="editWhatsapp" placeholder="Número de WhatsApp" autocomplete="off">
     </div>
     <div class="grupo">
         <label>👤 Nombre contacto</label>
-        <input type="text" id="editNombreContacto" placeholder="Persona de contacto">
+        <input type="text" id="editNombreContacto" placeholder="Persona de contacto" autocomplete="off">
     </div>
 </div>
 
@@ -67,11 +70,11 @@
 <div class="row-flex">
     <div class="grupo">
         <label>📋 Registro Mercantil</label>
-        <input type="text" id="editRegistroMercantil" placeholder="Registro Mercantil">
+        <input type="text" id="editRegistroMercantil" placeholder="Registro Mercantil" autocomplete="off">
     </div>
     <div class="grupo">
         <label>👤 Representante legal</label>
-        <input type="text" id="editRepresentante" placeholder="Nombre del representante">
+        <input type="text" id="editRepresentante" placeholder="Nombre del representante" autocomplete="off">
     </div>
 </div>
 
@@ -79,24 +82,24 @@
 <div class="card-header">📍 Datos de domicilio</div>
 
 <div class="row-flex">
-    <div class="grupo"><label>Calle</label><input type="text" id="editCalle" placeholder="Calle"></div>
-    <div class="grupo"><label>Número</label><input type="text" id="editNumero" placeholder="Número"></div>
-    <div class="grupo"><label>Piso</label><input type="text" id="editPiso" placeholder="Piso/Puerta"></div>
+    <div class="grupo"><label>Calle</label><input type="text" id="editCalle" placeholder="Calle" autocomplete="off"></div>
+    <div class="grupo"><label>Número</label><input type="text" id="editNumero" placeholder="Número" autocomplete="off"></div>
+    <div class="grupo"><label>Piso</label><input type="text" id="editPiso" placeholder="Piso/Puerta" autocomplete="off"></div>
 </div>
 
 <div class="row-flex">
-    <div class="grupo"><label>CP</label><input type="text" id="editCp" placeholder="Código postal"></div>
-    <div class="grupo"><label>Ciudad</label><input type="text" id="editCiudad" placeholder="Ciudad/Municipio"></div>
-    <div class="grupo"><label>Provincia</label><input type="text" id="editProvincia" placeholder="Provincia"></div>
+    <div class="grupo"><label>CP</label><input type="text" id="editCp" placeholder="Código postal" autocomplete="off"></div>
+    <div class="grupo"><label>Ciudad</label><input type="text" id="editCiudad" placeholder="Ciudad/Municipio" autocomplete="off"></div>
+    <div class="grupo"><label>Provincia</label><input type="text" id="editProvincia" placeholder="Provincia" autocomplete="off"></div>
 </div>
 
 <!-- DATOS BANCARIOS -->
 <div class="card-header">🏦 Datos bancarios</div>
 
 <div class="row-flex">
-    <div class="grupo"><label>IBAN</label><input type="text" id="editIban" placeholder="IBAN"></div>
-    <div class="grupo"><label>Banco</label><input type="text" id="editBanco" placeholder="Nombre del banco"></div>
-    <div class="grupo"><label>SWIFT</label><input type="text" id="editSwift" placeholder="Código SWIFT"></div>
+    <div class="grupo"><label>IBAN</label><input type="text" id="editIban" placeholder="IBAN" autocomplete="off"></div>
+    <div class="grupo"><label>Banco</label><input type="text" id="editBanco" placeholder="Nombre del banco" autocomplete="off"></div>
+    <div class="grupo"><label>SWIFT</label><input type="text" id="editSwift" placeholder="Código SWIFT" autocomplete="off"></div>
 </div>
 
 <!-- DATOS DE ACTIVIDAD -->
@@ -113,7 +116,7 @@
     </div>
     <div class="grupo">
         <label>📋 CNAE</label>
-        <input type="text" id="editCnae" placeholder="Código CNAE">
+        <input type="text" id="editCnae" placeholder="Código CNAE" autocomplete="off">
     </div>
 </div>
 

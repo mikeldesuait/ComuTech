@@ -452,3 +452,27 @@ button:active {
         font-size: 20px;
     }
 }
+/* Forzar que el modal de consentimiento esté por encima del modal de alta */
+#modalConsentimientoRGPD {
+    z-index: 1000000 !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+}
+
+#modalConsentimientoRGPD .modal-content {
+    z-index: 1000001 !important;
+    position: relative !important;
+}
+
+/* Asegurar que el modal de alta tenga un z-index menor */
+#modalAltaCliente {
+    z-index: 99999 !important;
+}
+/* Modal de contrato */
+#modalContratoServicios {
+    z-index: 1000000 !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+}
+
+#modalContratoServicios .modal-content {
+    z-index: 1000001 !important;
+}

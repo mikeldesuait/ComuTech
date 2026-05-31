@@ -1,15 +1,11 @@
 // js/modules/modales/modalesEdicionEmpresa.js
 // 🏢 LÓGICA DE EDICIÓN DE EMPRESAS
 
-import { sb, SUPABASE_URL } from '../supabase.js'
+import { sb } from '../supabase.js'
 import { mostrarModalInformativo, abrirModal, cerrarModal, mostrarModalCarga, cerrarModalCarga } from './modalesGenerales.js'
 
 const TEMPLATE_URL = 'templates/clientes/editar-empresa.html'
 const CONTAINER_ID = 'editarClienteContainer'
-
-// ============================================================
-// FUNCIONES PRIVADAS
-// ============================================================
 
 async function cargarTemplate() {
     try {
@@ -26,12 +22,15 @@ async function cargarTemplate() {
 }
 
 function cargarDatosEnFormulario(cliente) {
-    // Datos de la empresa
     const razonSocialInput = document.getElementById('editRazonSocial')
     if (razonSocialInput) razonSocialInput.value = cliente.nombre_empresa || ''
     
     const emailInput = document.getElementById('editEmail')
-    if (emailInput) emailInput.value = cliente.contacto_email || cliente.email || ''
+    if (emailInput) {
+        emailInput.value = cliente.contacto_email || cliente.email || ''
+        emailInput.readOnly = true
+        emailInput.style.background = '#f1f5f9'
+    }
     
     const nifInput = document.getElementById('editNif')
     if (nifInput) nifInput.value = cliente.nif_cif || ''
@@ -57,7 +56,6 @@ function cargarDatosEnFormulario(cliente) {
     const representanteInput = document.getElementById('editRepresentante')
     if (representanteInput) representanteInput.value = cliente.representante_nombre || ''
     
-    // Domicilio
     const calleInput = document.getElementById('editCalle')
     if (calleInput) calleInput.value = cliente.calle || ''
     
@@ -76,7 +74,6 @@ function cargarDatosEnFormulario(cliente) {
     const provinciaInput = document.getElementById('editProvincia')
     if (provinciaInput) provinciaInput.value = cliente.provincia || ''
     
-    // Datos bancarios
     const ibanInput = document.getElementById('editIban')
     if (ibanInput) ibanInput.value = cliente.iban || ''
     
@@ -86,17 +83,15 @@ function cargarDatosEnFormulario(cliente) {
     const swiftInput = document.getElementById('editSwift')
     if (swiftInput) swiftInput.value = cliente.swift || ''
     
-    // Plan y actividad
-    const planSelect = document.getElementById('editPlan')
-    if (planSelect) planSelect.value = cliente.plan || 'BASICO'
-    
     const cnaeInput = document.getElementById('editCnae')
     if (cnaeInput) cnaeInput.value = cliente.cnae || ''
     
     const fechaInicioInput = document.getElementById('editFechaInicioActividad')
     if (fechaInicioInput) fechaInicioInput.value = cliente.fecha_inicio_actividad || ''
     
-    // IDs ocultos
+    const planSelect = document.getElementById('editPlan')
+    if (planSelect) planSelect.value = cliente.plan || 'BASICO'
+    
     const clienteIdInput = document.getElementById('editClienteId')
     if (clienteIdInput) clienteIdInput.value = cliente.id
     
@@ -109,7 +104,6 @@ function recogerDatosFormulario() {
         id: document.getElementById('editClienteId')?.value,
         perfil_id: document.getElementById('editPerfilId')?.value,
         nombre_empresa: document.getElementById('editRazonSocial')?.value.trim() || '',
-        email: document.getElementById('editEmail')?.value.trim() || '',
         nif_cif: document.getElementById('editNif')?.value.trim() || '',
         telefono: document.getElementById('editTelefono')?.value.trim() || '',
         whatsapp_contacto: document.getElementById('editWhatsapp')?.value.trim() || '',
@@ -135,10 +129,11 @@ function recogerDatosFormulario() {
 }
 
 async function guardarCambios(datos) {
+    if (!datos) return false
+    
     try {
         const { id, perfil_id, ...updateData } = datos
         
-        // 1. Actualizar empresa
         const { error: empresaError } = await sb
             .from('empresas')
             .update({
@@ -168,13 +163,11 @@ async function guardarCambios(datos) {
         
         if (empresaError) throw empresaError
         
-        // 2. Actualizar perfil del gerente
         if (perfil_id) {
             const { error: perfilError } = await sb
                 .from('perfiles')
                 .update({
                     nombre_razon_social: updateData.contacto_nombre || updateData.nombre_empresa,
-                    email: updateData.email,
                     telefono: updateData.telefono
                 })
                 .eq('id', perfil_id)
@@ -207,10 +200,6 @@ async function actualizarStats() {
         }
     } catch (e) {}
 }
-
-// ============================================================
-// RESETEAR CONTRASEÑA
-// ============================================================
 
 function abrirModalResetearPassword(email) {
     const modalEditar = document.getElementById('modalEditarCliente')
@@ -278,10 +267,7 @@ async function ejecutarResetearPassword(email, nuevaPassword) {
         const { data: { session } } = await sb.auth.getSession()
         const accessToken = session?.access_token
         
-        if (!accessToken) {
-            throw new Error('No se pudo obtener el token de sesión')
-        }
-        
+        const { SUPABASE_URL } = await import('../supabase.js')
         const response = await fetch(`${SUPABASE_URL}/functions/v1/resetear-password`, {
             method: 'POST',
             headers: {
@@ -304,11 +290,12 @@ async function ejecutarResetearPassword(email, nuevaPassword) {
     }
 }
 
-// ============================================================
-// FUNCIÓN PÚBLICA PRINCIPAL
-// ============================================================
-
 export async function abrirModalEditarEmpresa(cliente) {
+    if (!cliente || !cliente.id) {
+        mostrarModalInformativo('Error', 'No se pudo identificar el cliente', 'error')
+        return
+    }
+    
     const cargado = await cargarTemplate()
     if (!cargado) return
     
@@ -355,10 +342,6 @@ export async function abrirModalEditarEmpresa(cliente) {
     
     abrirModal('modalEditarCliente')
 }
-
-// ============================================================
-// EXPORTAR
-// ============================================================
 
 export default {
     abrirModalEditarEmpresa

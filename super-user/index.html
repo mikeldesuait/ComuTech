@@ -34,6 +34,8 @@
                     <div style="font-size: 0.8rem; opacity: 0.8;" id="emailAdmin"></div>
                 </div>
                 <div style="display: flex; gap: 12px;">
+                    <button id="btnMiPerfil" style="background: rgba(255,255,255,0.2);">👤 Mi Perfil</button>
+                     <button id="btnMiEmpresa" style="background: rgba(255,255,255,0.2);">🏢 Mi Empresa</button>
                     <button id="btnRefrescar" style="background: rgba(255,255,255,0.2);">🔄 Refrescar</button>
                     <button id="btnLogoutHeader" style="background: rgba(255,255,255,0.2);">🚪 Salir</button>
                 </div>
@@ -232,6 +234,195 @@
                 <button id="btnConfirmarReset" class="btn-warning">🔄 Resetear contraseña</button>
                 <button id="btnCancelarReset" class="btn-info">Cancelar</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR MI PERFIL (SUPER ADMIN) -->
+<div id="modalMiPerfil" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">👤 Mi Perfil</div>
+        <div id="miPerfilContainer">
+            <div style="text-align:center; padding:40px;">Cargando...</div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MI EMPRESA (datos de facturación de COMUTECH) -->
+<div id="modalMiEmpresa" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">🏢 Mi Empresa - Datos de facturación</div>
+        <div id="miEmpresaContainer">
+            <div style="text-align:center; padding:40px;">Cargando...</div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONSENTIMIENTO RGPD - TEXTO COMPLETO ACTUALIZADO -->
+<div id="modalConsentimientoRGPD" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">⚖️ Consentimiento para el Tratamiento de Datos Personales</div>
+        <div style="padding: 10px 0; max-height: 60vh; overflow-y: auto; font-size: 0.85rem; line-height: 1.5;">
+            
+            <p><strong>De acuerdo con el Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo, de 27 de abril de 2016, relativo a la protección de las personas físicas en lo que respecta al tratamiento de datos personales y a la libre circulación de estos datos (RGPD), y la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), le informamos:</strong></p>
+            
+            <h4>1. Responsable del tratamiento</h4>
+            <p><strong>COMUTECH SOLUCIONES SL</strong><br>
+            CIF: B12345678<br>
+            Domicilio: Calle Tecnología 123, 28001 Madrid<br>
+            Correo electrónico: lopd@comutech.es<br>
+            Teléfono: +34 900 123 456</p>
+            
+            <h4>2. Finalidades del tratamiento</h4>
+            <p>Sus datos personales serán tratados para las siguientes finalidades:</p>
+            <ul>
+                <li><strong>✓ Gestión de facturación:</strong> Emisión de facturas, gestión de cobros y seguimiento de pagos.</li>
+                <li><strong>✓ Prestación de servicios:</strong> Gestión de los servicios contratados, atención al cliente y soporte técnico.</li>
+                <li><strong>✓ Cumplimiento de obligaciones legales:</strong> Atención a requerimientos fiscales, contables y administrativos.</li>
+                <li><strong>✓ Comunicaciones comerciales:</strong> Envío de información sobre nuestros servicios, novedades y ofertas (solo si marca la casilla correspondiente).</li>
+                <li><strong>✓ Veri*Factu (Ley Antifraude 11/2021):</strong> Generación de hash encadenado y remisión a la AEAT.</li>
+            </ul>
+            
+            <h4>3. Base de legitimación</h4>
+            <p>La base legal para el tratamiento de sus datos es:</p>
+            <ul>
+                <li>La ejecución del contrato de prestación de servicios suscrito entre las partes.</li>
+                <li>El consentimiento explícito que usted nos otorga mediante la aceptación de esta cláusula.</li>
+                <li>El cumplimiento de obligaciones legales aplicables (Ley de Facturación, Ley Antifraude, Código de Comercio).</li>
+            </ul>
+            
+            <h4>4. Destinatarios de los datos</h4>
+            <p>Sus datos no serán cedidos a terceros salvo por obligación legal. No obstante, se comunicarán a:</p>
+            <ul>
+                <li><strong>Agencia Tributaria (AEAT):</strong> Para el cumplimiento de la Ley Antifraude 11/2021 (Veri*Factu).</li>
+                <li><strong>Entidades bancarias:</strong> Para la gestión de cobros y pagos.</li>
+                <li><strong>Administraciones públicas:</strong> Para el cumplimiento de obligaciones fiscales y contables.</li>
+            </ul>
+            <p>No está prevista ninguna transferencia internacional de datos.</p>
+            
+            <h4>5. Conservación de los datos</h4>
+            <p>Sus datos se conservarán:</p>
+            <ul>
+                <li>Durante la vigencia de la relación contractual.</li>
+                <li>Una vez finalizada, durante los plazos de prescripción de responsabilidades (6 años según el Código de Comercio para documentos contables y fiscales).</li>
+                <li>Los datos de facturación se conservarán durante el plazo mínimo de 5 años según la Ley Antifraude 11/2021.</li>
+            </ul>
+            
+            <h4>6. Derechos de las personas interesadas</h4>
+            <p>Usted tiene derecho a:</p>
+            <ul>
+                <li><strong>Acceso:</strong> Saber qué datos estamos tratando.</li>
+                <li><strong>Rectificación:</strong> Modificar datos inexactos o incompletos.</li>
+                <li><strong>Supresión (derecho al olvido):</strong> Solicitar la eliminación de sus datos.</li>
+                <li><strong>Oposición:</strong> Oponerse a que tratemos sus datos para fines comerciales.</li>
+                <li><strong>Limitación del tratamiento:</strong> Solicitar la suspensión del tratamiento en determinados supuestos.</li>
+                <li><strong>Portabilidad:</strong> Recibir sus datos en un formato estructurado y transmitirlos a otro responsable.</li>
+            </ul>
+            <p>Para ejercer sus derechos, puede escribir a <strong>lopd@comutech.es</strong> adjuntando copia de su DNI o documento identificativo.</p>
+            <p>En caso de no quedar satisfecho, puede presentar una reclamación ante la <strong>Agencia Española de Protección de Datos (AEPD)</strong> (www.aepd.es).</p>
+            
+            <h4>7. Procedencia de los datos</h4>
+            <p>Los datos personales tratados han sido proporcionados directamente por usted o por su representante legal en el momento de la contratación de nuestros servicios.</p>
+            <p>Los datos identificativos de la empresa (NIF, razón social) proceden del registro mercantil o de la documentación aportada por el cliente.</p>
+            
+            <h4>8. Veri*Factu (Ley Antifraude 11/2021)</h4>
+            <p>En cumplimiento de la Ley 11/2021, de 9 de julio, de medidas de prevención y lucha contra el fraude fiscal, le informamos que:</p>
+            <ul>
+                <li>Todas las facturas emitidas generarán un hash SHA-256 encadenado.</li>
+                <li>Las facturas se registrarán en un sistema de trazabilidad que cumplirá con los requisitos del Reglamento Veri*Factu.</li>
+                <li>La información requerida será remitida a la AEAT en los términos establecidos por la normativa.</li>
+            </ul>
+            
+            <h4>9. Seguridad de la información</h4>
+            <p>COMUTECH SOLUCIONES SL ha adoptado las medidas técnicas y organizativas necesarias para garantizar la seguridad de sus datos personales y evitar su alteración, pérdida, tratamiento o acceso no autorizado, de acuerdo con el estado de la tecnología y la naturaleza de los datos almacenados.</p>
+            
+            <hr>
+            <p style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                <strong>📌 Declaro haber leído y comprendido la información anterior, y presto mi consentimiento expreso e inequívoco para que COMUTECH SOLUCIONES SL trate mis datos personales según las finalidades descritas.</strong>
+            </p>
+            <p style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">Fecha de la última actualización: mayo de 2026</p>
+            
+        </div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnAceptarConsentimientoFinal" class="btn-success">✅ Acepto el tratamiento de mis datos</button>
+            <button id="btnRechazarConsentimiento" class="btn-danger">❌ No acepto</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONTRATO DE SERVICIOS -->
+<div id="modalContratoServicios" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">📄 Contrato de Prestación de Servicios</div>
+        <div style="padding: 10px 0; max-height: 60vh; overflow-y: auto; font-size: 0.85rem; line-height: 1.5;">
+            
+            <p style="text-align: center;"><strong>CONTRATO DE PRESTACIÓN DE SERVICIOS TECNOLÓGICOS</strong></p>
+            <p style="text-align: center;"><strong>COMUTECH SOLUCIONES SL</strong></p>
+            
+            <h4>PARTES CONTRATANTES</h4>
+            <p>De una parte, <strong>COMUTECH SOLUCIONES SL</strong>, con CIF B12345678 y domicilio en Calle Tecnología 123, 28001 Madrid (en adelante, "COMUTECH").</p>
+            <p>De otra parte, <strong id="clienteNombreContrato"></strong>, con NIF <strong id="clienteNifContrato"></strong> y domicilio en <strong id="clienteDireccionContrato"></strong> (en adelante, "EL CLIENTE").</p>
+            
+            <h4>1. OBJETO DEL CONTRATO</h4>
+            <p>COMUTECH se obliga a prestar al CLIENTE los servicios de gestión tecnológica contratados, consistentes en el uso de la plataforma SaaS COMUTECH para la gestión de facturación, clientes, empleados y cumplimiento normativo.</p>
+            <p>Las características específicas del servicio se describen en el plan contratado (Básico, Pro o Empresa).</p>
+            
+            <h4>2. DURACIÓN DEL CONTRATO</h4>
+            <p>El presente contrato entrará en vigor en la fecha de su aceptación y tendrá una duración mínima de un (1) mes, renovándose automáticamente por períodos mensuales sucesivos, salvo que cualquiera de las partes comunique su voluntad de no renovar con al menos quince (15) días de antelación a la fecha de finalización del período en curso.</p>
+            
+            <h4>3. PRECIO Y FORMA DE PAGO</h4>
+            <p>El CLIENTE abonará a COMUTECH la cantidad correspondiente al plan seleccionado:</p>
+            <ul>
+                <li><strong>Plan Básico:</strong> 49€/mes + IVA</li>
+                <li><strong>Plan Pro:</strong> 99€/mes + IVA</li>
+                <li><strong>Plan Empresa:</strong> 199€/mes + IVA</li>
+            </ul>
+            <p>El pago se realizará mediante domiciliación bancaria en la cuenta indicada por el CLIENTE, dentro de los primeros siete (7) días naturales del mes en curso.</p>
+            
+            <h4>4. FACTURACIÓN</h4>
+            <p>COMUTECH emitirá factura mensual que estará a disposición del CLIENTE en la plataforma. El CLIENTE acepta expresamente la facturación electrónica.</p>
+            
+            <h4>5. OBLIGACIONES DE COMUTECH</h4>
+            <ul>
+                <li>Prestar el servicio de forma continuada, garantizando una disponibilidad mínima del 99,5% mensual, excluyendo períodos de mantenimiento programado.</li>
+                <li>Mantener la plataforma actualizada con las últimas novedades tecnológicas y normativas.</li>
+                <li>Garantizar la seguridad de los datos conforme a la normativa RGPD.</li>
+                <li>Ofrecer soporte técnico en horario laboral (9:00 a 18:00) para los planes Pro y Empresa.</li>
+            </ul>
+            
+            <h4>6. OBLIGACIONES DEL CLIENTE</h4>
+            <ul>
+                <li>Facilitar la información necesaria para la correcta prestación del servicio.</li>
+                <li>Abonar las cuotas en los plazos establecidos.</li>
+                <li>Utilizar la plataforma de acuerdo con la ley y las buenas prácticas.</li>
+                <li>No realizar actividades que puedan dañar o sobrecargar la plataforma.</li>
+            </ul>
+            
+            <h4>7. PROPIEDAD INTELECTUAL E INDUSTRIAL</h4>
+            <p>La plataforma COMUTECH, su código fuente, diseño, bases de datos y demás elementos son propiedad exclusiva de COMUTECH. El CLIENTE obtiene una licencia de uso no exclusiva e intransferible durante la vigencia del contrato.</p>
+            
+            <h4>8. CONFIDENCIALIDAD</h4>
+            <p>Ambas partes se obligan a mantener la más estricta confidencialidad sobre la información comercial, técnica y de negocio a la que tengan acceso en virtud del presente contrato.</p>
+            
+            <h4>9. PROTECCIÓN DE DATOS</h4>
+            <p>COMUTECH tratará los datos del CLIENTE como encargado de tratamiento, conforme a lo establecido en el RGPD y en el Anexo de Protección de Datos que forma parte integrante del presente contrato.</p>
+            
+            <h4>10. LEY APLICABLE Y JURISDICCIÓN</h4>
+            <p>El presente contrato se regirá por la legislación española. Para cualquier controversia derivada del mismo, las partes se someten a los Juzgados y Tribunales de Madrid, con renuncia expresa a cualquier otro fuero que pudiera corresponderles.</p>
+            
+            <h4>11. RESOLUCIÓN DEL CONTRATO</h4>
+            <p>El incumplimiento de cualquiera de las obligaciones esenciales dará derecho a la parte perjudicada a resolver el contrato, previo requerimiento notificado con quince (15) días de antelación.</p>
+            
+            <hr>
+            <p style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                <strong>📌 DECLARO haber leído y comprendido las condiciones del presente contrato, y acepto expresamente todas sus cláusulas.</strong>
+            </p>
+            <p style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">Fecha de la última actualización: mayo de 2026</p>
+            
+        </div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnAceptarContrato" class="btn-success">✅ Acepto el contrato de servicios</button>
+            <button id="btnRechazarContrato" class="btn-danger">❌ No acepto</button>
         </div>
     </div>
 </div>

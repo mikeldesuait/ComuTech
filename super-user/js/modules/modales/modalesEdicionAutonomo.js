@@ -1,15 +1,11 @@
 // js/modules/modales/modalesEdicionAutonomo.js
 // 👤 LÓGICA DE EDICIÓN DE AUTÓNOMOS
 
-import { sb, SUPABASE_URL } from '../supabase.js'
+import { sb } from '../supabase.js'
 import { mostrarModalInformativo, abrirModal, cerrarModal, mostrarModalCarga, cerrarModalCarga } from './modalesGenerales.js'
 
 const TEMPLATE_URL = 'templates/clientes/editar-autonomo.html'
 const CONTAINER_ID = 'editarClienteContainer'
-
-// ============================================================
-// FUNCIONES PRIVADAS
-// ============================================================
 
 async function cargarTemplate() {
     try {
@@ -26,112 +22,46 @@ async function cargarTemplate() {
 }
 
 function cargarDatosEnFormulario(cliente) {
-    console.log('🟢 Cargando datos del autónomo:', cliente)
-    
     const nombreCompleto = cliente.nombre_empresa || ''
     const partes = nombreCompleto.split(' ')
     const nombre = partes[0] || ''
     const apellido1 = partes[1] || ''
     const apellido2 = partes.slice(2).join(' ') || ''
     
-    // Asignar valores a los campos
-    const nombreInput = document.getElementById('editNombreFisica')
-    if (nombreInput) nombreInput.value = nombre
-    
-    const apellido1Input = document.getElementById('editPrimerApellido')
-    if (apellido1Input) apellido1Input.value = apellido1
-    
-    const apellido2Input = document.getElementById('editSegundoApellido')
-    if (apellido2Input) apellido2Input.value = apellido2
+    document.getElementById('editNombreFisica').value = nombre
+    document.getElementById('editPrimerApellido').value = apellido1
+    document.getElementById('editSegundoApellido').value = apellido2
     
     const emailInput = document.getElementById('editEmailFisica')
-    if (emailInput) emailInput.value = cliente.contacto_email || cliente.email || ''
-    
-    const nifInput = document.getElementById('editNifFisica')
-    if (nifInput) nifInput.value = cliente.nif_cif || ''
-    
-    const telefonoInput = document.getElementById('editTelefonoFisica')
-    if (telefonoInput) telefonoInput.value = cliente.telefono || ''
-    
-    const whatsappInput = document.getElementById('editWhatsappFisica')
-    if (whatsappInput) whatsappInput.value = cliente.whatsapp_contacto || ''
-    
-    const oficioSelect = document.getElementById('editOficioSelect')
-    if (oficioSelect) oficioSelect.value = cliente.oficio || ''
-    
-    const fechaInicioInput = document.getElementById('editFechaInicioActividad')
-    if (fechaInicioInput) fechaInicioInput.value = cliente.fecha_inicio_actividad || ''
-    
-    const calleInput = document.getElementById('editCalle')
-    if (calleInput) calleInput.value = cliente.calle || ''
-    
-    const numeroInput = document.getElementById('editNumero')
-    if (numeroInput) numeroInput.value = cliente.numero || ''
-    
-    const pisoInput = document.getElementById('editPiso')
-    if (pisoInput) pisoInput.value = cliente.piso || ''
-    
-    const cpInput = document.getElementById('editCodigoPostal')
-    if (cpInput) cpInput.value = cliente.codigo_postal || ''
-    
-    const municipioInput = document.getElementById('editMunicipio')
-    if (municipioInput) municipioInput.value = cliente.ciudad || cliente.municipio || ''
-    
-    const provinciaInput = document.getElementById('editProvincia')
-    if (provinciaInput) provinciaInput.value = cliente.provincia || ''
-    
-    const ibanInput = document.getElementById('editIban')
-    if (ibanInput) ibanInput.value = cliente.iban || ''
-    
-    const bancoInput = document.getElementById('editBanco')
-    if (bancoInput) bancoInput.value = cliente.banco || ''
-    
-    const swiftInput = document.getElementById('editSwift')
-    if (swiftInput) swiftInput.value = cliente.swift || ''
-    
-    const cnaeInput = document.getElementById('editCnae')
-    if (cnaeInput) cnaeInput.value = cliente.cnae || ''
-    
-    const planSelect = document.getElementById('editPlan')
-    if (planSelect) planSelect.value = cliente.plan || 'BASICO'
-    
-    // ============================================================
-    // 🔴 IMPORTANTE: Asignar el ID del cliente al campo oculto
-    // ============================================================
-    const clienteIdInput = document.getElementById('editClienteId')
-    if (clienteIdInput) {
-        clienteIdInput.value = cliente.id
-        console.log('✅ ID del cliente asignado:', cliente.id)
-    } else {
-        console.error('❌ No se encontró el campo editClienteId')
+    if (emailInput) {
+        emailInput.value = cliente.contacto_email || cliente.email || ''
+        emailInput.readOnly = true
+        emailInput.style.background = '#f1f5f9'
     }
     
-    const perfilIdInput = document.getElementById('editPerfilId')
-    if (perfilIdInput && cliente.perfil_id) {
-        perfilIdInput.value = cliente.perfil_id
-        console.log('✅ ID del perfil asignado:', cliente.perfil_id)
-    }
-    
-    // Mostrar campo "otro" si es necesario
-    if (cliente.oficio === 'otro') {
-        const otroDiv = document.getElementById('editOtroOficioDiv')
-        const otroInput = document.getElementById('editOtroOficioTexto')
-        if (otroDiv) otroDiv.style.display = 'block'
-        if (otroInput) otroInput.value = cliente.oficio_otro || ''
-    }
+    document.getElementById('editNifFisica').value = cliente.nif_cif || ''
+    document.getElementById('editTelefonoFisica').value = cliente.telefono || ''
+    document.getElementById('editWhatsappFisica').value = cliente.whatsapp_contacto || ''
+    document.getElementById('editOficioSelect').value = cliente.oficio || ''
+    document.getElementById('editFechaInicioActividad').value = cliente.fecha_inicio_actividad || ''
+    document.getElementById('editCalle').value = cliente.calle || ''
+    document.getElementById('editNumero').value = cliente.numero || ''
+    document.getElementById('editPiso').value = cliente.piso || ''
+    document.getElementById('editCodigoPostal').value = cliente.codigo_postal || ''
+    document.getElementById('editMunicipio').value = cliente.ciudad || cliente.municipio || ''
+    document.getElementById('editProvincia').value = cliente.provincia || ''
+    document.getElementById('editIban').value = cliente.iban || ''
+    document.getElementById('editBanco').value = cliente.banco || ''
+    document.getElementById('editSwift').value = cliente.swift || ''
+    document.getElementById('editCnae').value = cliente.cnae || ''
+    document.getElementById('editPlan').value = cliente.plan || 'BASICO'
+    document.getElementById('editClienteId').value = cliente.id
+    document.getElementById('editPerfilId').value = cliente.perfil_id || ''
 }
 
 function recogerDatosFormulario() {
-    console.log('🟡 Recogiendo datos del formulario...')
-    
     const id = document.getElementById('editClienteId')?.value
-    console.log('ID leído:', id)
-    
-    if (!id) {
-        console.error('❌ No se encontró el ID del cliente')
-        mostrarModalInformativo('Error', 'No se pudo identificar el cliente', 'error')
-        return null
-    }
+    if (!id) return null
     
     const nombre = document.getElementById('editNombreFisica')?.value.trim() || ''
     const apellido1 = document.getElementById('editPrimerApellido')?.value.trim() || ''
@@ -150,11 +80,10 @@ function recogerDatosFormulario() {
         whatsapp = telefono
     }
     
-    const datos = {
+    return {
         id: id,
         perfil_id: document.getElementById('editPerfilId')?.value,
         nombre_empresa: nombreCompleto,
-        email: document.getElementById('editEmailFisica')?.value.trim() || '',
         nif_cif: document.getElementById('editNifFisica')?.value.trim() || '',
         telefono: telefono,
         whatsapp_contacto: whatsapp,
@@ -173,20 +102,14 @@ function recogerDatosFormulario() {
         plan: document.getElementById('editPlan')?.value || 'BASICO',
         tipo_cliente: 'autonomo'
     }
-    
-    console.log('📋 Datos recogidos:', datos)
-    return datos
 }
 
 async function guardarCambios(datos) {
     if (!datos) return false
     
-    console.log('🟠 Guardando cambios en Supabase...')
-    
     try {
         const { id, perfil_id, ...updateData } = datos
         
-        // 1. Actualizar empresa
         const { error: empresaError } = await sb
             .from('empresas')
             .update({
@@ -211,35 +134,23 @@ async function guardarCambios(datos) {
             })
             .eq('id', id)
         
-        if (empresaError) {
-            console.error('❌ Error actualizando empresa:', empresaError)
-            throw empresaError
-        }
+        if (empresaError) throw empresaError
         
-        console.log('✅ Empresa actualizada correctamente')
-        
-        // 2. Actualizar perfil del gerente
         if (perfil_id) {
             const { error: perfilError } = await sb
                 .from('perfiles')
                 .update({
                     nombre_razon_social: updateData.nombre_empresa,
-                    email: updateData.email,
                     telefono: updateData.telefono
                 })
                 .eq('id', perfil_id)
             
-            if (perfilError) {
-                console.error('❌ Error actualizando perfil:', perfilError)
-                throw perfilError
-            }
-            
-            console.log('✅ Perfil actualizado correctamente')
+            if (perfilError) throw perfilError
         }
         
         return true
     } catch (error) {
-        console.error('❌ Error en guardarCambios:', error)
+        console.error('Error guardando cambios:', error)
         mostrarModalInformativo('Error', error.message, 'error')
         return false
     }
@@ -251,9 +162,7 @@ async function recargarListaClientes() {
         if (typeof cargarClientes === 'function') {
             await cargarClientes()
         }
-    } catch (e) {
-        console.log('Función cargarClientes no disponible')
-    }
+    } catch (e) {}
 }
 
 async function actualizarStats() {
@@ -262,14 +171,8 @@ async function actualizarStats() {
         if (typeof cargarStats === 'function') {
             await cargarStats()
         }
-    } catch (e) {
-        console.log('Función cargarStats no disponible')
-    }
+    } catch (e) {}
 }
-
-// ============================================================
-// RESETEAR CONTRASEÑA
-// ============================================================
 
 function abrirModalResetearPassword(email) {
     const modalEditar = document.getElementById('modalEditarCliente')
@@ -337,6 +240,7 @@ async function ejecutarResetearPassword(email, nuevaPassword) {
         const { data: { session } } = await sb.auth.getSession()
         const accessToken = session?.access_token
         
+        const { SUPABASE_URL } = await import('../supabase.js')
         const response = await fetch(`${SUPABASE_URL}/functions/v1/resetear-password`, {
             method: 'POST',
             headers: {
@@ -359,15 +263,8 @@ async function ejecutarResetearPassword(email, nuevaPassword) {
     }
 }
 
-// ============================================================
-// FUNCIÓN PÚBLICA PRINCIPAL
-// ============================================================
-
 export async function abrirModalEditarAutonomo(cliente) {
-    console.log('🔵 abrirModalEditarAutonomo llamado:', cliente)
-    
     if (!cliente || !cliente.id) {
-        console.error('❌ Cliente sin ID:', cliente)
         mostrarModalInformativo('Error', 'No se pudo identificar el cliente', 'error')
         return
     }
@@ -387,13 +284,8 @@ export async function abrirModalEditarAutonomo(cliente) {
         const nuevoBtnGuardar = btnGuardar.cloneNode(true)
         btnGuardar.parentNode.replaceChild(nuevoBtnGuardar, btnGuardar)
         nuevoBtnGuardar.onclick = async () => {
-            console.log('🔵 Botón Guardar clickeado')
             mostrarModalCarga('Guardando cambios...')
             const datos = recogerDatosFormulario()
-            if (!datos) {
-                cerrarModalCarga()
-                return
-            }
             const success = await guardarCambios(datos)
             cerrarModalCarga()
             if (success) {
@@ -423,10 +315,6 @@ export async function abrirModalEditarAutonomo(cliente) {
     
     abrirModal('modalEditarCliente')
 }
-
-// ============================================================
-// EXPORTAR
-// ============================================================
 
 export default {
     abrirModalEditarAutonomo

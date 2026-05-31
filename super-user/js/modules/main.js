@@ -15,18 +15,10 @@ let moduloActual = null
 // FUNCIONES DE LOGIN
 // ============================================================
 
-/**
- * Obtiene el usuario actual
- * @returns {Object|null} Usuario actual o null
- */
 export function getCurrentUser() {
     return currentUser
 }
 
-/**
- * Realiza el login del super admin
- * @returns {Promise<boolean>} true si el login fue exitoso
- */
 async function hacerLogin() {
     const email = document.getElementById('email').value.trim()
     const password = document.getElementById('password').value
@@ -44,7 +36,6 @@ async function hacerLogin() {
             return false
         }
         
-        // Verificar que el usuario sea super_admin
         const { data: perfil, error: perfilError } = await sb.from('perfiles')
             .select('rol, nombre_razon_social')
             .eq('user_id', data.user.id)
@@ -73,12 +64,9 @@ async function hacerLogin() {
 // ESTADÍSTICAS DEL DASHBOARD
 // ============================================================
 
-/**
- * Carga y muestra las estadísticas en el dashboard
- */
 async function cargarStats() {
     try {
-        const { data: empresas, error } = await sb.from('empresas').select('*')
+        const { data: empresas, error } = await sb.from('empresas').select('*', { count: 'exact', head: false })
         
         if (error) throw error
         
@@ -86,7 +74,6 @@ async function cargarStats() {
         const activos = empresas?.filter(e => e.activo === true).length || 0
         const inactivos = total - activos
         
-        // Actualizar estadísticas integradas
         const statTotal = document.getElementById('statTotal')
         const statActivos = document.getElementById('statActivos')
         const statInactivos = document.getElementById('statInactivos')
@@ -104,23 +91,16 @@ async function cargarStats() {
 // NAVEGACIÓN ENTRE MÓDULOS (HABITACIONES)
 // ============================================================
 
-/**
- * Carga un módulo específico (habitación)
- * @param {string} modulo - Nombre del módulo ('clientes', 'facturacion', 'normativa')
- */
 async function cargarModulo(modulo) {
     const container = document.getElementById('moduloContainer')
     if (!container) return
     
     try {
-        // Mostrar loading
         container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p>Cargando...</p></div>'
         
-        // Cargar el template HTML del módulo
         const response = await fetch(`templates/${modulo}/${modulo}.html`)
         
         if (!response.ok) {
-            // Intentar con estructura alternativa
             const altResponse = await fetch(`templates/${modulo}.html`)
             if (!altResponse.ok) throw new Error(`No se encontró el template para ${modulo}`)
             container.innerHTML = await altResponse.text()
@@ -128,7 +108,6 @@ async function cargarModulo(modulo) {
             container.innerHTML = await response.text()
         }
         
-        // Cargar el módulo JavaScript correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) await module.iniciar()
@@ -156,19 +135,13 @@ async function cargarModulo(modulo) {
 // CONFIGURAR PESTAÑAS
 // ============================================================
 
-/**
- * Configura los eventos de las pestañas de navegación
- */
 function setupTabs() {
     const tabs = document.querySelectorAll('.browser-tab')
     
     tabs.forEach(tab => {
         tab.onclick = async () => {
-            // Actualizar clase activa de las pestañas
             tabs.forEach(t => t.classList.remove('active'))
             tab.classList.add('active')
-            
-            // Cargar el módulo correspondiente
             const modulo = tab.dataset.tab
             await cargarModulo(modulo)
         }
@@ -179,9 +152,6 @@ function setupTabs() {
 // CONFIGURAR LOGOUT
 // ============================================================
 
-/**
- * Configura los botones de logout
- */
 function setupLogout() {
     const logoutButtons = ['btnLogoutHeader', 'btnLogoutFooter']
     
@@ -197,12 +167,9 @@ function setupLogout() {
 }
 
 // ============================================================
-// REFRESCAR DATOS
+// CONFIGURAR REFRESCAR
 // ============================================================
 
-/**
- * Configura el botón de refrescar
- */
 function setupRefresh() {
     const btnRefresh = document.getElementById('btnRefrescar')
     if (!btnRefresh) return
@@ -220,33 +187,52 @@ function setupRefresh() {
 }
 
 // ============================================================
+// CONFIGURAR BOTONES DE PERFIL Y EMPRESA
+// ============================================================
+
+function setupMiPerfil() {
+    const btnMiPerfil = document.getElementById('btnMiPerfil')
+    if (btnMiPerfil) {
+        btnMiPerfil.onclick = async () => {
+            const module = await import('./miPerfil.js')
+            module.abrirModalMiPerfil()
+        }
+    }
+}
+
+function setupMiEmpresa() {
+    const btnMiEmpresa = document.getElementById('btnMiEmpresa')
+    if (btnMiEmpresa) {
+        btnMiEmpresa.onclick = async () => {
+            const module = await import('./miEmpresa.js')
+            module.abrirModalMiEmpresa()
+        }
+    }
+}
+
+// ============================================================
 // INICIALIZACIÓN PRINCIPAL
 // ============================================================
 
-/**
- * Inicializa la aplicación
- */
 export function init() {
     console.log('🚀 Iniciando Panel SuperUser')
     
-    // Configurar evento de login
     const btnLogin = document.getElementById('btnLogin')
     if (btnLogin) {
         btnLogin.onclick = async () => {
             const success = await hacerLogin()
             if (success) {
-                // Mostrar dashboard
                 document.getElementById('loginPanel').style.display = 'none'
                 document.getElementById('dashboardPanel').style.display = 'block'
                 
-                // Cargar estadísticas y módulo por defecto
                 await cargarStats()
                 await cargarModulo('clientes')
                 
-                // Configurar eventos
                 setupTabs()
                 setupLogout()
                 setupRefresh()
+                setupMiPerfil()
+                setupMiEmpresa()
             }
         }
     }

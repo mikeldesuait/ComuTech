@@ -2,8 +2,9 @@
 // 📋 LÓGICA PRINCIPAL DE LA HABITACIÓN DE CLIENTES
 
 import { sb } from './supabase.js'
-import { mostrarMensaje } from './utils.js'
+import { mostrarMensaje, escapeHtml, obtenerURLContrato } from './utils.js'
 import { abrirModalElegirTipoCliente } from './modales/modalesGenerales.js'
+import { mostrarModalCarga, cerrarModalCarga } from './modales/modalesGenerales.js'
 
 // ============================================================
 // VARIABLES PRIVADAS
@@ -51,16 +52,6 @@ function getBadgeConsentimiento(consentimiento) {
     return '<span class="badge badge-inactivo">❌ Pendiente</span>'
 }
 
-function escapeHtml(text) {
-    if (!text) return text
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-}
-
 // ============================================================
 // RENDERIZAR TABLA
 // ============================================================
@@ -74,9 +65,9 @@ function renderizarTabla() {
     const paginados = clientesFiltrados.slice(inicio, fin)
 
     if (paginados.length === 0) {
-        tbody.innerHTML = `<td><td colspan="8" style="text-align:center; padding:40px;">
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:40px;">
             📋 No hay clientes que coincidan
-        <\/td><tr>`
+        <\/td></tr>`
         document.getElementById('paginacion').innerHTML = ''
         document.getElementById('totalClientes').innerHTML = ''
         return
@@ -97,6 +88,7 @@ function renderizarTabla() {
             <td data-label="Acciones" class="acciones">
                 <button class="btn-sm ver-cliente" data-id="${cliente.id}">👁️ Ver</button>
                 <button class="btn-sm editar-cliente" data-id="${cliente.id}">✏️ Editar</button>
+                <button class="btn-sm contrato-cliente" data-id="${cliente.id}" data-nombre="${escapeHtml(cliente.nombre_empresa)}">📄 Contrato</button>
                 <button class="btn-sm toggle-cliente" data-id="${cliente.id}" data-activo="${cliente.activo}">
                     ${cliente.activo ? '❌ Desactivar' : '✅ Activar'}
                 </button>
@@ -228,6 +220,26 @@ function setupEventosTabla() {
                     const { abrirModalEditarEmpresa } = await import('./modales/modalesEdicionEmpresa.js')
                     abrirModalEditarEmpresa(cliente)
                 }
+            }
+        }
+        
+        else if (btn.classList.contains('contrato-cliente')) {
+            e.preventDefault()
+            e.stopPropagation()
+            const id = btn.dataset.id
+            const nombre = btn.dataset.nombre
+            
+            mostrarModalCarga('Generando contrato...')
+            
+            const url = await obtenerURLContrato(id)
+            
+            cerrarModalCarga()
+            
+            if (url) {
+                window.open(url, '_blank')
+                mostrarMensaje('📄 Contrato abierto en nueva pestaña', 'exito')
+            } else {
+                mostrarMensaje(`❌ No hay contrato disponible para "${nombre}"`, 'error')
             }
         }
         

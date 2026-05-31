@@ -1,0 +1,236 @@
+<!-- templates/mi-perfil.html -->
+<!-- 👤 PERFIL COMPLETO DEL SUPER ADMIN -->
+
+<div class="alert-info">
+    <strong>👑 Datos del Super Admin y su empresa</strong>
+    <p>Completa todos los datos para que aparezcan correctamente en las facturas.</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- DATOS DE IDENTIFICACIÓN                                      -->
+<!-- ============================================================ -->
+<div class="card-header">🏢 Identificación</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>🏢 Tipo de sujeto</label>
+        <select id="perfilTipoSujeto">
+            <option value="juridica">🏢 Persona Jurídica (Empresa)</option>
+            <option value="fisica">👤 Persona Física (Autónomo)</option>
+        </select>
+    </div>
+</div>
+
+<!-- DATOS DE EMPRESA (Persona Jurídica) -->
+<div id="perfilDatosJuridica">
+    <div class="row-flex">
+        <div class="grupo">
+            <label>🏢 Razón Social</label>
+            <input type="text" id="perfilRazonSocial" placeholder="Razón Social">
+        </div>
+        <div class="grupo">
+            <label>📧 Email</label>
+            <input type="email" id="perfilEmail" placeholder="Email">
+        </div>
+    </div>
+    
+    <div class="row-flex">
+        <div class="grupo">
+            <label>📋 NIF/CIF</label>
+            <input type="text" id="perfilNif" placeholder="NIF/CIF">
+        </div>
+        <div class="grupo">
+            <label>📞 Teléfono</label>
+            <input type="tel" id="perfilTelefono" placeholder="Teléfono">
+        </div>
+    </div>
+    
+    <div class="row-flex">
+        <div class="grupo">
+            <label>📋 Forma Social</label>
+            <select id="perfilFormaSocial">
+                <option value="">Selecciona</option>
+                <option value="A">Sociedad Anónima (S.A.)</option>
+                <option value="B">Sociedad Limitada (S.L.)</option>
+                <option value="C">Sociedad Colectiva</option>
+                <option value="D">Sociedad Comanditaria</option>
+                <option value="J">Sociedad Civil</option>
+            </select>
+        </div>
+        <div class="grupo">
+            <label>📅 Fecha constitución</label>
+            <input type="date" id="perfilFechaConstitucion">
+        </div>
+    </div>
+    
+    <div class="row-flex">
+        <div class="grupo">
+            <label>📋 Registro Mercantil</label>
+            <input type="text" id="perfilRegistroMercantil" placeholder="Registro Mercantil">
+        </div>
+        <div class="grupo">
+            <label>👤 Representante legal</label>
+            <input type="text" id="perfilRepresentante" placeholder="Nombre del representante">
+        </div>
+    </div>
+</div>
+
+<!-- DATOS DE AUTÓNOMO (Persona Física) -->
+<div id="perfilDatosFisica" style="display: none;">
+    <div class="row-flex">
+        <div class="grupo">
+            <label>👤 Nombre</label>
+            <input type="text" id="perfilNombre" placeholder="Nombre">
+        </div>
+        <div class="grupo">
+            <label>Primer Apellido</label>
+            <input type="text" id="perfilPrimerApellido" placeholder="Primer apellido">
+        </div>
+        <div class="grupo">
+            <label>Segundo Apellido</label>
+            <input type="text" id="perfilSegundoApellido" placeholder="Segundo apellido">
+        </div>
+    </div>
+    
+    <div class="row-flex">
+        <div class="grupo">
+            <label>📧 Email</label>
+            <input type="email" id="perfilEmailFisica" placeholder="Email">
+        </div>
+        <div class="grupo">
+            <label>📋 NIF</label>
+            <input type="text" id="perfilNifFisica" placeholder="NIF">
+        </div>
+        <div class="grupo">
+            <label>📞 Teléfono</label>
+            <input type="tel" id="perfilTelefonoFisica" placeholder="Teléfono">
+        </div>
+    </div>
+    
+    <div class="row-flex">
+        <div class="grupo">
+            <label>🔧 Oficio</label>
+            <select id="perfilOficio">
+                <option value="">Selecciona</option>
+                <option value="electricidad">⚡ Electricidad</option>
+                <option value="fontaneria">🔧 Fontanería</option>
+                <option value="pintura">🎨 Pintura</option>
+                <option value="albañileria">🏗️ Albañilería</option>
+                <option value="jardineria">🌳 Jardinería</option>
+                <option value="limpieza">🧹 Limpieza</option>
+                <option value="cerrajeria">🔒 Cerrajería</option>
+                <option value="piscinas">🏊 Piscinas</option>
+                <option value="climatizacion">❄️ Climatización</option>
+                <option value="reformas">🔨 Reformas</option>
+                <option value="informatica">💻 Informática</option>
+                <option value="otro">📋 Otro</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DIRECCIÓN                                                   -->
+<!-- ============================================================ -->
+<div class="card-header">📍 Dirección</div>
+
+<div class="row-flex">
+    <div class="grupo"><label>Calle</label><input type="text" id="perfilCalle" placeholder="Calle"></div>
+    <div class="grupo"><label>Número</label><input type="text" id="perfilNumero" placeholder="Número"></div>
+    <div class="grupo"><label>Piso</label><input type="text" id="perfilPiso" placeholder="Piso/Puerta"></div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo"><label>Código postal</label><input type="text" id="perfilCp" placeholder="Código postal"></div>
+    <div class="grupo"><label>Municipio/Ciudad</label><input type="text" id="perfilCiudad" placeholder="Municipio/Ciudad"></div>
+    <div class="grupo"><label>Provincia</label><input type="text" id="perfilProvincia" placeholder="Provincia"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DATOS BANCARIOS                                             -->
+<!-- ============================================================ -->
+<div class="card-header">🏦 Datos bancarios</div>
+
+<div class="row-flex">
+    <div class="grupo"><label>IBAN</label><input type="text" id="perfilIban" placeholder="IBAN"></div>
+    <div class="grupo"><label>Banco</label><input type="text" id="perfilBanco" placeholder="Nombre del banco"></div>
+    <div class="grupo"><label>SWIFT/BIC</label><input type="text" id="perfilSwift" placeholder="Código SWIFT"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DATOS DE ACTIVIDAD                                          -->
+<!-- ============================================================ -->
+<div class="card-header">📊 Datos de actividad</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📋 CNAE</label>
+        <input type="text" id="perfilCnae" placeholder="Código CNAE">
+    </div>
+    <div class="grupo">
+        <label>📅 Fecha inicio actividad</label>
+        <input type="date" id="perfilFechaInicioActividad">
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DATOS DE FACTURACIÓN (opcionales)                           -->
+<!-- ============================================================ -->
+<div class="card-header">📄 Datos de facturación adicionales</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>🌐 Web</label>
+        <input type="text" id="perfilWeb" placeholder="www.tuempresa.com">
+    </div>
+    <div class="grupo">
+        <label>🏷️ Plan</label>
+        <select id="perfilPlan">
+            <option value="BASICO">Básico (49€/mes)</option>
+            <option value="PRO">Pro (99€/mes)</option>
+            <option value="EMPRESA">Empresa (199€/mes)</option>
+        </select>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SEGURIDAD                                                   -->
+<!-- ============================================================ -->
+<div class="card-header">🔐 Seguridad</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <button id="btnCambiarPassword" class="btn-warning">🔄 Cambiar mi contraseña</button>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- BOTONES                                                     -->
+<!-- ============================================================ -->
+<div class="btn-group">
+    <button id="btnGuardarPerfil" class="btn-success">💾 Guardar cambios</button>
+    <button id="btnCancelarPerfil" class="btn-danger">✖ Cancelar</button>
+</div>
+
+<script>
+    (function() {
+        const tipoSujeto = document.getElementById('perfilTipoSujeto')
+        const datosJuridica = document.getElementById('perfilDatosJuridica')
+        const datosFisica = document.getElementById('perfilDatosFisica')
+        
+        if (tipoSujeto && datosJuridica && datosFisica) {
+            function toggleSecciones() {
+                if (tipoSujeto.value === 'juridica') {
+                    datosJuridica.style.display = 'block'
+                    datosFisica.style.display = 'none'
+                } else {
+                    datosJuridica.style.display = 'none'
+                    datosFisica.style.display = 'block'
+                }
+            }
+            
+            tipoSujeto.addEventListener('change', toggleSecciones)
+            toggleSecciones()
+        }
+    })()
+</script>

@@ -1,15 +1,12 @@
 // js/modules/utils.js
 // 🔧 FUNCIONES AUXILIARES COMPARTIDAS
 
+import { sb } from './supabase.js'
+
 // ============================================================
 // FORMATO DE FECHAS
 // ============================================================
 
-/**
- * Formatea una fecha a formato local español
- * @param {string|Date} date - Fecha a formatear
- * @returns {string} Fecha formateada (dd/mm/yyyy)
- */
 export function formatDate(date) {
     if (!date) return ''
     const d = new Date(date)
@@ -17,11 +14,6 @@ export function formatDate(date) {
     return d.toLocaleDateString('es-ES')
 }
 
-/**
- * Formatea una fecha y hora a formato local español
- * @param {string|Date} date - Fecha a formatear
- * @returns {string} Fecha y hora formateada
- */
 export function formatDateTime(date) {
     if (!date) return ''
     const d = new Date(date)
@@ -33,11 +25,6 @@ export function formatDateTime(date) {
 // MENSAJES FLOTANTES
 // ============================================================
 
-/**
- * Muestra un mensaje flotante temporal
- * @param {string} texto - Mensaje a mostrar
- * @param {string} tipo - 'exito' o 'error'
- */
 export function mostrarMensaje(texto, tipo = 'exito') {
     const msg = document.createElement('div')
     msg.className = 'mensaje'
@@ -55,61 +42,26 @@ export function mostrarMensaje(texto, tipo = 'exito') {
 // BADGES Y TIPOS DE CLIENTE
 // ============================================================
 
-/**
- * Obtiene el HTML del badge según el tipo de cliente
- * @param {string} tipo - Tipo de cliente
- * @returns {string} HTML del badge
- */
 export function getBadgeTipo(tipo) {
     const badges = {
         'administrador': '<span class="badge badge-administrador">🏢 Administrador</span>',
         'comunidad': '<span class="badge badge-comunidad">🏘️ Comunidad</span>',
         'autonomo': '<span class="badge badge-autonomo">👤 Autónomo</span>',
-        'empresa_piscinas': '<span class="badge badge-empresa">🌊 Piscinas</span>',
-        'empresa_jardineria': '<span class="badge badge-empresa">🌳 Jardinería</span>',
-        'empresa_fontaneria': '<span class="badge badge-empresa">🔧 Fontanería</span>',
-        'empresa_electricidad': '<span class="badge badge-empresa">⚡ Electricidad</span>',
-        'empresa_limpieza': '<span class="badge badge-empresa">🧹 Limpieza</span>',
-        'empresa_cerrajeria': '<span class="badge badge-empresa">🔒 Cerrajería</span>',
-        'empresa_reformas': '<span class="badge badge-empresa">🏗️ Reformas</span>',
-        'empresa_antenas': '<span class="badge badge-empresa">📡 Antenas</span>',
-        'empresa_climatizacion': '<span class="badge badge-empresa">❄️ Climatización</span>',
-        'empresa': '<span class="badge badge-empresa">🏭 Empresa</span>',
-        'otro': '<span class="badge badge-empresa">📋 Otro</span>'
+        'empresa': '<span class="badge badge-empresa">🏭 Empresa</span>'
     }
     return badges[tipo] || badges['empresa']
 }
 
-/**
- * Obtiene el texto con icono según el tipo de cliente
- * @param {string} tipo - Tipo de cliente
- * @returns {string} Texto con icono
- */
 export function getTipoIcono(tipo) {
     const tipos = {
         'administrador': '🏢 Administrador de comunidades',
         'comunidad': '🏘️ Comunidad de propietarios',
         'autonomo': '👤 Autónomo',
-        'empresa_piscinas': '🌊 Empresa de piscinas',
-        'empresa_jardineria': '🌳 Empresa de jardinería',
-        'empresa_fontaneria': '🔧 Empresa de fontanería',
-        'empresa_electricidad': '⚡ Empresa de electricidad',
-        'empresa_limpieza': '🧹 Empresa de limpieza',
-        'empresa_cerrajeria': '🔒 Empresa de cerrajería',
-        'empresa_reformas': '🏗️ Empresa de reformas',
-        'empresa_antenas': '📡 Empresa de antenas',
-        'empresa_climatizacion': '❄️ Climatización',
-        'empresa': '🏢 Empresa',
-        'otro': '📋 Otro'
+        'empresa': '🏢 Empresa'
     }
     return tipos[tipo] || tipos['empresa']
 }
 
-/**
- * Obtiene el color del badge según el plan
- * @param {string} plan - Plan del cliente
- * @returns {string} Clase CSS del badge
- */
 export function getBadgePlan(plan) {
     const planes = {
         'BASICO': 'badge-basico',
@@ -119,11 +71,6 @@ export function getBadgePlan(plan) {
     return planes[plan] || 'badge-basico'
 }
 
-/**
- * Obtiene el estado del cliente (activo/inactivo)
- * @param {boolean} activo - Estado del cliente
- * @returns {string} HTML del badge de estado
- */
 export function getBadgeEstado(activo) {
     if (activo) {
         return '<span class="badge badge-activo">✅ Activo</span>'
@@ -131,11 +78,6 @@ export function getBadgeEstado(activo) {
     return '<span class="badge badge-inactivo">❌ Inactivo</span>'
 }
 
-/**
- * Obtiene el badge de consentimiento RGPD
- * @param {boolean} consentimiento - Si aceptó el consentimiento
- * @returns {string} HTML del badge
- */
 export function getBadgeConsentimiento(consentimiento) {
     if (consentimiento) {
         return '<span class="badge badge-activo">✅ Aceptado</span>'
@@ -147,34 +89,19 @@ export function getBadgeConsentimiento(consentimiento) {
 // VALIDACIONES
 // ============================================================
 
-/**
- * Valida un email
- * @param {string} email - Email a validar
- * @returns {boolean} true si es válido
- */
 export function isValidEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return re.test(email)
 }
 
-/**
- * Valida un NIF español (básico)
- * @param {string} nif - NIF a validar
- * @returns {boolean} true si tiene formato válido
- */
 export function isValidNIF(nif) {
-    if (!nif) return true // Opcional
+    if (!nif) return true
     const nifRegex = /^[0-9]{8}[A-Z]$|^[A-Z][0-9]{7}[A-Z]$|^[A-Z]{3}[0-9]{4}[A-Z]$/
     return nifRegex.test(nif.toUpperCase())
 }
 
-/**
- * Valida un IBAN español (básico)
- * @param {string} iban - IBAN a validar
- * @returns {boolean} true si tiene formato válido
- */
 export function isValidIBAN(iban) {
-    if (!iban) return true // Opcional
+    if (!iban) return true
     const ibanRegex = /^ES[0-9]{2}[0-9]{20}$/
     return ibanRegex.test(iban.toUpperCase().replace(/\s/g, ''))
 }
@@ -183,18 +110,11 @@ export function isValidIBAN(iban) {
 // MANIPULACIÓN DE MODALES
 // ============================================================
 
-/**
- * Cierra un modal específico
- * @param {string} modalId - ID del modal
- */
 export function cerrarModal(modalId) {
     const modal = document.getElementById(modalId)
     if (modal) modal.style.display = 'none'
 }
 
-/**
- * Cierra todos los modales
- */
 export function cerrarTodosModales() {
     const modales = [
         'modalInformativo',
@@ -213,19 +133,10 @@ export function cerrarTodosModales() {
 // GENERADORES
 // ============================================================
 
-/**
- * Genera un ID único simple
- * @returns {string} ID único
- */
 export function generarIdUnico() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
 
-/**
- * Genera una contraseña aleatoria segura
- * @param {number} longitud - Longitud de la contraseña (por defecto 12)
- * @returns {string} Contraseña generada
- */
 export function generarPassword(longitud = 12) {
     const mayusculas = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
     const minusculas = 'abcdefghijkmnopqrstuvwxyz'
@@ -252,11 +163,6 @@ export function generarPassword(longitud = 12) {
 // COPIA AL PORTAPAPELES
 // ============================================================
 
-/**
- * Copia un texto al portapapeles
- * @param {string} texto - Texto a copiar
- * @returns {Promise<boolean>} true si se copió correctamente
- */
 export async function copiarAlPortapapeles(texto) {
     try {
         await navigator.clipboard.writeText(texto)
@@ -266,6 +172,74 @@ export async function copiarAlPortapapeles(texto) {
         console.error('Error al copiar:', error)
         mostrarMensaje('❌ No se pudo copiar', 'error')
         return false
+    }
+}
+
+// ============================================================
+// ESCAPAR HTML
+// ============================================================
+
+export function escapeHtml(text) {
+    if (!text) return text
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+}
+
+// ============================================================
+// CONTRATOS - URL FIRMADA
+// ============================================================
+
+export async function obtenerURLContrato(empresaId) {
+    if (!empresaId) return null
+    
+    try {
+        console.log('🔍 Buscando contrato para empresa:', empresaId)
+        
+        const { data: contratos, error } = await sb
+            .from('historico_contratos')
+            .select('contrato_pdf_url')
+            .eq('empresa_id', empresaId)
+            .order('fecha_aceptacion', { ascending: false })
+        
+        if (error) {
+            console.error('Error:', error)
+            return null
+        }
+        
+        if (!contratos || contratos.length === 0) {
+            console.log('No hay contratos')
+            return null
+        }
+        
+        let ruta = contratos[0].contrato_pdf_url
+        console.log('Ruta original:', ruta)
+        
+        // Si la ruta no empieza con 'contratos/', añadirlo
+        if (!ruta.startsWith('contratos/')) {
+            ruta = 'contratos/' + ruta
+        }
+        
+        console.log('Ruta corregida:', ruta)
+        
+        const { data, error: urlError } = await sb.storage
+            .from('contratos')
+            .createSignedUrl(ruta, 604800)
+        
+        if (urlError) {
+            console.error('Error generando URL:', urlError)
+            return null
+        }
+        
+        console.log('URL generada:', data?.signedUrl)
+        return data?.signedUrl
+        
+    } catch (error) {
+        console.error('Error:', error)
+        return null
     }
 }
 
@@ -289,5 +263,7 @@ export default {
     cerrarTodosModales,
     generarIdUnico,
     generarPassword,
-    copiarAlPortapapeles
+    copiarAlPortapapeles,
+    escapeHtml,
+    obtenerURLContrato
 }
