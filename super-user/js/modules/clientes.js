@@ -2,7 +2,7 @@
 // 📋 LÓGICA PRINCIPAL DE LA HABITACIÓN DE CLIENTES
 
 import { sb } from './supabase.js'
-import { mostrarMensaje, escapeHtml, obtenerURLContrato } from './utils.js'
+import { mostrarMensaje, escapeHtml } from './utils.js'
 import { abrirModalElegirTipoCliente } from './modales/modalesGenerales.js'
 import { mostrarModalCarga, cerrarModalCarga } from './modales/modalesGenerales.js'
 
@@ -231,15 +231,15 @@ function setupEventosTabla() {
             
             mostrarModalCarga('Generando contrato...')
             
-            const url = await obtenerURLContrato(id)
-            
-            cerrarModalCarga()
-            
-            if (url) {
-                window.open(url, '_blank')
-                mostrarMensaje('📄 Contrato abierto en nueva pestaña', 'exito')
-            } else {
-                mostrarMensaje(`❌ No hay contrato disponible para "${nombre}"`, 'error')
+            try {
+                const { generarYMostrarContrato } = await import('./contrato.js')
+                await generarYMostrarContrato(id)
+                mostrarMensaje(`📄 Contrato generado para "${nombre}"`, 'exito')
+            } catch (error) {
+                console.error('Error al generar contrato:', error)
+                mostrarMensaje(`❌ Error al generar contrato: ${error.message}`, 'error')
+            } finally {
+                cerrarModalCarga()
             }
         }
         

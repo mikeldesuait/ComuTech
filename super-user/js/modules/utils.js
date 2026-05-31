@@ -242,6 +242,22 @@ export async function obtenerURLContrato(empresaId) {
         return null
     }
 }
+// Añade esta función en uno de tus módulos (ej: utils.js)
+export async function listarContratos() {
+  try {
+    const response = await fetch('https://idbdkxhhqeuarcqcaweo.supabase.co/functions/v1/list-contratos');
+    const { success, files, error } = await response.json();
+    if (success) {
+      return files; // Array de objetos con nombre, metadata, etc.
+    } else {
+      console.error('Error listando contratos:', error);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error de red:', error);
+    return [];
+  }
+}
 
 // ============================================================
 // EXPORTAR TODO

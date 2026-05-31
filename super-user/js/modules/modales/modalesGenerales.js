@@ -217,5 +217,5 @@ export default {
     mostrarModalConfirmacion,
     mostrarModalCarga,
     cerrarModalCarga,
-    abrirModalElegirTipoCliente  // ← EXPORTADA
+    abrirModalElegirTipoCliente
 }
