@@ -35,7 +35,7 @@
                 </div>
                 <div style="display: flex; gap: 12px;">
                     <button id="btnMiPerfil" style="background: rgba(255,255,255,0.2);">👤 Mi Perfil</button>
-                     <button id="btnMiEmpresa" style="background: rgba(255,255,255,0.2);">🏢 Mi Empresa</button>
+                    <button id="btnMiEmpresa" style="background: rgba(255,255,255,0.2);">🏢 Mi Empresa</button>
                     <button id="btnRefrescar" style="background: rgba(255,255,255,0.2);">🔄 Refrescar</button>
                     <button id="btnLogoutHeader" style="background: rgba(255,255,255,0.2);">🚪 Salir</button>
                 </div>
@@ -69,7 +69,7 @@
             <div class="browser-tabs">
                 <button class="browser-tab active" data-tab="clientes">🏢 Clientes</button>
                 <button class="browser-tab" data-tab="facturacion">💰 Facturación</button>
-                <button class="browser-tab" data-tab="normativa">⚖️ Normativa</button>
+                <button class="browser-tab" data-tab="suscripciones">📅 Suscripciones</button>
             </div>
             <div id="moduloContainer" class="browser-content">
                 <div style="text-align:center; padding:40px;">Selecciona una habitación</div>
@@ -147,7 +147,7 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR CLIENTE (contenedor dinámico para empresa o autónomo) -->
+<!-- MODAL EDITAR CLIENTE -->
 <div id="modalEditarCliente" class="modal">
     <div class="modal-content" style="max-width: 700px;">
         <div class="modal-header" id="modalEditarClienteHeader">✏️ Editar cliente</div>
@@ -203,9 +203,7 @@
     </div>
 </div>
 
-<!-- ============================================================= -->
-<!-- MODAL RESETEAR CONTRASEÑA                                     -->
-<!-- ============================================================= -->
+<!-- MODAL RESETEAR CONTRASEÑA -->
 <div id="modalResetearPassword" class="modal">
     <div class="modal-content" style="max-width: 450px;">
         <div class="modal-header">🔐 Resetear contraseña</div>
@@ -238,7 +236,7 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR MI PERFIL (SUPER ADMIN) -->
+<!-- MODAL EDITAR MI PERFIL -->
 <div id="modalMiPerfil" class="modal">
     <div class="modal-content" style="max-width: 600px;">
         <div class="modal-header">👤 Mi Perfil</div>
@@ -248,7 +246,7 @@
     </div>
 </div>
 
-<!-- MODAL MI EMPRESA (datos de facturación de COMUTECH) -->
+<!-- MODAL MI EMPRESA -->
 <div id="modalMiEmpresa" class="modal">
     <div class="modal-content" style="max-width: 600px;">
         <div class="modal-header">🏢 Mi Empresa - Datos de facturación</div>
@@ -258,7 +256,7 @@
     </div>
 </div>
 
-<!-- MODAL CONSENTIMIENTO RGPD - TEXTO COMPLETO ACTUALIZADO -->
+<!-- MODAL CONSENTIMIENTO RGPD -->
 <div id="modalConsentimientoRGPD" class="modal">
     <div class="modal-content" style="max-width: 700px;">
         <div class="modal-header">⚖️ Consentimiento para el Tratamiento de Datos Personales</div>
@@ -423,6 +421,37 @@
         <div class="btn-group" style="margin-top: 20px;">
             <button id="btnAceptarContrato" class="btn-success">✅ Acepto el contrato de servicios</button>
             <button id="btnRechazarContrato" class="btn-danger">❌ No acepto</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EXTRAS CLIENTE (para suscripciones) -->
+<div id="modalExtrasCliente" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">➕ Extras personalizados</div>
+        <div id="modalExtrasBody">
+            <p id="modalExtrasClienteNombre"></p>
+            <div id="extrasClienteLista" style="margin: 16px 0;"></div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <input type="text" id="extraClienteConcepto" placeholder="Concepto">
+                </div>
+                <div class="grupo" style="max-width: 100px;">
+                    <input type="number" id="extraClienteImporte" placeholder="Importe" step="1">
+                </div>
+                <div class="grupo" style="max-width: 100px;">
+                    <label style="font-size: 0.7rem;">
+                        <input type="checkbox" id="extraClienteRecurrente"> Recurrente
+                    </label>
+                </div>
+                <div>
+                    <button id="btnAgregarExtraCliente" class="btn-sm">➕</button>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnGuardarExtrasCliente" class="btn-success">💾 Guardar</button>
+            <button id="btnCancelarExtrasCliente" class="btn-danger">Cancelar</button>
         </div>
     </div>
 </div>

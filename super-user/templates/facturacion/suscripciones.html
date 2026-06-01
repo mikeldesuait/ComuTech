@@ -1,0 +1,79 @@
+<!-- templates/facturacion/suscripciones.html -->
+<div class="suscripciones-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="margin: 0;">📅 Suscripciones y facturación recurrente</h2>
+        <button id="btnGenerarFacturasAhora" class="btn-warning">⚡ Generar facturas ahora</button>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">🏷️ Configuración de planes</div>
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📒 Plan Básico (€/mes)</label>
+                <input type="number" id="precioBasico" value="49" step="1" min="0">
+            </div>
+            <div class="grupo">
+                <label>📘 Plan Pro (€/mes)</label>
+                <input type="number" id="precioPro" value="99" step="1" min="0">
+            </div>
+            <div class="grupo">
+                <label>📕 Plan Empresa (€/mes)</label>
+                <input type="number" id="precioEmpresa" value="199" step="1" min="0">
+            </div>
+        </div>
+        <div class="btn-group">
+            <button id="btnGuardarPrecios" class="btn-success">💾 Guardar precios</button>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">➕ Extras / Servicios adicionales</div>
+        <div id="extrasGlobalesLista" style="margin-bottom: 16px;"></div>
+        <div class="row-flex">
+            <div class="grupo">
+                <input type="text" id="nuevoExtraConcepto" placeholder="Concepto (ej: Soporte 24/7)">
+            </div>
+            <div class="grupo" style="max-width: 120px;">
+                <input type="number" id="nuevoExtraImporte" placeholder="Importe" step="1">
+            </div>
+            <div class="grupo" style="max-width: 120px;">
+                <button id="btnAgregarExtraGlobal" class="btn-info">➕ Agregar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">👥 Suscripciones activas por cliente</div>
+        <div style="overflow-x: auto;">
+            <table class="clientes-tabla">
+                <thead>
+                    <tr><th>Cliente</th><th>Plan</th><th>Precio</th><th>Extras</th><th>Total</th><th>Día cobro</th><th>Estado</th><th>Acciones</th></tr>
+                </thead>
+                <tbody id="suscripcionesBody">
+                    <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div id="modalExtrasCliente" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">➕ Extras personalizados</div>
+            <div id="modalExtrasBody">
+                <p id="modalExtrasClienteNombre"></p>
+                <div id="extrasClienteLista" style="margin: 16px 0;"></div>
+                <div class="row-flex">
+                    <div class="grupo"><input type="text" id="extraClienteConcepto" placeholder="Concepto"></div>
+                    <div class="grupo" style="max-width: 100px;"><input type="number" id="extraClienteImporte" placeholder="Importe" step="1"></div>
+                    <div class="grupo" style="max-width: 100px;"><label><input type="checkbox" id="extraClienteRecurrente"> Recurrente</label></div>
+                    <div><button id="btnAgregarExtraCliente" class="btn-sm">➕</button></div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button id="btnGuardarExtrasCliente" class="btn-success">💾 Guardar</button>
+                <button id="btnCancelarExtrasCliente" class="btn-danger">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -190,6 +190,15 @@ export function escapeHtml(text) {
 }
 
 // ============================================================
+// FORMATEO DE MONEDAS
+// ============================================================
+
+export function formatMoney(amount) {
+    if (amount === undefined || amount === null) return '0,00';
+    return amount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ============================================================
 // CONTRATOS - URL FIRMADA
 // ============================================================
 
@@ -218,7 +227,6 @@ export async function obtenerURLContrato(empresaId) {
         let ruta = contratos[0].contrato_pdf_url
         console.log('Ruta original:', ruta)
         
-        // Si la ruta no empieza con 'contratos/', añadirlo
         if (!ruta.startsWith('contratos/')) {
             ruta = 'contratos/' + ruta
         }
@@ -242,21 +250,60 @@ export async function obtenerURLContrato(empresaId) {
         return null
     }
 }
-// Añade esta función en uno de tus módulos (ej: utils.js)
+
+// ============================================================
+// LISTAR CONTRATOS DESDE EDGE FUNCTION
+// ============================================================
+
 export async function listarContratos() {
-  try {
-    const response = await fetch('https://idbdkxhhqeuarcqcaweo.supabase.co/functions/v1/list-contratos');
-    const { success, files, error } = await response.json();
-    if (success) {
-      return files; // Array de objetos con nombre, metadata, etc.
-    } else {
-      console.error('Error listando contratos:', error);
-      return [];
+    try {
+        const response = await fetch('https://idbdkxhhqeuarcqcaweo.supabase.co/functions/v1/list-contratos');
+        const { success, files, error } = await response.json();
+        if (success) {
+            return files;
+        } else {
+            console.error('Error listando contratos:', error);
+            return [];
+        }
+    } catch (error) {
+        console.error('Error de red:', error);
+        return [];
     }
-  } catch (error) {
-    console.error('Error de red:', error);
-    return [];
-  }
+}
+
+// ============================================================
+// MODAL DE CARGA
+// ============================================================
+
+let modalCarga = null
+
+export function mostrarModalCarga(mensaje = 'Procesando...') {
+    if (!modalCarga) {
+        modalCarga = document.createElement('div')
+        modalCarga.id = 'modalCarga'
+        modalCarga.className = 'modal'
+        modalCarga.style.backgroundColor = 'rgba(0,0,0,0.5)'
+        modalCarga.style.display = 'none'
+        modalCarga.style.justifyContent = 'center'
+        modalCarga.style.alignItems = 'center'
+        modalCarga.innerHTML = `
+            <div class="modal-content" style="max-width: 300px; text-align: center;">
+                <div style="padding: 20px;">
+                    <div class="spinner" style="margin: 0 auto 16px auto;"></div>
+                    <p id="modalCargaMensaje">${mensaje}</p>
+                </div>
+            </div>
+        `
+        document.body.appendChild(modalCarga)
+    }
+    
+    const mensajeEl = document.getElementById('modalCargaMensaje')
+    if (mensajeEl) mensajeEl.innerHTML = mensaje
+    modalCarga.style.display = 'flex'
+}
+
+export function cerrarModalCarga() {
+    if (modalCarga) modalCarga.style.display = 'none'
 }
 
 // ============================================================
@@ -281,5 +328,9 @@ export default {
     generarPassword,
     copiarAlPortapapeles,
     escapeHtml,
-    obtenerURLContrato
+    obtenerURLContrato,
+    listarContratos,
+    formatMoney,
+    mostrarModalCarga,
+    cerrarModalCarga
 }

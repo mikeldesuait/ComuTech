@@ -64,7 +64,7 @@ async function hacerLogin() {
 // ESTADÍSTICAS DEL DASHBOARD
 // ============================================================
 
-async function cargarStats() {
+export async function cargarStats() {
     try {
         const { data: empresas, error } = await sb.from('empresas').select('*', { count: 'exact', head: false })
         
@@ -98,16 +98,32 @@ async function cargarModulo(modulo) {
     try {
         container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p>Cargando...</p></div>'
         
-        const response = await fetch(`templates/${modulo}/${modulo}.html`)
+        // Determinar la ruta correcta del template según el módulo
+        let templatePath = ''
         
-        if (!response.ok) {
-            const altResponse = await fetch(`templates/${modulo}.html`)
-            if (!altResponse.ok) throw new Error(`No se encontró el template para ${modulo}`)
-            container.innerHTML = await altResponse.text()
+        if (modulo === 'clientes') {
+            templatePath = 'templates/clientes/clientes.html'
+        } else if (modulo === 'facturacion') {
+            templatePath = 'templates/facturacion/facturacion.html'
+        } else if (modulo === 'suscripciones') {
+            templatePath = 'templates/facturacion/suscripciones.html'
+        } else if (modulo === 'normativa') {
+            templatePath = 'templates/normativa/normativa.html'
         } else {
-            container.innerHTML = await response.text()
+            templatePath = `templates/${modulo}/${modulo}.html`
         }
         
+        console.log('Cargando template:', templatePath)
+        
+        const response = await fetch(templatePath)
+        
+        if (!response.ok) {
+            throw new Error(`No se encontró el template para ${modulo} en ruta: ${templatePath}`)
+        }
+        
+        container.innerHTML = await response.text()
+        
+        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) await module.iniciar()
@@ -116,6 +132,10 @@ async function cargarModulo(modulo) {
             const module = await import('./facturacion.js')
             if (module.iniciar) await module.iniciar()
             moduloActual = 'facturacion'
+        } else if (modulo === 'suscripciones') {
+            const module = await import('./suscripciones.js')
+            if (module.iniciar) await module.iniciar()
+            moduloActual = 'suscripciones'
         } else if (modulo === 'normativa') {
             const module = await import('./normativa.js')
             if (module.iniciar) await module.iniciar()
@@ -181,6 +201,18 @@ function setupRefresh() {
                 await module.cargarClientes()
                 mostrarMensaje('✅ Datos actualizados', 'exito')
             }
+        } else if (moduloActual === 'facturacion') {
+            const module = await import('./facturacion.js')
+            if (module.iniciar) {
+                await module.iniciar()
+                mostrarMensaje('✅ Datos actualizados', 'exito')
+            }
+        } else if (moduloActual === 'suscripciones') {
+            const module = await import('./suscripciones.js')
+            if (module.iniciar) {
+                await module.iniciar()
+                mostrarMensaje('✅ Datos actualizados', 'exito')
+            }
         }
         await cargarStats()
     }
@@ -244,5 +276,6 @@ export function init() {
 
 export default {
     init,
-    getCurrentUser
+    getCurrentUser,
+    cargarStats
 }
