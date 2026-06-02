@@ -13,6 +13,7 @@ async function cargarTemplate() {
         if (!response.ok) throw new Error(`Error cargando template: ${TEMPLATE_URL}`)
         const html = await response.text()
         document.getElementById(CONTAINER_ID).innerHTML = html
+        console.log('✅ Template cargado')
         return true
     } catch (error) {
         console.error(error)
@@ -22,81 +23,47 @@ async function cargarTemplate() {
 }
 
 function cargarDatosEnFormulario(cliente) {
-    const razonSocialInput = document.getElementById('editRazonSocial')
-    if (razonSocialInput) razonSocialInput.value = cliente.nombre_empresa || ''
+    console.log('📝 Cargando datos del cliente:', cliente.nombre_empresa)
     
-    const emailInput = document.getElementById('editEmail')
-    if (emailInput) {
-        emailInput.value = cliente.contacto_email || cliente.email || ''
-        emailInput.readOnly = true
-        emailInput.style.background = '#f1f5f9'
+    const elementos = {
+        editRazonSocial: cliente.nombre_empresa || '',
+        editEmail: cliente.contacto_email || cliente.email || '',
+        editNif: cliente.nif_cif || '',
+        editTelefono: cliente.telefono || '',
+        editWhatsapp: cliente.whatsapp_contacto || '',
+        editNombreContacto: cliente.contacto_nombre || '',
+        editFormaSocial: cliente.forma_social || '',
+        editFechaConstitucion: cliente.fecha_constitucion || '',
+        editRegistroMercantil: cliente.registro_mercantil || '',
+        editRepresentante: cliente.representante_nombre || '',
+        editCalle: cliente.calle || '',
+        editNumero: cliente.numero || '',
+        editPiso: cliente.piso || '',
+        editCp: cliente.codigo_postal || '',
+        editCiudad: cliente.ciudad || cliente.municipio || '',
+        editProvincia: cliente.provincia || '',
+        editIban: cliente.iban || '',
+        editBanco: cliente.banco || '',
+        editSwift: cliente.swift || '',
+        editCnae: cliente.cnae || '',
+        editFechaInicioActividad: cliente.fecha_inicio_actividad || '',
+        editPlan: cliente.plan || 'BASICO',
+        editClienteId: cliente.id,
+        editPerfilId: cliente.perfil_id || ''
     }
     
-    const nifInput = document.getElementById('editNif')
-    if (nifInput) nifInput.value = cliente.nif_cif || ''
-    
-    const telefonoInput = document.getElementById('editTelefono')
-    if (telefonoInput) telefonoInput.value = cliente.telefono || ''
-    
-    const whatsappInput = document.getElementById('editWhatsapp')
-    if (whatsappInput) whatsappInput.value = cliente.whatsapp_contacto || ''
-    
-    const nombreContactoInput = document.getElementById('editNombreContacto')
-    if (nombreContactoInput) nombreContactoInput.value = cliente.contacto_nombre || ''
-    
-    const formaSocialSelect = document.getElementById('editFormaSocial')
-    if (formaSocialSelect) formaSocialSelect.value = cliente.forma_social || ''
-    
-    const fechaConstitucionInput = document.getElementById('editFechaConstitucion')
-    if (fechaConstitucionInput) fechaConstitucionInput.value = cliente.fecha_constitucion || ''
-    
-    const registroMercantilInput = document.getElementById('editRegistroMercantil')
-    if (registroMercantilInput) registroMercantilInput.value = cliente.registro_mercantil || ''
-    
-    const representanteInput = document.getElementById('editRepresentante')
-    if (representanteInput) representanteInput.value = cliente.representante_nombre || ''
-    
-    const calleInput = document.getElementById('editCalle')
-    if (calleInput) calleInput.value = cliente.calle || ''
-    
-    const numeroInput = document.getElementById('editNumero')
-    if (numeroInput) numeroInput.value = cliente.numero || ''
-    
-    const pisoInput = document.getElementById('editPiso')
-    if (pisoInput) pisoInput.value = cliente.piso || ''
-    
-    const cpInput = document.getElementById('editCp')
-    if (cpInput) cpInput.value = cliente.codigo_postal || ''
-    
-    const ciudadInput = document.getElementById('editCiudad')
-    if (ciudadInput) ciudadInput.value = cliente.ciudad || cliente.municipio || ''
-    
-    const provinciaInput = document.getElementById('editProvincia')
-    if (provinciaInput) provinciaInput.value = cliente.provincia || ''
-    
-    const ibanInput = document.getElementById('editIban')
-    if (ibanInput) ibanInput.value = cliente.iban || ''
-    
-    const bancoInput = document.getElementById('editBanco')
-    if (bancoInput) bancoInput.value = cliente.banco || ''
-    
-    const swiftInput = document.getElementById('editSwift')
-    if (swiftInput) swiftInput.value = cliente.swift || ''
-    
-    const cnaeInput = document.getElementById('editCnae')
-    if (cnaeInput) cnaeInput.value = cliente.cnae || ''
-    
-    const fechaInicioInput = document.getElementById('editFechaInicioActividad')
-    if (fechaInicioInput) fechaInicioInput.value = cliente.fecha_inicio_actividad || ''
-    
-    const planSelect = document.getElementById('editPlan')
-    if (planSelect) planSelect.value = cliente.plan || 'BASICO'
-    
-    const clienteIdInput = document.getElementById('editClienteId')
-    if (clienteIdInput) clienteIdInput.value = cliente.id
-    
-    const perfilIdInput = document.getElementById('editPerfilId')
-    if (perfilIdInput && cliente.perfil_id) perfilIdInput.value = cliente.perfil_id
+    for (const [id, value] of Object.entries(elementos)) {
+        const el = document.getElementById(id)
+        if (el) {
+            if (id === 'editEmail') {
+                el.value = value
+                el.readOnly = true
+                el.style.background = '#f1f5f9'
+            } else {
+                el.value = value
+            }
+        }
+    }
 }
 
 function recogerDatosFormulario() {
@@ -130,54 +97,19 @@ function recogerDatosFormulario() {
 
 async function guardarCambios(datos) {
     if (!datos) return false
-    
     try {
         const { id, perfil_id, ...updateData } = datos
-        
-        const { error: empresaError } = await sb
-            .from('empresas')
-            .update({
-                nombre_empresa: updateData.nombre_empresa,
-                nif_cif: updateData.nif_cif,
-                telefono: updateData.telefono,
-                whatsapp_contacto: updateData.whatsapp_contacto,
-                forma_social: updateData.forma_social,
-                fecha_constitucion: updateData.fecha_constitucion,
-                registro_mercantil: updateData.registro_mercantil,
-                representante_nombre: updateData.representante_nombre,
-                calle: updateData.calle,
-                numero: updateData.numero,
-                piso: updateData.piso,
-                codigo_postal: updateData.codigo_postal,
-                ciudad: updateData.ciudad,
-                provincia: updateData.provincia,
-                iban: updateData.iban,
-                banco: updateData.banco,
-                swift: updateData.swift,
-                cnae: updateData.cnae,
-                fecha_inicio_actividad: updateData.fecha_inicio_actividad,
-                plan: updateData.plan,
-                tipo_cliente: updateData.tipo_cliente
-            })
-            .eq('id', id)
-        
+        const { error: empresaError } = await sb.from('empresas').update(updateData).eq('id', id)
         if (empresaError) throw empresaError
-        
         if (perfil_id) {
-            const { error: perfilError } = await sb
-                .from('perfiles')
-                .update({
-                    nombre_razon_social: updateData.contacto_nombre || updateData.nombre_empresa,
-                    telefono: updateData.telefono
-                })
-                .eq('id', perfil_id)
-            
-            if (perfilError) throw perfilError
+            await sb.from('perfiles').update({
+                nombre_razon_social: updateData.contacto_nombre || updateData.nombre_empresa,
+                telefono: updateData.telefono
+            }).eq('id', perfil_id)
         }
-        
         return true
     } catch (error) {
-        console.error('Error guardando cambios:', error)
+        console.error('Error guardando:', error)
         mostrarModalInformativo('Error', error.message, 'error')
         return false
     }
@@ -186,35 +118,38 @@ async function guardarCambios(datos) {
 async function recargarListaClientes() {
     try {
         const { cargarClientes } = await import('../clientes.js')
-        if (typeof cargarClientes === 'function') {
-            await cargarClientes()
-        }
+        if (typeof cargarClientes === 'function') await cargarClientes()
     } catch (e) {}
 }
 
 async function actualizarStats() {
     try {
         const { cargarStats } = await import('../main.js')
-        if (typeof cargarStats === 'function') {
-            await cargarStats()
-        }
+        if (typeof cargarStats === 'function') await cargarStats()
     } catch (e) {}
 }
 
+// ============================================================
+// FUNCIÓN QUE ABRE EL MODAL DE RESETEO DE CONTRASEÑA
+// ============================================================
 function abrirModalResetearPassword(email) {
+    console.log('🔐 abrirModalResetearPassword() llamada con email:', email)
+    
     const modalEditar = document.getElementById('modalEditarCliente')
     if (modalEditar) modalEditar.style.display = 'none'
     
     const modal = document.getElementById('modalResetearPassword')
+    console.log('📦 Modal encontrado:', modal ? 'SÍ' : 'NO')
+    
+    if (!modal) {
+        mostrarModalInformativo('Error', 'Modal de reseteo no encontrado', 'error')
+        return
+    }
+    
     const emailInput = document.getElementById('resetEmail')
     const nuevaPassInput = document.getElementById('resetNuevaPassword')
     const confirmarPassInput = document.getElementById('resetConfirmarPassword')
     const errorDiv = document.getElementById('resetPasswordError')
-    
-    if (!modal) {
-        mostrarModalInformativo('Error', 'No se pudo abrir el diálogo de reseteo', 'error')
-        return
-    }
     
     if (emailInput) emailInput.value = email
     if (nuevaPassInput) nuevaPassInput.value = ''
@@ -222,14 +157,16 @@ function abrirModalResetearPassword(email) {
     if (errorDiv) errorDiv.style.display = 'none'
     
     modal.style.display = 'flex'
+    console.log('✅ Modal de reseteo abierto')
     
+    // Configurar botón confirmar
     const btnConfirmar = document.getElementById('btnConfirmarReset')
     if (btnConfirmar) {
         const nuevoBtnConfirmar = btnConfirmar.cloneNode(true)
         btnConfirmar.parentNode.replaceChild(nuevoBtnConfirmar, btnConfirmar)
         nuevoBtnConfirmar.onclick = async () => {
-            const nuevaPassword = nuevaPassInput?.value.trim() || ''
-            const confirmarPassword = confirmarPassInput?.value.trim() || ''
+            const nuevaPassword = document.getElementById('resetNuevaPassword')?.value.trim() || ''
+            const confirmarPassword = document.getElementById('resetConfirmarPassword')?.value.trim() || ''
             
             if (!nuevaPassword || nuevaPassword.length < 6) {
                 if (errorDiv) {
@@ -247,50 +184,118 @@ function abrirModalResetearPassword(email) {
                 return
             }
             
-            cerrarModal('modalResetearPassword')
+            modal.style.display = 'none'
             await ejecutarResetearPassword(email, nuevaPassword)
         }
     }
     
+    // Configurar botón cancelar
     const btnCancelar = document.getElementById('btnCancelarReset')
     if (btnCancelar) {
         const nuevoBtnCancelar = btnCancelar.cloneNode(true)
         btnCancelar.parentNode.replaceChild(nuevoBtnCancelar, btnCancelar)
-        nuevoBtnCancelar.onclick = () => cerrarModal('modalResetearPassword')
+        nuevoBtnCancelar.onclick = () => {
+            modal.style.display = 'none'
+        }
+    }
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.style.display = 'none'
     }
 }
 
 async function ejecutarResetearPassword(email, nuevaPassword) {
+    console.log('🚀 ejecutarResetearPassword() llamada')
     mostrarModalCarga('Actualizando contraseña...')
-    
     try {
         const { data: { session } } = await sb.auth.getSession()
-        const accessToken = session?.access_token
-        
         const { SUPABASE_URL } = await import('../supabase.js')
         const response = await fetch(`${SUPABASE_URL}/functions/v1/resetear-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `Bearer ${session?.access_token}`
             },
             body: JSON.stringify({ email, nuevaPassword })
         })
-        
         const result = await response.json()
-        
         if (!response.ok) throw new Error(result.error)
-        
         cerrarModalCarga()
-        mostrarModalInformativo('✅ Contraseña actualizada', `La contraseña para ${email} ha sido actualizada correctamente`, 'exito')
-        
+        mostrarModalInformativo('✅ Contraseña actualizada', `La contraseña para ${email} ha sido actualizada`, 'exito')
+        await recargarListaClientes()
     } catch (error) {
         cerrarModalCarga()
         mostrarModalInformativo('Error', error.message, 'error')
     }
 }
 
+// ============================================================
+// CONFIGURAR EL BOTÓN "RESETEAR CONTRASEÑA" EN EL MODAL DE EDICIÓN
+// ============================================================
+function configurarBotonReset(email) {
+    console.log('🔧 configurarBotonReset() llamada con email:', email)
+    
+    // Intentar inmediatamente
+    let btnReset = document.getElementById('btnResetPassword')
+    console.log('🔍 Intento inmediato - botón encontrado:', btnReset ? 'SÍ' : 'NO')
+    
+    if (btnReset) {
+        const nuevoBtn = btnReset.cloneNode(true)
+        btnReset.parentNode.replaceChild(nuevoBtn, btnReset)
+        nuevoBtn.onclick = (e) => {
+            e.preventDefault()
+            console.log('🟢 CLICK EN BOTÓN RESET (configuración inmediata)')
+            abrirModalResetearPassword(email)
+        }
+        console.log('✅ Botón configurado inmediatamente')
+        return
+    }
+    
+    // Si no, esperar con observer
+    const container = document.getElementById('editarClienteContainer')
+    if (container) {
+        console.log('🔍 Observando container para detectar botón...')
+        const observer = new MutationObserver(() => {
+            const btn = document.getElementById('btnResetPassword')
+            if (btn) {
+                console.log('🔍 Observer: botón encontrado!')
+                const nuevoBtn = btn.cloneNode(true)
+                btn.parentNode.replaceChild(nuevoBtn, btn)
+                nuevoBtn.onclick = (e) => {
+                    e.preventDefault()
+                    console.log('🟢 CLICK EN BOTÓN RESET (detectado por observer)')
+                    abrirModalResetearPassword(email)
+                }
+                observer.disconnect()
+            }
+        })
+        observer.observe(container, { childList: true, subtree: true })
+        
+        // Fallback
+        setTimeout(() => {
+            const btn = document.getElementById('btnResetPassword')
+            if (btn && !btn.onclick) {
+                console.log('🔍 Fallback: configurando botón')
+                const nuevoBtn = btn.cloneNode(true)
+                btn.parentNode.replaceChild(nuevoBtn, btn)
+                nuevoBtn.onclick = (e) => {
+                    e.preventDefault()
+                    console.log('🟢 CLICK EN BOTÓN RESET (fallback)')
+                    abrirModalResetearPassword(email)
+                }
+            }
+        }, 1000)
+    } else {
+        console.log('❌ Container no encontrado')
+    }
+}
+
+// ============================================================
+// EXPORTACIÓN PRINCIPAL
+// ============================================================
 export async function abrirModalEditarEmpresa(cliente) {
+    console.log('🚪 abrirModalEditarEmpresa() llamada para:', cliente.nombre_empresa)
+    
     if (!cliente || !cliente.id) {
         mostrarModalInformativo('Error', 'No se pudo identificar el cliente', 'error')
         return
@@ -304,9 +309,8 @@ export async function abrirModalEditarEmpresa(cliente) {
     
     cargarDatosEnFormulario(cliente)
     
+    // Configurar botón guardar
     const btnGuardar = document.getElementById('btnGuardarEdicion')
-    const btnCancelar = document.getElementById('btnCancelarEdicion')
-    
     if (btnGuardar) {
         const nuevoBtnGuardar = btnGuardar.cloneNode(true)
         btnGuardar.parentNode.replaceChild(nuevoBtnGuardar, btnGuardar)
@@ -324,20 +328,22 @@ export async function abrirModalEditarEmpresa(cliente) {
         }
     }
     
+    // Configurar botón cancelar
+    const btnCancelar = document.getElementById('btnCancelarEdicion')
     if (btnCancelar) {
         const nuevoBtnCancelar = btnCancelar.cloneNode(true)
         btnCancelar.parentNode.replaceChild(nuevoBtnCancelar, btnCancelar)
         nuevoBtnCancelar.onclick = () => cerrarModal('modalEditarCliente')
     }
     
-    const btnResetPassword = document.getElementById('btnResetPassword')
-    if (btnResetPassword && cliente.perfil_id) {
-        const nuevoBtnReset = btnResetPassword.cloneNode(true)
-        btnResetPassword.parentNode.replaceChild(nuevoBtnReset, btnResetPassword)
-        nuevoBtnReset.onclick = () => {
-            const email = cliente.contacto_email || cliente.email
-            if (email) abrirModalResetearPassword(email)
-        }
+    // Configurar botón resetear contraseña (CORREGIDO - SIN condición perfil_id)
+    const email = cliente.contacto_email || cliente.email
+    console.log('📧 Email para resetear:', email)
+    
+    if (email) {
+        configurarBotonReset(email)
+    } else {
+        console.log('⚠️ No se configuró botón reset: email faltante')
     }
     
     abrirModal('modalEditarCliente')

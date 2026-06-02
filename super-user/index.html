@@ -2,81 +2,80 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SuperUser Panel · COMUTECH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>COMUTECH · SuperAdmin</title>
     <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- iOS Web App -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="COMUTECH">
 </head>
 <body>
 
-<div class="container">
-    <!-- ============================================================= -->
-    <!-- LOGIN PANEL                                                   -->
-    <!-- ============================================================= -->
-    <div id="loginPanel" class="card">
-        <div class="card-header" style="cursor:default;">👑 SuperUser Panel · COMUTECH</div>
+<!-- LOGIN PANEL -->
+<div id="loginPanel" class="login-container">
+    <div class="login-card">
+        <div class="card-header">👑 COMUTECH</div>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Contraseña">
         <button id="btnLogin">Iniciar sesión</button>
-        <div id="errorMsg" style="color:red; margin-top:12px;"></div>
+        <div id="errorMsg" class="error-msg"></div>
     </div>
+</div>
 
-    <!-- ============================================================= -->
-    <!-- DASHBOARD PANEL                                              -->
-    <!-- ============================================================= -->
-    <div id="dashboardPanel" style="display: none;">
-        
-        <!-- CARD DE BIENVENIDA CON ESTADÍSTICAS INTEGRADAS -->
-        <div class="card" style="background: linear-gradient(135deg, #1e4663 0%, #2c6e9e 100%); color: white;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                <div>
-                    <div style="font-size: 0.8rem; opacity: 0.8;">👑 Super Admin</div>
-                    <div style="font-size: 1.3rem; font-weight: 700;" id="nombreAdmin">Cargando...</div>
-                    <div style="font-size: 0.8rem; opacity: 0.8;" id="emailAdmin"></div>
-                </div>
-                <div style="display: flex; gap: 12px;">
-                    <button id="btnMiPerfil" style="background: rgba(255,255,255,0.2);">👤 Mi Perfil</button>
-                    <button id="btnMiEmpresa" style="background: rgba(255,255,255,0.2);">🏢 Mi Empresa</button>
-                    <button id="btnRefrescar" style="background: rgba(255,255,255,0.2);">🔄 Refrescar</button>
-                    <button id="btnLogoutHeader" style="background: rgba(255,255,255,0.2);">🚪 Salir</button>
-                </div>
+<!-- DASHBOARD PANEL -->
+<div id="dashboardPanel" style="display: none;">
+    
+    <!-- Header con stats -->
+    <div class="dashboard-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="admin-label">👑 Super Admin</div>
+                <div class="admin-name" id="nombreAdmin">Cargando...</div>
+                <div class="admin-email" id="emailAdmin"></div>
             </div>
-            
-            <!-- ESTADÍSTICAS CON CÍRCULOS BLANCOS DE 60px -->
-            <div style="display: flex; gap: 24px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); justify-content: center;">
-                <div style="text-align: center;">
-                    <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #1e4663;" id="statTotal">0</div>
-                    </div>
-                    <div style="font-size: 0.65rem; margin-top: 6px; opacity: 0.8;">Total</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #2c7a4d;" id="statActivos">0</div>
-                    </div>
-                    <div style="font-size: 0.65rem; margin-top: 6px; opacity: 0.8;">Activos</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #c2410c;" id="statInactivos">0</div>
-                    </div>
-                    <div style="font-size: 0.65rem; margin-top: 6px; opacity: 0.8;">Inactivos</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- NAVEGADOR DE PESTAÑAS (HABITACIONES) -->
-        <div class="card">
-            <div class="browser-tabs">
-                <button class="browser-tab active" data-tab="clientes">🏢 Clientes</button>
-                <button class="browser-tab" data-tab="facturacion">💰 Facturación</button>
-                <button class="browser-tab" data-tab="suscripciones">📅 Suscripciones</button>
-            </div>
-            <div id="moduloContainer" class="browser-content">
-                <div style="text-align:center; padding:40px;">Selecciona una habitación</div>
+            <div style="display: flex; gap: 8px;">
+                <button id="btnMiPerfil" class="header-btn">👤</button>
+                <button id="btnLogoutHeader" class="header-btn">🚪</button>
             </div>
         </div>
         
-        <button id="btnLogoutFooter" style="background:#475569; margin-top:16px;">🚪 Cerrar sesión</button>
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="value" id="statTotal">0</div>
+                <div class="label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="statActivos">0</div>
+                <div class="label">Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="statInactivos">0</div>
+                <div class="label">Inactivos</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contenido principal -->
+    <div id="moduloContainer" class="browser-content">
+        <div class="empty-state">Selecciona una opción</div>
+    </div>
+    
+    <!-- Tab Bar inferior -->
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="clientes">
+            <span>🏢</span>
+            <span>Clientes</span>
+        </button>
+        <button class="tab-btn" data-tab="facturacion">
+            <span>💰</span>
+            <span>Facturación</span>
+        </button>
+        <button class="tab-btn" data-tab="suscripciones">
+            <span>📅</span>
+            <span>Suscripciones</span>
+        </button>
     </div>
 </div>
 
@@ -84,386 +83,214 @@
 <!-- MODALES GLOBALES                                             -->
 <!-- ============================================================= -->
 
-<!-- MODAL INFORMATIVO -->
 <div id="modalInformativo" class="modal">
-    <div class="modal-content" style="max-width: 500px; text-align: center;">
+    <div class="modal-content">
         <div class="modal-header" id="modalInformativoHeader">📢 Información</div>
-        <div style="padding: 20px;">
-            <div style="font-size: 3rem; margin-bottom: 16px;" id="modalInformativoIcono">✅</div>
-            <p id="modalInformativoMensaje" style="font-size: 1.1rem; margin-bottom: 20px;"></p>
-            <button id="btnCerrarInformativo" class="btn-success">Aceptar</button>
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;" id="modalInformativoIcono">✅</div>
+            <p id="modalInformativoMensaje"></p>
+            <button id="btnCerrarInformativo" class="btn-primary" style="margin-top: 20px;">Aceptar</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL DE CONFIRMACIÓN -->
 <div id="modalConfirmacion" class="modal">
-    <div class="modal-content" style="max-width: 450px;">
+    <div class="modal-content">
         <div class="modal-header">⚠️ Confirmar acción</div>
-        <div style="padding: 10px 0;">
-            <p id="mensajeConfirmacion" style="margin-bottom: 20px;"></p>
-            <div class="btn-group" style="margin-top: 20px;">
-                <button id="btnConfirmarAccion" class="btn-danger">✅ Confirmar</button>
-                <button id="btnCancelarAccion" class="btn-info">Cancelar</button>
-            </div>
+        <p id="mensajeConfirmacion" style="margin-bottom: 20px;"></p>
+        <div class="btn-group">
+            <button id="btnConfirmarAccion" class="btn-danger">Confirmar</button>
+            <button id="btnCancelarAccion" class="btn-primary">Cancelar</button>
         </div>
     </div>
 </div>
 
-<!-- ============================================================= -->
-<!-- MODALES DE CLIENTES                                          -->
-<!-- ============================================================= -->
-
-<!-- MODAL ALTA CLIENTE -->
 <div id="modalAltaCliente" class="modal">
-    <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-content">
         <div class="modal-header" id="modalAltaClienteHeader">📝 Dar de alta cliente</div>
         <div id="altaClienteContainer"></div>
     </div>
 </div>
 
-<!-- MODAL GENERAR CONTRASEÑA -->
 <div id="modalGenerarPassword" class="modal">
-    <div class="modal-content" style="max-width: 500px;">
-        <div class="modal-header">🔐 Generar contraseña de acceso</div>
+    <div class="modal-content">
+        <div class="modal-header">🔐 Generar contraseña</div>
         <div id="passwordAleatorioContainer">
-            <p style="margin-bottom: 16px;">Contraseña generada para el gerente:</p>
-            <div style="background: #f1f5f9; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 16px;">
-                <code id="passwordGenerada" style="font-size: 1.3rem; font-weight: bold;"></code>
-            </div>
+            <p>Contraseña generada:</p>
+            <div class="password-box"><code id="passwordGenerada"></code></div>
             <div class="btn-group">
-                <button id="btnAceptarPassword" class="btn-success">✅ Aceptar contraseña</button>
-                <button id="btnCrearManual" class="btn-info">✏️ Crear manualmente</button>
+                <button id="btnAceptarPassword" class="btn-success">Aceptar</button>
+                <button id="btnCrearManual" class="btn-info">Crear manual</button>
             </div>
         </div>
         <div id="passwordManualContainer" style="display: none;">
-            <p style="margin-bottom: 16px;">Introduce la contraseña manualmente (mínimo 6 caracteres):</p>
-            <input type="password" id="passwordManual" placeholder="Contraseña" style="width: 100%; padding: 12px;">
-            <div class="btn-group" style="margin-top: 16px;">
-                <button id="btnAceptarPasswordManual" class="btn-success">✅ Aceptar</button>
-                <button id="btnVolverAleatorio" class="btn-info">↩️ Volver</button>
+            <p>Introduce contraseña:</p>
+            <input type="password" id="passwordManual" placeholder="Contraseña">
+            <div class="btn-group">
+                <button id="btnAceptarPasswordManual" class="btn-success">Aceptar</button>
+                <button id="btnVolverAleatorio" class="btn-info">Volver</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL EDITAR CLIENTE -->
 <div id="modalEditarCliente" class="modal">
-    <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-content">
         <div class="modal-header" id="modalEditarClienteHeader">✏️ Editar cliente</div>
         <div id="editarClienteContainer"></div>
     </div>
 </div>
 
-<!-- MODAL VER CLIENTE -->
 <div id="modalVerCliente" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content">
         <div class="modal-header" id="modalVerClienteHeader">📋 Detalle del cliente</div>
         <div id="detalleCliente"></div>
         <div id="historicoConsentimientos"></div>
         <div class="btn-group">
-            <button id="btnCerrarDetalle" class="btn-info">Cerrar</button>
+            <button id="btnCerrarDetalle" class="btn-primary">Cerrar</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL CONFIRMAR ELIMINACIÓN -->
 <div id="modalConfirmarEliminacion" class="modal">
-    <div class="modal-content" style="max-width: 450px;">
+    <div class="modal-content">
         <div class="modal-header">⚠️ Confirmar eliminación</div>
-        <div style="padding: 10px 0;">
-            <p style="margin-bottom: 20px; color: #c2410c;"><strong>¡ATENCIÓN!</strong> Esta acción es irreversible.</p>
-            <p id="mensajeEliminacionCliente" style="margin-bottom: 20px;"></p>
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>🔐 Introduce tu contraseña para confirmar</label>
-                    <input type="password" id="passwordConfirmacion" placeholder="Tu contraseña de Super Admin">
-                </div>
-            </div>
-            <div id="errorPasswordConfirmacion" style="color: #c2410c; font-size: 0.8rem; margin-top: 8px; display: none;"></div>
-            <div class="btn-group" style="margin-top: 20px;">
-                <button id="btnConfirmarEliminacion" class="btn-danger">🗑️ Sí, eliminar cliente</button>
-                <button id="btnCancelarEliminacion" class="btn-info">Cancelar</button>
-            </div>
+        <p style="color: var(--ios-red); margin-bottom: 16px;">¡ATENCIÓN! Esta acción es irreversible.</p>
+        <p id="mensajeEliminacionCliente" style="margin-bottom: 20px;"></p>
+        <div class="grupo">
+            <label>🔐 Introduce tu contraseña</label>
+            <input type="password" id="passwordConfirmacion" placeholder="Tu contraseña">
+        </div>
+        <div id="errorPasswordConfirmacion" class="error-msg" style="display: none;"></div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnConfirmarEliminacion" class="btn-danger">Eliminar</button>
+            <button id="btnCancelarEliminacion" class="btn-primary">Cancelar</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL ELEGIR TIPO DE CLIENTE -->
 <div id="modalElegirTipoCliente" class="modal">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-        <div class="modal-header">📌 ¿Qué tipo de cliente quieres dar de alta?</div>
-        <div style="padding: 20px;">
-            <div class="btn-group" style="flex-direction: column; gap: 12px;">
-                <button id="btnElegirEmpresa" class="btn-success" style="padding: 16px;">🏢 Empresa / Persona Jurídica</button>
-                <button id="btnElegirAutonomo" class="btn-info" style="padding: 16px;">👤 Autónomo / Persona Física</button>
-                <button id="btnCancelarElegir" class="btn-danger">✖ Cancelar</button>
-            </div>
+    <div class="modal-content">
+        <div class="modal-header">📌 ¿Qué tipo de cliente?</div>
+        <div class="btn-group" style="flex-direction: column;">
+            <button id="btnElegirEmpresa" class="btn-success">🏢 Empresa</button>
+            <button id="btnElegirAutonomo" class="btn-info">👤 Autónomo</button>
+            <button id="btnCancelarElegir" class="btn-danger">Cancelar</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL RESETEAR CONTRASEÑA -->
 <div id="modalResetearPassword" class="modal">
-    <div class="modal-content" style="max-width: 450px;">
+    <div class="modal-content">
         <div class="modal-header">🔐 Resetear contraseña</div>
-        <div style="padding: 10px 0;">
-            <p id="mensajeResetPassword" style="margin-bottom: 20px;">Introduce la nueva contraseña para el gerente</p>
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>📧 Email del gerente</label>
-                    <input type="email" id="resetEmail" readonly style="background: #f1f5f9;">
-                </div>
-            </div>
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>🔑 Nueva contraseña *</label>
-                    <input type="password" id="resetNuevaPassword" placeholder="Mínimo 6 caracteres">
-                </div>
-            </div>
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>🔑 Repetir nueva contraseña *</label>
-                    <input type="password" id="resetConfirmarPassword" placeholder="Repite la contraseña">
-                </div>
-            </div>
-            <div id="resetPasswordError" style="color: #c2410c; font-size: 0.8rem; margin-top: 8px; display: none;"></div>
-            <div class="btn-group" style="margin-top: 20px;">
-                <button id="btnConfirmarReset" class="btn-warning">🔄 Resetear contraseña</button>
-                <button id="btnCancelarReset" class="btn-info">Cancelar</button>
-            </div>
+        <div class="grupo">
+            <label>Email del gerente</label>
+            <input type="email" id="resetEmail" readonly>
+        </div>
+        <div class="grupo">
+            <label>Nueva contraseña</label>
+            <input type="password" id="resetNuevaPassword" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="grupo">
+            <label>Repetir contraseña</label>
+            <input type="password" id="resetConfirmarPassword" placeholder="Repite la contraseña">
+        </div>
+        <div id="resetPasswordError" class="error-msg"></div>
+        <div class="btn-group">
+            <button id="btnConfirmarReset" class="btn-warning">Resetear</button>
+            <button id="btnCancelarReset" class="btn-primary">Cancelar</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL EDITAR MI PERFIL -->
 <div id="modalMiPerfil" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content">
         <div class="modal-header">👤 Mi Perfil</div>
-        <div id="miPerfilContainer">
-            <div style="text-align:center; padding:40px;">Cargando...</div>
-        </div>
+        <div id="miPerfilContainer">Cargando...</div>
     </div>
 </div>
 
-<!-- MODAL MI EMPRESA -->
 <div id="modalMiEmpresa" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header">🏢 Mi Empresa - Datos de facturación</div>
-        <div id="miEmpresaContainer">
-            <div style="text-align:center; padding:40px;">Cargando...</div>
-        </div>
+    <div class="modal-content">
+        <div class="modal-header">🏢 Mi Empresa</div>
+        <div id="miEmpresaContainer">Cargando...</div>
     </div>
 </div>
 
-<!-- MODAL CONSENTIMIENTO RGPD -->
 <div id="modalConsentimientoRGPD" class="modal">
-    <div class="modal-content" style="max-width: 700px;">
-        <div class="modal-header">⚖️ Consentimiento para el Tratamiento de Datos Personales</div>
-        <div style="padding: 10px 0; max-height: 60vh; overflow-y: auto; font-size: 0.85rem; line-height: 1.5;">
-            
-            <p><strong>De acuerdo con el Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo, de 27 de abril de 2016, relativo a la protección de las personas físicas en lo que respecta al tratamiento de datos personales y a la libre circulación de estos datos (RGPD), y la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), le informamos:</strong></p>
-            
-            <h4>1. Responsable del tratamiento</h4>
-            <p><strong>COMUTECH SOLUCIONES SL</strong><br>
-            CIF: B12345678<br>
-            Domicilio: Calle Tecnología 123, 28001 Madrid<br>
-            Correo electrónico: lopd@comutech.es<br>
-            Teléfono: +34 900 123 456</p>
-            
-            <h4>2. Finalidades del tratamiento</h4>
-            <p>Sus datos personales serán tratados para las siguientes finalidades:</p>
-            <ul>
-                <li><strong>✓ Gestión de facturación:</strong> Emisión de facturas, gestión de cobros y seguimiento de pagos.</li>
-                <li><strong>✓ Prestación de servicios:</strong> Gestión de los servicios contratados, atención al cliente y soporte técnico.</li>
-                <li><strong>✓ Cumplimiento de obligaciones legales:</strong> Atención a requerimientos fiscales, contables y administrativos.</li>
-                <li><strong>✓ Comunicaciones comerciales:</strong> Envío de información sobre nuestros servicios, novedades y ofertas (solo si marca la casilla correspondiente).</li>
-                <li><strong>✓ Veri*Factu (Ley Antifraude 11/2021):</strong> Generación de hash encadenado y remisión a la AEAT.</li>
-            </ul>
-            
-            <h4>3. Base de legitimación</h4>
-            <p>La base legal para el tratamiento de sus datos es:</p>
-            <ul>
-                <li>La ejecución del contrato de prestación de servicios suscrito entre las partes.</li>
-                <li>El consentimiento explícito que usted nos otorga mediante la aceptación de esta cláusula.</li>
-                <li>El cumplimiento de obligaciones legales aplicables (Ley de Facturación, Ley Antifraude, Código de Comercio).</li>
-            </ul>
-            
-            <h4>4. Destinatarios de los datos</h4>
-            <p>Sus datos no serán cedidos a terceros salvo por obligación legal. No obstante, se comunicarán a:</p>
-            <ul>
-                <li><strong>Agencia Tributaria (AEAT):</strong> Para el cumplimiento de la Ley Antifraude 11/2021 (Veri*Factu).</li>
-                <li><strong>Entidades bancarias:</strong> Para la gestión de cobros y pagos.</li>
-                <li><strong>Administraciones públicas:</strong> Para el cumplimiento de obligaciones fiscales y contables.</li>
-            </ul>
-            <p>No está prevista ninguna transferencia internacional de datos.</p>
-            
-            <h4>5. Conservación de los datos</h4>
-            <p>Sus datos se conservarán:</p>
-            <ul>
-                <li>Durante la vigencia de la relación contractual.</li>
-                <li>Una vez finalizada, durante los plazos de prescripción de responsabilidades (6 años según el Código de Comercio para documentos contables y fiscales).</li>
-                <li>Los datos de facturación se conservarán durante el plazo mínimo de 5 años según la Ley Antifraude 11/2021.</li>
-            </ul>
-            
-            <h4>6. Derechos de las personas interesadas</h4>
-            <p>Usted tiene derecho a:</p>
-            <ul>
-                <li><strong>Acceso:</strong> Saber qué datos estamos tratando.</li>
-                <li><strong>Rectificación:</strong> Modificar datos inexactos o incompletos.</li>
-                <li><strong>Supresión (derecho al olvido):</strong> Solicitar la eliminación de sus datos.</li>
-                <li><strong>Oposición:</strong> Oponerse a que tratemos sus datos para fines comerciales.</li>
-                <li><strong>Limitación del tratamiento:</strong> Solicitar la suspensión del tratamiento en determinados supuestos.</li>
-                <li><strong>Portabilidad:</strong> Recibir sus datos en un formato estructurado y transmitirlos a otro responsable.</li>
-            </ul>
-            <p>Para ejercer sus derechos, puede escribir a <strong>lopd@comutech.es</strong> adjuntando copia de su DNI o documento identificativo.</p>
-            <p>En caso de no quedar satisfecho, puede presentar una reclamación ante la <strong>Agencia Española de Protección de Datos (AEPD)</strong> (www.aepd.es).</p>
-            
-            <h4>7. Procedencia de los datos</h4>
-            <p>Los datos personales tratados han sido proporcionados directamente por usted o por su representante legal en el momento de la contratación de nuestros servicios.</p>
-            <p>Los datos identificativos de la empresa (NIF, razón social) proceden del registro mercantil o de la documentación aportada por el cliente.</p>
-            
-            <h4>8. Veri*Factu (Ley Antifraude 11/2021)</h4>
-            <p>En cumplimiento de la Ley 11/2021, de 9 de julio, de medidas de prevención y lucha contra el fraude fiscal, le informamos que:</p>
-            <ul>
-                <li>Todas las facturas emitidas generarán un hash SHA-256 encadenado.</li>
-                <li>Las facturas se registrarán en un sistema de trazabilidad que cumplirá con los requisitos del Reglamento Veri*Factu.</li>
-                <li>La información requerida será remitida a la AEAT en los términos establecidos por la normativa.</li>
-            </ul>
-            
-            <h4>9. Seguridad de la información</h4>
-            <p>COMUTECH SOLUCIONES SL ha adoptado las medidas técnicas y organizativas necesarias para garantizar la seguridad de sus datos personales y evitar su alteración, pérdida, tratamiento o acceso no autorizado, de acuerdo con el estado de la tecnología y la naturaleza de los datos almacenados.</p>
-            
-            <hr>
-            <p style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
-                <strong>📌 Declaro haber leído y comprendido la información anterior, y presto mi consentimiento expreso e inequívoco para que COMUTECH SOLUCIONES SL trate mis datos personales según las finalidades descritas.</strong>
-            </p>
-            <p style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">Fecha de la última actualización: mayo de 2026</p>
-            
+    <div class="modal-content">
+        <div class="modal-header">⚖️ Consentimiento RGPD</div>
+        <div class="consentimiento-texto">
+            <p>De acuerdo con el RGPD (UE) 2016/679...</p>
         </div>
-        <div class="btn-group" style="margin-top: 20px;">
-            <button id="btnAceptarConsentimientoFinal" class="btn-success">✅ Acepto el tratamiento de mis datos</button>
-            <button id="btnRechazarConsentimiento" class="btn-danger">❌ No acepto</button>
+        <div class="btn-group">
+            <button id="btnAceptarConsentimientoFinal" class="btn-success">Acepto</button>
+            <button id="btnRechazarConsentimiento" class="btn-danger">No acepto</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL CONTRATO DE SERVICIOS -->
 <div id="modalContratoServicios" class="modal">
-    <div class="modal-content" style="max-width: 800px;">
-        <div class="modal-header">📄 Contrato de Prestación de Servicios</div>
-        <div style="padding: 10px 0; max-height: 60vh; overflow-y: auto; font-size: 0.85rem; line-height: 1.5;">
-            
-            <p style="text-align: center;"><strong>CONTRATO DE PRESTACIÓN DE SERVICIOS TECNOLÓGICOS</strong></p>
-            <p style="text-align: center;"><strong>COMUTECH SOLUCIONES SL</strong></p>
-            
-            <h4>PARTES CONTRATANTES</h4>
-            <p>De una parte, <strong>COMUTECH SOLUCIONES SL</strong>, con CIF B12345678 y domicilio en Calle Tecnología 123, 28001 Madrid (en adelante, "COMUTECH").</p>
-            <p>De otra parte, <strong id="clienteNombreContrato"></strong>, con NIF <strong id="clienteNifContrato"></strong> y domicilio en <strong id="clienteDireccionContrato"></strong> (en adelante, "EL CLIENTE").</p>
-            
-            <h4>1. OBJETO DEL CONTRATO</h4>
-            <p>COMUTECH se obliga a prestar al CLIENTE los servicios de gestión tecnológica contratados, consistentes en el uso de la plataforma SaaS COMUTECH para la gestión de facturación, clientes, empleados y cumplimiento normativo.</p>
-            <p>Las características específicas del servicio se describen en el plan contratado (Básico, Pro o Empresa).</p>
-            
-            <h4>2. DURACIÓN DEL CONTRATO</h4>
-            <p>El presente contrato entrará en vigor en la fecha de su aceptación y tendrá una duración mínima de un (1) mes, renovándose automáticamente por períodos mensuales sucesivos, salvo que cualquiera de las partes comunique su voluntad de no renovar con al menos quince (15) días de antelación a la fecha de finalización del período en curso.</p>
-            
-            <h4>3. PRECIO Y FORMA DE PAGO</h4>
-            <p>El CLIENTE abonará a COMUTECH la cantidad correspondiente al plan seleccionado:</p>
-            <ul>
-                <li><strong>Plan Básico:</strong> 49€/mes + IVA</li>
-                <li><strong>Plan Pro:</strong> 99€/mes + IVA</li>
-                <li><strong>Plan Empresa:</strong> 199€/mes + IVA</li>
-            </ul>
-            <p>El pago se realizará mediante domiciliación bancaria en la cuenta indicada por el CLIENTE, dentro de los primeros siete (7) días naturales del mes en curso.</p>
-            
-            <h4>4. FACTURACIÓN</h4>
-            <p>COMUTECH emitirá factura mensual que estará a disposición del CLIENTE en la plataforma. El CLIENTE acepta expresamente la facturación electrónica.</p>
-            
-            <h4>5. OBLIGACIONES DE COMUTECH</h4>
-            <ul>
-                <li>Prestar el servicio de forma continuada, garantizando una disponibilidad mínima del 99,5% mensual, excluyendo períodos de mantenimiento programado.</li>
-                <li>Mantener la plataforma actualizada con las últimas novedades tecnológicas y normativas.</li>
-                <li>Garantizar la seguridad de los datos conforme a la normativa RGPD.</li>
-                <li>Ofrecer soporte técnico en horario laboral (9:00 a 18:00) para los planes Pro y Empresa.</li>
-            </ul>
-            
-            <h4>6. OBLIGACIONES DEL CLIENTE</h4>
-            <ul>
-                <li>Facilitar la información necesaria para la correcta prestación del servicio.</li>
-                <li>Abonar las cuotas en los plazos establecidos.</li>
-                <li>Utilizar la plataforma de acuerdo con la ley y las buenas prácticas.</li>
-                <li>No realizar actividades que puedan dañar o sobrecargar la plataforma.</li>
-            </ul>
-            
-            <h4>7. PROPIEDAD INTELECTUAL E INDUSTRIAL</h4>
-            <p>La plataforma COMUTECH, su código fuente, diseño, bases de datos y demás elementos son propiedad exclusiva de COMUTECH. El CLIENTE obtiene una licencia de uso no exclusiva e intransferible durante la vigencia del contrato.</p>
-            
-            <h4>8. CONFIDENCIALIDAD</h4>
-            <p>Ambas partes se obligan a mantener la más estricta confidencialidad sobre la información comercial, técnica y de negocio a la que tengan acceso en virtud del presente contrato.</p>
-            
-            <h4>9. PROTECCIÓN DE DATOS</h4>
-            <p>COMUTECH tratará los datos del CLIENTE como encargado de tratamiento, conforme a lo establecido en el RGPD y en el Anexo de Protección de Datos que forma parte integrante del presente contrato.</p>
-            
-            <h4>10. LEY APLICABLE Y JURISDICCIÓN</h4>
-            <p>El presente contrato se regirá por la legislación española. Para cualquier controversia derivada del mismo, las partes se someten a los Juzgados y Tribunales de Madrid, con renuncia expresa a cualquier otro fuero que pudiera corresponderles.</p>
-            
-            <h4>11. RESOLUCIÓN DEL CONTRATO</h4>
-            <p>El incumplimiento de cualquiera de las obligaciones esenciales dará derecho a la parte perjudicada a resolver el contrato, previo requerimiento notificado con quince (15) días de antelación.</p>
-            
-            <hr>
-            <p style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
-                <strong>📌 DECLARO haber leído y comprendido las condiciones del presente contrato, y acepto expresamente todas sus cláusulas.</strong>
-            </p>
-            <p style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">Fecha de la última actualización: mayo de 2026</p>
-            
+    <div class="modal-content">
+        <div class="modal-header">📄 Contrato de servicios</div>
+        <div class="contrato-texto">
+            <p><strong>CONTRATO DE PRESTACIÓN DE SERVICIOS</strong></p>
+            <p>CLIENTE: <span id="clienteNombreContrato"></span></p>
+            <p>NIF: <span id="clienteNifContrato"></span></p>
         </div>
-        <div class="btn-group" style="margin-top: 20px;">
-            <button id="btnAceptarContrato" class="btn-success">✅ Acepto el contrato de servicios</button>
-            <button id="btnRechazarContrato" class="btn-danger">❌ No acepto</button>
+        <div class="btn-group">
+            <button id="btnAceptarContrato" class="btn-success">Acepto</button>
+            <button id="btnRechazarContrato" class="btn-danger">No acepto</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL EXTRAS CLIENTE (para suscripciones) -->
-<div id="modalExtrasCliente" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 550px;">
+<div id="modalExtrasCliente" class="modal">
+    <div class="modal-content">
         <div class="modal-header">➕ Extras personalizados</div>
-        <div id="modalExtrasBody">
-            <p id="modalExtrasClienteNombre"></p>
-            <div id="extrasClienteLista" style="margin: 16px 0;"></div>
-            <div class="row-flex">
-                <div class="grupo">
-                    <input type="text" id="extraClienteConcepto" placeholder="Concepto">
-                </div>
-                <div class="grupo" style="max-width: 100px;">
-                    <input type="number" id="extraClienteImporte" placeholder="Importe" step="1">
-                </div>
-                <div class="grupo" style="max-width: 100px;">
-                    <label style="font-size: 0.7rem;">
-                        <input type="checkbox" id="extraClienteRecurrente"> Recurrente
-                    </label>
-                </div>
-                <div>
-                    <button id="btnAgregarExtraCliente" class="btn-sm">➕</button>
-                </div>
-            </div>
+        <p id="modalExtrasClienteNombre"></p>
+        <div id="extrasClienteLista" style="margin: 16px 0;"></div>
+        <div class="row-flex">
+            <input type="text" id="extraClienteConcepto" placeholder="Concepto">
+            <input type="number" id="extraClienteImporte" placeholder="Importe" step="1">
+            <label><input type="checkbox" id="extraClienteRecurrente"> Recurrente</label>
+            <button id="btnAgregarExtraCliente" class="btn-sm">➕</button>
         </div>
-        <div class="btn-group" style="margin-top: 20px;">
-            <button id="btnGuardarExtrasCliente" class="btn-success">💾 Guardar</button>
+        <div class="btn-group">
+            <button id="btnGuardarExtrasCliente" class="btn-success">Guardar</button>
             <button id="btnCancelarExtrasCliente" class="btn-danger">Cancelar</button>
         </div>
     </div>
 </div>
 
-<!-- ============================================================= -->
-<!-- SCRIPT PRINCIPAL                                              -->
-<!-- ============================================================= -->
-
 <script type="module">
     import { init } from './js/modules/main.js'
     init()
 </script>
+
+<style>
+    .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ios-bg); padding: 20px; }
+    .login-card { background: var(--ios-card); border-radius: 44px; padding: 32px 24px; width: 100%; max-width: 400px; box-shadow: var(--ios-shadow-heavy); }
+    .login-card .card-header { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 32px; }
+    .login-card input { width: 100%; padding: 16px; background: var(--ios-bg); border: none; border-radius: 14px; margin-bottom: 16px; font-size: 16px; }
+    .login-card button { width: 100%; padding: 16px; background: var(--ios-blue); color: white; border: none; border-radius: 14px; font-weight: 600; font-size: 17px; }
+    .error-msg { color: var(--ios-red); font-size: 14px; margin-top: 12px; text-align: center; }
+    .dashboard-header { background: var(--ios-card); padding: 60px 20px 24px; border-bottom: 0.5px solid var(--ios-border); }
+    .admin-label { font-size: 13px; color: var(--ios-gray); }
+    .admin-name { font-size: 20px; font-weight: 600; }
+    .admin-email { font-size: 13px; color: var(--ios-gray); }
+    .header-btn { background: var(--ios-gray-light); border: none; border-radius: 30px; padding: 8px 12px; font-size: 16px; }
+    .stats-row { display: flex; gap: 16px; margin-top: 24px; }
+    .stat-card { flex: 1; background: #f8f8fc; border-radius: 20px; padding: 16px 12px; text-align: center; }
+    .stat-card .value { font-size: 28px; font-weight: 700; }
+    .stat-card .label { font-size: 13px; color: var(--ios-gray); margin-top: 4px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--ios-gray); }
+    .password-box { background: var(--ios-bg); padding: 16px; border-radius: 12px; text-align: center; margin: 16px 0; }
+    .password-box code { font-size: 18px; font-weight: bold; }
+    .btn-group { display: flex; gap: 12px; margin-top: 20px; }
+    .btn-group button { flex: 1; }
+    .consentimiento-texto, .contrato-texto { max-height: 400px; overflow-y: auto; padding: 16px; background: var(--ios-bg); border-radius: 12px; margin-bottom: 16px; font-size: 12px; }
+</style>
 
 </body>
 </html>

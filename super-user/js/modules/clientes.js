@@ -1,5 +1,5 @@
 // js/modules/clientes.js
-// 📋 LÓGICA PRINCIPAL DE LA HABITACIÓN DE CLIENTES
+// 📋 LÓGICA PRINCIPAL DE LA HABITACIÓN DE CLIENTES (VERSIÓN MÓVIL)
 
 import { sb } from './supabase.js'
 import { mostrarMensaje, escapeHtml } from './utils.js'
@@ -12,107 +12,76 @@ import { mostrarModalCarga, cerrarModalCarga } from './modales/modalesGenerales.
 
 let clientes = []
 let clientesFiltrados = []
-let paginaActual = 1
-const registrosPorPagina = 10
 
 // ============================================================
 // FUNCIONES AUXILIARES DE BADGES
 // ============================================================
 
-function getBadgeTipo(tipo) {
-    const badges = {
-        'administrador': '<span class="badge badge-administrador">🏢 Administrador</span>',
-        'comunidad': '<span class="badge badge-comunidad">🏘️ Comunidad</span>',
-        'autonomo': '<span class="badge badge-autonomo">👤 Autónomo</span>',
-        'empresa': '<span class="badge badge-empresa">🏭 Empresa</span>'
+function getBadgePlanClass(plan) {
+    const classes = {
+        'BASICO': 'badge-basico',
+        'PRO': 'badge-pro',
+        'EMPRESA': 'badge-empresa-plan'
     }
-    return badges[tipo] || badges['empresa']
+    return classes[plan] || 'badge-basico'
 }
 
-function getBadgePlan(plan) {
-    const planes = {
-        'BASICO': '<span class="badge badge-basico">📒 Básico</span>',
-        'PRO': '<span class="badge badge-pro">📘 Pro</span>',
-        'EMPRESA': '<span class="badge badge-empresa-plan">📕 Empresa</span>'
+function getBadgePlanTexto(plan) {
+    const textos = {
+        'BASICO': '📒 Básico',
+        'PRO': '📘 Pro',
+        'EMPRESA': '📕 Empresa'
     }
-    return planes[plan] || planes['BASICO']
-}
-
-function getBadgeEstado(activo) {
-    if (activo) {
-        return '<span class="badge badge-activo">✅ Activo</span>'
-    }
-    return '<span class="badge badge-inactivo">❌ Inactivo</span>'
-}
-
-function getBadgeConsentimiento(consentimiento) {
-    if (consentimiento) {
-        return '<span class="badge badge-activo">✅ Aceptado</span>'
-    }
-    return '<span class="badge badge-inactivo">❌ Pendiente</span>'
+    return textos[plan] || 'BASICO'
 }
 
 // ============================================================
-// RENDERIZAR TABLA
+// RENDERIZAR CLIENTES (MODO MÓVIL - CARDS)
 // ============================================================
 
-function renderizarTabla() {
-    const tbody = document.getElementById('clientesBody')
-    if (!tbody) return
+function renderizarClientes() {
+    const container = document.getElementById('listaClientes')
+    if (!container) return
 
-    const inicio = (paginaActual - 1) * registrosPorPagina
-    const fin = inicio + registrosPorPagina
-    const paginados = clientesFiltrados.slice(inicio, fin)
-
-    if (paginados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:40px;">
-            📋 No hay clientes que coincidan
-        <\/td></tr>`
-        document.getElementById('paginacion').innerHTML = ''
-        document.getElementById('totalClientes').innerHTML = ''
+    if (!clientesFiltrados || clientesFiltrados.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: var(--ios-gray);">
+                <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                <p>No hay clientes que coincidan</p>
+            </div>
+        `
         return
     }
 
-    tbody.innerHTML = paginados.map(cliente => `
-        <tr>
-            <td data-label="Tipo">${getBadgeTipo(cliente.tipo_cliente)}</td>
-            <td data-label="Empresa">
-                <strong>${escapeHtml(cliente.nombre_empresa) || '-'}</strong><br>
-                <small>${escapeHtml(cliente.nif_cif) || ''}</small>
-            </td>
-            <td data-label="Contacto">${escapeHtml(cliente.contacto_nombre) || '-'}</td>
-            <td data-label="Email">${escapeHtml(cliente.contacto_email) || '-'}</td>
-            <td data-label="Plan">${getBadgePlan(cliente.plan)}</td>
-            <td data-label="Estado">${getBadgeEstado(cliente.activo)}</td>
-            <td data-label="RGPD">${getBadgeConsentimiento(cliente.consentimiento)}</td>
-            <td data-label="Acciones" class="acciones">
-                <button class="btn-sm ver-cliente" data-id="${cliente.id}">👁️ Ver</button>
-                <button class="btn-sm editar-cliente" data-id="${cliente.id}">✏️ Editar</button>
-                <button class="btn-sm contrato-cliente" data-id="${cliente.id}" data-nombre="${escapeHtml(cliente.nombre_empresa)}">📄 Contrato</button>
-                <button class="btn-sm toggle-cliente" data-id="${cliente.id}" data-activo="${cliente.activo}">
-                    ${cliente.activo ? '❌ Desactivar' : '✅ Activar'}
-                </button>
-                <button class="btn-sm eliminar-cliente" data-id="${cliente.id}" data-nombre="${escapeHtml(cliente.nombre_empresa) || ''}">
-                    🗑️ Eliminar
-                </button>
-            </td>
-        </tr>
+    // Mostrar todos los clientes filtrados (sin paginación en móvil)
+    container.innerHTML = clientesFiltrados.map(cliente => `
+        <div class="cliente-card" data-id="${cliente.id}">
+            <div class="cliente-header">
+                <div>
+                    <div class="cliente-nombre">${escapeHtml(cliente.nombre_empresa || 'Sin nombre')}</div>
+                    <div class="cliente-nif">${escapeHtml(cliente.nif_cif || 'Sin NIF')}</div>
+                </div>
+                <div class="cliente-actions">
+                    <button class="action-btn ver-cliente" data-id="${cliente.id}" title="Ver">👁️</button>
+                    <button class="action-btn editar-cliente" data-id="${cliente.id}" title="Editar">✏️</button>
+                    <button class="action-btn eliminar-cliente" data-id="${cliente.id}" title="Eliminar">🗑️</button>
+                </div>
+            </div>
+            <div class="cliente-contacto">
+                <span>📧 ${escapeHtml(cliente.contacto_email || cliente.email || '-')}</span>
+                <span>📱 ${escapeHtml(cliente.telefono || '-')}</span>
+            </div>
+            <div class="cliente-badges">
+                <span class="badge ${getBadgePlanClass(cliente.plan)}">${getBadgePlanTexto(cliente.plan)}</span>
+                <span class="badge ${cliente.activo ? 'badge-activo' : 'badge-inactivo'}">
+                    ${cliente.activo ? '✅ Activo' : '❌ Inactivo'}
+                </span>
+                <span class="badge ${cliente.consentimiento ? 'badge-activo' : 'badge-inactivo'}">
+                    ${cliente.consentimiento ? '📜 RGPD ✅' : '📜 RGPD ❌'}
+                </span>
+            </div>
+        </div>
     `).join('')
-
-    const totalPaginas = Math.ceil(clientesFiltrados.length / registrosPorPagina)
-    let pagHtml = ''
-    for (let i = 1; i <= totalPaginas; i++) {
-        pagHtml += `<button class="${i === paginaActual ? 'active' : ''}" data-pagina="${i}">${i}</button>`
-    }
-    document.getElementById('paginacion').innerHTML = pagHtml
-    document.getElementById('totalClientes').innerHTML = `Mostrando ${clientesFiltrados.length} clientes · Página ${paginaActual} de ${totalPaginas || 1}`
-
-    document.querySelectorAll('#paginacion button').forEach(btn => {
-        btn.onclick = () => {
-            paginaActual = parseInt(btn.dataset.pagina)
-            renderizarTabla()
-        }
-    })
 }
 
 // ============================================================
@@ -160,7 +129,7 @@ function actualizarFiltroProvincias() {
     const selectProvincia = document.getElementById('filtroProvincia')
     
     if (selectProvincia) {
-        selectProvincia.innerHTML = '<option value="">Todas las provincias</option>' +
+        selectProvincia.innerHTML = '<option value="">Todas</option>' +
             provincias.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')
     }
 }
@@ -185,8 +154,7 @@ function aplicarFiltros() {
         return true
     })
 
-    paginaActual = 1
-    renderizarTabla()
+    renderizarClientes()
 }
 
 // ============================================================
@@ -223,49 +191,14 @@ function setupEventosTabla() {
             }
         }
         
-        else if (btn.classList.contains('contrato-cliente')) {
-            e.preventDefault()
-            e.stopPropagation()
-            const id = btn.dataset.id
-            const nombre = btn.dataset.nombre
-            
-            mostrarModalCarga('Generando contrato...')
-            
-            try {
-                const { generarYMostrarContrato } = await import('./contrato.js')
-                await generarYMostrarContrato(id)
-                mostrarMensaje(`📄 Contrato generado para "${nombre}"`, 'exito')
-            } catch (error) {
-                console.error('Error al generar contrato:', error)
-                mostrarMensaje(`❌ Error al generar contrato: ${error.message}`, 'error')
-            } finally {
-                cerrarModalCarga()
-            }
-        }
-        
-        else if (btn.classList.contains('toggle-cliente')) {
-            e.preventDefault()
-            const id = btn.dataset.id
-            const activo = btn.dataset.activo === 'true'
-            
-            const { error } = await sb.from('empresas')
-                .update({ activo: !activo })
-                .eq('id', id)
-            
-            if (error) {
-                mostrarMensaje('Error al cambiar estado', 'error')
-            } else {
-                mostrarMensaje(activo ? 'Cliente desactivado' : 'Cliente activado', 'exito')
-                await cargarClientes()
-            }
-        }
-        
         else if (btn.classList.contains('eliminar-cliente')) {
             e.preventDefault()
             const id = btn.dataset.id
             const nombre = btn.dataset.nombre
+            const cliente = clientes.find(c => c.id === id)
+            const nombreCliente = cliente?.nombre_empresa || nombre
             const { abrirModalEliminarCliente } = await import('./modales/modalesEliminacion.js')
-            abrirModalEliminarCliente(id, nombre)
+            abrirModalEliminarCliente(id, nombreCliente)
         }
     }
 }
@@ -275,7 +208,7 @@ function setupEventosTabla() {
 // ============================================================
 
 export async function iniciar() {
-    console.log('🚀 Iniciando habitación de clientes')
+    console.log('🚀 Iniciando habitación de clientes (modo móvil)')
     
     await cargarClientes()
     setupEventosTabla()

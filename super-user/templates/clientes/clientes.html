@@ -1,54 +1,39 @@
 <!-- templates/clientes/clientes.html -->
-<!-- 📋 HABITACIÓN DE CLIENTES - LISTADO PRINCIPAL -->
+<!-- 📱 LISTA DE CLIENTES ESTILO INSTAGRAM -->
 
-<!-- BARRA DE BÚSQUEDA Y FILTROS -->
+<!-- Buscador -->
 <div class="search-bar">
-    <input type="text" id="buscadorCliente" placeholder="🔍 Buscar por nombre, email, NIF...">
-    <select id="filtroPlan">
-        <option value="">Todos los planes</option>
-        <option value="BASICO">📒 Básico</option>
-        <option value="PRO">📘 Pro</option>
-        <option value="EMPRESA">📕 Empresa</option>
+    <span>🔍</span>
+    <input type="text" id="buscadorCliente" placeholder="Buscar cliente...">
+</div>
+
+<!-- Filtros horizontales -->
+<div style="display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; padding-bottom: 4px;">
+    <select id="filtroPlan" class="badge" style="background: var(--ios-gray-light); border: none; padding: 8px 12px;">
+        <option value="">Todos</option>
+        <option value="BASICO">Básico</option>
+        <option value="PRO">Pro</option>
+        <option value="EMPRESA">Empresa</option>
     </select>
-    <select id="filtroEstado">
-        <option value="">Todos los estados</option>
-        <option value="activo">✅ Activos</option>
-        <option value="inactivo">❌ Inactivos</option>
+    <select id="filtroEstado" class="badge" style="background: var(--ios-gray-light); border: none; padding: 8px 12px;">
+        <option value="">Todos</option>
+        <option value="activo">Activos</option>
+        <option value="inactivo">Inactivos</option>
     </select>
-    <select id="filtroProvincia">
-        <option value="">Todas las provincias</option>
+    <select id="filtroProvincia" class="badge" style="background: var(--ios-gray-light); border: none; padding: 8px 12px;">
+        <option value="">Todas</option>
     </select>
 </div>
 
-<!-- BOTÓN NUEVO CLIENTE -->
-<div style="margin-bottom: 20px;">
-    <button id="btnNuevoCliente" class="btn-success">➕ Nuevo cliente</button>
+<!-- Lista de clientes (cards) -->
+<div id="listaClientes" class="clientes-lista">
+    <div style="text-align: center; padding: 40px;">
+        <div class="spinner"></div>
+        <p style="margin-top: 12px; color: var(--ios-gray);">Cargando clientes...</p>
+    </div>
 </div>
 
-<!-- TABLA DE CLIENTES -->
-<div style="overflow-x: auto;">
-    <table class="clientes-tabla">
-        <thead>
-            <tr>
-                <th>Tipo</th>
-                <th>Empresa / Nombre</th>
-                <th>Contacto</th>
-                <th>Email</th>
-                <th>Plan</th>
-                <th>Estado</th>
-                <th>RGPD</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="clientesBody">
-            <tr><td colspan="8" style="text-align:center; padding:40px;">
-                <div class="spinner"></div>
-                Cargando clientes...
-            </td></tr>
-        </tbody>
-    </table>
-</div>
-
-<!-- PAGINACIÓN -->
-<div id="paginacion" class="pagination"></div>
-<div id="totalClientes" style="text-align: center; margin-top: 16px; font-size: 0.75rem; color: #64748b;"></div>
+<!-- Botón flotante (FAB) -->
+<button id="btnNuevoCliente" style="position: fixed; bottom: 80px; right: 16px; width: 56px; height: 56px; border-radius: 28px; background: var(--ios-blue); font-size: 24px; box-shadow: var(--ios-shadow-heavy); z-index: 100;">
+    +
+</button>

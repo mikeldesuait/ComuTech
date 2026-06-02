@@ -1,12 +1,33 @@
-<!-- templates/Facturación/Facturación.html -->
+<!-- templates/facturacion/facturacion.html -->
 <div class="facturacion-container">
-    <div class="card">
-        <div class="card-header">💰 Facturación</div>
-        <div id="facturasContent">
-            <div style="text-align:center; padding:40px;">
-                <div class="spinner"></div>
-                Cargando facturas...
-            </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 20px; font-weight: 600;">💰 Facturación</h2>
+        <button id="btnNuevaFactura" class="btn-success" style="padding: 8px 16px;">➕ Nueva</button>
+    </div>
+    
+    <div class="search-bar" style="margin-bottom: 16px;">
+        <span>🔍</span>
+        <input type="text" id="filtroFactura" placeholder="Buscar factura...">
+    </div>
+    
+    <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;">
+        <select id="filtroEstadoFactura" class="badge" style="background: var(--ios-gray-light); border: none; padding: 8px 12px;">
+            <option value="">Todos</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="pagada">Pagada</option>
+            <option value="vencida">Vencida</option>
+        </select>
+        <select id="filtroClienteFactura" class="badge" style="background: var(--ios-gray-light); border: none; padding: 8px 12px;">
+            <option value="">Todos los clientes</option>
+        </select>
+    </div>
+    
+    <div id="facturasLista">
+        <div style="text-align:center; padding:40px;">
+            <div class="spinner"></div>
+            <p>Cargando facturas...</p>
         </div>
     </div>
+    
 </div>

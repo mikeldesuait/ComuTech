@@ -1,19 +1,9 @@
 // js/modules/main.js
-// 🎮 CONTROLADOR PRINCIPAL DEL PANEL SUPERUSER
-
 import { sb } from './supabase.js'
 import { mostrarMensaje } from './utils.js'
 
-// ============================================================
-// VARIABLES GLOBALES DEL MÓDULO
-// ============================================================
-
 let currentUser = null
 let moduloActual = null
-
-// ============================================================
-// FUNCIONES DE LOGIN
-// ============================================================
 
 export function getCurrentUser() {
     return currentUser
@@ -60,10 +50,6 @@ async function hacerLogin() {
     }
 }
 
-// ============================================================
-// ESTADÍSTICAS DEL DASHBOARD
-// ============================================================
-
 export async function cargarStats() {
     try {
         const { data: empresas, error } = await sb.from('empresas').select('*', { count: 'exact', head: false })
@@ -87,10 +73,6 @@ export async function cargarStats() {
     }
 }
 
-// ============================================================
-// NAVEGACIÓN ENTRE MÓDULOS (HABITACIONES)
-// ============================================================
-
 async function cargarModulo(modulo) {
     const container = document.getElementById('moduloContainer')
     if (!container) return
@@ -98,7 +80,6 @@ async function cargarModulo(modulo) {
     try {
         container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p>Cargando...</p></div>'
         
-        // Determinar la ruta correcta del template según el módulo
         let templatePath = ''
         
         if (modulo === 'clientes') {
@@ -107,8 +88,6 @@ async function cargarModulo(modulo) {
             templatePath = 'templates/facturacion/facturacion.html'
         } else if (modulo === 'suscripciones') {
             templatePath = 'templates/facturacion/suscripciones.html'
-        } else if (modulo === 'normativa') {
-            templatePath = 'templates/normativa/normativa.html'
         } else {
             templatePath = `templates/${modulo}/${modulo}.html`
         }
@@ -126,20 +105,22 @@ async function cargarModulo(modulo) {
         // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
-            if (module.iniciar) await module.iniciar()
+            if (module.iniciar) {
+                await module.iniciar()
+            }
             moduloActual = 'clientes'
         } else if (modulo === 'facturacion') {
             const module = await import('./facturacion.js')
-            if (module.iniciar) await module.iniciar()
+            if (module.iniciar) {
+                await module.iniciar()
+            }
             moduloActual = 'facturacion'
         } else if (modulo === 'suscripciones') {
             const module = await import('./suscripciones.js')
-            if (module.iniciar) await module.iniciar()
+            if (module.iniciar) {
+                await module.iniciar()
+            }
             moduloActual = 'suscripciones'
-        } else if (modulo === 'normativa') {
-            const module = await import('./normativa.js')
-            if (module.iniciar) await module.iniciar()
-            moduloActual = 'normativa'
         }
         
     } catch (error) {
@@ -151,12 +132,8 @@ async function cargarModulo(modulo) {
     }
 }
 
-// ============================================================
-// CONFIGURAR PESTAÑAS
-// ============================================================
-
 function setupTabs() {
-    const tabs = document.querySelectorAll('.browser-tab')
+    const tabs = document.querySelectorAll('.tab-btn')
     
     tabs.forEach(tab => {
         tab.onclick = async () => {
@@ -167,10 +144,6 @@ function setupTabs() {
         }
     })
 }
-
-// ============================================================
-// CONFIGURAR LOGOUT
-// ============================================================
 
 function setupLogout() {
     const logoutButtons = ['btnLogoutHeader', 'btnLogoutFooter']
@@ -185,10 +158,6 @@ function setupLogout() {
         }
     })
 }
-
-// ============================================================
-// CONFIGURAR REFRESCAR
-// ============================================================
 
 function setupRefresh() {
     const btnRefresh = document.getElementById('btnRefrescar')
@@ -218,10 +187,6 @@ function setupRefresh() {
     }
 }
 
-// ============================================================
-// CONFIGURAR BOTONES DE PERFIL Y EMPRESA
-// ============================================================
-
 function setupMiPerfil() {
     const btnMiPerfil = document.getElementById('btnMiPerfil')
     if (btnMiPerfil) {
@@ -241,10 +206,6 @@ function setupMiEmpresa() {
         }
     }
 }
-
-// ============================================================
-// INICIALIZACIÓN PRINCIPAL
-// ============================================================
 
 export function init() {
     console.log('🚀 Iniciando Panel SuperUser')
@@ -269,10 +230,6 @@ export function init() {
         }
     }
 }
-
-// ============================================================
-// EXPORTAR FUNCIONES PÚBLICAS
-// ============================================================
 
 export default {
     init,
