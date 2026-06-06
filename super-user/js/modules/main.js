@@ -1,6 +1,6 @@
 // js/modules/main.js
 import { sb } from './supabase.js'
-import { mostrarMensaje } from './utils.js'
+import { mostrarMensaje, cerrarModal } from './utils.js'
 import { initAyuda } from './ayuda.js'
 
 let currentUser = null
@@ -9,6 +9,97 @@ let moduloActual = null
 export function getCurrentUser() {
     return currentUser
 }
+
+// ============================================================
+// FUNCIÓN PARA RESTABLECER CONTRASEÑA
+// ============================================================
+
+function abrirModalResetPassword() {
+    const modal = document.getElementById('modalResetPasswordRequest');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('resetEmailInput').value = '';
+        document.getElementById('resetMessage').innerHTML = '';
+    }
+}
+
+function setupForgotPassword() {
+    console.log('🔧 setupForgotPassword ejecutado');
+    
+    const btnForgot = document.getElementById('btnForgotPassword');
+    if (btnForgot) {
+        // Eliminar listener anterior si existe
+        if (btnForgot._listener) btnForgot.removeEventListener('click', btnForgot._listener);
+        btnForgot._listener = (e) => {
+            e.preventDefault();
+            abrirModalResetPassword();
+        };
+        btnForgot.addEventListener('click', btnForgot._listener);
+    }
+    
+    const btnSendReset = document.getElementById('btnSendReset');
+    if (btnSendReset) {
+        // Eliminar listener anterior si existe
+        if (btnSendReset._listener) btnSendReset.removeEventListener('click', btnSendReset._listener);
+        
+        btnSendReset._listener = async (e) => {
+            // Evitar cualquier acción por defecto
+            if (e) e.preventDefault();
+            
+            // Prevenir múltiples envíos
+            if (btnSendReset.disabled) return;
+            
+            const email = document.getElementById('resetEmailInput').value.trim();
+            const messageDiv = document.getElementById('resetMessage');
+            
+            if (!email) {
+                messageDiv.innerHTML = '<span style="color:#c2410c;">❌ Introduce tu email</span>';
+                return;
+            }
+            
+            // Deshabilitar botón inmediatamente
+            btnSendReset.disabled = true;
+            messageDiv.innerHTML = '<span style="color:#2563eb;">🔄 Procesando...</span>';
+            
+            try {
+                await sb.auth.resetPasswordForEmail(email, {
+                    redirectTo: 'https://comutech.es/reset-password.html'
+                });
+                messageDiv.innerHTML = '<span style="color:#166534;">✅ Revisa tu email. Hemos enviado el enlace.</span>';
+            } catch (error) {
+                console.error('Error al enviar:', error);
+                messageDiv.innerHTML = '<span style="color:#166534;">✅ Si el email existe, recibirás un enlace.</span>';
+            }
+            
+            setTimeout(() => {
+                cerrarModal('modalResetPasswordRequest');
+                document.getElementById('resetEmailInput').value = '';
+                messageDiv.innerHTML = '';
+                btnSendReset.disabled = false;
+            }, 4000);
+        };
+        
+        btnSendReset.addEventListener('click', btnSendReset._listener);
+    }
+    
+    const btnCancelReset = document.getElementById('btnCancelReset');
+    if (btnCancelReset) {
+        if (btnCancelReset._listener) btnCancelReset.removeEventListener('click', btnCancelReset._listener);
+        btnCancelReset._listener = () => {
+            cerrarModal('modalResetPasswordRequest');
+            document.getElementById('resetEmailInput').value = '';
+            document.getElementById('resetMessage').innerHTML = '';
+            // Re-habilitar el botón de enviar por si acaso
+            const sendBtn = document.getElementById('btnSendReset');
+            if (sendBtn) sendBtn.disabled = false;
+        };
+        btnCancelReset.addEventListener('click', btnCancelReset._listener);
+    }
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
 
 async function hacerLogin() {
     const email = document.getElementById('email').value.trim()
@@ -51,6 +142,10 @@ async function hacerLogin() {
     }
 }
 
+// ============================================================
+// ESTADÍSTICAS
+// ============================================================
+
 export async function cargarStats() {
     try {
         const { data: empresas, error } = await sb.from('empresas').select('*', { count: 'exact', head: false })
@@ -74,6 +169,10 @@ export async function cargarStats() {
     }
 }
 
+// ============================================================
+// CARGAR MÓDULOS
+// ============================================================
+
 async function cargarModulo(modulo) {
     const container = document.getElementById('moduloContainer')
     if (!container) return
@@ -83,7 +182,6 @@ async function cargarModulo(modulo) {
         
         let templatePath = ''
         
-        // Determinar la ruta del template según el módulo
         if (modulo === 'clientes') {
             templatePath = 'templates/clientes/clientes.html'
         } else if (modulo === 'facturacion') {
@@ -110,7 +208,6 @@ async function cargarModulo(modulo) {
         
         container.innerHTML = await response.text()
         
-        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) {
@@ -158,6 +255,10 @@ async function cargarModulo(modulo) {
     }
 }
 
+// ============================================================
+// TABS
+// ============================================================
+
 function setupTabs() {
     const tabs = document.querySelectorAll('.tab-btn')
     
@@ -170,6 +271,10 @@ function setupTabs() {
         }
     })
 }
+
+// ============================================================
+// LOGOUT
+// ============================================================
 
 function setupLogout() {
     const logoutButtons = ['btnLogoutHeader', 'btnLogoutFooter']
@@ -184,6 +289,10 @@ function setupLogout() {
         }
     })
 }
+
+// ============================================================
+// REFRESH
+// ============================================================
 
 function setupRefresh() {
     const btnRefresh = document.getElementById('btnRefrescar')
@@ -231,6 +340,10 @@ function setupRefresh() {
     }
 }
 
+// ============================================================
+// MI PERFIL
+// ============================================================
+
 function setupMiPerfil() {
     const btnMiPerfil = document.getElementById('btnMiPerfil')
     if (btnMiPerfil) {
@@ -240,6 +353,10 @@ function setupMiPerfil() {
         }
     }
 }
+
+// ============================================================
+// MI EMPRESA
+// ============================================================
 
 function setupMiEmpresa() {
     const btnMiEmpresa = document.getElementById('btnMiEmpresa')
@@ -251,8 +368,15 @@ function setupMiEmpresa() {
     }
 }
 
+// ============================================================
+// INIT
+// ============================================================
+
 export function init() {
     console.log('🚀 Iniciando Panel SuperUser')
+    
+    // Configurar restablecimiento de contraseña
+    setupForgotPassword()
     
     const btnLogin = document.getElementById('btnLogin')
     if (btnLogin) {

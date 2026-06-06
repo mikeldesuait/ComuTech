@@ -11,14 +11,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="COMUTECH">
 
-    <!-- Librerías -->
+    <!-- LIBRERÍAS -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Librería Tesseract OCR -->
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<!-- PDF.js para convertir PDF a imagen -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 </head>
 <body>
@@ -30,7 +27,29 @@
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Contraseña">
         <button id="btnLogin">Iniciar sesión</button>
+        
+        <!-- Botón restablecer contraseña -->
+        <div style="text-align: center; margin-top: 16px;">
+            <a href="#" id="btnForgotPassword" style="color: var(--ios-gray); font-size: 14px; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+        </div>
+        
         <div id="errorMsg" class="error-msg"></div>
+    </div>
+</div>
+
+<!-- Modal para restablecer contraseña -->
+<div id="modalResetPasswordRequest" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">🔐 Restablecer contraseña</div>
+        <div class="grupo">
+            <label>📧 Email</label>
+            <input type="email" id="resetEmailInput" placeholder="tuemail@ejemplo.com">
+        </div>
+        <div id="resetMessage" style="margin-bottom: 16px; font-size: 12px;"></div>
+        <div class="btn-group">
+            <button id="btnSendReset" class="btn-success">Enviar enlace</button>
+            <button id="btnCancelReset" class="btn-danger">Cancelar</button>
+        </div>
     </div>
 </div>
 
@@ -53,7 +72,6 @@
             </div>
         </div>
         
-        <!-- Stats compactas en línea -->
         <div style="display: flex; gap: 16px; justify-content: center; align-items: baseline; margin-top: 8px;">
             <div style="text-align: center;">
                 <div style="font-size: 22px; font-weight: 700; color: var(--ios-gray);" id="statTotal">0</div>
@@ -72,37 +90,17 @@
         </div>
     </div>
     
-    <!-- Contenido principal -->
     <div id="moduloContainer" class="browser-content">
         <div class="empty-state">Selecciona una opción</div>
     </div>
     
-    <!-- Tab Bar inferior -->
     <div class="tab-bar">
-        <button class="tab-btn active" data-tab="clientes">
-            <span>🏢</span>
-            <span>Clientes</span>
-        </button>
-        <button class="tab-btn" data-tab="suscripciones">
-            <span>📅</span>
-            <span>Suscripciones</span>
-        </button>
-        <button class="tab-btn" data-tab="productos">
-            <span>📦</span>
-            <span>Productos</span>
-        </button>
-        <button class="tab-btn" data-tab="gastos">
-            <span>📉</span>
-            <span>Gastos</span>
-        </button>
-        <button class="tab-btn" data-tab="facturacion">
-            <span>💰</span>
-            <span>Facturación</span>
-        </button>
-        <button class="tab-btn" data-tab="impuestos">
-            <span>📋</span>
-            <span>Impuestos</span>
-        </button>
+        <button class="tab-btn active" data-tab="clientes"><span>🏢</span><span>Clientes</span></button>
+        <button class="tab-btn" data-tab="facturacion"><span>💰</span><span>Facturación</span></button>
+        <button class="tab-btn" data-tab="suscripciones"><span>📅</span><span>Suscripciones</span></button>
+        <button class="tab-btn" data-tab="productos"><span>📦</span><span>Productos</span></button>
+        <button class="tab-btn" data-tab="gastos"><span>📉</span><span>Gastos</span></button>
+        <button class="tab-btn" data-tab="impuestos"><span>📋</span><span>Impuestos</span></button>
     </div>
 </div>
 
@@ -136,6 +134,28 @@
     <div class="modal-content" style="max-width: 900px;">
         <div class="modal-header" id="modalAltaClienteHeader">📝 Dar de alta cliente</div>
         <div id="altaClienteContainer"></div>
+    </div>
+</div>
+
+<div id="modalGenerarPassword" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">🔐 Generar contraseña</div>
+        <div id="passwordAleatorioContainer">
+            <p>Contraseña generada:</p>
+            <div class="password-box"><code id="passwordGenerada"></code></div>
+            <div class="btn-group">
+                <button id="btnAceptarPassword" class="btn-success">Aceptar</button>
+                <button id="btnCrearManual" class="btn-info">Crear manual</button>
+            </div>
+        </div>
+        <div id="passwordManualContainer" style="display: none;">
+            <p>Introduce contraseña:</p>
+            <input type="password" id="passwordManual" placeholder="Contraseña">
+            <div class="btn-group">
+                <button id="btnAceptarPasswordManual" class="btn-success">Aceptar</button>
+                <button id="btnVolverAleatorio" class="btn-info">Volver</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -299,95 +319,6 @@
     </div>
 </div>
 
-<!-- Modal para subir factura con OCR -->
-<div id="modalSubirFacturaOCR" class="modal">
-    <div class="modal-content" style="max-width: 650px;">
-        <div class="modal-header">📸 Subir factura (OCR automático)</div>
-        
-        <div class="alert-info" style="margin-bottom: 16px; padding: 12px; background: #dbeafe;">
-            <small>📌 Sube una foto de la factura de un PROVEEDOR (gasto). El sistema leerá los datos automáticamente.</small>
-        </div>
-        
-        <div class="grupo">
-            <label>📷 Seleccionar imagen</label>
-            <input type="file" id="inputOCRFactura" accept="image/*" capture="environment" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px;">
-        </div>
-        
-        <div id="previewOCR" style="display: none; margin: 16px 0;">
-            <label>📸 Vista previa</label>
-            <img id="previewOCRImg" style="max-width: 100%; max-height: 200px; border: 1px solid #ccc; border-radius: 8px;">
-        </div>
-        
-        <div id="ocrProgress" style="display: none; margin: 16px 0;">
-            <div class="spinner" style="margin: 0 auto 10px auto;"></div>
-            <p style="text-align: center; font-size: 12px;" id="ocrStatus">Leyendo texto de la factura...</p>
-            <div style="background: #e5e7eb; border-radius: 10px; height: 8px; overflow: hidden;">
-                <div id="ocrProgressBar" style="width: 0%; background: #2563eb; height: 100%; transition: width 0.3s;"></div>
-            </div>
-        </div>
-        
-        <div id="datosExtraidos" style="display: none; margin: 16px 0; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-            <strong>✅ Datos extraídos:</strong>
-            <div id="datosExtraidosContent"></div>
-        </div>
-        
-        <div class="row-flex">
-            <div class="grupo">
-                <label>🏢 Proveedor *</label>
-                <input type="text" id="ocrProveedor" placeholder="Nombre del proveedor">
-            </div>
-            <div class="grupo">
-                <label>📄 Nº Factura</label>
-                <input type="text" id="ocrNumeroFactura" placeholder="Número de factura">
-            </div>
-        </div>
-        
-        <div class="row-flex">
-            <div class="grupo">
-                <label>💰 Importe total *</label>
-                <input type="number" id="ocrImporte" step="0.01" placeholder="0.00">
-            </div>
-            <div class="grupo">
-                <label>📅 Fecha *</label>
-                <input type="date" id="ocrFecha">
-            </div>
-        </div>
-        
-        <div class="row-flex">
-            <div class="grupo">
-                <label>📂 Categoría</label>
-                <select id="ocrCategoria">
-                    <option value="alquiler">🏢 Alquiler</option>
-                    <option value="luz">💡 Luz</option>
-                    <option value="agua">💧 Agua</option>
-                    <option value="internet">🌐 Internet</option>
-                    <option value="software">💻 Software</option>
-                    <option value="asesoria">⚖️ Asesoría</option>
-                    <option value="otros">📦 Otros</option>
-                </select>
-            </div>
-            <div class="grupo">
-                <label>📧 Email destino *</label>
-                <input type="email" id="ocrEmailDestino" placeholder="tuemail@ejemplo.com">
-            </div>
-        </div>
-        
-        <div class="grupo">
-            <label>📝 Concepto</label>
-            <textarea id="ocrConcepto" rows="2" placeholder="Descripción del gasto"></textarea>
-        </div>
-        
-        <div class="alert-warning" style="margin: 16px 0; padding: 12px; background: #fef3c7; border-left-color: #f59e0b;">
-            <small>⚠️ Esta factura se guardará como GASTO en tu contabilidad.</small>
-        </div>
-        
-        <div class="btn-group">
-            <button id="btnProcesarOCR" class="btn-success">✅ Procesar y guardar</button>
-            <button id="btnCancelarOCR" class="btn-danger">❌ Cancelar</button>
-        </div>
-    </div>
-</div>
-
 <script type="module">
     import { init } from './js/modules/main.js'
     init()
@@ -411,6 +342,11 @@
     .btn-group { display: flex; gap: 12px; margin-top: 20px; }
     .btn-group button { flex: 1; }
     .consentimiento-texto, .contrato-texto { max-height: 400px; overflow-y: auto; padding: 16px; background: var(--ios-bg); border-radius: 12px; margin-bottom: 16px; font-size: 12px; }
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); border-top: 0.5px solid var(--ios-border); display: flex; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding: 8px 12px 20px; gap: 4px; z-index: 1000; }
+    .tab-bar::-webkit-scrollbar { height: 3px; }
+    .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; padding: 8px 14px; border-radius: 30px; font-size: 12px; font-weight: 500; color: var(--ios-gray); transition: all 0.15s ease; flex-shrink: 0; min-width: 70px; }
+    .tab-btn span:first-child { font-size: 22px; }
+    .tab-btn.active { color: var(--ios-blue); background: rgba(0,122,255,0.1); }
 </style>
 
 </body>
