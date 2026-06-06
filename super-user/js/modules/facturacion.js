@@ -400,62 +400,241 @@ async function exportarFacturasSeleccionadas() {
         return;
     }
     
-    mostrarModalCarga('Preparando exportación...');
+    mostrarModalCarga('Generando PDF...');
     
     try {
         const facturasArray = Array.from(facturasSeleccionadas);
         const facturasData = facturas.filter(f => facturasArray.includes(f.id));
         
+        // Ordenar por número de factura
+        facturasData.sort((a, b) => a.numero_factura.localeCompare(b.numero_factura));
+        
+        // Crear HTML para el PDF
         let html = `
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>Exportación facturas ${new Date().toLocaleDateString()}</title>
+            <title>Facturas ${new Date().toLocaleDateString()}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 40px; }
-                h1 { color: #1e3a8a; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-                th { background: #f1f5f9; }
-                .total { margin-top: 20px; font-weight: bold; }
+                body {
+                    font-family: 'Helvetica', 'Arial', sans-serif;
+                    padding: 40px;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    color: #1f2937;
+                }
+                h1 {
+                    color: #1e3a8a;
+                    font-size: 24px;
+                    text-align: center;
+                    margin-bottom: 10px;
+                }
+                .fecha {
+                    text-align: center;
+                    color: #6b7280;
+                    font-size: 10px;
+                    margin-bottom: 30px;
+                    border-bottom: 1px solid #e5e7eb;
+                    padding-bottom: 15px;
+                }
+                .resumen {
+                    background: #f3f4f6;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 30px;
+                    display: flex;
+                    justify-content: space-around;
+                    text-align: center;
+                }
+                .resumen-item {
+                    text-align: center;
+                }
+                .resumen-label {
+                    font-size: 10px;
+                    color: #6b7280;
+                }
+                .resumen-valor {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #1e3a8a;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th {
+                    background: #f1f5f9;
+                    padding: 10px;
+                    text-align: left;
+                    font-weight: 600;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+                td {
+                    padding: 8px 10px;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                .factura-item {
+                    page-break-inside: avoid;
+                    margin-bottom: 30px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 15px;
+                }
+                .factura-header {
+                    background: #f8fafc;
+                    padding: 10px;
+                    margin: -15px -15px 15px -15px;
+                    border-radius: 8px 8px 0 0;
+                    border-bottom: 1px solid #e5e7eb;
+                }
+                .factura-titulo {
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: #1e3a8a;
+                }
+                .factura-info {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 15px;
+                    font-size: 11px;
+                }
+                .lineas {
+                    width: 100%;
+                    margin-bottom: 15px;
+                }
+                .lineas th {
+                    font-size: 10px;
+                    background: #f1f5f9;
+                }
+                .totales {
+                    text-align: right;
+                    margin-top: 15px;
+                    padding-top: 10px;
+                    border-top: 1px solid #e5e7eb;
+                }
+                .footer {
+                    margin-top: 40px;
+                    text-align: center;
+                    font-size: 9px;
+                    color: #9ca3af;
+                    border-top: 1px solid #e5e7eb;
+                    padding-top: 20px;
+                }
+                @media print {
+                    body { padding: 20px; }
+                    .page-break { page-break-before: always; }
+                }
             </style>
         </head>
         <body>
-            <h1>Exportación de Facturas</h1>
-            <p>Fecha: ${new Date().toLocaleString()}</p>
-            <p>Facturas exportadas: ${facturasData.length}</p>
-            <table>
-                <thead>
-                    <tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Importe</th><th>Estado</th></tr>
-                </thead>
-                <tbody>
-                    ${facturasData.map(f => `
-                        <tr>
-                            <td>${escapeHtml(f.numero_factura)}</td>
-                            <td>${escapeHtml(f.cliente_nombre)}</td>
-                            <td>${new Date(f.fecha_expedicion).toLocaleDateString()}</td>
-                            <td>${formatMoney(f.importe_total)}€</td>
-                            <td>${f.estado}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            <div class="total">Total: ${formatMoney(facturasData.reduce((sum, f) => sum + f.importe_total, 0))}€</div>
+            <h1>📄 RELACIÓN DE FACTURAS</h1>
+            <div class="fecha">Generado el ${new Date().toLocaleString()}</div>
+            
+            <div class="resumen">
+                <div class="resumen-item">
+                    <div class="resumen-label">Total facturas</div>
+                    <div class="resumen-valor">${facturasData.length}</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-label">Importe total</div>
+                    <div class="resumen-valor">${formatMoney(facturasData.reduce((sum, f) => sum + f.importe_total, 0))}€</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-label">Pendiente de cobro</div>
+                    <div class="resumen-valor">${formatMoney(facturasData.reduce((sum, f) => sum + (f.saldo_cobro || f.importe_total - (f.total_cobrado || 0)), 0))}€</div>
+                </div>
+            </div>
+        `;
+        
+        // Generar cada factura individualmente
+        for (const factura of facturasData) {
+            const { data: lineas } = await sb.from('lineas_factura').select('*').eq('factura_id', factura.id);
+            const cobrado = factura.total_cobrado || 0;
+            const pendiente = factura.saldo_cobro || (factura.importe_total - cobrado);
+            
+            html += `
+                <div class="factura-item">
+                    <div class="factura-header">
+                        <div class="factura-titulo">${escapeHtml(factura.numero_factura)}</div>
+                    </div>
+                    <div class="factura-info">
+                        <div>
+                            <strong>Cliente:</strong> ${escapeHtml(factura.cliente_nombre)}<br>
+                            <strong>NIF:</strong> ${escapeHtml(factura.cliente_nif || '-')}
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>Fecha:</strong> ${new Date(factura.fecha_expedicion).toLocaleDateString()}<br>
+                            <strong>Vencimiento:</strong> ${new Date(factura.fecha_vencimiento).toLocaleDateString()}
+                        </div>
+                    </div>
+                    
+                    <table class="lineas">
+                        <thead>
+                            <tr>
+                                <th>Concepto</th>
+                                <th style="width: 80px; text-align: center;">Cantidad</th>
+                                <th style="width: 100px; text-align: right;">Precio</th>
+                                <th style="width: 80px; text-align: center;">IVA</th>
+                                <th style="width: 100px; text-align: right;">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lineas?.map(l => `
+                                <tr>
+                                    <td>${escapeHtml(l.concepto)}</td>
+                                    <td style="text-align: center;">${l.cantidad}</td>
+                                    <td style="text-align: right;">${formatMoney(l.precio_unitario)}€</td>
+                                    <td style="text-align: center;">${l.iva}%</td>
+                                    <td style="text-align: right;">${formatMoney(l.subtotal)}€</td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="5">Sin líneas</td></tr>'}
+                        </tbody>
+                    </table>
+                    
+                    <div class="totales">
+                        <div><strong>Subtotal:</strong> ${formatMoney(factura.subtotal)}€</div>
+                        <div><strong>IVA:</strong> ${formatMoney(factura.iva_total)}€</div>
+                        <div style="font-size: 14px;"><strong>TOTAL:</strong> ${formatMoney(factura.importe_total)}€</div>
+                        <div style="color: #2563eb;"><strong>Pagado:</strong> ${formatMoney(cobrado)}€</div>
+                        <div style="color: ${pendiente > 0 ? '#c2410c' : '#166534'};"><strong>Pendiente:</strong> ${formatMoney(pendiente)}€</div>
+                    </div>
+                    
+                    ${factura.hash_factura ? `<div style="font-size: 9px; color: #6b7280; margin-top: 10px;">🔗 Hash: ${factura.hash_factura.substring(0, 20)}...</div>` : ''}
+                </div>
+            `;
+        }
+        
+        html += `
+            <div class="footer">
+                <p>Documento generado electrónicamente con validez informativa</p>
+                <p>© COMUTECH - Todos los derechos reservados</p>
+            </div>
         </body>
         </html>
         `;
         
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `facturas_exportadas_${Date.now()}.html`;
-        a.click();
-        URL.revokeObjectURL(url);
+        // Crear un iframe invisible para generar el PDF
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+        
+        iframe.contentWindow.document.open();
+        iframe.contentWindow.document.write(html);
+        iframe.contentWindow.document.close();
+        
+        iframe.contentWindow.print();
+        
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 1000);
         
         cerrarModalCarga();
-        mostrarMensaje(`✅ ${facturasSeleccionadas.size} factura(s) exportadas`, 'exito');
+        mostrarMensaje(`✅ ${facturasSeleccionadas.size} factura(s) exportadas a PDF`, 'exito');
         
         facturasSeleccionadas.clear();
         renderizarVistaFacturacion();

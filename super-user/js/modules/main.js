@@ -1,6 +1,7 @@
 // js/modules/main.js
 import { sb } from './supabase.js'
 import { mostrarMensaje } from './utils.js'
+import { initAyuda } from './ayuda.js'  // ← Mover aquí
 
 let currentUser = null
 let moduloActual = null
@@ -82,7 +83,6 @@ async function cargarModulo(modulo) {
         
         let templatePath = ''
         
-        // Determinar la ruta del template según el módulo
         if (modulo === 'clientes') {
             templatePath = 'templates/clientes/clientes.html'
         } else if (modulo === 'facturacion') {
@@ -105,7 +105,6 @@ async function cargarModulo(modulo) {
         
         container.innerHTML = await response.text()
         
-        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) {
@@ -241,6 +240,7 @@ export function init() {
                 setupRefresh()
                 setupMiPerfil()
                 setupMiEmpresa()
+                initAyuda()  // ← Llamar a la función
             }
         }
     }
