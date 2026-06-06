@@ -83,6 +83,7 @@ async function cargarModulo(modulo) {
         
         let templatePath = ''
         
+        // Determinar la ruta del template según el módulo
         if (modulo === 'clientes') {
             templatePath = 'templates/clientes/clientes.html'
         } else if (modulo === 'facturacion') {
@@ -93,6 +94,8 @@ async function cargarModulo(modulo) {
             templatePath = 'templates/facturacion/productos.html'
         } else if (modulo === 'gastos') {
             templatePath = 'templates/gastos/gastos.html'
+        } else if (modulo === 'impuestos') {
+            templatePath = 'templates/impuestos/impuestos.html'
         } else {
             templatePath = `templates/${modulo}/${modulo}.html`
         }
@@ -107,6 +110,7 @@ async function cargarModulo(modulo) {
         
         container.innerHTML = await response.text()
         
+        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) {
@@ -137,6 +141,12 @@ async function cargarModulo(modulo) {
                 await module.iniciar()
             }
             moduloActual = 'gastos'
+        } else if (modulo === 'impuestos') {
+            const module = await import('./impuestos.js')
+            if (module.iniciar) {
+                await module.iniciar()
+            }
+            moduloActual = 'impuestos'
         }
         
     } catch (error) {
@@ -206,6 +216,12 @@ function setupRefresh() {
             }
         } else if (moduloActual === 'gastos') {
             const module = await import('./gastos.js')
+            if (module.iniciar) {
+                await module.iniciar()
+                mostrarMensaje('✅ Datos actualizados', 'exito')
+            }
+        } else if (moduloActual === 'impuestos') {
+            const module = await import('./impuestos.js')
             if (module.iniciar) {
                 await module.iniciar()
                 mostrarMensaje('✅ Datos actualizados', 'exito')

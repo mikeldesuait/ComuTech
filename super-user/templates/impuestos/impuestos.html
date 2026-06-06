@@ -1,0 +1,81 @@
+<!-- templates/impuestos/impuestos.html -->
+<div class="impuestos-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 20px; font-weight: 600;">📋 Impuestos y Declaraciones</h2>
+    </div>
+    
+    <!-- Selector de período -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">📅 Seleccionar período</div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+            <div class="grupo" style="min-width: 150px;">
+                <label>📅 Año</label>
+                <select id="impuestoAnio" style="width:100%; padding:10px; border-radius:8px;">
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                </select>
+            </div>
+            <div class="grupo" style="min-width: 200px;">
+                <label>📅 Trimestre</label>
+                <select id="impuestoTrimestre" style="width:100%; padding:10px; border-radius:8px;">
+                    <option value="1">1er Trimestre (Ene - Mar)</option>
+                    <option value="2">2o Trimestre (Abr - Jun)</option>
+                    <option value="3">3er Trimestre (Jul - Sep)</option>
+                    <option value="4">4o Trimestre (Oct - Dic)</option>
+                    <option value="0">Año completo</option>
+                </select>
+            </div>
+            <div class="grupo" style="min-width: 150px;">
+                <label>📅 Desde</label>
+                <input type="date" id="contabilidadFechaDesde" style="width:100%; padding:10px; border-radius:8px;">
+            </div>
+            <div class="grupo" style="min-width: 150px;">
+                <label>📅 Hasta</label>
+                <input type="date" id="contabilidadFechaHasta" style="width:100%; padding:10px; border-radius:8px;">
+            </div>
+            <button id="btnCalcularImpuestos" class="btn-success" style="padding: 10px 20px;">📊 Calcular</button>
+        </div>
+    </div>
+    
+    <!-- MODELO 303 - IVA Trimestral -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>📄 MODELO 303 - IVA (Trimestral)</span>
+            <button id="btnDescargar303" class="btn-info" style="padding: 4px 12px;">📎 Descargar PDF</button>
+        </div>
+        <div id="modelo303Contenido">
+            <div style="text-align:center; padding: 20px; color: #6b7280;">
+                Selecciona un período y haz clic en "Calcular"
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODELO 390 - Resumen anual IVA -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>📄 MODELO 390 - Resumen anual IVA</span>
+            <button id="btnDescargar390" class="btn-info" style="padding: 4px 12px;">📎 Descargar PDF</button>
+        </div>
+        <div id="modelo390Contenido">
+            <div style="text-align:center; padding: 20px; color: #6b7280;">
+                Selecciona "Año completo" para ver el resumen anual
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODELO 130 - IRPF (Pago fraccionado) -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>📄 MODELO 130 - IRPF (Pago fraccionado)</span>
+            <button id="btnDescargar130" class="btn-info" style="padding: 4px 12px;">📎 Descargar PDF</button>
+        </div>
+        <div id="modelo130Contenido">
+            <div style="text-align:center; padding: 20px; color: #6b7280;">
+                Selecciona un período para calcular la base del IRPF
+            </div>
+        </div>
+    </div>
+    
+</div>
