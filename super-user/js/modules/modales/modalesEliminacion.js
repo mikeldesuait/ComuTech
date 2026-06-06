@@ -1,19 +1,10 @@
 // js/modules/modales/modalesEliminacion.js
-// 🗑️ LÓGICA DE ELIMINACIÓN DE CLIENTES (con Edge Function)
-
 import { sb, SUPABASE_URL } from '../supabase.js'
 import { mostrarModalInformativo, abrirModal, cerrarModal, mostrarModalCarga, cerrarModalCarga } from './modalesGenerales.js'
 import { getCurrentUser } from '../main.js'
 
 let clientePendienteEliminar = null
 
-// ============================================================
-// FUNCIONES PRINCIPALES
-// ============================================================
-
-/**
- * Abre el modal de confirmación de eliminación
- */
 export function abrirModalEliminarCliente(clienteId, nombreCliente) {
     clientePendienteEliminar = { id: clienteId, nombre: nombreCliente }
     
@@ -27,12 +18,11 @@ export function abrirModalEliminarCliente(clienteId, nombreCliente) {
         return
     }
     
-    mensajeDiv.innerHTML = `¿Estás seguro de que quieres eliminar a <strong>"${nombreCliente}"</strong> y todos sus datos?<br><small>Esta acción es irreversible.</small>`
+    mensajeDiv.innerHTML = `¿Estás seguro de que quieres eliminar a <strong>"${nombreCliente}"</strong>?<br><small>Esta acción es irreversible.</small>`
     
     if (passwordInput) passwordInput.value = ''
     if (errorDiv) errorDiv.style.display = 'none'
     
-    // Configurar botón confirmar
     const btnConfirmar = document.getElementById('btnConfirmarEliminacion')
     if (btnConfirmar) {
         const nuevoBtnConfirmar = btnConfirmar.cloneNode(true)
@@ -40,7 +30,6 @@ export function abrirModalEliminarCliente(clienteId, nombreCliente) {
         nuevoBtnConfirmar.onclick = ejecutarEliminacionCliente
     }
     
-    // Configurar botón cancelar
     const btnCancelar = document.getElementById('btnCancelarEliminacion')
     if (btnCancelar) {
         const nuevoBtnCancelar = btnCancelar.cloneNode(true)
@@ -58,9 +47,6 @@ export function abrirModalEliminarCliente(clienteId, nombreCliente) {
     abrirModal('modalConfirmarEliminacion')
 }
 
-/**
- * Ejecuta la eliminación usando Edge Function
- */
 export async function ejecutarEliminacionCliente() {
     const currentUser = getCurrentUser()
     
@@ -86,7 +72,7 @@ export async function ejecutarEliminacionCliente() {
     mostrarModalCarga('Verificando credenciales...')
     
     try {
-        // 1. Verificar contraseña del super admin
+        // 1. Verificar contraseña
         const { error: authError } = await sb.auth.signInWithPassword({
             email: currentUser.email,
             password: passwordConfirm
@@ -101,72 +87,89 @@ export async function ejecutarEliminacionCliente() {
             return
         }
         
-        cerrarModalCarga()
-        mostrarModalCarga('Eliminando cliente...')
-        
         const { id: empresaId, nombre: nombreCliente } = clientePendienteEliminar
         
-        // 2. Obtener el token de sesión actual
-        const { data: { session } } = await sb.auth.getSession()
-        const accessToken = session?.access_token
+        // 2. Verificar si el cliente tiene facturas
+        cerrarModalCarga()
+        mostrarModalCarga('Verificando facturas...')
         
-        if (!accessToken) {
-            throw new Error('No se pudo obtener el token de sesión')
+        const { data: facturas, error: facturasError, count } = await sb
+            .from('facturas')
+            .select('id', { count: 'exact', head: true })
+            .eq('empresa_id', empresaId)
+        
+        if (facturasError) {
+            throw new Error('Error al verificar facturas')
         }
         
-        // 3. Llamar a la Edge Function
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/eliminar-cliente`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
-            },
-            body: JSON.stringify({ clienteId: empresaId })
-        })
+        const tieneFacturas = count > 0
         
-        const result = await response.json()
+        cerrarModalCarga()
         
-        if (!response.ok) {
-            throw new Error(result.error || 'Error al eliminar el cliente')
+        // 3. Si tiene facturas → NO se puede borrar
+        if (tieneFacturas) {
+            cerrarModal('modalConfirmarEliminacion')
+            mostrarModalInformativo(
+                '❌ No se puede eliminar el cliente',
+                `El cliente "${nombreCliente}" tiene ${count} factura(s) asociadas.\n\n` +
+                `Para cumplir con la normativa fiscal, no se puede eliminar un cliente con facturas.\n\n` +
+                `Si deseas que no aparezca en listados, puedes marcar el cliente como "inactivo" desde el panel de edición.`,
+                'error'
+            )
+            clientePendienteEliminar = null
+            return
         }
+        
+        // 4. Si NO tiene facturas, preguntar antes de eliminar
+        const confirmar = confirm(
+            `⚠️ ¿Eliminar permanentemente a "${nombreCliente}"?\n\n` +
+            `Este cliente NO tiene facturas asociadas.\n` +
+            `La acción es irreversible.`
+        )
+        
+        if (!confirmar) {
+            cerrarModal('modalConfirmarEliminacion')
+            clientePendienteEliminar = null
+            return
+        }
+        
+        mostrarModalCarga('Eliminando cliente...')
+        
+        // 5. Eliminar dependencias
+        await sb.from('perfiles').delete().eq('empresa_id', empresaId)
+        await sb.from('suscripciones_clientes').delete().eq('empresa_id', empresaId)
+        
+        // 6. Eliminar la empresa
+        const { error: deleteError } = await sb
+            .from('empresas')
+            .delete()
+            .eq('id', empresaId)
+        
+        if (deleteError) throw deleteError
         
         cerrarModalCarga()
         cerrarModal('modalConfirmarEliminacion')
-        
         mostrarModalInformativo('✅ Cliente eliminado', `"${nombreCliente}" ha sido eliminado correctamente`, 'exito')
-        
-        // 4. Recargar lista de clientes
-        try {
-            const { cargarClientes } = await import('../clientes.js')
-            if (typeof cargarClientes === 'function') {
-                await cargarClientes()
-            }
-        } catch (e) {
-            console.log('Función cargarClientes no disponible')
-        }
-        
-        // 5. Recargar estadísticas
-        try {
-            const { cargarStats } = await import('../main.js')
-            if (typeof cargarStats === 'function') {
-                await cargarStats()
-            }
-        } catch (e) {
-            console.log('Función cargarStats no disponible')
-        }
         
         clientePendienteEliminar = null
         
+        // 7. Recargar listas
+        try {
+            const { cargarClientes } = await import('../clientes.js')
+            if (typeof cargarClientes === 'function') await cargarClientes()
+        } catch (e) {}
+        
+        try {
+            const { cargarStats } = await import('../main.js')
+            if (typeof cargarStats === 'function') await cargarStats()
+        } catch (e) {}
+        
     } catch (error) {
         cerrarModalCarga()
-        console.error('Error en ejecutarEliminacionCliente:', error)
-        mostrarModalInformativo('Error', error.message || 'No se pudo eliminar el cliente', 'error')
+        console.error('Error:', error)
+        mostrarModalInformativo('Error', error.message || 'No se pudo procesar la solicitud', 'error')
     }
 }
-
-// ============================================================
-// EXPORTAR
-// ============================================================
 
 export default {
     abrirModalEliminarCliente,

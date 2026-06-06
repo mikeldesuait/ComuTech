@@ -1,0 +1,143 @@
+<div class="gastos-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 20px; font-weight: 600;">📉 Gastos (Facturas recibidas)</h2>
+        <button id="btnNuevoGasto" class="btn-success" style="padding: 8px 16px;">➕ Nuevo gasto</button>
+    </div>
+    
+    <!-- Filtros -->
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+        <div class="grupo" style="min-width: 150px;">
+            <label>📅 Desde</label>
+            <input type="date" id="filtroGastoDesde">
+        </div>
+        <div class="grupo" style="min-width: 150px;">
+            <label>📅 Hasta</label>
+            <input type="date" id="filtroGastoHasta">
+        </div>
+        <div class="grupo" style="min-width: 150px;">
+            <label>📂 Categoría</label>
+            <select id="filtroCategoria">
+                <option value="">Todas</option>
+                <option value="alquiler">🏢 Alquiler</option>
+                <option value="luz">💡 Luz</option>
+                <option value="agua">💧 Agua</option>
+                <option value="internet">🌐 Internet</option>
+                <option value="software">💻 Software</option>
+                <option value="asesoria">⚖️ Asesoría</option>
+                <option value="otros">📦 Otros</option>
+            </select>
+        </div>
+        <button id="btnLimpiarFiltros" class="btn-sm" style="background: #6b7280; color: white;">🗑️ Limpiar</button>
+    </div>
+    
+    <!-- Resumen de gastos -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">📊 Resumen de gastos</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+            <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #c2410c;" id="totalGastos">0€</div>
+                <div style="font-size: 12px;">Total gastos</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2563eb;" id="totalIvaGastos">0€</div>
+                <div style="font-size: 12px;">IVA soportado</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: bold;" id="totalPendienteGastos">0€</div>
+                <div style="font-size: 12px;">Pendiente pago</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de gastos -->
+    <div id="listaGastos">
+        <div style="text-align:center; padding:40px;">
+            <div class="spinner"></div>
+            <p>Cargando gastos...</p>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Modal para nuevo/editar gasto -->
+<div id="modalGasto" class="modal">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header" id="modalGastoHeader">📉 Nuevo gasto</div>
+        <input type="hidden" id="gastoId">
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📄 Nº factura</label>
+                <input type="text" id="gastoNumeroFactura" placeholder="Ej: F20240001">
+            </div>
+            <div class="grupo">
+                <label>📅 Fecha factura *</label>
+                <input type="date" id="gastoFecha">
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏢 Proveedor *</label>
+                <input type="text" id="gastoProveedor" placeholder="Nombre del proveedor">
+            </div>
+            <div class="grupo">
+                <label>📋 NIF proveedor</label>
+                <input type="text" id="gastoNifProveedor" placeholder="NIF del proveedor">
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>💰 Subtotal *</label>
+                <input type="number" id="gastoSubtotal" step="0.01" placeholder="0.00">
+            </div>
+            <div class="grupo">
+                <label>🧾 IVA (%)</label>
+                <select id="gastoIva">
+                    <option value="21">21%</option>
+                    <option value="10">10%</option>
+                    <option value="4">4%</option>
+                    <option value="0">0%</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📂 Categoría</label>
+                <select id="gastoCategoria">
+                    <option value="alquiler">🏢 Alquiler</option>
+                    <option value="luz">💡 Luz</option>
+                    <option value="agua">💧 Agua</option>
+                    <option value="internet">🌐 Internet</option>
+                    <option value="software">💻 Software</option>
+                    <option value="asesoria">⚖️ Asesoría</option>
+                    <option value="otros">📦 Otros</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>✅ Pagado</label>
+                <select id="gastoPagado">
+                    <option value="false">Pendiente</option>
+                    <option value="true">Pagado</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="grupo">
+            <label>📝 Descripción</label>
+            <textarea id="gastoDescripcion" rows="2" placeholder="Descripción del gasto"></textarea>
+        </div>
+        
+        <div class="alert-info" style="margin-top: 16px; padding: 12px; background: #fef3c7;">
+            <small>📌 Este gasto aparecerá en el informe trimestral como IVA soportado.</small>
+        </div>
+        
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnGuardarGasto" class="btn-success">💾 Guardar gasto</button>
+            <button id="btnCancelarGasto" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>

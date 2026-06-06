@@ -3,10 +3,6 @@
 
 import { sb } from './supabase.js';
 
-// NIF del emisor (COMUTECH) - CAMBIA ESTO POR TU NIF REAL
-const EMISOR_NIF = "B12345678";
-const EMISOR_NOMBRE = "COMUTECH S.L.";
-
 /**
  * Escapa caracteres especiales para HTML
  */
@@ -43,14 +39,72 @@ async function generarQRDataURL(datosQR) {
 /**
  * Genera el HTML de la factura con QR
  */
-async function generarFacturaHTML(factura, lineas, empresa) {
-    const fechaGeneracion = new Date().toLocaleString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+async function generarFacturaHTML(factura, lineas) {
+    // ============================================================
+    // OBTENER DATOS DEL EMISOR (TU EMPRESA)
+    // ============================================================
+    let emisor = {
+        nombre: 'COMUTECH S.L.',
+        nif: 'B12345678',
+        direccion: '',
+        ciudad: '',
+        provincia: '',
+        telefono: '',
+        email: ''
+    };
     
-    // Datos para el QR (formato Verifactu simplificado)
+    try {
+        const { data: miEmpresa } = await sb
+            .from('empresas')
+            .select('*')
+            .eq('es_emisora', true)
+            .maybeSingle();
+        
+        if (miEmpresa) {
+            emisor.nombre = miEmpresa.nombre_empresa || emisor.nombre;
+            emisor.nif = miEmpresa.nif_cif || emisor.nif;
+            emisor.direccion = miEmpresa.direccion || miEmpresa.calle || '';
+            emisor.ciudad = miEmpresa.ciudad || '';
+            emisor.provincia = miEmpresa.provincia || '';
+            emisor.telefono = miEmpresa.telefono || '';
+            emisor.email = miEmpresa.email || '';
+        }
+    } catch (e) {
+        console.warn('Error obteniendo datos del emisor:', e);
+    }
+    
+    // ============================================================
+    // OBTENER DATOS DEL CLIENTE (EMPRESA)
+    // ============================================================
+    let cliente = {
+        nombre: factura.cliente_nombre || '',
+        nif: factura.cliente_nif || '',
+        direccion: '',
+        ciudad: '',
+        provincia: ''
+    };
+    
+    try {
+        // Obtener la empresa del cliente
+        const { data: empresaCliente } = await sb
+            .from('empresas')
+            .select('*')
+            .eq('id', factura.empresa_id)
+            .maybeSingle();
+        
+        if (empresaCliente) {
+            cliente.direccion = empresaCliente.direccion || empresaCliente.calle || '';
+            cliente.ciudad = empresaCliente.ciudad || '';
+            cliente.provincia = empresaCliente.provincia || '';
+        }
+    } catch (e) {
+        console.warn('Error obteniendo datos del cliente:', e);
+    }
+    
+    const direccionEmisor = [emisor.direccion, emisor.ciudad, emisor.provincia].filter(p => p).join(', ');
+    const direccionCliente = [cliente.direccion, cliente.ciudad, cliente.provincia].filter(p => p).join(', ');
+    
+    // Datos para el QR
     const datosQR = {
         v: '1.0',
         num: factura.numero_factura,
@@ -58,8 +112,8 @@ async function generarFacturaHTML(factura, lineas, empresa) {
         imp: factura.importe_total.toFixed(2),
         hash: factura.hash_factura || '',
         hash_ant: factura.hash_factura_anterior || '0'.repeat(64),
-        nif_emi: EMISOR_NIF,
-        nif_cli: factura.cliente_nif || ''
+        nif_emi: emisor.nif,
+        nif_cli: cliente.nif
     };
     
     // Generar QR
@@ -68,9 +122,10 @@ async function generarFacturaHTML(factura, lineas, empresa) {
         qrDataURL = await generarQRDataURL(datosQR);
     } catch (error) {
         console.error('Error generando QR:', error);
+        qrDataURL = '';
     }
     
-    // Generar HTML de la factura
+    // Generar HTML de las líneas
     let lineasHtml = '';
     if (lineas && lineas.length) {
         lineas.forEach(linea => {
@@ -80,7 +135,7 @@ async function generarFacturaHTML(factura, lineas, empresa) {
                     <td style="padding: 8px;">${escapeHtml(linea.concepto)}</td>
                     <td style="padding: 8px; text-align: center;">${linea.cantidad}</td>
                     <td style="padding: 8px; text-align: right;">${linea.precio_unitario.toFixed(2)}€</td>
-                    <td style="padding: 8px; text-align: right;">${linea.iva}%</td>
+                    <td style="padding: 8px; text-align: center;">${linea.iva}%</td>
                     <td style="padding: 8px; text-align: right;">${importe.toFixed(2)}€</td>
                 </tr>
             `;
@@ -121,6 +176,11 @@ async function generarFacturaHTML(factura, lineas, empresa) {
             margin-bottom: 8px;
         }
         
+        .factura-num {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
         .qr-container {
             float: right;
             width: 120px;
@@ -137,31 +197,31 @@ async function generarFacturaHTML(factura, lineas, empresa) {
             padding: 5px;
         }
         
-        .qr-label {
-            font-size: 9px;
-            color: #6b7280;
-            margin-top: 4px;
+        .emisor-info, .cliente-info {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            clear: both;
         }
         
-        .empresa-info {
-            margin-bottom: 30px;
+        .emisor-info strong, .cliente-info strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #1e3a8a;
         }
         
-        .cliente-info {
-            margin-bottom: 30px;
+        .factura-info {
+            margin-bottom: 25px;
             padding: 15px;
             background: #f8fafc;
             border-radius: 8px;
         }
         
-        .factura-info {
-            margin-bottom: 30px;
-        }
-        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
         
         th {
@@ -195,7 +255,6 @@ async function generarFacturaHTML(factura, lineas, empresa) {
             border-left: 4px solid #22c55e;
             border-radius: 8px;
             font-size: 10px;
-            font-family: monospace;
             word-break: break-all;
         }
         
@@ -216,39 +275,40 @@ async function generarFacturaHTML(factura, lineas, empresa) {
             body {
                 padding: 20px;
             }
-            .no-print {
-                display: none;
-            }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>FACTURA</h1>
-        <p>${escapeHtml(factura.numero_factura)}</p>
+        <div class="factura-num">${escapeHtml(factura.numero_factura)}</div>
     </div>
     
     <div class="qr-container">
-        <img src="${qrDataURL}" alt="Código QR Verifactu">
-        <div class="qr-label">Verifactu - Código verificable</div>
+        ${qrDataURL ? `<img src="${qrDataURL}" alt="Código QR Verifactu">` : '<div style="width:100px; height:100px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; margin:0 auto;">QR</div>'}
+        <div style="font-size: 9px; text-align: center;">Verifactu</div>
     </div>
     
-    <div class="empresa-info">
-        <strong>${escapeHtml(EMISOR_NOMBRE)}</strong><br>
-        NIF: ${EMISOR_NIF}<br>
-        ${escapeHtml(empresa?.direccion || 'Dirección')}<br>
-        ${escapeHtml(empresa?.ciudad || 'Ciudad')}, ${escapeHtml(empresa?.provincia || 'Provincia')}
+    <!-- EMPRESA EMISORA (TÚ) -->
+    <div class="emisor-info">
+        <strong>EMPRESA EMISORA</strong>
+        ${escapeHtml(emisor.nombre)}<br>
+        NIF: ${emisor.nif}<br>
+        ${direccionEmisor ? direccionEmisor + '<br>' : ''}
+        ${emisor.telefono ? 'Tel: ' + emisor.telefono + '<br>' : ''}
+        ${emisor.email ? 'Email: ' + emisor.email : ''}
     </div>
     
+    <!-- CLIENTE -->
     <div class="cliente-info">
-        <strong>CLIENTE</strong><br>
-        ${escapeHtml(factura.cliente_nombre)}<br>
-        NIF: ${escapeHtml(factura.cliente_nif)}<br>
-        ${escapeHtml(empresa?.cliente_direccion || '')}
+        <strong>CLIENTE</strong>
+        ${escapeHtml(cliente.nombre)}<br>
+        NIF: ${cliente.nif}<br>
+        ${direccionCliente ? direccionCliente + '<br>' : ''}
     </div>
     
     <div class="factura-info">
-        <strong>DATOS DE LA FACTURA</strong><br>
+        <strong>DATOS DE LA FACTURA</strong>
         Fecha de expedición: ${new Date(factura.fecha_expedicion).toLocaleDateString()}<br>
         Fecha de vencimiento: ${new Date(factura.fecha_vencimiento).toLocaleDateString()}
     </div>
@@ -270,25 +330,23 @@ async function generarFacturaHTML(factura, lineas, empresa) {
     
     <div class="totales">
         <div><strong>Subtotal:</strong> ${factura.subtotal.toFixed(2)}€</div>
-        <div><strong>IVA (21%):</strong> ${factura.iva_total.toFixed(2)}€</div>
+        <div><strong>IVA:</strong> ${factura.iva_total.toFixed(2)}€</div>
         <div style="font-size: 18px; margin-top: 10px;"><strong>TOTAL:</strong> ${factura.importe_total.toFixed(2)}€</div>
     </div>
     
     <div class="verifactu-info">
         <strong>🔗 DATOS VERIFACTU</strong><br>
-        Hash de la factura: ${factura.hash_factura || 'No generado'}<br>
-        Hash factura anterior: ${factura.hash_factura_anterior || 'Primera factura'}<br>
+        Hash: ${factura.hash_factura || 'No generado'}<br>
+        Hash anterior: ${factura.hash_factura_anterior || 'Primera factura'}<br>
         <br>
         <strong>⚖️ VERIFACTU</strong><br>
         Esta factura cumple con los requisitos técnicos del Reglamento Verifactu.<br>
-        Los datos han sido generados con trazabilidad y encadenamiento.<br>
         <strong>Entregue esta factura a su asesor para su registro en la AEAT.</strong>
     </div>
     
     <div class="footer">
         <p>Documento generado electrónicamente con validez informativa</p>
-        <p>ID: ${Date.now()}</p>
-        <p>© ${EMISOR_NOMBRE} - Todos los derechos reservados</p>
+        <p>© ${escapeHtml(emisor.nombre)} - Todos los derechos reservados</p>
     </div>
 </body>
 </html>`;
@@ -303,7 +361,6 @@ export async function generarYMostrarFactura(facturaId) {
     }
     
     try {
-        // Obtener datos de la factura
         const { data: factura, error: errFactura } = await sb
             .from('facturas')
             .select('*')
@@ -314,7 +371,6 @@ export async function generarYMostrarFactura(facturaId) {
             throw new Error('Factura no encontrada');
         }
         
-        // Obtener líneas de la factura
         const { data: lineas, error: errLineas } = await sb
             .from('lineas_factura')
             .select('*')
@@ -324,23 +380,8 @@ export async function generarYMostrarFactura(facturaId) {
             console.warn('Error obteniendo líneas:', errLineas);
         }
         
-        // Obtener datos de la empresa emisora (si existe en tu tabla empresas)
-        let empresa = null;
-        try {
-            const { data: emp } = await sb
-                .from('empresas')
-                .select('*')
-                .eq('id', factura.empresa_id)
-                .maybeSingle();
-            empresa = emp;
-        } catch (e) {
-            console.warn('No se encontró la empresa emisora');
-        }
+        const html = await generarFacturaHTML(factura, lineas || []);
         
-        // Generar HTML de la factura
-        const html = await generarFacturaHTML(factura, lineas || [], empresa);
-        
-        // Abrir ventana con la factura
         const ventana = window.open('', '_blank');
         if (!ventana) {
             throw new Error('El navegador bloqueó la ventana emergente. Permite popups para esta página.');
@@ -349,7 +390,6 @@ export async function generarYMostrarFactura(facturaId) {
         ventana.document.write(html);
         ventana.document.close();
         
-        // Mostrar diálogo de impresión (para guardar como PDF)
         ventana.onload = () => {
             ventana.print();
         };
@@ -363,7 +403,7 @@ export async function generarYMostrarFactura(facturaId) {
 }
 
 /**
- * Función original para generar contrato (la mantengo igual)
+ * Genera y muestra el contrato en PDF
  */
 export async function generarYMostrarContrato(empresaId) {
     if (!empresaId) {
@@ -410,10 +450,11 @@ export async function generarYMostrarContrato(empresaId) {
 }
 
 /**
- * Genera el HTML del contrato (función original)
+ * Genera el HTML del contrato
  */
 function generarContratoHTML(cliente, perfil) {
-    // Tu función original de contrato aquí
+    const direccionCliente = [cliente.direccion, cliente.ciudad, cliente.provincia].filter(p => p).join(', ');
+    
     return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -437,9 +478,9 @@ function generarContratoHTML(cliente, perfil) {
         <div class="label">DATOS DEL CLIENTE</div>
         <p><strong>Razón Social:</strong> ${escapeHtml(cliente.nombre_empresa || 'N/A')}</p>
         <p><strong>NIF/CIF:</strong> ${escapeHtml(cliente.nif_cif || 'N/A')}</p>
+        <p><strong>Dirección:</strong> ${escapeHtml(direccionCliente || 'No registrada')}</p>
         <p><strong>Email:</strong> ${escapeHtml(perfil?.email || cliente.email || 'N/A')}</p>
         <p><strong>Teléfono:</strong> ${escapeHtml(perfil?.telefono || cliente.telefono || 'N/A')}</p>
-        <p><strong>Plan:</strong> ${escapeHtml(cliente.plan || 'BÁSICO')}</p>
     </div>
     <div class="seccion">
         <div class="label">CONDICIONES</div>

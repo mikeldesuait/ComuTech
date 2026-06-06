@@ -1,7 +1,7 @@
 // js/modules/main.js
 import { sb } from './supabase.js'
 import { mostrarMensaje } from './utils.js'
-import { initAyuda } from './ayuda.js'  // ← Mover aquí
+import { initAyuda } from './ayuda.js'
 
 let currentUser = null
 let moduloActual = null
@@ -83,6 +83,7 @@ async function cargarModulo(modulo) {
         
         let templatePath = ''
         
+        // Determinar la ruta del template según el módulo
         if (modulo === 'clientes') {
             templatePath = 'templates/clientes/clientes.html'
         } else if (modulo === 'facturacion') {
@@ -91,6 +92,8 @@ async function cargarModulo(modulo) {
             templatePath = 'templates/facturacion/suscripciones.html'
         } else if (modulo === 'productos') {
             templatePath = 'templates/facturacion/productos.html'
+        } else if (modulo === 'gastos') {
+            templatePath = 'templates/gastos/gastos.html'
         } else {
             templatePath = `templates/${modulo}/${modulo}.html`
         }
@@ -105,6 +108,7 @@ async function cargarModulo(modulo) {
         
         container.innerHTML = await response.text()
         
+        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) {
@@ -129,6 +133,12 @@ async function cargarModulo(modulo) {
                 await module.iniciar()
             }
             moduloActual = 'productos'
+        } else if (modulo === 'gastos') {
+            const module = await import('./gastos.js')
+            if (module.iniciar) {
+                await module.iniciar()
+            }
+            moduloActual = 'gastos'
         }
         
     } catch (error) {
@@ -196,6 +206,12 @@ function setupRefresh() {
                 await module.iniciar()
                 mostrarMensaje('✅ Datos actualizados', 'exito')
             }
+        } else if (moduloActual === 'gastos') {
+            const module = await import('./gastos.js')
+            if (module.iniciar) {
+                await module.iniciar()
+                mostrarMensaje('✅ Datos actualizados', 'exito')
+            }
         }
         await cargarStats()
     }
@@ -240,7 +256,7 @@ export function init() {
                 setupRefresh()
                 setupMiPerfil()
                 setupMiEmpresa()
-                initAyuda()  // ← Llamar a la función
+                initAyuda()
             }
         }
     }
