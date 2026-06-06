@@ -144,9 +144,24 @@ export async function descargarDocumentacionCliente(empresaId, empresaNombre) {
             <meta charset="UTF-8">
             <title>Documentación legal - ${escapeHtml(empresaNombre)}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.5; }
-                h1 { color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; }
-                h2 { color: #2563eb; margin-top: 30px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+                body { 
+                    font-family: 'Helvetica', Arial, sans-serif; 
+                    padding: 40px; 
+                    line-height: 1.5; 
+                    color: #1f2937;
+                }
+                h1 { 
+                    color: #1e3a8a; 
+                    border-bottom: 2px solid #1e3a8a; 
+                    padding-bottom: 10px; 
+                    text-align: center;
+                }
+                h2 { 
+                    color: #2563eb; 
+                    margin-top: 30px; 
+                    border-bottom: 1px solid #ccc; 
+                    padding-bottom: 5px; 
+                }
                 .seccion { margin-bottom: 40px; }
                 .fecha { color: #666; font-size: 12px; margin-bottom: 10px; }
                 .dato { margin: 5px 0; }
@@ -160,23 +175,33 @@ export async function descargarDocumentacionCliente(empresaId, empresaNombre) {
                     border-radius: 8px; 
                     border: 1px solid #e2e8f0;
                     margin: 16px 0;
-                    max-height: 400px;
-                    overflow-y: auto;
                 }
                 .firma { margin-top: 50px; text-align: center; }
                 .firma-linea { border-top: 1px solid #000; width: 300px; margin: 20px auto 10px auto; }
-                .footer { margin-top: 40px; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ccc; padding-top: 20px; }
+                .footer { 
+                    margin-top: 40px; 
+                    text-align: center; 
+                    font-size: 10px; 
+                    color: #666; 
+                    border-top: 1px solid #ccc; 
+                    padding-top: 20px; 
+                }
                 .pagina { page-break-before: always; }
                 .pagina:first-child { page-break-before: avoid; }
+                @media print {
+                    body { padding: 20px; }
+                    .no-print { display: none; }
+                }
             </style>
         </head>
         <body>
             <h1>Documentación Legal</h1>
+            <div class="fecha">Generado el ${new Date().toLocaleString()}</div>
+            
             <p><strong>Cliente:</strong> ${escapeHtml(empresa?.nombre_empresa || empresaNombre)}</p>
             <p><strong>NIF/CIF:</strong> ${escapeHtml(empresa?.nif_cif || 'No registrado')}</p>
             <p><strong>Email:</strong> ${escapeHtml(empresa?.email || perfil?.email || '-')}</p>
             <p><strong>Teléfono:</strong> ${escapeHtml(empresa?.telefono || '-')}</p>
-            <p><strong>Fecha generación:</strong> ${new Date().toLocaleString()}</p>
             
             <div class="seccion">
                 <h2>📋 Datos del Cliente</h2>
@@ -250,21 +275,28 @@ export async function descargarDocumentacionCliente(empresaId, empresaNombre) {
                 <p>ID: ${Date.now()}</p>
                 <p>© COMUTECH - Todos los derechos reservados</p>
             </div>
+            <div class="footer no-print">
+                <p>Para guardar como PDF, haz clic en "Imprimir" y selecciona "Guardar como PDF".</p>
+            </div>
         </body>
         </html>
         `
         
-        // Descargar el HTML
-        const blob = new Blob([html], { type: 'text/html' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `documentacion_${empresaNombre.replace(/\s/g, '_')}_${Date.now()}.html`
-        a.click()
-        URL.revokeObjectURL(url)
+        // Abrir ventana con el HTML y mostrar diálogo de impresión (PDF)
+        const ventana = window.open('', '_blank')
+        if (!ventana) {
+            throw new Error('El navegador bloqueó la ventana emergente. Permite popups para esta página.')
+        }
+        
+        ventana.document.write(html)
+        ventana.document.close()
+        
+        ventana.onload = () => {
+            ventana.print()
+        }
         
         cerrarModalCarga()
-        mostrarMensaje('✅ Documentación generada correctamente', 'exito')
+        mostrarMensaje('✅ Documentación generada. Usa "Guardar como PDF" en el diálogo de impresión.', 'exito')
         
     } catch (error) {
         cerrarModalCarga()
