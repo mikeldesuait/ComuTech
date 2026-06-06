@@ -31,6 +31,34 @@ const FAQS = [
         ]
     },
     {
+        id: 'subir-gasto',
+        titulo: '📸 ¿Cómo subir una factura de gasto?',
+        modulo: 'gastos',
+        pasos: [
+            '1️⃣ Ve a la pestaña "Gastos" (📉)',
+            '2️⃣ Haz clic en "Subir factura"',
+            '3️⃣ Selecciona la imagen de la factura (foto o escaneo)',
+            '4️⃣ Espera a que el OCR extraiga los datos automáticamente',
+            '5️⃣ Revisa los datos extraídos (proveedor, importe, fecha)',
+            '6️⃣ Completa la categoría y el email de destino',
+            '7️⃣ Haz clic en "Procesar y guardar"',
+            '8️⃣ El gasto se guardará y recibirás una copia por email'
+        ]
+    },
+    {
+        id: 'gastos',
+        titulo: '📉 ¿Cómo gestionar gastos?',
+        modulo: 'gastos',
+        pasos: [
+            '1️⃣ Ve a la pestaña "Gastos" (📉)',
+            '2️⃣ Puedes añadir gastos manualmente con "+ Nuevo gasto"',
+            '3️⃣ O subir facturas escaneadas con "Subir factura"',
+            '4️⃣ Usa los filtros por fecha y categoría para buscar',
+            '5️⃣ El resumen muestra total de gastos e IVA soportado',
+            '6️⃣ Los gastos se usan para el informe trimestral de IVA'
+        ]
+    },
+    {
         id: 'rectificar-factura',
         titulo: '🔄 ¿Cómo rectificar una factura?',
         modulo: 'facturacion',
@@ -72,52 +100,6 @@ const FAQS = [
         ]
     },
     {
-        id: 'ver-documentacion',
-        titulo: '📋 ¿Cómo ver la documentación legal de un cliente?',
-        modulo: 'clientes',
-        pasos: [
-            '1️⃣ Ve a "Clientes"',
-            '2️⃣ Busca el cliente',
-            '3️⃣ Haz clic en el botón 📋',
-            '4️⃣ Se descargará un documento con RGPD y contrato firmados'
-        ]
-    },
-    {
-        id: 'resumen-cliente',
-        titulo: '💰 ¿Cómo ver el resumen financiero de un cliente?',
-        modulo: 'clientes',
-        pasos: [
-            '1️⃣ Ve a "Clientes"',
-            '2️⃣ Haz clic en el botón 💰 del cliente',
-            '3️⃣ Verás: Total facturado, cobrado y pendiente',
-            '4️⃣ También todas sus facturas y cobros'
-        ]
-    },
-    {
-        id: 'exportar-facturas',
-        titulo: '📎 ¿Cómo exportar varias facturas?',
-        modulo: 'facturacion',
-        pasos: [
-            '1️⃣ Ve a "Facturación"',
-            '2️⃣ Selecciona las facturas con los checkboxes',
-            '3️⃣ Haz clic en "Exportar seleccionadas"',
-            '4️⃣ Se generará un PDF con todas las facturas'
-        ]
-    },
-    {
-        id: 'cambiar-plan',
-        titulo: '🏷️ ¿Cómo cambiar el plan a un cliente?',
-        modulo: 'suscripciones',
-        pasos: [
-            '1️⃣ Ve a "Suscripciones"',
-            '2️⃣ Localiza el cliente',
-            '3️⃣ Haz clic en el botón 🏷️',
-            '4️⃣ Selecciona el nuevo plan',
-            '5️⃣ Confirma',
-            '6️⃣ El cliente tendrá el nuevo plan activo'
-        ]
-    },
-    {
         id: 'mi-perfil',
         titulo: '👤 ¿Cómo cambiar mis datos personales?',
         modulo: 'perfil',
@@ -138,20 +120,6 @@ const FAQS = [
             '3️⃣ Añade tus datos bancarios (IBAN, banco, SWIFT)',
             '4️⃣ Guarda los cambios',
             '5️⃣ Estos datos aparecerán en tus facturas'
-        ]
-    },
-    {
-        id: 'filtros-facturas',
-        titulo: '🔍 ¿Cómo filtrar facturas?',
-        modulo: 'facturacion',
-        pasos: [
-            '1️⃣ Ve a "Facturación"',
-            '2️⃣ Usa los filtros superiores:',
-            '   - 📅 Desde/Hasta: rango de fechas',
-            '   - 📌 Estado: Pendiente, Pagada, Vencida',
-            '   - 🏷️ Tipo: Normal, Abono, Rectificativa',
-            '   - 🏢 Cliente: escribe el nombre',
-            '3️⃣ Haz clic en "Limpiar" para resetear'
         ]
     }
 ];
@@ -266,9 +234,7 @@ function mostrarModalDetalleAyuda(faq, modalAnterior) {
     document.getElementById('btnIrModulo').onclick = () => {
         modal.remove();
         const tab = document.querySelector(`.tab-btn[data-tab="${faq.modulo}"]`);
-        if (tab) {
-            tab.click();
-        }
+        if (tab) tab.click();
     };
     
     document.getElementById('btnVolverAyuda').onclick = () => {

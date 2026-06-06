@@ -83,7 +83,6 @@ async function cargarModulo(modulo) {
         
         let templatePath = ''
         
-        // Determinar la ruta del template según el módulo
         if (modulo === 'clientes') {
             templatePath = 'templates/clientes/clientes.html'
         } else if (modulo === 'facturacion') {
@@ -108,7 +107,6 @@ async function cargarModulo(modulo) {
         
         container.innerHTML = await response.text()
         
-        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) {

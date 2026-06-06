@@ -1,8 +1,12 @@
+<!-- templates/gastos/gastos.html -->
 <div class="gastos-container">
     
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-size: 20px; font-weight: 600;">📉 Gastos (Facturas recibidas)</h2>
-        <button id="btnNuevoGasto" class="btn-success" style="padding: 8px 16px;">➕ Nuevo gasto</button>
+        <h2 style="font-size: 20px; font-weight: 600;">📉 Gastos (Facturas de proveedores)</h2>
+        <div style="display: flex; gap: 8px;">
+            <button id="btnSubirGastoOCR" class="btn-info" style="padding: 8px 16px;">📸 Subir factura</button>
+            <button id="btnNuevoGasto" class="btn-success" style="padding: 8px 16px;">➕ Nuevo gasto</button>
+        </div>
     </div>
     
     <!-- Filtros -->
@@ -28,7 +32,7 @@
                 <option value="otros">📦 Otros</option>
             </select>
         </div>
-        <button id="btnLimpiarFiltros" class="btn-sm" style="background: #6b7280; color: white;">🗑️ Limpiar</button>
+        <button id="btnLimpiarFiltrosGastos" class="btn-sm" style="background: #6b7280; color: white;">🗑️ Limpiar</button>
     </div>
     
     <!-- Resumen de gastos -->
@@ -90,8 +94,8 @@
         
         <div class="row-flex">
             <div class="grupo">
-                <label>💰 Subtotal *</label>
-                <input type="number" id="gastoSubtotal" step="0.01" placeholder="0.00">
+                <label>💰 Importe total *</label>
+                <input type="number" id="gastoImporte" step="0.01" placeholder="0.00">
             </div>
             <div class="grupo">
                 <label>🧾 IVA (%)</label>
@@ -131,7 +135,7 @@
             <textarea id="gastoDescripcion" rows="2" placeholder="Descripción del gasto"></textarea>
         </div>
         
-        <div class="alert-info" style="margin-top: 16px; padding: 12px; background: #fef3c7;">
+        <div class="alert-info" style="margin-top: 16px; padding: 12px; background: #dbeafe;">
             <small>📌 Este gasto aparecerá en el informe trimestral como IVA soportado.</small>
         </div>
         

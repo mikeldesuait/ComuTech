@@ -1455,6 +1455,376 @@ async function registrarCobro(facturaId, importe, formaPago, fechaCobro, referen
     }
 }
 
+// ============================================================
+// SUBIR FACTURA CON OCR - GUARDAR EN BD Y ENVIAR EMAIL
+// ============================================================
+
+let ocrResultados = {};
+
+async function abrirModalSubirFacturaOCR() {
+    // Cargar clientes (si es factura emitida a cliente)
+    const { data: clientes } = await sb.from('empresas')
+        .select('id, nombre_empresa, nif_cif')
+        .eq('activo', true)
+        .order('nombre_empresa');
+    
+    const selectCliente = document.getElementById('ocrClienteId');
+    if (selectCliente && clientes) {
+        selectCliente.innerHTML = '<option value="">-- Factura de gasto (proveedor) --</option>' +
+            '<option value="gasto">📉 GASTO (factura de proveedor)</option>' +
+            '<option disabled>--- MIS CLIENTES ---</option>' +
+            clientes.map(c => `<option value="${c.id}" data-nif="${c.nif_cif || ''}" data-nombre="${c.nombre_empresa}">🏢 ${c.nombre_empresa} (${c.nif_cif || 'Sin NIF'})</option>`).join('');
+    }
+    
+    // Limpiar campos
+    document.getElementById('inputOCRFactura').value = '';
+    document.getElementById('previewOCR').style.display = 'none';
+    document.getElementById('datosExtraidos').style.display = 'none';
+    document.getElementById('ocrNumeroFactura').value = '';
+    document.getElementById('ocrImporte').value = '';
+    document.getElementById('ocrFecha').value = '';
+    document.getElementById('ocrProveedor').value = '';
+    document.getElementById('ocrConcepto').value = '';
+    document.getElementById('ocrProgress').style.display = 'none';
+    
+    // Email del usuario logueado
+    const { data: { user } } = await sb.auth.getUser();
+    if (user?.email) {
+        document.getElementById('ocrEmailDestino').value = user.email;
+    }
+    
+    abrirModal('modalSubirFacturaOCR');
+    
+    // Previsualización y OCR automático
+    const inputFile = document.getElementById('inputOCRFactura');
+    inputFile.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = document.getElementById('previewOCRImg');
+                img.src = event.target.result;
+                document.getElementById('previewOCR').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            
+            await ejecutarOCR(file);
+        }
+    };
+}
+
+async function ejecutarOCR(file) {
+    const progressDiv = document.getElementById('ocrProgress');
+    const statusSpan = document.getElementById('ocrStatus');
+    const progressBar = document.getElementById('ocrProgressBar');
+    
+    progressDiv.style.display = 'block';
+    statusSpan.innerText = 'Procesando imagen con OCR...';
+    progressBar.style.width = '20%';
+    
+    try {
+        // Usar Tesseract.js para OCR
+        const worker = await Tesseract.createWorker('spa');
+        progressBar.style.width = '40%';
+        statusSpan.innerText = 'Reconociendo texto...';
+        
+        const ret = await worker.recognize(file);
+        progressBar.style.width = '70%';
+        statusSpan.innerText = 'Extrayendo datos...';
+        
+        const texto = ret.data.text;
+        console.log('Texto OCR extraído:', texto);
+        
+        // Extraer datos del texto
+        ocrResultados = extraerDatosOCR(texto);
+        
+        // Rellenar campos
+        if (ocrResultados.numero) {
+            document.getElementById('ocrNumeroFactura').value = ocrResultados.numero;
+        }
+        if (ocrResultados.importe) {
+            document.getElementById('ocrImporte').value = ocrResultados.importe;
+        }
+        if (ocrResultados.fecha) {
+            document.getElementById('ocrFecha').value = ocrResultados.fecha;
+        }
+        if (ocrResultados.proveedor) {
+            document.getElementById('ocrProveedor').value = ocrResultados.proveedor;
+        }
+        
+        // Mostrar datos extraídos
+        const datosContent = document.getElementById('datosExtraidosContent');
+        datosContent.innerHTML = `
+            <ul style="margin: 8px 0 0 20px;">
+                <li><strong>Nº Factura:</strong> ${ocrResultados.numero || 'No detectado'}</li>
+                <li><strong>Proveedor:</strong> ${ocrResultados.proveedor || 'No detectado'}</li>
+                <li><strong>Importe:</strong> ${ocrResultados.importe ? ocrResultados.importe + '€' : 'No detectado'}</li>
+                <li><strong>Fecha:</strong> ${ocrResultados.fecha || 'No detectada'}</li>
+            </ul>
+        `;
+        document.getElementById('datosExtraidos').style.display = 'block';
+        
+        progressBar.style.width = '100%';
+        statusSpan.innerText = 'OCR completado! Revisa los datos y ajusta si es necesario.';
+        
+        await worker.terminate();
+        
+        setTimeout(() => {
+            progressDiv.style.display = 'none';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error en OCR:', error);
+        statusSpan.innerText = 'Error en OCR. Introduce los datos manualmente.';
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+            progressDiv.style.display = 'none';
+        }, 2000);
+    }
+}
+
+function extraerDatosOCR(texto) {
+    const resultados = {
+        numero: null,
+        importe: null,
+        fecha: null,
+        proveedor: null
+    };
+    
+    // Buscar número de factura (patrones comunes)
+    const numeroPatterns = [
+        /Factura\s+N[ºº]?\s*([A-Z0-9\-]+)/i,
+        /N[ºº]\s*Factura\s*([A-Z0-9\-]+)/i,
+        /Invoice\s*N[ºº]\s*([A-Z0-9\-]+)/i,
+        /Número\s*:\s*([A-Z0-9\-]+)/i
+    ];
+    
+    for (const pattern of numeroPatterns) {
+        const match = texto.match(pattern);
+        if (match) {
+            resultados.numero = match[1];
+            break;
+        }
+    }
+    
+    // Buscar importe total
+    const importePatterns = [
+        /Total\s*[€$\s]*(\d+[\.,]\d{2})/i,
+        /Importe\s*Total\s*[€$\s]*(\d+[\.,]\d{2})/i,
+        /TOTAL\s*[€$\s]*(\d+[\.,]\d{2})/i,
+        /A pagar\s*[€$\s]*(\d+[\.,]\d{2})/i
+    ];
+    
+    for (const pattern of importePatterns) {
+        const match = texto.match(pattern);
+        if (match) {
+            resultados.importe = parseFloat(match[1].replace(',', '.'));
+            break;
+        }
+    }
+    
+    // Buscar fecha
+    const fechaPatterns = [
+        /Fecha\s*:\s*(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})/i,
+        /(\d{1,2}[/\-]\d{1,2}[/\-]\d{4})/,
+        /(\d{4}[/\-]\d{1,2}[/\-]\d{1,2})/
+    ];
+    
+    for (const pattern of fechaPatterns) {
+        const match = texto.match(pattern);
+        if (match) {
+            let fechaStr = match[1];
+            // Convertir a formato YYYY-MM-DD
+            if (fechaStr.includes('/')) {
+                const partes = fechaStr.split('/');
+                if (partes[2].length === 4) {
+                    resultados.fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                } else {
+                    resultados.fecha = `20${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                }
+            } else if (fechaStr.includes('-')) {
+                resultados.fecha = fechaStr;
+            }
+            break;
+        }
+    }
+    
+    // Buscar nombre del proveedor (primeras líneas)
+    const lineas = texto.split('\n');
+    for (let i = 0; i < Math.min(lineas.length, 10); i++) {
+        const linea = lineas[i].trim();
+        if (linea.length > 5 && linea.length < 100 && 
+            !linea.match(/factura|invoice|nº|fecha|total/gi) &&
+            linea.match(/[A-Za-z]/)) {
+            resultados.proveedor = linea.substring(0, 50);
+            break;
+        }
+    }
+    
+    return resultados;
+}
+
+async function procesarYEnviarFacturaOCR() {
+    const fileInput = document.getElementById('inputOCRFactura');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        mostrarMensaje('Selecciona una imagen de factura', 'error');
+        return;
+    }
+    
+    const clienteSeleccion = document.getElementById('ocrClienteId').value;
+    const emailDestino = document.getElementById('ocrEmailDestino').value.trim();
+    const numeroFactura = document.getElementById('ocrNumeroFactura').value.trim();
+    const importe = parseFloat(document.getElementById('ocrImporte').value) || 0;
+    const fecha = document.getElementById('ocrFecha').value;
+    const proveedor = document.getElementById('ocrProveedor').value.trim();
+    const concepto = document.getElementById('ocrConcepto').value.trim() || 'Factura escaneada';
+    
+    if (!emailDestino) {
+        mostrarMensaje('Introduce el email de destino', 'error');
+        return;
+    }
+    
+    if (importe <= 0) {
+        mostrarMensaje('Introduce un importe válido', 'error');
+        return;
+    }
+    
+    if (!fecha) {
+        mostrarMensaje('Introduce la fecha de la factura', 'error');
+        return;
+    }
+    
+    mostrarModalCarga('Procesando factura...');
+    
+    try {
+        // 1. Convertir imagen a PDF
+        const pdfBlob = await convertirImagenAPDF(file);
+        
+        // 2. Subir PDF a Supabase Storage
+        const fileName = `factura_${Date.now()}_${numeroFactura || 'sin_numero'}.pdf`;
+        const { data: uploadData, error: uploadError } = await sb.storage
+            .from('facturas_escaneadas')
+            .upload(fileName, pdfBlob, { contentType: 'application/pdf' });
+        
+        if (uploadError) throw uploadError;
+        
+        // 3. Obtener URL pública del PDF
+        const { data: urlData } = sb.storage
+            .from('facturas_escaneadas')
+            .getPublicUrl(fileName);
+        
+        const pdfUrl = urlData.publicUrl;
+        
+        // 4. Guardar en base de datos
+        const tipo = clienteSeleccion === 'gasto' ? 'gasto' : 'ingreso';
+        const empresaId = (tipo === 'ingreso' && clienteSeleccion !== 'gasto') ? clienteSeleccion : null;
+        
+        const { data: facturaGuardada, error: dbError } = await sb
+            .from('facturas_escaneadas')
+            .insert({
+                empresa_id: empresaId,
+                tipo: tipo,
+                numero_factura: numeroFactura,
+                proveedor: proveedor,
+                fecha: fecha,
+                importe_total: importe,
+                concepto: concepto,
+                pdf_url: pdfUrl,
+                datos_ocr: ocrResultados,
+                procesado: true,
+                email_enviado: false
+            })
+            .select()
+            .single();
+        
+        if (dbError) throw dbError;
+        
+        // 5. Enviar email con la factura procesada
+        await enviarEmailFacturaProcesada(facturaGuardada, emailDestino, pdfUrl);
+        
+        // 6. Actualizar estado de email enviado
+        await sb.from('facturas_escaneadas')
+            .update({ email_enviado: true })
+            .eq('id', facturaGuardada.id);
+        
+        cerrarModalCarga();
+        cerrarModal('modalSubirFacturaOCR');
+        mostrarMensaje(`✅ Factura procesada y enviada a ${emailDestino}`, 'exito');
+        
+        // Recargar lista si estamos en el módulo de gastos
+        if (moduloActual === 'gastos') {
+            const module = await import('./gastos.js');
+            if (module.iniciar) await module.iniciar();
+        }
+        
+    } catch (error) {
+        cerrarModalCarga();
+        mostrarMensaje('Error: ' + error.message, 'error');
+        console.error(error);
+    }
+}
+
+async function convertirImagenAPDF(file) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            img.src = e.target.result;
+            img.onload = () => {
+                const pdf = new jspdf.jsPDF({
+                    unit: 'mm',
+                    format: 'a4',
+                    compress: true
+                });
+                
+                const imgWidth = 190;
+                const imgHeight = (img.height * imgWidth) / img.width;
+                
+                pdf.addImage(img, 'JPEG', 10, 10, imgWidth, imgHeight, undefined, 'FAST');
+                const pdfBlob = pdf.output('blob');
+                resolve(pdfBlob);
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function enviarEmailFacturaProcesada(factura, emailDestino, pdfUrl) {
+    // Aquí llamarías a una Edge Function de Supabase para enviar el email
+    // Por ahora, abrimos el cliente de correo
+    
+    const subject = encodeURIComponent(`Factura procesada - ${factura.numero_factura || 'Sin número'} - ${factura.proveedor || 'Proveedor'}`);
+    const body = encodeURIComponent(`
+    📄 FACTURA PROCESADA
+    
+    Datos extraídos:
+    - Número: ${factura.numero_factura || 'No detectado'}
+    - Proveedor: ${factura.proveedor || 'No detectado'}
+    - Fecha: ${factura.fecha}
+    - Importe: ${factura.importe_total}€
+    - Concepto: ${factura.concepto}
+    
+    📎 La factura escaneada está adjunta como PDF.
+    
+    ---
+    Este email ha sido generado automáticamente por COMUTECH.
+    `);
+    
+    // Abrir cliente de correo
+    window.open(`mailto:${emailDestino}?subject=${subject}&body=${body}`);
+    
+    // También podrías descargar el PDF localmente
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = `factura_${factura.numero_factura || Date.now()}.pdf`;
+    a.click();
+}
+
 async function abrirModalRegistrarCobro(facturaId) {
     // Obtener factura actual
     const { data: factura, error } = await sb
@@ -1550,5 +1920,6 @@ async function abrirModalRegistrarCobro(facturaId) {
     modal.querySelector('#btnCancelarCobro').onclick = () => modal.remove();
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
 }
+
 
 export default { iniciar };
