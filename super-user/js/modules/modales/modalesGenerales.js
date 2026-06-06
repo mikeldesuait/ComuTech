@@ -82,10 +82,6 @@ export function mostrarModalInformativo(titulo, mensaje, tipo = 'exito') {
     }
     
     abrirModal('modalInformativo')
-    
-    if (tipo === 'exito') {
-        setTimeout(() => cerrarModal('modalInformativo'), 5000)
-    }
 }
 
 // ============================================================
@@ -161,7 +157,7 @@ export function cerrarModalCarga() {
 }
 
 // ============================================================
-// MODAL ELEGIR TIPO DE CLIENTE (NUEVO)
+// MODAL ELEGIR TIPO DE CLIENTE
 // ============================================================
 
 export function abrirModalElegirTipoCliente() {

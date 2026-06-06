@@ -109,6 +109,8 @@ function configurarWhatsappCheckbox() {
     }
 }
 
+// js/modules/modales/modalesAltaEmpresa.js
+
 function recogerDatosFormulario() {
     const razonSocial = document.getElementById('razonSocial')?.value.trim() || ''
     const email = document.getElementById('emailContacto')?.value.trim() || ''
@@ -121,9 +123,9 @@ function recogerDatosFormulario() {
     const calle = document.getElementById('direccionCalle')?.value.trim() || ''
     const numero = document.getElementById('direccionNumero')?.value.trim() || ''
     const piso = document.getElementById('direccionPiso')?.value.trim() || ''
-    const codigoPostal = document.getElementById('direccionCp')?.value.trim() || ''
-    const municipio = document.getElementById('direccionMunicipio')?.value.trim() || ''
-    const provincia = document.getElementById('direccionProvincia')?.value.trim() || ''
+    const codigoPostal = document.getElementById('codigoPostal')?.value.trim() || ''
+    const municipio = document.getElementById('municipio')?.value.trim() || ''
+    const provincia = document.getElementById('provincia')?.value.trim() || ''
     
     const iban = document.getElementById('ibanCuenta')?.value.trim() || ''
     const banco = document.getElementById('bancoNombre')?.value.trim() || ''
@@ -157,9 +159,10 @@ function recogerDatosFormulario() {
         fecha_inicio_actividad: fechaInicioActividad,
         plan: plan,
         tipo_cliente: tipoCliente,
-        consentimiento: true
+        consentimiento: true  // Se activará cuando acepte el modal
     }
 }
+
 
 // ============================================================
 // FUNCIONES PÚBLICAS (exportadas)

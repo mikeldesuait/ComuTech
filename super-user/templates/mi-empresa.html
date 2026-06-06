@@ -64,3 +64,39 @@
     <button id="btnGuardarEmpresa" class="btn-success">💾 Guardar cambios</button>
     <button id="btnCancelarEmpresa" class="btn-danger">✖ Cancelar</button>
 </div>
+
+<!-- SECCIÓN VERIFACTU - CONFIGURACIÓN DE CADENA -->
+<div class="card-header">🔗 Configuración Verifactu (continuidad de cadena)</div>
+
+<div class="alert-info" style="margin-bottom: 16px; padding: 12px; background: #dbeafe; border-left-color: #2563eb;">
+    <small>Si vienes de otra asesoría o software, completa estos datos para continuar la cadena de facturación sin interrupciones.</small>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📋 Último número de factura del sistema anterior</label>
+        <input type="text" id="ultimoNumeroFactura" placeholder="Ej: F20250012">
+        <small style="color: #6b7280;">Tu asesoría te dará este número</small>
+    </div>
+    <div class="grupo">
+        <label>🔗 Hash de la última factura (cadena)</label>
+        <input type="text" id="ultimoHashFactura" placeholder="Hash de 64 caracteres">
+        <small style="color: #6b7280;">Tu asesoría te dará este hash</small>
+    </div>
+</div>
+
+<div class="row-flex">
+    <div class="grupo">
+        <label>📅 Fecha de inicio de facturación propia</label>
+        <input type="date" id="fechaInicioCadena">
+        <small style="color: #6b7280;">A partir de esta fecha facturarás tú</small>
+    </div>
+</div>
+
+<button id="btnGuardarConfigVerifactu" class="btn-info">💾 Guardar configuración de cadena</button>
+
+<div id="infoCadenaActual" style="margin-top: 16px; padding: 12px; background: #f1f5f9; border-radius: 8px; display: none;">
+    <strong>🔗 Estado actual de la cadena Verifactu</strong><br>
+    <span id="cadenaUltimoNumero">-</span><br>
+    <span id="cadenaUltimoHash">-</span>
+</div>

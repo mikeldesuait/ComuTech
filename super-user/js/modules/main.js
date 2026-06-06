@@ -102,7 +102,6 @@ async function cargarModulo(modulo) {
         
         container.innerHTML = await response.text()
         
-        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) {

@@ -10,6 +10,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="COMUTECH">
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
 </head>
 <body>
 
@@ -36,6 +39,7 @@
                 <div class="admin-email" id="emailAdmin"></div>
             </div>
             <div style="display: flex; gap: 8px;">
+                <button id="btnMiEmpresa" class="header-btn">🏢</button>
                 <button id="btnMiPerfil" class="header-btn">👤</button>
                 <button id="btnLogoutHeader" class="header-btn">🚪</button>
             </div>
@@ -218,29 +222,39 @@
 </div>
 
 <div id="modalConsentimientoRGPD" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 700px; max-height: 90vh;">
         <div class="modal-header">⚖️ Consentimiento RGPD</div>
-        <div class="consentimiento-texto">
-            <p>De acuerdo con el RGPD (UE) 2016/679...</p>
+        <div class="consentimiento-texto" style="max-height: 60vh; overflow-y: auto; padding: 16px; background: #f8fafc; border-radius: 12px; margin-bottom: 16px;">
+            <p style="color: #666; text-align: center;">Cargando texto legal...</p>
         </div>
-        <div class="btn-group">
-            <button id="btnAceptarConsentimientoFinal" class="btn-success">Acepto</button>
-            <button id="btnRechazarConsentimiento" class="btn-danger">No acepto</button>
+        <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                <input type="checkbox" id="consentimientoCheckFinal">
+                <span>✅ He leído y acepto la política de protección de datos (RGPD)</span>
+            </label>
+        </div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnAceptarConsentimientoFinal" class="btn-success">Aceptar</button>
+            <button id="btnRechazarConsentimiento" class="btn-danger">Rechazar</button>
         </div>
     </div>
 </div>
 
 <div id="modalContratoServicios" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
         <div class="modal-header">📄 Contrato de servicios</div>
-        <div class="contrato-texto">
-            <p><strong>CONTRATO DE PRESTACIÓN DE SERVICIOS</strong></p>
-            <p>CLIENTE: <span id="clienteNombreContrato"></span></p>
-            <p>NIF: <span id="clienteNifContrato"></span></p>
+        <div class="contrato-texto" style="max-height: 60vh; overflow-y: auto; padding: 16px; background: #f8fafc; border-radius: 12px; margin-bottom: 16px;">
+            <p style="color: #666; text-align: center;">Cargando contrato...</p>
         </div>
-        <div class="btn-group">
-            <button id="btnAceptarContrato" class="btn-success">Acepto</button>
-            <button id="btnRechazarContrato" class="btn-danger">No acepto</button>
+        <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                <input type="checkbox" id="contratoCheckFinal">
+                <span>✅ He leído y acepto el contrato de servicios</span>
+            </label>
+        </div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnAceptarContrato" class="btn-success">Aceptar</button>
+            <button id="btnRechazarContrato" class="btn-danger">Rechazar</button>
         </div>
     </div>
 </div>

@@ -1,49 +1,91 @@
 // js/modules/modales/contrato.js
-// 📄 MODAL DE CONTRATO DE SERVICIOS
-
 import { abrirModal, cerrarModal } from './modalesGenerales.js'
 
-let onAceptarCallback = null
+function generarTextoContrato(datosCliente) {
+    const fecha = new Date().toLocaleDateString('es-ES')
+    const nombreCliente = datosCliente?.nombre_empresa || 'EL CLIENTE'
+    const nifCliente = datosCliente?.nif_cif || '___'
+    const direccionCliente = datosCliente?.direccion || '___'
+    const plan = datosCliente?.plan || 'BASICO'
+    const importe = plan === 'PRO' ? '99' : (plan === 'EMPRESA' ? '199' : '49')
+    
+    return `
+CONTRATO DE PRESTACIÓN DE SERVICIOS PROFESIONALES
 
-/**
- * Muestra el modal del contrato de servicios
- * @param {Object} datosCliente - Datos del cliente para personalizar el contrato
- * @param {Function} onAceptar - Función a ejecutar cuando el usuario acepta
- */
+En [CIUDAD], a ${fecha}.
+
+REUNIDOS
+
+De una parte, COMUTECH S.L., con NIF B12345678, y domicilio a efectos de notificaciones en [DIRECCIÓN COMUTECH] (en adelante, "EL PRESTADOR").
+
+De otra parte, ${nombreCliente}, con NIF ${nifCliente}, y domicilio en ${direccionCliente} (en adelante, "EL CLIENTE").
+
+EXPONEN
+
+Que EL CLIENTE desea contratar los servicios de facturación y gestión ofrecidos por EL PRESTADOR.
+
+CLAUSULAS
+
+PRIMERA. - OBJETO
+EL PRESTADOR prestará al CLIENTE servicios de facturación, gestión contable y emisión de facturas Verifactu según el plan contratado.
+
+SEGUNDA. - DURACIÓN
+El contrato tendrá una duración inicial de DOCE (12) MESES, renovable automáticamente.
+
+TERCERA. - PRECIO
+El precio será de ${importe}€/mes (plan ${plan}), pagadero por domiciliación bancaria.
+
+CUARTA. - PROTECCIÓN DE DATOS
+Ambas partes cumplirán con el RGPD. EL PRESTADOR tratará los datos conforme a su política de privacidad.
+
+QUINTA. - RESOLUCIÓN
+Cualquiera de las partes puede resolver el contrato con 30 días de antelación.
+
+SEXTA. - LEGISLACIÓN
+Rige la legislación española.
+
+En prueba de conformidad, ambas partes firman digitalmente.
+
+_________________________
+COMUTECH S.L.
+
+_________________________
+${nombreCliente}
+Fecha: ${fecha}
+`
+}
+
+let onAceptarCallback = null
+let datosClienteActual = null
+
 export function mostrarModalContrato(datosCliente, onAceptar) {
     onAceptarCallback = onAceptar
+    datosClienteActual = datosCliente
     
     const modal = document.getElementById('modalContratoServicios')
     if (!modal) {
-        console.error('❌ Modal de contrato no encontrado')
         if (onAceptarCallback) onAceptarCallback(true)
         return
     }
     
-    // Personalizar el contrato con los datos del cliente
-    const fecha = new Date().toLocaleDateString('es-ES')
-    const fechaSpan = document.getElementById('fechaContrato')
-    if (fechaSpan) fechaSpan.textContent = fecha
-    
-    const nombreSpan = document.getElementById('clienteNombreContrato')
-    if (nombreSpan) nombreSpan.textContent = datosCliente.nombre_empresa || datosCliente.nombre_contacto || 'EL CLIENTE'
-    
-    const nifSpan = document.getElementById('clienteNifContrato')
-    if (nifSpan) nifSpan.textContent = datosCliente.nif_cif || '___'
-    
-    const direccionSpan = document.getElementById('clienteDireccionContrato')
-    if (direccionSpan) {
-        const direccion = [datosCliente.calle, datosCliente.numero, datosCliente.piso, datosCliente.ciudad, datosCliente.provincia].filter(p => p).join(', ') || '___'
-        direccionSpan.textContent = direccion
+    const texto = generarTextoContrato(datosCliente)
+    const textoContainer = modal.querySelector('.contrato-texto')
+    if (textoContainer) {
+        textoContainer.innerHTML = `<pre style="white-space: pre-wrap; font-family: inherit; font-size: 12px; margin: 0;">${texto}</pre>`
     }
     
     const btnAceptar = document.getElementById('btnAceptarContrato')
     const btnRechazar = document.getElementById('btnRechazarContrato')
+    const check = document.getElementById('contratoCheckFinal')
     
     if (btnAceptar) {
         const nuevoBtnAceptar = btnAceptar.cloneNode(true)
         btnAceptar.parentNode.replaceChild(nuevoBtnAceptar, btnAceptar)
         nuevoBtnAceptar.onclick = () => {
+            if (!check || !check.checked) {
+                alert('Debes marcar la casilla de aceptación para continuar')
+                return
+            }
             cerrarModal('modalContratoServicios')
             if (onAceptarCallback) onAceptarCallback(true)
         }
@@ -61,12 +103,6 @@ export function mostrarModalContrato(datosCliente, onAceptar) {
     abrirModal('modalContratoServicios')
 }
 
-export function cerrarModalContrato() {
-    cerrarModal('modalContratoServicios')
-    onAceptarCallback = null
-}
-
 export default {
-    mostrarModalContrato,
-    cerrarModalContrato
+    mostrarModalContrato
 }

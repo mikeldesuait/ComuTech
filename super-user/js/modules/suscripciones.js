@@ -17,9 +17,11 @@ async function cargarConfiguracionPrecios() {
     const precioBasico = document.getElementById('precioBasico');
     const precioPro = document.getElementById('precioPro');
     const precioEmpresa = document.getElementById('precioEmpresa');
+    
     if (precioBasico) precioBasico.value = preciosPlanes.BASICO;
     if (precioPro) precioPro.value = preciosPlanes.PRO;
     if (precioEmpresa) precioEmpresa.value = preciosPlanes.EMPRESA;
+    
     try {
         const { data } = await sb.from('configuracion_facturacion').select('precio_basico, precio_pro, precio_empresa').limit(1).maybeSingle();
         if (data) {
@@ -109,8 +111,6 @@ async function cargarSuscripciones() {
         for (const s of suscripciones) {
             const empresa = empresasMap[s.empresa_id] || {};
             const extras = s.extras || [];
-            let totalExtras = 0;
-            extras.forEach(e => { if (e.recurrente) totalExtras += e.importe; });
             html += `
                 <div class="cliente-card">
                     <div class="cliente-header">
@@ -120,10 +120,8 @@ async function cargarSuscripciones() {
                         </div>
                         <div class="cliente-actions">
                             <button class="editar-extras action-btn" data-id="${s.id}" data-extras='${JSON.stringify(extras)}' data-nombre="${escapeHtml(empresa.nombre_empresa)}" title="Extras">➕</button>
-                            <button class="cambiar-plan action-btn" data-id="${s.id}" data-plan="${s.plan}" title="Cambiar plan">🏷️</button>
-                            ${s.estado === 'activa' ? 
-                                `<button class="cancelar-suscripcion action-btn" data-id="${s.id}" data-nombre="${escapeHtml(empresa.nombre_empresa)}" title="Cancelar" style="color:var(--ios-red);">❌</button>` : 
-                                `<button class="activar-suscripcion action-btn" data-id="${s.id}" data-nombre="${escapeHtml(empresa.nombre_empresa)}" title="Activar" style="color:var(--ios-green);">✅</button>`}
+                            <button class="cambiar-plan action-btn" data-id="${s.id}" data-plan="${s.plan}" data-empresa-id="${s.empresa_id}" title="Cambiar plan">🏷️</button>
+                            ${s.estado === 'activa' ? `<button class="cancelar-suscripcion action-btn" data-id="${s.id}" data-nombre="${escapeHtml(empresa.nombre_empresa)}" title="Cancelar" style="color:var(--ios-red);">❌</button>` : `<button class="activar-suscripcion action-btn" data-id="${s.id}" data-nombre="${escapeHtml(empresa.nombre_empresa)}" title="Activar" style="color:var(--ios-green);">✅</button>`}
                         </div>
                     </div>
                     <div class="cliente-contacto">
@@ -150,7 +148,7 @@ async function cargarSuscripciones() {
             };
         });
         document.querySelectorAll('.cambiar-plan').forEach(btn => {
-            btn.onclick = () => abrirModalCambiarPlan(btn.dataset.id, btn.dataset.plan);
+            btn.onclick = () => abrirModalCambiarPlan(btn.dataset.id, btn.dataset.plan, btn.dataset.empresaId);
         });
         document.querySelectorAll('.cancelar-suscripcion').forEach(btn => {
             btn.onclick = () => cancelarSuscripcion(btn.dataset.id, btn.dataset.nombre);
@@ -219,7 +217,7 @@ function agregarExtraCliente() {
     renderizarExtrasClienteModal(suscripcionExtrasActual.extras);
 }
 
-function abrirModalCambiarPlan(id, planActual) {
+async function abrirModalCambiarPlan(suscripcionId, planActual, empresaId) {
     const modalDiv = document.createElement('div');
     modalDiv.className = 'modal';
     modalDiv.style.display = 'flex';
@@ -241,12 +239,20 @@ function abrirModalCambiarPlan(id, planActual) {
     document.body.appendChild(modalDiv);
     modalDiv.querySelector('#confirmarCambioPlan').onclick = async () => {
         const nuevoPlan = modalDiv.querySelector('#nuevoPlanSelect').value;
+        const nuevoPrecio = preciosPlanes[nuevoPlan];
         mostrarModalCarga('Cambiando plan...');
-        await sb.from('suscripciones_clientes').update({ plan: nuevoPlan, precio_mensual: preciosPlanes[nuevoPlan] }).eq('id', id);
-        cerrarModalCarga();
-        mostrarMensaje(`✅ Plan cambiado a ${nuevoPlan}`, 'exito');
-        modalDiv.remove();
-        await cargarSuscripciones();
+        try {
+            const { error } = await sb.from('suscripciones_clientes').update({ plan: nuevoPlan, precio_mensual: nuevoPrecio }).eq('id', suscripcionId);
+            if (error) throw error;
+            cerrarModalCarga();
+            mostrarMensaje(`✅ Plan cambiado a ${nuevoPlan} (${nuevoPrecio}€/mes)`, 'exito');
+            modalDiv.remove();
+            await cargarSuscripciones();
+        } catch (error) {
+            cerrarModalCarga();
+            mostrarMensaje('❌ Error al cambiar el plan', 'error');
+            console.error(error);
+        }
     };
     modalDiv.querySelector('#cancelarCambioPlan').onclick = () => modalDiv.remove();
     modalDiv.onclick = (e) => { if (e.target === modalDiv) modalDiv.remove(); };
@@ -255,18 +261,22 @@ function abrirModalCambiarPlan(id, planActual) {
 async function cancelarSuscripcion(id, nombre) {
     if (!confirm(`¿Cancelar suscripción de ${nombre}?`)) return;
     mostrarModalCarga('Cancelando...');
-    await sb.from('suscripciones_clientes').update({ estado: 'cancelada', fecha_fin: new Date().toISOString().split('T')[0] }).eq('id', id);
-    cerrarModalCarga();
-    mostrarMensage(`✅ Suscripción cancelada`, 'exito');
-    await cargarSuscripciones();
+    try {
+        await sb.from('suscripciones_clientes').update({ estado: 'cancelada', fecha_fin: new Date().toISOString().split('T')[0] }).eq('id', id);
+        cerrarModalCarga();
+        mostrarMensaje(`✅ Suscripción cancelada`, 'exito');
+        await cargarSuscripciones();
+    } catch (e) { cerrarModalCarga(); mostrarMensaje('Error', 'error'); }
 }
 
 async function activarSuscripcion(id, nombre) {
     mostrarModalCarga('Activando...');
-    await sb.from('suscripciones_clientes').update({ estado: 'activa', fecha_fin: null }).eq('id', id);
-    cerrarModalCarga();
-    mostrarMensaje(`✅ Suscripción activada`, 'exito');
-    await cargarSuscripciones();
+    try {
+        await sb.from('suscripciones_clientes').update({ estado: 'activa', fecha_fin: null }).eq('id', id);
+        cerrarModalCarga();
+        mostrarMensaje(`✅ Suscripción activada`, 'exito');
+        await cargarSuscripciones();
+    } catch (e) { cerrarModalCarga(); mostrarMensaje('Error', 'error'); }
 }
 
 async function generarFacturasAhora() {
@@ -274,9 +284,12 @@ async function generarFacturasAhora() {
     try {
         const { error } = await sb.rpc('generar_facturas_mensuales');
         cerrarModalCarga();
-        if (error) mostrarMensaje('❌ Error: ' + error.message, 'error');
-        else mostrarMensaje('✅ Facturas generadas correctamente', 'exito');
-    } catch (e) { cerrarModalCarga(); mostrarMensaje('Error', 'error'); }
+        if (error) {
+            mostrarMensaje('❌ Error: ' + error.message, 'error');
+        } else {
+            mostrarMensaje('✅ Facturas generadas correctamente', 'exito');
+        }
+    } catch (e) { cerrarModalCarga(); mostrarMensaje('Error: La función generar_facturas_mensuales no existe', 'error'); }
 }
 
 function setupEventos() {
@@ -292,10 +305,6 @@ function setupEventos() {
     if (btnCancelarExtras) btnCancelarExtras.onclick = () => cerrarModal('modalExtrasCliente');
     const btnAgregarExtra = document.getElementById('btnAgregarExtraCliente');
     if (btnAgregarExtra) btnAgregarExtra.onclick = agregarExtraCliente;
-}
-
-function mostrarMensage(texto, tipo) {
-    mostrarMensaje(texto, tipo);
 }
 
 export default { iniciar };

@@ -75,6 +75,7 @@ async function guardarCambios(datos) {
         cerrarModal('modalMiPerfil')
         mostrarModalInformativo('✅ Perfil actualizado', 'Tus datos se han guardado correctamente', 'exito')
         
+        // Actualizar nombre en el header
         const nombreAdmin = document.getElementById('nombreAdmin')
         if (nombreAdmin) nombreAdmin.innerHTML = datos.nombre
         

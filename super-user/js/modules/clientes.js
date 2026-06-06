@@ -1,10 +1,9 @@
 // js/modules/clientes.js
-// 📋 LÓGICA PRINCIPAL DE LA HABITACIÓN DE CLIENTES (VERSIÓN MÓVIL)
+// 📋 LÓGICA PRINCIPAL DE LA HABITACIÓN DE CLIENTES
 
 import { sb } from './supabase.js'
 import { mostrarMensaje, escapeHtml } from './utils.js'
 import { abrirModalElegirTipoCliente } from './modales/modalesGenerales.js'
-import { mostrarModalCarga, cerrarModalCarga } from './modales/modalesGenerales.js'
 
 // ============================================================
 // VARIABLES PRIVADAS
@@ -53,7 +52,6 @@ function renderizarClientes() {
         return
     }
 
-    // Mostrar todos los clientes filtrados (sin paginación en móvil)
     container.innerHTML = clientesFiltrados.map(cliente => `
         <div class="cliente-card" data-id="${cliente.id}">
             <div class="cliente-header">
@@ -64,6 +62,7 @@ function renderizarClientes() {
                 <div class="cliente-actions">
                     <button class="action-btn ver-cliente" data-id="${cliente.id}" title="Ver">👁️</button>
                     <button class="action-btn editar-cliente" data-id="${cliente.id}" title="Editar">✏️</button>
+                    <button class="action-btn documentos-cliente" data-id="${cliente.id}" data-nombre="${escapeHtml(cliente.nombre_empresa)}" title="Documentación legal">📋</button>
                     <button class="action-btn eliminar-cliente" data-id="${cliente.id}" title="Eliminar">🗑️</button>
                 </div>
             </div>
@@ -105,10 +104,17 @@ export async function cargarClientes() {
                 .eq('rol', 'gerente')
                 .maybeSingle()
 
+            const { data: suscripcion } = await sb.from('suscripciones_clientes')
+                .select('plan')
+                .eq('empresa_id', cliente.id)
+                .eq('estado', 'activa')
+                .maybeSingle()
+
             cliente.contacto_nombre = perfil?.nombre_razon_social || ''
             cliente.contacto_email = perfil?.email || cliente.email || ''
             cliente.consentimiento = perfil?.consentimiento_tratamiento_datos || false
             cliente.perfil_id = perfil?.id || null
+            cliente.plan = suscripcion?.plan || 'BASICO'
         }
 
         actualizarFiltroProvincias()
@@ -158,7 +164,7 @@ function aplicarFiltros() {
 }
 
 // ============================================================
-// EVENTOS DE LOS BOTONES DE LA TABLA
+// EVENTOS DE LOS BOTONES
 // ============================================================
 
 function setupEventosTabla() {
@@ -200,6 +206,13 @@ function setupEventosTabla() {
             const { abrirModalEliminarCliente } = await import('./modales/modalesEliminacion.js')
             abrirModalEliminarCliente(id, nombreCliente)
         }
+        else if (btn.classList.contains('documentos-cliente')) {
+    e.preventDefault()
+    const id = btn.dataset.id
+    const nombre = btn.dataset.nombre
+    const { descargarDocumentacionCliente } = await import('./generarPDF.js')
+    descargarDocumentacionCliente(id, nombre)
+}
     }
 }
 
@@ -208,7 +221,7 @@ function setupEventosTabla() {
 // ============================================================
 
 export async function iniciar() {
-    console.log('🚀 Iniciando habitación de clientes (modo móvil)')
+    console.log('🚀 Iniciando habitación de clientes')
     
     await cargarClientes()
     setupEventosTabla()

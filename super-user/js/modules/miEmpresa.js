@@ -164,3 +164,37 @@ export async function abrirModalMiEmpresa() {
 export default {
     abrirModalMiEmpresa
 }
+
+// Guardar configuración de cadena Verifactu
+async function guardarConfigVerifactu() {
+    const ultimoNumero = document.getElementById('ultimoNumeroFactura')?.value.trim();
+    const ultimoHash = document.getElementById('ultimoHashFactura')?.value.trim();
+    const fechaInicio = document.getElementById('fechaInicioCadena')?.value;
+    
+    if (!ultimoNumero && !ultimoHash) {
+        mostrarMensaje('No se guardó ninguna configuración', 'info');
+        return;
+    }
+    
+    mostrarModalCarga('Guardando configuración...');
+    
+    try {
+        const { error } = await sb.from('configuracion_facturacion_emisor').upsert({
+            empresa_id: empresaId,
+            ultimo_numero_factura: ultimoNumero,
+            ultimo_hash: ultimoHash,
+            fecha_inicio_cadena: fechaInicio
+        });
+        
+        if (error) throw error;
+        
+        cerrarModalCarga();
+        mostrarModalInformativo('✅ Configuración guardada', 
+            `La próxima factura continuará la cadena desde:\n\nÚltimo número: ${ultimoNumero}\nÚltimo hash: ${ultimoHash?.substring(0, 20)}...`, 
+            'exito');
+        
+    } catch (error) {
+        cerrarModalCarga();
+        mostrarModalInformativo('Error', error.message, 'error');
+    }
+}

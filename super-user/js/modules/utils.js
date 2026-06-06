@@ -306,6 +306,29 @@ export function cerrarModalCarga() {
     if (modalCarga) modalCarga.style.display = 'none'
 }
 
+// Generar hash SHA-256 de una cadena
+export async function generarHash(datos) {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(JSON.stringify(datos))
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    return hashHex
+}
+
+// Generar hash para factura
+export async function generarHashFactura(factura) {
+    const datosHash = {
+        numero: factura.numero_factura,
+        fecha: factura.fecha_expedicion,
+        importe: factura.importe_total,
+        nif_emisor: factura.emisor_nif,
+        nif_cliente: factura.cliente_nif,
+        hash_anterior: factura.hash_anterior || '0'.repeat(64)
+    }
+    return await generarHash(datosHash)
+}
+
 // ============================================================
 // EXPORTAR TODO
 // ============================================================

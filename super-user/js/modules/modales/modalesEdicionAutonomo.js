@@ -51,7 +51,6 @@ function cargarDatosEnFormulario(cliente) {
         editBanco: cliente.banco || '',
         editSwift: cliente.swift || '',
         editCnae: cliente.cnae || '',
-        editPlan: cliente.plan || 'BASICO',
         editClienteId: cliente.id,
         editPerfilId: cliente.perfil_id || ''
     }
@@ -109,25 +108,32 @@ function recogerDatosFormulario() {
         banco: document.getElementById('editBanco')?.value.trim() || '',
         swift: document.getElementById('editSwift')?.value.trim() || '',
         cnae: document.getElementById('editCnae')?.value.trim() || '',
-        fecha_inicio_actividad: document.getElementById('editFechaInicioActividad')?.value || null,
-        plan: document.getElementById('editPlan')?.value || 'BASICO',
-        tipo_cliente: 'autonomo'
+        fecha_inicio_actividad: document.getElementById('editFechaInicioActividad')?.value || null
     }
 }
 
 async function guardarCambios(datos) {
     if (!datos) return false
+    
     try {
         const { id, perfil_id, ...updateData } = datos
-        const { error: empresaError } = await sb.from('empresas').update(updateData).eq('id', id)
+        
+        const { error: empresaError } = await sb
+            .from('empresas')
+            .update(updateData)
+            .eq('id', id)
+        
         if (empresaError) throw empresaError
+        
         if (perfil_id) {
             await sb.from('perfiles').update({
                 nombre_razon_social: updateData.nombre_empresa,
                 telefono: updateData.telefono
             }).eq('id', perfil_id)
         }
+        
         return true
+        
     } catch (error) {
         console.error('Error guardando:', error)
         mostrarModalInformativo('Error', error.message, 'error')
@@ -149,18 +155,8 @@ async function actualizarStats() {
     } catch (e) {}
 }
 
-// ============================================================
-// FUNCIÓN QUE ABRE EL MODAL DE RESETEO DE CONTRASEÑA
-// ============================================================
 function abrirModalResetearPassword(email) {
-    console.log('🔐 abrirModalResetearPassword() llamada con email:', email)
-    
-    const modalEditar = document.getElementById('modalEditarCliente')
-    if (modalEditar) modalEditar.style.display = 'none'
-    
     const modal = document.getElementById('modalResetearPassword')
-    console.log('📦 Modal encontrado:', modal ? 'SÍ' : 'NO')
-    
     if (!modal) {
         mostrarModalInformativo('Error', 'Modal de reseteo no encontrado', 'error')
         return
@@ -177,9 +173,7 @@ function abrirModalResetearPassword(email) {
     if (errorDiv) errorDiv.style.display = 'none'
     
     modal.style.display = 'flex'
-    console.log('✅ Modal de reseteo abierto')
     
-    // Configurar botón confirmar
     const btnConfirmar = document.getElementById('btnConfirmarReset')
     if (btnConfirmar) {
         const nuevoBtnConfirmar = btnConfirmar.cloneNode(true)
@@ -209,23 +203,17 @@ function abrirModalResetearPassword(email) {
         }
     }
     
-    // Configurar botón cancelar
     const btnCancelar = document.getElementById('btnCancelarReset')
     if (btnCancelar) {
         const nuevoBtnCancelar = btnCancelar.cloneNode(true)
         btnCancelar.parentNode.replaceChild(nuevoBtnCancelar, btnCancelar)
-        nuevoBtnCancelar.onclick = () => {
-            modal.style.display = 'none'
-        }
+        nuevoBtnCancelar.onclick = () => modal.style.display = 'none'
     }
     
-    modal.onclick = (e) => {
-        if (e.target === modal) modal.style.display = 'none'
-    }
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none' }
 }
 
 async function ejecutarResetearPassword(email, nuevaPassword) {
-    console.log('🚀 ejecutarResetearPassword() llamada')
     mostrarModalCarga('Actualizando contraseña...')
     try {
         const { data: { session } } = await sb.auth.getSession()
@@ -242,77 +230,24 @@ async function ejecutarResetearPassword(email, nuevaPassword) {
         if (!response.ok) throw new Error(result.error)
         cerrarModalCarga()
         mostrarModalInformativo('✅ Contraseña actualizada', `La contraseña para ${email} ha sido actualizada`, 'exito')
-        await recargarListaClientes()
     } catch (error) {
         cerrarModalCarga()
         mostrarModalInformativo('Error', error.message, 'error')
     }
 }
 
-// ============================================================
-// CONFIGURAR EL BOTÓN "RESETEAR CONTRASEÑA" EN EL MODAL DE EDICIÓN
-// ============================================================
 function configurarBotonReset(email) {
-    console.log('🔧 configurarBotonReset() llamada con email:', email)
-    
-    // Intentar inmediatamente
     let btnReset = document.getElementById('btnResetPassword')
-    console.log('🔍 Intento inmediato - botón encontrado:', btnReset ? 'SÍ' : 'NO')
-    
     if (btnReset) {
         const nuevoBtn = btnReset.cloneNode(true)
         btnReset.parentNode.replaceChild(nuevoBtn, btnReset)
         nuevoBtn.onclick = (e) => {
             e.preventDefault()
-            console.log('🟢 CLICK EN BOTÓN RESET (configuración inmediata)')
             abrirModalResetearPassword(email)
         }
-        console.log('✅ Botón configurado inmediatamente')
-        return
-    }
-    
-    // Si no, esperar con observer
-    const container = document.getElementById('editarClienteContainer')
-    if (container) {
-        console.log('🔍 Observando container para detectar botón...')
-        const observer = new MutationObserver(() => {
-            const btn = document.getElementById('btnResetPassword')
-            if (btn) {
-                console.log('🔍 Observer: botón encontrado!')
-                const nuevoBtn = btn.cloneNode(true)
-                btn.parentNode.replaceChild(nuevoBtn, btn)
-                nuevoBtn.onclick = (e) => {
-                    e.preventDefault()
-                    console.log('🟢 CLICK EN BOTÓN RESET (detectado por observer)')
-                    abrirModalResetearPassword(email)
-                }
-                observer.disconnect()
-            }
-        })
-        observer.observe(container, { childList: true, subtree: true })
-        
-        // Fallback
-        setTimeout(() => {
-            const btn = document.getElementById('btnResetPassword')
-            if (btn && !btn.onclick) {
-                console.log('🔍 Fallback: configurando botón')
-                const nuevoBtn = btn.cloneNode(true)
-                btn.parentNode.replaceChild(nuevoBtn, btn)
-                nuevoBtn.onclick = (e) => {
-                    e.preventDefault()
-                    console.log('🟢 CLICK EN BOTÓN RESET (fallback)')
-                    abrirModalResetearPassword(email)
-                }
-            }
-        }, 1000)
-    } else {
-        console.log('❌ Container no encontrado')
     }
 }
 
-// ============================================================
-// EXPORTACIÓN PRINCIPAL
-// ============================================================
 export async function abrirModalEditarAutonomo(cliente) {
     console.log('🚪 abrirModalEditarAutonomo() llamada para:', cliente.nombre_empresa)
     
@@ -329,7 +264,6 @@ export async function abrirModalEditarAutonomo(cliente) {
     
     cargarDatosEnFormulario(cliente)
     
-    // Configurar botón guardar
     const btnGuardar = document.getElementById('btnGuardarEdicion')
     if (btnGuardar) {
         const nuevoBtnGuardar = btnGuardar.cloneNode(true)
@@ -348,7 +282,6 @@ export async function abrirModalEditarAutonomo(cliente) {
         }
     }
     
-    // Configurar botón cancelar
     const btnCancelar = document.getElementById('btnCancelarEdicion')
     if (btnCancelar) {
         const nuevoBtnCancelar = btnCancelar.cloneNode(true)
@@ -356,14 +289,9 @@ export async function abrirModalEditarAutonomo(cliente) {
         nuevoBtnCancelar.onclick = () => cerrarModal('modalEditarCliente')
     }
     
-    // Configurar botón resetear contraseña (SIN condición perfil_id)
     const email = cliente.contacto_email || cliente.email
-    console.log('📧 Email para resetear:', email)
-    
     if (email) {
         configurarBotonReset(email)
-    } else {
-        console.log('⚠️ No se configuró botón reset: email faltante')
     }
     
     abrirModal('modalEditarCliente')
