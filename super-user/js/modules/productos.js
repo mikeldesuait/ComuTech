@@ -10,6 +10,7 @@ export async function iniciar() {
     await cargarProductos();
     renderizarListaProductos();
     setupEventosProductos();
+    setupBuscador();
 }
 
 async function cargarProductos() {
@@ -20,6 +21,8 @@ async function cargarProductos() {
         
         if (error) throw error;
         productos = data || [];
+        console.log(`📦 ${productos.length} productos cargados`);
+        renderizarListaProductos();
     } catch (error) {
         console.error('Error cargando productos:', error);
         mostrarMensaje('Error cargando productos: ' + error.message, 'error');
@@ -73,10 +76,74 @@ function renderizarListaProductos() {
     container.innerHTML = html;
 }
 
-function abrirModalNuevoProducto() {
-    const modal = document.getElementById('modalProducto');
-    if (!modal) return;
+function setupBuscador() {
+    const buscador = document.getElementById('buscadorProducto');
+    if (!buscador) return;
     
+    buscador.addEventListener('input', (e) => {
+        const texto = e.target.value.toLowerCase();
+        filtrarProductos(texto);
+    });
+}
+
+function filtrarProductos(texto) {
+    const container = document.getElementById('listaProductos');
+    if (!container) return;
+    
+    if (!texto) {
+        renderizarListaProductos();
+        return;
+    }
+    
+    const productosFiltrados = productos.filter(p => 
+        p.nombre_producto.toLowerCase().includes(texto) ||
+        (p.codigo && p.codigo.toLowerCase().includes(texto)) ||
+        (p.descripcion && p.descripcion.toLowerCase().includes(texto))
+    );
+    
+    if (!productosFiltrados.length) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:60px; color:gray;">
+                <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+                <p>No hay productos que coincidan con "${texto}"</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    
+    productosFiltrados.forEach(producto => {
+        html += `
+            <div class="cliente-card">
+                <div class="cliente-header">
+                    <div>
+                        <div class="cliente-nombre">${escapeHtml(producto.nombre_producto)}</div>
+                        ${producto.codigo ? `<div class="cliente-nif">Código: ${escapeHtml(producto.codigo)}</div>` : ''}
+                    </div>
+                    <div class="cliente-actions">
+                        <button class="editar-producto action-btn" data-id="${producto.id}" title="Editar">✏️</button>
+                        <button class="eliminar-producto action-btn" data-id="${producto.id}" title="Eliminar">🗑️</button>
+                    </div>
+                </div>
+                <div class="cliente-contacto">
+                    <span>💰 ${formatMoney(producto.precio_unitario)}€</span>
+                    <span>🧾 IVA: ${producto.iva_aplicable || 21}%</span>
+                    <span>📏 ${producto.unidad || 'unidad'}</span>
+                </div>
+                ${producto.descripcion ? `<div class="cliente-badges"><span class="badge">📝 ${escapeHtml(producto.descripcion.substring(0, 50))}${producto.descripcion.length > 50 ? '...' : ''}</span></div>` : ''}
+                <div class="cliente-badges">
+                    <span class="badge ${producto.activo ? 'badge-activo' : 'badge-inactivo'}">${producto.activo ? '✅ Activo' : '❌ Inactivo'}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function abrirModalNuevoProducto() {
     document.getElementById('modalProductoHeader').innerHTML = '📦 Nuevo producto';
     document.getElementById('productoId').value = '';
     document.getElementById('productoNombre').value = '';
@@ -91,9 +158,6 @@ function abrirModalNuevoProducto() {
 }
 
 function abrirModalEditarProducto(producto) {
-    const modal = document.getElementById('modalProducto');
-    if (!modal) return;
-    
     document.getElementById('modalProductoHeader').innerHTML = '✏️ Editar producto';
     document.getElementById('productoId').value = producto.id;
     document.getElementById('productoNombre').value = producto.nombre_producto || '';
@@ -131,7 +195,6 @@ async function guardarProducto() {
     
     try {
         if (id) {
-            // Actualizar
             const { error } = await sb.from('productos')
                 .update({
                     nombre_producto: nombre,
@@ -147,7 +210,6 @@ async function guardarProducto() {
             if (error) throw error;
             mostrarMensaje('✅ Producto actualizado', 'exito');
         } else {
-            // Crear nuevo
             const { error } = await sb.from('productos')
                 .insert({
                     nombre_producto: nombre,
@@ -166,7 +228,6 @@ async function guardarProducto() {
         cerrarModalCarga();
         cerrarModal('modalProducto');
         await cargarProductos();
-        renderizarListaProductos();
         
     } catch (error) {
         cerrarModalCarga();
@@ -186,7 +247,6 @@ async function eliminarProducto(id, nombre) {
         cerrarModalCarga();
         mostrarMensaje('✅ Producto eliminado', 'exito');
         await cargarProductos();
-        renderizarListaProductos();
         
     } catch (error) {
         cerrarModalCarga();
