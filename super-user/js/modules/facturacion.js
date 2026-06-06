@@ -1,12 +1,12 @@
 // js/modules/facturacion.js
 import { sb } from './supabase.js';
 import { mostrarMensaje, escapeHtml, formatMoney, mostrarModalCarga, cerrarModalCarga, generarHashFactura } from './utils.js';
-import { abrirModal, cerrarModal } from './modales/modalesGenerales.js';
 
 let facturas = [];
 let facturasFiltradas = [];
 let productosDisponibles = [];
 let productosSeleccionados = [];
+let facturasSeleccionadas = new Set();
 
 // NIF del emisor (COMUTECH) - CAMBIA ESTO POR TU NIF REAL
 const EMISOR_NIF = "B12345678";
@@ -22,13 +22,17 @@ export async function iniciar() {
 
 async function cargarFacturas() {
     try {
+        console.log('📡 Cargando facturas...');
         const { data, error } = await sb.from('facturas').select('*').order('fecha_expedicion', { ascending: false });
         if (error) throw error;
         facturas = data || [];
         facturasFiltradas = [...facturas];
+        console.log('✅ Facturas cargadas:', facturas.length);
+        return true;
     } catch (error) {
         console.error('Error cargando facturas:', error);
         mostrarMensaje('Error cargando facturas: ' + error.message, 'error');
+        return false;
     }
 }
 
@@ -54,53 +58,181 @@ async function cargarClientesParaSelect() {
     }
 }
 
-function renderizarVistaFacturacion() {
+// ============================================================
+// CARGAR CLIENTES PARA BUSCADOR PREDICTIVO
+// ============================================================
+
+async function cargarClientesDatalist() {
+    try {
+        const { data: clientes, error } = await sb
+            .from('empresas')
+            .select('id, nombre_empresa, nif_cif')
+            .eq('activo', true)
+            .order('nombre_empresa');
+        
+        if (error) throw error;
+        
+        const datalist = document.getElementById('clientesList');
+        const inputBusqueda = document.getElementById('buscadorClienteFactura');
+        const hiddenId = document.getElementById('clienteSeleccionadoId');
+        
+        if (!datalist) return;
+        
+        datalist.innerHTML = '';
+        clientes.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.nombre_empresa;  // Solo el nombre, más simple
+            option.dataset.id = c.id;
+            datalist.appendChild(option);
+        });
+        
+        if (inputBusqueda) {
+            // Al seleccionar una opción
+            inputBusqueda.onchange = () => {
+                const selected = Array.from(datalist.options).find(opt => opt.value === inputBusqueda.value);
+                if (selected && selected.dataset.id) {
+                    hiddenId.value = selected.dataset.id;
+                    console.log('✅ Cliente seleccionado:', inputBusqueda.value, 'ID:', hiddenId.value);
+                } else {
+                    // Buscar por coincidencia parcial
+                    const match = clientes.find(c => 
+                        c.nombre_empresa.toLowerCase().includes(inputBusqueda.value.toLowerCase())
+                    );
+                    if (match) {
+                        hiddenId.value = match.id;
+                        console.log('✅ Cliente encontrado por coincidencia:', match.nombre_empresa);
+                    } else {
+                        hiddenId.value = '';
+                    }
+                }
+                aplicarFiltros();
+            };
+            
+            // Al escribir, si se borra todo, limpiar filtro
+            inputBusqueda.oninput = () => {
+                if (inputBusqueda.value === '') {
+                    hiddenId.value = '';
+                    aplicarFiltros();
+                }
+            };
+        }
+        
+        console.log(`📋 Datalist cargado con ${clientes.length} clientes`);
+        
+    } catch (error) {
+        console.error('Error cargando clientes:', error);
+    }
+}
+
+async function renderizarVistaFacturacion() {
+    console.log('🎨 Renderizando vista...');
     const container = document.getElementById('facturasLista');
-    if (!container) return;
-    container.innerHTML = renderizarListaFacturas();
-    cargarClientesEnFiltro();
-    setupFiltros();
+    if (!container) {
+        console.error('No se encuentra facturasLista');
+        return;
+    }
+    
+    try {
+        // Cargar clientes para buscador predictivo
+        await cargarClientesDatalist();
+        
+        const html = renderizarListaFacturas();
+        container.innerHTML = html;
+        setupFiltros();
+        setupSeleccionFacturas();
+        console.log('✅ Vista renderizada');
+    } catch (error) {
+        console.error('Error renderizando:', error);
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:red;">❌ Error al cargar las facturas</div>';
+    }
 }
 
 async function cargarClientesEnFiltro() {
     const selectFiltro = document.getElementById('filtroClienteFactura');
     if (!selectFiltro) return;
-    const clientesUnicos = [];
-    const seen = {};
-    facturas.forEach(f => {
-        if (!seen[f.cliente_nif]) {
-            seen[f.cliente_nif] = true;
-            clientesUnicos.push({ nombre: f.cliente_nombre, nif: f.cliente_nif });
-        }
-    });
-    let options = '<option value="">Todos los clientes</option>';
-    clientesUnicos.forEach(c => {
-        options += `<option value="${escapeHtml(c.nif)}">${escapeHtml(c.nombre)} (${escapeHtml(c.nif)})</option>`;
+    
+    // Cargar TODOS los clientes activos, no solo los que tienen facturas
+    const { data: clientes, error } = await sb
+        .from('empresas')
+        .select('id, nombre_empresa, nif_cif')
+        .eq('activo', true)
+        .order('nombre_empresa');
+    
+    if (error) {
+        console.error('Error cargando clientes:', error);
+        return;
+    }
+    
+    let options = '<option value="">🌐 Todos los clientes</option>';
+    clientes.forEach(c => {
+        options += `<option value="${c.id}" data-nif="${escapeHtml(c.nif_cif || '')}" data-nombre="${escapeHtml(c.nombre_empresa)}">${escapeHtml(c.nombre_empresa)} (${escapeHtml(c.nif_cif || 'Sin NIF')})</option>`;
     });
     selectFiltro.innerHTML = options;
 }
 
 function renderizarListaFacturas() {
-    if (!facturasFiltradas.length) return '<div style="text-align:center; padding:60px; color:gray;">📭 No hay facturas</div>';
-    let html = '';
-    facturasFiltradas.forEach(factura => {
+    console.log('📋 Renderizando lista, facturas:', facturasFiltradas.length);
+    
+    if (!facturasFiltradas || facturasFiltradas.length === 0) {
+        return '<div style="text-align:center; padding:60px; color:gray;">📭 No hay facturas que coincidan con los filtros</div>';
+    }
+    
+    let html = `<div class="facturas-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f1f5f9; border-radius: 12px; margin-bottom: 12px;">
+        <div>
+            <input type="checkbox" id="seleccionarTodas" ${facturasSeleccionadas.size === facturasFiltradas.length && facturasFiltradas.length > 0 ? 'checked' : ''}>
+            <label for="seleccionarTodas" style="margin-left: 8px;">Seleccionar todas (${facturasFiltradas.length})</label>
+        </div>
+        <div>
+            ${facturasSeleccionadas.size > 0 ? `<span style="background: #2563eb; color: white; padding: 4px 12px; border-radius: 20px;">${facturasSeleccionadas.size} seleccionada(s)</span>` : ''}
+        </div>
+    </div>`;
+    
+    for (const factura of facturasFiltradas) {
+        const isSelected = facturasSeleccionadas.has(factura.id);
         const esRectificativa = factura.tipo_rectificativa;
-        const badgeRectificativa = esRectificativa ? `<span class="badge badge-warning">🔄 ${esRectificativa}</span>` : '';
+        
+        // Badges de estado fiscal
+        const badgeRectificativa = esRectificativa ? `<span class="badge" style="background: #fef3c7; color: #92400e;">🔄 ${esRectificativa}</span>` : '';
+        const badgeEstadoFiscal = `<span class="badge ${factura.estado === 'pagada' ? 'badge-activo' : (factura.estado === 'parcial' ? 'badge-warning' : 'badge-inactivo')}">
+            ${factura.estado === 'pagada' ? '✅ Pagada' : (factura.estado === 'parcial' ? '💰 Pago parcial' : '⏳ Pendiente')}
+        </span>`;
+        
+        // ✅ NUEVO: Badges de estado de cobro
+        let badgeEstadoCobro = '';
+        if (factura.estado_cobro === 'cobrado') {
+            badgeEstadoCobro = `<span class="badge badge-activo" style="background: #d1fae5; color: #065f46;">💵 Cobrado</span>`;
+        } else if (factura.estado_cobro === 'parcial') {
+            badgeEstadoCobro = `<span class="badge" style="background: #fef3c7; color: #92400e;">💰 Parcial cobrado: ${formatMoney(factura.total_cobrado || 0)}€</span>`;
+        } else {
+            badgeEstadoCobro = `<span class="badge badge-inactivo">⏳ Pendiente cobro: ${formatMoney(factura.saldo_cobro || factura.importe_total)}€</span>`;
+        }
+        
+        const badgePagoParcial = factura.pagado_parcial ? `<span class="badge" style="background: #fef3c7; color: #92400e;">💰 Pagado parcial (${formatMoney(factura.total_pagado || 0)}€)</span>` : '';
+        const badgeSaldoPendiente = (factura.saldo_pendiente > 0 && factura.saldo_pendiente < factura.importe_total) ? `<span class="badge" style="background: #dbeafe; color: #1e40af;">💳 Pendiente: ${formatMoney(factura.saldo_pendiente)}€</span>` : '';
         
         html += `
-            <div class="cliente-card">
+            <div class="cliente-card" data-id="${factura.id}">
                 <div class="cliente-header">
-                    <div>
-                        <div class="cliente-nombre">${escapeHtml(factura.numero_factura)}</div>
-                        <div class="cliente-nif">${escapeHtml(factura.cliente_nombre)}</div>
-                        ${factura.hash_factura ? `<div class="cliente-nif" style="font-size:10px; color:green;">🔗 Verifactu: OK</div>` : ''}
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <input type="checkbox" class="checkbox-factura" data-id="${factura.id}" ${isSelected ? 'checked' : ''}>
+                        <div>
+                            <div class="cliente-nombre">${escapeHtml(factura.numero_factura)}</div>
+                            <div class="cliente-nif">${escapeHtml(factura.cliente_nombre)}</div>
+                        </div>
                     </div>
                     <div class="cliente-actions">
                         <button class="ver-factura action-btn" data-id="${factura.id}" title="Ver">👁️</button>
                         <button class="pdf-factura action-btn" data-id="${factura.id}" title="PDF">📄</button>
                         <button class="xml-factura action-btn" data-id="${factura.id}" title="Exportar XML">📎</button>
-                        ${factura.estado === 'pendiente' && !esRectificativa ? `<button class="rectificar-factura action-btn" data-id="${factura.id}" title="Rectificar" style="color:var(--ios-orange);">🔄</button>` : ''}
-                        ${factura.estado === 'pendiente' ? `<button class="pagar-factura action-btn" data-id="${factura.id}" title="Pagar" style="color:var(--ios-green);">💰</button>` : ''}
+                        <!-- Botón de cobro (solo si hay pendiente) -->
+                        ${(factura.saldo_cobro > 0 || (factura.saldo_cobro === null && factura.estado_cobro !== 'cobrado')) ? 
+                            `<button class="cobro-rapido action-btn" data-id="${factura.id}" title="Registrar cobro" style="color:var(--ios-green);">💵</button>` : ''}
+                        ${(factura.estado === 'pendiente' || factura.estado === 'parcial') ? 
+                            `<button class="pago-rapido action-btn" data-id="${factura.id}" title="Registrar pago (deprecado)" style="color:var(--ios-blue); display:none;">💰</button>` : ''}
+                        ${factura.estado === 'pendiente' && !esRectificativa ? 
+                            `<button class="rectificar-factura action-btn" data-id="${factura.id}" title="Rectificar" style="color:var(--ios-orange);">🔄</button>` : ''}
+                        ${factura.estado === 'pendiente' ? 
+                            `<button class="pagar-factura action-btn" data-id="${factura.id}" title="Pagar total" style="color:var(--ios-green);">✅</button>` : ''}
                     </div>
                 </div>
                 <div class="cliente-contacto">
@@ -111,41 +243,227 @@ function renderizarListaFacturas() {
                     <span class="badge">💰 Base: ${formatMoney(factura.subtotal)}€</span>
                     <span class="badge">🧾 IVA: ${formatMoney(factura.iva_total)}€</span>
                     <span class="badge badge-activo">TOTAL: ${formatMoney(factura.importe_total)}€</span>
-                    <span class="badge ${factura.estado === 'pagada' ? 'badge-activo' : 'badge-inactivo'}">${factura.estado === 'pagada' ? '✅ Pagada' : '⏳ Pendiente'}</span>
+                    ${badgeEstadoFiscal}
                     ${badgeRectificativa}
+                    ${badgeEstadoCobro}
+                    ${badgePagoParcial}
+                    ${badgeSaldoPendiente}
                     ${factura.hash_factura ? `<span class="badge badge-activo">🔗 Hash OK</span>` : `<span class="badge badge-inactivo">❌ Sin hash</span>`}
                 </div>
             </div>
         `;
-    });
+    }
+    
     return html;
 }
 
 function setupFiltros() {
+    console.log('🔧 Configurando filtros...');
+    
     const filtroTexto = document.getElementById('filtroFactura');
     const filtroEstado = document.getElementById('filtroEstadoFactura');
+    const filtroTipo = document.getElementById('filtroTipoFactura');
+    const filtroFechaDesde = document.getElementById('filtroFechaDesde');
+    const filtroFechaHasta = document.getElementById('filtroFechaHasta');
     const filtroCliente = document.getElementById('filtroClienteFactura');
-    if (filtroTexto) filtroTexto.oninput = () => aplicarFiltros();
+    const btnLimpiar = document.getElementById('btnLimpiarFiltros');
+    
+    // Eliminar event listeners antiguos si existen
+    const newFiltroTexto = filtroTexto?.cloneNode(true);
+    if (newFiltroTexto && filtroTexto) {
+        filtroTexto.parentNode.replaceChild(newFiltroTexto, filtroTexto);
+        newFiltroTexto.oninput = () => aplicarFiltros();
+    }
+    
     if (filtroEstado) filtroEstado.onchange = () => aplicarFiltros();
+    if (filtroTipo) filtroTipo.onchange = () => aplicarFiltros();
+    if (filtroFechaDesde) filtroFechaDesde.onchange = () => aplicarFiltros();
+    if (filtroFechaHasta) filtroFechaHasta.onchange = () => aplicarFiltros();
     if (filtroCliente) filtroCliente.onchange = () => aplicarFiltros();
+    if (btnLimpiar) btnLimpiar.onclick = limpiarFiltros;
+    
+    console.log('✅ Filtros configurados');
 }
 
 function aplicarFiltros() {
-    const texto = document.getElementById('filtroFactura')?.value.toLowerCase() || '';
-    const estado = document.getElementById('filtroEstadoFactura')?.value || '';
-    const clienteNif = document.getElementById('filtroClienteFactura')?.value || '';
-    facturasFiltradas = facturas.filter(factura => {
-        if (texto) {
-            const buscaEn = `${factura.numero_factura} ${factura.cliente_nombre} ${factura.cliente_nif}`.toLowerCase();
-            if (!buscaEn.includes(texto)) return false;
+    console.log('🔄 Aplicando filtros...');
+    
+    try {
+        const texto = document.getElementById('filtroFactura')?.value.toLowerCase() || '';
+        const estado = document.getElementById('filtroEstadoFactura')?.value || '';
+        const tipo = document.getElementById('filtroTipoFactura')?.value || '';
+        const fechaDesde = document.getElementById('filtroFechaDesde')?.value;
+        const fechaHasta = document.getElementById('filtroFechaHasta')?.value;
+        const clienteId = document.getElementById('clienteSeleccionadoId')?.value || '';
+        
+        console.log('Cliente seleccionado ID:', clienteId);
+        
+        // Siempre filtrar por cliente si hay uno seleccionado
+        let facturasBase = facturas;
+        if (clienteId) {
+            facturasBase = facturas.filter(f => f.empresa_id === clienteId);
+            console.log(`Facturas del cliente: ${facturasBase.length}`);
         }
-        if (estado && factura.estado !== estado) return false;
-        if (clienteNif && factura.cliente_nif !== clienteNif) return false;
-        return true;
+        
+        // Aplicar el resto de filtros sobre las facturas base
+        facturasFiltradas = facturasBase.filter(factura => {
+            // Filtro texto
+            if (texto) {
+                const buscaEn = `${factura.numero_factura} ${factura.cliente_nombre} ${factura.cliente_nif}`.toLowerCase();
+                if (!buscaEn.includes(texto)) return false;
+            }
+            // Filtro estado
+            if (estado && factura.estado !== estado) return false;
+            // Filtro tipo
+            if (tipo === 'normal' && factura.tipo_rectificativa) return false;
+            if (tipo === 'abono' && (!factura.tipo_rectificativa || (factura.tipo_rectificativa !== 'abono' && factura.tipo_rectificativa !== 'abono_parcial'))) return false;
+            if (tipo === 'rectificativa' && !factura.tipo_rectificativa) return false;
+            // Filtro fecha desde
+            if (fechaDesde) {
+                const fechaFactura = new Date(factura.fecha_expedicion).toISOString().split('T')[0];
+                if (fechaFactura < fechaDesde) return false;
+            }
+            // Filtro fecha hasta
+            if (fechaHasta) {
+                const fechaFactura = new Date(factura.fecha_expedicion).toISOString().split('T')[0];
+                if (fechaFactura > fechaHasta) return false;
+            }
+            return true;
+        });
+        
+        console.log(`Facturas después de filtros: ${facturasFiltradas.length}`);
+        renderizarVistaFacturacion();
+        
+    } catch (error) {
+        console.error('Error en aplicarFiltros:', error);
+    }
+}
+
+function limpiarFiltros() {
+    const inputs = ['filtroFactura', 'filtroFechaDesde', 'filtroFechaHasta'];
+    const selects = ['filtroEstadoFactura', 'filtroTipoFactura'];
+    
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
     });
+    selects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    
+    // ✅ Limpiar también el buscador de cliente
+    const buscadorCliente = document.getElementById('buscadorClienteFactura');
+    const hiddenCliente = document.getElementById('clienteSeleccionadoId');
+    if (buscadorCliente) buscadorCliente.value = '';
+    if (hiddenCliente) hiddenCliente.value = '';
+    
+    aplicarFiltros();
+}
+
+function setupSeleccionFacturas() {
+    const seleccionarTodas = document.getElementById('seleccionarTodas');
+    if (seleccionarTodas) {
+        seleccionarTodas.onclick = (e) => {
+            const checkboxes = document.querySelectorAll('.checkbox-factura');
+            if (e.target.checked) {
+                facturasSeleccionadas.clear();
+                facturasFiltradas.forEach(f => facturasSeleccionadas.add(f.id));
+                checkboxes.forEach(cb => cb.checked = true);
+            } else {
+                facturasSeleccionadas.clear();
+                checkboxes.forEach(cb => cb.checked = false);
+            }
+            renderizarVistaFacturacion();
+        };
+    }
+    
     const container = document.getElementById('facturasLista');
-    if (container) container.innerHTML = renderizarListaFacturas();
-    setupEventosFacturacion();
+    if (container) {
+        container.onchange = (e) => {
+            if (e.target.classList.contains('checkbox-factura')) {
+                const id = e.target.dataset.id;
+                if (e.target.checked) {
+                    facturasSeleccionadas.add(id);
+                } else {
+                    facturasSeleccionadas.delete(id);
+                }
+                renderizarVistaFacturacion();
+            }
+        };
+    }
+}
+
+async function exportarFacturasSeleccionadas() {
+    if (facturasSeleccionadas.size === 0) {
+        mostrarMensaje('Selecciona al menos una factura para exportar', 'error');
+        return;
+    }
+    
+    mostrarModalCarga('Preparando exportación...');
+    
+    try {
+        const facturasArray = Array.from(facturasSeleccionadas);
+        const facturasData = facturas.filter(f => facturasArray.includes(f.id));
+        
+        let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Exportación facturas ${new Date().toLocaleDateString()}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 40px; }
+                h1 { color: #1e3a8a; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+                th { background: #f1f5f9; }
+                .total { margin-top: 20px; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <h1>Exportación de Facturas</h1>
+            <p>Fecha: ${new Date().toLocaleString()}</p>
+            <p>Facturas exportadas: ${facturasData.length}</p>
+            <table>
+                <thead>
+                    <tr><th>Nº Factura</th><th>Cliente</th><th>Fecha</th><th>Importe</th><th>Estado</th></tr>
+                </thead>
+                <tbody>
+                    ${facturasData.map(f => `
+                        <tr>
+                            <td>${escapeHtml(f.numero_factura)}</td>
+                            <td>${escapeHtml(f.cliente_nombre)}</td>
+                            <td>${new Date(f.fecha_expedicion).toLocaleDateString()}</td>
+                            <td>${formatMoney(f.importe_total)}€</td>
+                            <td>${f.estado}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div class="total">Total: ${formatMoney(facturasData.reduce((sum, f) => sum + f.importe_total, 0))}€</div>
+        </body>
+        </html>
+        `;
+        
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `facturas_exportadas_${Date.now()}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        cerrarModalCarga();
+        mostrarMensaje(`✅ ${facturasSeleccionadas.size} factura(s) exportadas`, 'exito');
+        
+        facturasSeleccionadas.clear();
+        renderizarVistaFacturacion();
+        
+    } catch (error) {
+        cerrarModalCarga();
+        mostrarMensaje('Error: ' + error.message, 'error');
+    }
 }
 
 function abrirModalNuevaFactura() {
@@ -176,7 +494,16 @@ function abrirModalNuevaFactura() {
             document.body.appendChild(modal);
             document.getElementById('btnCancelarFacturaNueva').onclick = () => modal.remove();
             document.getElementById('btnAgregarProductoFactura').onclick = () => agregarProductoFactura();
-            document.getElementById('btnGenerarFacturaNueva').onclick = () => generarFactura(modal);
+            document.getElementById('btnGenerarFacturaNueva').onclick = () => {
+                const datosTemp = {
+                    clienteId: document.getElementById('facturaCliente').value,
+                    clienteNombre: document.getElementById('facturaCliente').options[document.getElementById('facturaCliente').selectedIndex]?.dataset?.nombre,
+                    clienteNif: document.getElementById('facturaCliente').options[document.getElementById('facturaCliente').selectedIndex]?.dataset?.nif,
+                    fechaVencimiento: document.getElementById('facturaVencimiento').value
+                };
+                modal.remove();
+                abrirModalConfirmacionFactura(datosTemp);
+            };
             modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
         });
     });
@@ -228,13 +555,79 @@ function calcularFechaVencimiento() {
     return fecha.toISOString().split('T')[0];
 }
 
-async function generarFactura(modal) {
-    const selectCliente = document.getElementById('facturaCliente');
-    const clienteId = selectCliente?.value;
-    const selectedOption = selectCliente?.options[selectCliente.selectedIndex];
-    const clienteNombre = selectedOption?.dataset?.nombre;
-    const clienteNif = selectedOption?.dataset?.nif;
-    const fechaVencimiento = document.getElementById('facturaVencimiento')?.value;
+async function abrirModalConfirmacionFactura(datosTemp) {
+    const modalConfirm = document.getElementById('modalConfirmarFactura');
+    if (!modalConfirm) {
+        console.error('Modal de confirmación no encontrado');
+        await ejecutarGeneracionFactura(datosTemp);
+        return;
+    }
+    
+    const passwordInput = document.getElementById('passwordConfirmacionFactura');
+    const errorDiv = document.getElementById('errorPasswordFactura');
+    const btnConfirmar = document.getElementById('btnConfirmarEmision');
+    const btnCancelar = document.getElementById('btnCancelarEmision');
+    
+    if (passwordInput) passwordInput.value = '';
+    if (errorDiv) errorDiv.style.display = 'none';
+    
+    const nuevoBtnCancelar = btnCancelar.cloneNode(true);
+    btnCancelar.parentNode.replaceChild(nuevoBtnCancelar, btnCancelar);
+    nuevoBtnCancelar.onclick = () => {
+        modalConfirm.style.display = 'none';
+        mostrarMensaje('Emisión de factura cancelada', 'info');
+    };
+    
+    const nuevoBtnConfirmar = btnConfirmar.cloneNode(true);
+    btnConfirmar.parentNode.replaceChild(nuevoBtnConfirmar, btnConfirmar);
+    nuevoBtnConfirmar.onclick = async () => {
+        const password = passwordInput?.value || '';
+        
+        if (!password) {
+            if (errorDiv) {
+                errorDiv.innerText = '❌ Introduce tu contraseña para confirmar';
+                errorDiv.style.display = 'block';
+            }
+            return;
+        }
+        
+        mostrarModalCarga('Verificando credenciales...');
+        
+        try {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) throw new Error('No hay sesión activa');
+            
+            const { error: authError } = await sb.auth.signInWithPassword({
+                email: user.email,
+                password: password
+            });
+            
+            if (authError) throw new Error('Contraseña incorrecta');
+            
+            cerrarModalCarga();
+            modalConfirm.style.display = 'none';
+            await ejecutarGeneracionFactura(datosTemp);
+            
+        } catch (error) {
+            cerrarModalCarga();
+            if (errorDiv) {
+                errorDiv.innerText = '❌ ' + error.message;
+                errorDiv.style.display = 'block';
+            }
+        }
+    };
+    
+    modalConfirm.style.display = 'flex';
+    modalConfirm.onclick = (e) => {
+        if (e.target === modalConfirm) {
+            modalConfirm.style.display = 'none';
+            mostrarMensaje('Emisión de factura cancelada', 'info');
+        }
+    };
+}
+
+async function ejecutarGeneracionFactura(datosTemp) {
+    const { clienteId, clienteNombre, clienteNif, fechaVencimiento } = datosTemp;
     
     if (!clienteId || !productosSeleccionados.length) {
         mostrarMensaje('Completa los datos', 'error');
@@ -253,102 +646,25 @@ async function generarFactura(modal) {
         const importeTotal = subtotal + ivaTotal;
         const fechaExpedicion = new Date().toISOString();
         
-        // ============================================================
-        // 1. OBTENER CONFIGURACIÓN DE CADENA (para continuar desde sistema anterior)
-        // ============================================================
+        const { data: ultimaFactura } = await sb.from('facturas')
+            .select('numero_factura')
+            .order('created_at', { ascending: false })
+            .limit(1);
         
-        // Obtener el ID de tu empresa (emisor) - está en localStorage o variable global
-        // Asumimos que tienes la empresa actual en una variable
-        let miEmpresaId = null;
-        try {
-            // Intentar obtener la empresa del super-admin
-            const { data: miEmpresa } = await sb.from('empresas')
-                .select('id')
-                .eq('nombre_empresa', 'COMUTECH S.L.') // Cambia por tu nombre
-                .maybeSingle();
-            miEmpresaId = miEmpresa?.id;
-        } catch (e) {
-            console.log('No se encontró empresa emisora configurada');
+        let numeroFactura = 'F20260001';
+        if (ultimaFactura && ultimaFactura.length) { 
+            const ultimoNumero = parseInt(ultimaFactura[0].numero_factura.slice(-4)); 
+            numeroFactura = `F2026${String(ultimoNumero + 1).padStart(4, '0')}`; 
         }
-        
-        // Obtener configuración de cadena (si existe)
-        let configCadena = null;
-        if (miEmpresaId) {
-            const { data } = await sb.from('configuracion_facturacion_emisor')
-                .select('ultimo_hash, ultimo_numero_factura')
-                .eq('empresa_id', miEmpresaId)
-                .maybeSingle();
-            configCadena = data;
-        }
-        
-        // ============================================================
-        // 2. OBTENER ÚLTIMA FACTURA REAL DEL CLIENTE
-        // ============================================================
         
         const { data: ultimaFacturaCliente } = await sb.from('facturas')
-            .select('hash_factura, numero_factura')
+            .select('hash_factura')
             .eq('empresa_id', clienteId)
             .order('fecha_expedicion', { ascending: false })
             .limit(1)
             .maybeSingle();
         
-        // ============================================================
-        // 3. DETERMINAR HASH ANTERIOR Y PRÓXIMO NÚMERO DE FACTURA
-        // ============================================================
-        
-        let hashAnterior = '0'.repeat(64);
-        let ultimoNumeroFactura = null;
-        let usarConfiguracion = false;
-        
-        if (ultimaFacturaCliente && ultimaFacturaCliente.hash_factura) {
-            // PRIORIDAD 1: Ya hay facturas en el sistema (continuar cadena normal)
-            hashAnterior = ultimaFacturaCliente.hash_factura;
-            ultimoNumeroFactura = ultimaFacturaCliente.numero_factura;
-            console.log('📄 Continuando cadena desde última factura propia:', ultimoNumeroFactura);
-            
-        } else if (configCadena && configCadena.ultimo_hash) {
-            // PRIORIDAD 2: Es la primera factura, pero venimos de otro sistema (asesoría)
-            hashAnterior = configCadena.ultimo_hash;
-            ultimoNumeroFactura = configCadena.ultimo_numero_factura;
-            usarConfiguracion = true;
-            console.log('🔗 Continuando cadena desde sistema anterior. Hash anterior:', hashAnterior?.substring(0, 20) + '...');
-            console.log('📄 Último número del sistema anterior:', ultimoNumeroFactura);
-            
-        } else {
-            // PRIORIDAD 3: Primera factura, empezamos desde cero
-            console.log('🆕 Primera factura del sistema. Iniciando cadena desde cero.');
-        }
-        
-        // ============================================================
-        // 4. GENERAR NUEVO NÚMERO DE FACTURA
-        // ============================================================
-        
-        let numeroFactura = '';
-        const añoActual = new Date().getFullYear();
-        
-        if (ultimoNumeroFactura) {
-            // Intentar extraer prefijo y número de la última factura
-            const match = ultimoNumeroFactura.match(/([A-Z]+)(\d+)/);
-            if (match) {
-                const prefijo = match[1];
-                const numero = parseInt(match[2]);
-                const longitud = match[2].length;
-                numeroFactura = `${prefijo}${String(numero + 1).padStart(longitud, '0')}`;
-            } else {
-                // Formato no reconocido, usar formato estándar
-                numeroFactura = `F${añoActual}0001`;
-            }
-        } else {
-            // Primera factura
-            numeroFactura = `F${añoActual}0001`;
-        }
-        
-        console.log('📝 Nueva factura número:', numeroFactura);
-        console.log('🔗 Hash anterior:', hashAnterior?.substring(0, 20) + '...');
-        
-        // ============================================================
-        // 5. GENERAR HASH PARA LA NUEVA FACTURA
-        // ============================================================
+        const hashAnterior = ultimaFacturaCliente?.hash_factura || '0'.repeat(64);
         
         const datosHash = {
             numero_factura: numeroFactura,
@@ -360,12 +676,6 @@ async function generarFactura(modal) {
         };
         
         const hashActual = await generarHashFactura(datosHash);
-        
-        console.log('✅ Hash generado:', hashActual.substring(0, 20) + '...');
-        
-        // ============================================================
-        // 6. CREAR FACTURA EN BASE DE DATOS
-        // ============================================================
         
         const { data: factura, error } = await sb.from('facturas').insert({ 
             empresa_id: clienteId, 
@@ -380,14 +690,13 @@ async function generarFactura(modal) {
             estado: 'pendiente',
             hash_factura: hashActual,
             hash_factura_anterior: hashAnterior,
-            es_migrada: false
+            es_migrada: false,
+            es_emisora_propia: true,
+            firmada_con_password: true,
+            fecha_firma: new Date().toISOString()
         }).select().single();
         
         if (error) throw error;
-        
-        // ============================================================
-        // 7. CREAR LÍNEAS DE FACTURA
-        // ============================================================
         
         for (const linea of productosSeleccionados) {
             await sb.from('lineas_factura').insert({ 
@@ -400,36 +709,12 @@ async function generarFactura(modal) {
             });
         }
         
-        // ============================================================
-        // 8. ACTUALIZAR CONFIGURACIÓN (si usamos configuración inicial)
-        // ============================================================
-        
-        if (usarConfiguracion && miEmpresaId) {
-            // Actualizar la configuración con el nuevo hash para futuras facturas
-            await sb.from('configuracion_facturacion_emisor')
-                .update({
-                    ultimo_hash: hashActual,
-                    ultimo_numero_factura: numeroFactura,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('empresa_id', miEmpresaId);
-            console.log('💾 Configuración de cadena actualizada');
-        }
-        
         cerrarModalCarga();
-        mostrarMensaje(`✅ Factura ${numeroFactura} generada con hash Verifactu`, 'exito');
-        modal.remove();
+        mostrarMensaje(`✅ Factura ${numeroFactura} generada y firmada`, 'exito');
         
-        // Recargar listas
+        productosSeleccionados = [];
         await cargarFacturas();
         renderizarVistaFacturacion();
-        
-        // Mostrar mensaje especial si es primera factura desde sistema anterior
-        if (usarConfiguracion) {
-            setTimeout(() => {
-                mostrarMensaje(`🔗 Factura de continuación: La cadena Verifactu sigue desde factura ${configCadena.ultimo_numero_factura}`, 'info');
-            }, 2000);
-        }
         
     } catch (error) { 
         cerrarModalCarga(); 
@@ -459,11 +744,19 @@ async function verFactura(id) {
         }
         
         const esRectificativa = factura.tipo_rectificativa;
-        const badgeRectificativa = esRectificativa ? `<div class="alert-info" style="margin-bottom:12px; padding:8px; background:#fef3c7; border-left-color:#f59e0b;">
+        const badgeRectificativa = esRectificativa ? `<div style="margin-bottom:12px; padding:8px; background:#fef3c7; border-left:4px solid #f59e0b;">
             <strong>🔄 Factura ${esRectificativa === 'abono' ? 'de abono' : esRectificativa === 'abono_parcial' ? 'de abono parcial' : 'sustitutiva'}</strong><br>
-            <small>Motivo: ${escapeHtml(factura.motivo_rectificativa || 'No especificado')}</small><br>
-            <small>Factura original: ${factura.factura_original_id ? 'ID: ' + factura.factura_original_id.substring(0,8) + '...' : 'N/A'}</small>
+            <small>Motivo: ${escapeHtml(factura.motivo_rectificativa || 'No especificado')}</small>
         </div>` : '';
+        
+        const infoPagos = (factura.total_pagado > 0) ? `
+            <div style="margin-top:12px; padding:8px; background:#dbeafe; border-radius:8px;">
+                <small><strong>💰 Estado de pagos:</strong></small><br>
+                <small>Total factura: ${formatMoney(factura.importe_total)}€</small><br>
+                <small>Pagado: ${formatMoney(factura.total_pagado || 0)}€</small><br>
+                <small>Pendiente: ${formatMoney(factura.saldo_pendiente || factura.importe_total)}€</small>
+            </div>
+        ` : '';
         
         modal.innerHTML = `
             <div class="modal-content" style="max-width: 500px;">
@@ -480,22 +773,32 @@ async function verFactura(id) {
                     <span class="badge">Base: ${formatMoney(factura.subtotal)}€</span>
                     <span class="badge">IVA: ${formatMoney(factura.iva_total)}€</span>
                     <span class="badge badge-activo">Total: ${formatMoney(factura.importe_total)}€</span>
-                    <span class="badge ${factura.estado === 'pagada' ? 'badge-activo' : 'badge-inactivo'}">${factura.estado === 'pagada' ? 'Pagada' : 'Pendiente'}</span>
+                    <span class="badge ${factura.estado === 'pagada' ? 'badge-activo' : (factura.estado === 'parcial' ? 'badge-warning' : 'badge-inactivo')}">
+                        ${factura.estado === 'pagada' ? '✅ Pagada' : (factura.estado === 'parcial' ? '💰 Pago parcial' : '⏳ Pendiente')}
+                    </span>
                 </div>
+                ${infoPagos}
                 ${factura.hash_factura ? `
                 <div style="margin-top:12px; padding:8px; background:#f0fdf4; border-radius:8px;">
                     <small><strong>🔗 Datos Verifactu:</strong></small><br>
-                    <small>Hash: ${factura.hash_factura.substring(0, 20)}...</small><br>
-                    <small>Hash anterior: ${factura.hash_factura_anterior?.substring(0, 20)}...</small>
+                    <small>Hash: ${factura.hash_factura.substring(0, 20)}...</small>
                 </div>
                 ` : ''}
                 <div class="btn-group" style="margin-top: 16px;">
+                    ${factura.estado !== 'pagada' ? `<button id="registrarPagoBtn" class="btn-info" style="margin-right: 8px;">💰 Registrar pago</button>` : ''}
                     ${factura.estado === 'pendiente' && !esRectificativa ? `<button id="rectificarFacturaBtn" class="btn-warning">🔄 Rectificar</button>` : ''}
                     <button id="cerrarFacturaModal" class="btn-primary">Cerrar</button>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
+        
+        if (document.getElementById('registrarPagoBtn')) {
+            document.getElementById('registrarPagoBtn').onclick = async () => {
+                modal.remove();
+                await abrirModalRegistrarPago(factura.id);
+            };
+        }
         
         if (document.getElementById('rectificarFacturaBtn')) {
             document.getElementById('rectificarFacturaBtn').onclick = async () => {
@@ -555,8 +858,121 @@ function exportarXMLFactura(factura) {
 }
 
 // ============================================================
-// FUNCIONES PARA RECTIFICATIVAS
+// REGISTRO DE PAGOS PARCIALES
 // ============================================================
+
+async function abrirModalRegistrarPago(facturaId) {
+    // Obtener factura actual
+    const { data: factura, error } = await sb.from('facturas').select('*').eq('id', facturaId).single();
+    if (error) {
+        mostrarMensaje('Error al obtener la factura', 'error');
+        return;
+    }
+    
+    const saldoPendiente = factura.saldo_pendiente !== null ? factura.saldo_pendiente : factura.importe_total;
+    const totalPagado = factura.total_pagado || 0;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">💰 Registrar pago</div>
+            <div class="alert-info" style="margin-bottom: 16px; padding: 12px; background: #dbeafe; border-radius: 8px;">
+                <small><strong>Factura:</strong> ${escapeHtml(factura.numero_factura)}</small><br>
+                <small><strong>Total:</strong> ${formatMoney(factura.importe_total)}€</small><br>
+                <small><strong>Pagado:</strong> ${formatMoney(totalPagado)}€</small><br>
+                <small><strong style="color: #2563eb;">Saldo pendiente: ${formatMoney(saldoPendiente)}€</strong></small>
+            </div>
+            <div class="grupo">
+                <label>💰 Importe del pago (€)</label>
+                <input type="number" id="importePago" step="0.01" max="${saldoPendiente}" placeholder="0.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+            </div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📅 Fecha del pago</label>
+                    <input type="date" id="fechaPago" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+                </div>
+                <div class="grupo">
+                    <label>💳 Forma de pago</label>
+                    <select id="formaPago" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+                        <option value="transferencia">Transferencia bancaria</option>
+                        <option value="tarjeta">Tarjeta de crédito/débito</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="bizum">Bizum</option>
+                        <option value="paypal">PayPal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button id="btnConfirmarPago" class="btn-success">✅ Registrar pago</button>
+                <button id="btnCancelarPago" class="btn-danger">❌ Cancelar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.querySelector('#btnConfirmarPago').onclick = async () => {
+        const importePago = parseFloat(modal.querySelector('#importePago').value);
+        const fechaPago = modal.querySelector('#fechaPago').value;
+        const formaPago = modal.querySelector('#formaPago').value;
+        
+        if (!importePago || importePago <= 0) {
+            mostrarMensaje('Introduce un importe válido', 'error');
+            return;
+        }
+        
+        if (importePago > saldoPendiente) {
+            mostrarMensaje(`El importe no puede superar el saldo pendiente (${formatMoney(saldoPendiente)}€)`, 'error');
+            return;
+        }
+        
+        mostrarModalCarga('Registrando pago...');
+        
+        try {
+            const nuevoTotalPagado = totalPagado + importePago;
+            const nuevoSaldo = factura.importe_total - nuevoTotalPagado;
+            const nuevoEstado = nuevoSaldo <= 0 ? 'pagada' : 'parcial';
+            
+            // Actualizar factura
+            const { error: updateError } = await sb.from('facturas').update({
+                total_pagado: nuevoTotalPagado,
+                saldo_pendiente: nuevoSaldo,
+                pagado_parcial: nuevoSaldo > 0,
+                estado: nuevoEstado
+            }).eq('id', facturaId);
+            
+            if (updateError) throw updateError;
+            
+            // Registrar el pago en tabla historial_pagos (crear si no existe)
+            try {
+                await sb.from('historial_pagos').insert({
+                    factura_id: facturaId,
+                    importe: importePago,
+                    fecha_pago: fechaPago,
+                    forma_pago: formaPago
+                });
+            } catch (e) {
+                console.log('Tabla historial_pagos no existe, omitiendo registro');
+            }
+            
+            cerrarModalCarga();
+            mostrarMensaje(`✅ Pago de ${formatMoney(importePago)}€ registrado`, 'exito');
+            modal.remove();
+            
+            // Recargar datos
+            await cargarFacturas();
+            renderizarVistaFacturacion();
+            
+        } catch (error) {
+            cerrarModalCarga();
+            mostrarMensaje('Error: ' + error.message, 'error');
+        }
+    };
+    
+    modal.querySelector('#btnCancelarPago').onclick = () => modal.remove();
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+}
 
 async function abrirModalRectificativa(facturaOriginal) {
     const modal = document.createElement('div');
@@ -565,7 +981,6 @@ async function abrirModalRectificativa(facturaOriginal) {
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">🔄 Rectificar Factura ${facturaOriginal.numero_factura}</div>
-            
             <div class="grupo">
                 <label>Tipo de rectificativa</label>
                 <select id="tipoRectificativa">
@@ -574,23 +989,16 @@ async function abrirModalRectificativa(facturaOriginal) {
                     <option value="sustitutiva">📝 Sustitutiva (corregir y reemplazar)</option>
                 </select>
             </div>
-            
             <div id="porcentajeDiv" style="display: none;">
                 <div class="grupo">
                     <label>Porcentaje a abonar (%)</label>
                     <input type="number" id="porcentajeAbono" value="100" min="1" max="100">
                 </div>
             </div>
-            
             <div class="grupo">
                 <label>Motivo de la rectificación</label>
-                <textarea id="motivoRectificativa" rows="3" placeholder="Ej: Error en el importe, Producto no entregado, Devolución, etc."></textarea>
+                <textarea id="motivoRectificativa" rows="3" placeholder="Ej: Error en el importe, Producto no entregado, etc."></textarea>
             </div>
-            
-            <div class="alert-info" style="margin: 16px 0; padding: 12px; background: #fef3c7; border-left-color: #f59e0b;">
-                <small>⚠️ La factura rectificativa anulará el efecto de la factura original.</small>
-            </div>
-            
             <div class="btn-group">
                 <button id="confirmarRectificativa" class="btn-success">✅ Generar rectificativa</button>
                 <button id="cancelarRectificativa" class="btn-danger">❌ Cancelar</button>
@@ -613,12 +1021,6 @@ async function abrirModalRectificativa(facturaOriginal) {
         
         if (!motivo) {
             mostrarMensaje('Debes indicar el motivo de la rectificación', 'error');
-            return;
-        }
-        
-        if (tipo === 'sustitutiva') {
-            modal.remove();
-            await abrirModalEditarRectificativa(facturaOriginal);
             return;
         }
         
@@ -651,7 +1053,6 @@ async function generarFacturaRectificativa(facturaOriginal, tipo, motivo, porcen
     
     let subtotalRectificativo = 0;
     let ivaRectificativo = 0;
-    let importeRectificativo = 0;
     let lineasRectificativas = [];
     
     if (tipo === 'abono') {
@@ -660,7 +1061,6 @@ async function generarFacturaRectificativa(facturaOriginal, tipo, motivo, porcen
             const ivaLinea = subtotalLinea * (linea.iva / 100);
             subtotalRectificativo += subtotalLinea;
             ivaRectificativo += ivaLinea;
-            
             lineasRectificativas.push({
                 concepto: `ABONO: ${linea.concepto}`,
                 cantidad: -linea.cantidad,
@@ -669,8 +1069,6 @@ async function generarFacturaRectificativa(facturaOriginal, tipo, motivo, porcen
                 subtotal: subtotalLinea
             });
         }
-        importeRectificativo = subtotalRectificativo + ivaRectificativo;
-        
     } else if (tipo === 'abono_parcial') {
         const factor = porcentaje / 100;
         for (const linea of lineasBase) {
@@ -678,7 +1076,6 @@ async function generarFacturaRectificativa(facturaOriginal, tipo, motivo, porcen
             const ivaLinea = subtotalLinea * (linea.iva / 100);
             subtotalRectificativo += subtotalLinea;
             ivaRectificativo += ivaLinea;
-            
             lineasRectificativas.push({
                 concepto: `ABONO PARCIAL (${porcentaje}%): ${linea.concepto}`,
                 cantidad: -(linea.cantidad * factor),
@@ -687,15 +1084,12 @@ async function generarFacturaRectificativa(facturaOriginal, tipo, motivo, porcen
                 subtotal: subtotalLinea
             });
         }
-        importeRectificativo = subtotalRectificativo + ivaRectificativo;
-        
     } else if (tipo === 'sustitutiva') {
         for (const linea of lineasBase) {
             const subtotalLinea = linea.cantidad * linea.precio_unitario;
             const ivaLinea = subtotalLinea * (linea.iva / 100);
             subtotalRectificativo += subtotalLinea;
             ivaRectificativo += ivaLinea;
-            
             lineasRectificativas.push({
                 concepto: linea.concepto,
                 cantidad: linea.cantidad,
@@ -704,8 +1098,9 @@ async function generarFacturaRectificativa(facturaOriginal, tipo, motivo, porcen
                 subtotal: subtotalLinea
             });
         }
-        importeRectificativo = subtotalRectificativo + ivaRectificativo;
     }
+    
+    const importeRectificativo = subtotalRectificativo + ivaRectificativo;
     
     const { data: ultimaFactura } = await sb.from('facturas')
         .select('numero_factura')
@@ -776,172 +1171,51 @@ async function generarFacturaRectificativa(facturaOriginal, tipo, motivo, porcen
     }).eq('id', facturaOriginal.id);
     
     mostrarMensaje(`✅ Factura rectificativa ${numeroFactura} generada`, 'exito');
-    
     return facturaRectificativa;
-}
-
-async function abrirModalEditarRectificativa(facturaOriginal) {
-    const { data: lineasOriginales } = await sb.from('lineas_factura')
-        .select('*')
-        .eq('factura_id', facturaOriginal.id);
-    
-    let lineasEditadas = JSON.parse(JSON.stringify(lineasOriginales));
-    
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-    modal.style.zIndex = '100001';
-    
-    function renderizarLineas() {
-        let html = '';
-        lineasEditadas.forEach((linea, idx) => {
-            html += `
-                <div class="linea-item" style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; padding: 8px; background: #f8fafc; border-radius: 8px;">
-                    <input type="text" class="linea-concepto" data-idx="${idx}" value="${escapeHtml(linea.concepto)}" style="flex: 2; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    <input type="number" class="linea-cantidad" data-idx="${idx}" value="${linea.cantidad}" step="0.01" style="width: 80px; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    <input type="number" class="linea-precio" data-idx="${idx}" value="${linea.precio_unitario}" step="0.01" style="width: 100px; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    <input type="number" class="linea-iva" data-idx="${idx}" value="${linea.iva}" step="1" style="width: 70px; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    <button class="eliminar-linea" data-idx="${idx}" style="background: #c2410c; color: white; border: none; padding: 6px 10px; border-radius: 6px;">✖</button>
-                </div>
-            `;
-        });
-        return html;
-    }
-    
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
-            <div class="modal-header">✏️ Editar factura sustitutiva</div>
-            <div class="alert-info" style="margin-bottom: 16px; padding: 12px; background: #dbeafe; border-left-color: #2563eb;">
-                <small>📝 Edita las líneas de la factura. La factura original quedará anulada y esta nueva la reemplazará.</small>
-            </div>
-            
-            <div class="grupo">
-                <label>Motivo de la rectificación</label>
-                <textarea id="motivoRectificativaSust" rows="2" placeholder="Ej: Corrección de errores en la factura original"></textarea>
-            </div>
-            
-            <div class="card-header">📦 Líneas de factura</div>
-            <div id="lineasContainer" style="margin-bottom: 16px;">
-                ${renderizarLineas()}
-            </div>
-            
-            <button id="agregarLineaRectificativa" class="btn-info" style="margin-bottom: 16px;">+ Añadir línea</button>
-            
-            <div class="btn-group">
-                <button id="confirmarRectificativaSust" class="btn-success">✅ Generar factura sustitutiva</button>
-                <button id="cancelarRectificativaSust" class="btn-danger">❌ Cancelar</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    
-    function actualizarListaLineas() {
-        const container = document.getElementById('lineasContainer');
-        if (container) container.innerHTML = renderizarLineas();
-        configurarEventosLineas();
-    }
-    
-    function configurarEventosLineas() {
-        document.querySelectorAll('.linea-concepto, .linea-cantidad, .linea-precio, .linea-iva').forEach(input => {
-            input.onchange = () => {
-                const idx = parseInt(input.dataset.idx);
-                const field = input.classList.contains('linea-concepto') ? 'concepto' :
-                             input.classList.contains('linea-cantidad') ? 'cantidad' :
-                             input.classList.contains('linea-precio') ? 'precio_unitario' : 'iva';
-                let value = input.value;
-                if (field === 'cantidad' || field === 'precio_unitario' || field === 'iva') {
-                    value = parseFloat(value) || 0;
-                }
-                lineasEditadas[idx][field] = value;
-                if (field === 'cantidad' || field === 'precio_unitario') {
-                    lineasEditadas[idx].subtotal = lineasEditadas[idx].cantidad * lineasEditadas[idx].precio_unitario;
-                }
-            };
-        });
-        
-        document.querySelectorAll('.eliminar-linea').forEach(btn => {
-            btn.onclick = () => {
-                const idx = parseInt(btn.dataset.idx);
-                lineasEditadas.splice(idx, 1);
-                actualizarListaLineas();
-            };
-        });
-    }
-    
-    document.getElementById('agregarLineaRectificativa').onclick = () => {
-        lineasEditadas.push({
-            concepto: 'Nuevo concepto',
-            cantidad: 1,
-            precio_unitario: 0,
-            iva: 21,
-            subtotal: 0
-        });
-        actualizarListaLineas();
-    };
-    
-    document.getElementById('confirmarRectificativaSust').onclick = async () => {
-        const motivo = document.getElementById('motivoRectificativaSust').value.trim();
-        if (!motivo) {
-            mostrarMensaje('Debes indicar el motivo de la rectificación', 'error');
-            return;
-        }
-        
-        for (const linea of lineasEditadas) {
-            if (!linea.concepto || linea.concepto.trim() === '') {
-                mostrarMensaje('Todas las líneas deben tener un concepto', 'error');
-                return;
-            }
-            if (linea.precio_unitario <= 0) {
-                mostrarMensaje('El precio unitario debe ser mayor que 0', 'error');
-                return;
-            }
-        }
-        
-        mostrarModalCarga('Generando factura sustitutiva...');
-        
-        try {
-            await generarFacturaRectificativa(facturaOriginal, 'sustitutiva', motivo, 100, lineasEditadas);
-            cerrarModalCarga();
-            modal.remove();
-            await cargarFacturas();
-            renderizarVistaFacturacion();
-        } catch (error) {
-            cerrarModalCarga();
-            mostrarMensaje('Error: ' + error.message, 'error');
-        }
-    };
-    
-    document.getElementById('cancelarRectificativaSust').onclick = () => modal.remove();
-    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-    
-    configurarEventosLineas();
 }
 
 function setupEventosFacturacion() {
     const btnNueva = document.getElementById('btnNuevaFactura');
     if (btnNueva) btnNueva.onclick = abrirModalNuevaFactura;
     
+    const btnExportar = document.getElementById('btnExportarSeleccionadas');
+    if (btnExportar) btnExportar.onclick = exportarFacturasSeleccionadas;
+    
     const container = document.getElementById('facturasLista');
     if (!container) return;
     
     container.onclick = async (e) => {
         const btn = e.target;
+        
         if (btn.classList.contains('ver-factura')) {
             await verFactura(btn.dataset.id);
         }
+        
         if (btn.classList.contains('pagar-factura')) {
             await marcarFacturaPagada(btn.dataset.id);
         }
+        
+        // ✅ NUEVO: Evento para cobro rápido
+        if (btn.classList.contains('cobro-rapido')) {
+            await abrirModalRegistrarCobro(btn.dataset.id);
+        }
+        
+        if (btn.classList.contains('pago-rapido')) {
+            await abrirModalRegistrarPago(btn.dataset.id);
+        }
+        
         if (btn.classList.contains('pdf-factura')) {
             const { generarYMostrarFactura } = await import('./contrato.js');
             await generarYMostrarFactura(btn.dataset.id);
         }
+        
         if (btn.classList.contains('rectificar-factura')) {
             const factura = facturas.find(f => f.id === btn.dataset.id);
             if (factura) {
                 await abrirModalRectificativa(factura);
             }
         }
+        
         if (btn.classList.contains('xml-factura')) {
             const factura = facturas.find(f => f.id === btn.dataset.id);
             if (factura) {
@@ -949,6 +1223,153 @@ function setupEventosFacturacion() {
             }
         }
     };
+}
+
+// ============================================================
+// GESTIÓN DE COBROS (independiente de factura fiscal)
+// ============================================================
+
+async function registrarCobro(facturaId, importe, formaPago, fechaCobro, referencia = '', notas = '') {
+    try {
+        // Obtener factura actual
+        const { data: factura, error: facturaError } = await sb
+            .from('facturas')
+            .select('*')
+            .eq('id', facturaId)
+            .single();
+        
+        if (facturaError) throw facturaError;
+        
+        const totalCobradoActual = factura.total_cobrado || 0;
+        const nuevoTotalCobrado = totalCobradoActual + importe;
+        const nuevoSaldo = factura.importe_total - nuevoTotalCobrado;
+        const nuevoEstadoCobro = nuevoSaldo <= 0 ? 'cobrado' : (nuevoTotalCobrado > 0 ? 'parcial' : 'pendiente');
+        
+        // 1. Insertar registro de cobro
+        const { error: cobroError } = await sb.from('cobros_clientes').insert({
+            factura_id: facturaId,
+            empresa_id: factura.empresa_id,
+            importe: importe,
+            fecha_cobro: fechaCobro,
+            forma_pago: formaPago,
+            referencia: referencia,
+            notas: notas
+        });
+        
+        if (cobroError) throw cobroError;
+        
+        // 2. Actualizar estado de cobro en factura (campos NO fiscales)
+        const { error: updateError } = await sb.from('facturas').update({
+            total_cobrado: nuevoTotalCobrado,
+            saldo_cobro: nuevoSaldo,
+            estado_cobro: nuevoEstadoCobro
+        }).eq('id', facturaId);
+        
+        if (updateError) throw updateError;
+        
+        console.log(`✅ Cobro registrado: ${importe}€ - Factura: ${factura.numero_factura}`);
+        return { success: true, nuevoSaldo, nuevoEstadoCobro };
+        
+    } catch (error) {
+        console.error('Error registrando cobro:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function abrirModalRegistrarCobro(facturaId) {
+    // Obtener factura actual
+    const { data: factura, error } = await sb
+        .from('facturas')
+        .select('*')
+        .eq('id', facturaId)
+        .single();
+    
+    if (error) {
+        mostrarMensaje('Error al obtener la factura', 'error');
+        return;
+    }
+    
+    const saldoPendiente = factura.saldo_cobro !== null ? factura.saldo_cobro : factura.importe_total;
+    const totalCobrado = factura.total_cobrado || 0;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">💰 Registrar cobro</div>
+            <div style="margin-bottom: 16px; padding: 12px; background: #dbeafe; border-radius: 8px;">
+                <small><strong>Factura:</strong> ${escapeHtml(factura.numero_factura)}</small><br>
+                <small><strong>Total factura:</strong> ${formatMoney(factura.importe_total)}€</small><br>
+                <small><strong>Ya cobrado:</strong> ${formatMoney(totalCobrado)}€</small><br>
+                <small><strong style="color: #2563eb;">Pendiente de cobro: ${formatMoney(saldoPendiente)}€</strong></small>
+            </div>
+            <div class="grupo">
+                <label>💰 Importe del cobro (€)</label>
+                <input type="number" id="importeCobro" step="0.01" max="${saldoPendiente}" placeholder="0.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+            </div>
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📅 Fecha del cobro</label>
+                    <input type="date" id="fechaCobro" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+                </div>
+                <div class="grupo">
+                    <label>💳 Forma de pago</label>
+                    <select id="formaPagoCobro" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+                        <option value="transferencia">Transferencia bancaria</option>
+                        <option value="tarjeta">Tarjeta de crédito/débito</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="bizum">Bizum</option>
+                        <option value="paypal">PayPal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grupo">
+                <label>🔢 Referencia (opcional)</label>
+                <input type="text" id="referenciaCobro" placeholder="Nº transferencia, comprobante, etc." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+            </div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button id="btnConfirmarCobro" class="btn-success">✅ Registrar cobro</button>
+                <button id="btnCancelarCobro" class="btn-danger">❌ Cancelar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.querySelector('#btnConfirmarCobro').onclick = async () => {
+        const importeCobro = parseFloat(modal.querySelector('#importeCobro').value);
+        const fechaCobro = modal.querySelector('#fechaCobro').value;
+        const formaPago = modal.querySelector('#formaPagoCobro').value;
+        const referencia = modal.querySelector('#referenciaCobro').value;
+        
+        if (!importeCobro || importeCobro <= 0) {
+            mostrarMensaje('Introduce un importe válido', 'error');
+            return;
+        }
+        
+        if (importeCobro > saldoPendiente) {
+            mostrarMensaje(`El importe no puede superar el pendiente de cobro (${formatMoney(saldoPendiente)}€)`, 'error');
+            return;
+        }
+        
+        mostrarModalCarga('Registrando cobro...');
+        
+        const result = await registrarCobro(facturaId, importeCobro, formaPago, fechaCobro, referencia);
+        
+        cerrarModalCarga();
+        
+        if (result.success) {
+            mostrarMensaje(`✅ Cobro de ${formatMoney(importeCobro)}€ registrado`, 'exito');
+            modal.remove();
+            await cargarFacturas();
+            renderizarVistaFacturacion();
+        } else {
+            mostrarMensaje('Error: ' + result.error, 'error');
+        }
+    };
+    
+    modal.querySelector('#btnCancelarCobro').onclick = () => modal.remove();
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
 }
 
 export default { iniciar };

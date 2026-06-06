@@ -1,0 +1,80 @@
+<!-- templates/facturacion/productos.html -->
+<div class="productos-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 20px; font-weight: 600;">📦 Productos y Servicios</h2>
+        <button id="btnNuevoProducto" class="btn-success" style="padding: 8px 16px;">➕ Nuevo producto</button>
+    </div>
+    
+    <!-- Lista de productos -->
+    <div id="listaProductos">
+        <div style="text-align:center; padding:40px;">
+            <div class="spinner"></div>
+            <p>Cargando productos...</p>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Modal para crear/editar producto -->
+<div id="modalProducto" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header" id="modalProductoHeader">📦 Nuevo producto</div>
+        <input type="hidden" id="productoId">
+        
+        <div class="grupo">
+            <label>📝 Nombre del producto *</label>
+            <input type="text" id="productoNombre" placeholder="Ej: Consultoría, Mantenimiento, etc.">
+        </div>
+        
+        <div class="grupo">
+            <label>📋 Código (opcional)</label>
+            <input type="text" id="productoCodigo" placeholder="Código interno">
+        </div>
+        
+        <div class="grupo">
+            <label>📄 Descripción</label>
+            <textarea id="productoDescripcion" rows="2" placeholder="Descripción del producto/servicio"></textarea>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>💰 Precio unitario (€)</label>
+                <input type="number" id="productoPrecio" step="0.01" placeholder="0.00">
+            </div>
+            <div class="grupo">
+                <label>🧾 IVA (%)</label>
+                <select id="productoIva">
+                    <option value="4">4% - Superreducido</option>
+                    <option value="10">10% - Reducido</option>
+                    <option value="21" selected>21% - General</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📏 Unidad</label>
+                <select id="productoUnidad">
+                    <option value="unidad">Unidad</option>
+                    <option value="hora">Hora</option>
+                    <option value="mes">Mes</option>
+                    <option value="dia">Día</option>
+                    <option value="servicio">Servicio</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>✅ Estado</label>
+                <select id="productoActivo">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnGuardarProducto" class="btn-success">💾 Guardar</button>
+            <button id="btnCancelarProducto" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>

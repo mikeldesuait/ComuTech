@@ -277,6 +277,32 @@
     </div>
 </div>
 
+<!-- Modal de confirmación de factura con contraseña -->
+<div id="modalConfirmarFactura" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">🔐 Confirmar emisión de factura</div>
+        <div class="alert-info" style="margin-bottom: 16px; padding: 12px; background: #fef3c7; border-left-color: #f59e0b;">
+            <strong>⚠️ Importante</strong><br>
+            <small>La factura se generará con carácter definitivo y no podrá modificarse.<br>
+            Solo se puede rectificar mediante factura rectificativa.</small>
+        </div>
+        <div class="grupo">
+            <label>🔑 Introduce tu contraseña para confirmar</label>
+            <input type="password" id="passwordConfirmacionFactura" placeholder="Tu contraseña" autocomplete="off">
+        </div>
+        <div id="errorPasswordFactura" class="error-msg" style="display: none; color: #c2410c;"></div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button id="btnConfirmarEmision" class="btn-success">✅ Confirmar y emitir factura</button>
+            <button id="btnCancelarEmision" class="btn-danger">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<button class="tab-btn" data-tab="productos">
+    <span>📦</span>
+    <span>Productos</span>
+</button>
+
 <script type="module">
     import { init } from './js/modules/main.js'
     init()

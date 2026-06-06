@@ -3,26 +3,57 @@
     
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h2 style="font-size: 20px; font-weight: 600;">💰 Facturación</h2>
-        <button id="btnNuevaFactura" class="btn-success" style="padding: 8px 16px;">➕ Nueva</button>
+        <div style="display: flex; gap: 8px;">
+            <button id="btnExportarSeleccionadas" class="btn-info" style="padding: 8px 16px;">📦 Exportar seleccionadas</button>
+            <button id="btnNuevaFactura" class="btn-success" style="padding: 8px 16px;">➕ Nueva</button>
+        </div>
     </div>
     
+    <!-- Buscador -->
     <div class="search-bar" style="margin-bottom: 16px;">
         <span>🔍</span>
         <input type="text" id="filtroFactura" placeholder="Buscar factura...">
     </div>
     
-    <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;">
-        <select id="filtroEstadoFactura" class="badge" style="background: var(--ios-gray-light); border: none; padding: 8px 12px;">
-            <option value="">Todos</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="pagada">Pagada</option>
-            <option value="vencida">Vencida</option>
-        </select>
-        <select id="filtroClienteFactura" class="badge" style="background: var(--ios-gray-light); border: none; padding: 8px 12px;">
-            <option value="">Todos los clientes</option>
-        </select>
+    <!-- FILTROS - DEBEN IR ANTES DE LA LISTA -->
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+        <div class="grupo" style="min-width: 150px;">
+            <label>📅 Desde</label>
+            <input type="date" id="filtroFechaDesde">
+        </div>
+        <div class="grupo" style="min-width: 150px;">
+            <label>📅 Hasta</label>
+            <input type="date" id="filtroFechaHasta">
+        </div>
+        <div class="grupo" style="min-width: 120px;">
+            <label>📌 Estado</label>
+            <select id="filtroEstadoFactura">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="pagada">Pagada</option>
+                <option value="vencida">Vencida</option>
+                <option value="rectificada">Rectificada</option>
+            </select>
+        </div>
+        <div class="grupo" style="min-width: 120px;">
+            <label>🏷️ Tipo</label>
+            <select id="filtroTipoFactura">
+                <option value="">Todos</option>
+                <option value="normal">Normal</option>
+                <option value="abono">Abono</option>
+                <option value="rectificativa">Rectificativa</option>
+            </select>
+        </div>
+        <div class="grupo" style="min-width: 200px;">
+    <label>🏢 Cliente</label>
+    <input type="text" id="buscadorClienteFactura" placeholder="Escribe para buscar cliente..." list="clientesList" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+    <datalist id="clientesList"></datalist>
+    <input type="hidden" id="clienteSeleccionadoId">
+</div>
+        <button id="btnLimpiarFiltros" class="btn-sm" style="background: #6b7280; color: white; padding: 8px 16px; margin-top: 22px;">🗑️ Limpiar</button>
     </div>
     
+    <!-- LISTA DE FACTURAS -->
     <div id="facturasLista">
         <div style="text-align:center; padding:40px;">
             <div class="spinner"></div>

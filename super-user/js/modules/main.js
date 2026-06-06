@@ -82,12 +82,15 @@ async function cargarModulo(modulo) {
         
         let templatePath = ''
         
+        // Determinar la ruta del template según el módulo
         if (modulo === 'clientes') {
             templatePath = 'templates/clientes/clientes.html'
         } else if (modulo === 'facturacion') {
             templatePath = 'templates/facturacion/facturacion.html'
         } else if (modulo === 'suscripciones') {
             templatePath = 'templates/facturacion/suscripciones.html'
+        } else if (modulo === 'productos') {
+            templatePath = 'templates/facturacion/productos.html'
         } else {
             templatePath = `templates/${modulo}/${modulo}.html`
         }
@@ -102,6 +105,7 @@ async function cargarModulo(modulo) {
         
         container.innerHTML = await response.text()
         
+        // Inicializar el módulo correspondiente
         if (modulo === 'clientes') {
             const module = await import('./clientes.js')
             if (module.iniciar) {
@@ -120,6 +124,12 @@ async function cargarModulo(modulo) {
                 await module.iniciar()
             }
             moduloActual = 'suscripciones'
+        } else if (modulo === 'productos') {
+            const module = await import('./productos.js')
+            if (module.iniciar) {
+                await module.iniciar()
+            }
+            moduloActual = 'productos'
         }
         
     } catch (error) {
@@ -177,6 +187,12 @@ function setupRefresh() {
             }
         } else if (moduloActual === 'suscripciones') {
             const module = await import('./suscripciones.js')
+            if (module.iniciar) {
+                await module.iniciar()
+                mostrarMensaje('✅ Datos actualizados', 'exito')
+            }
+        } else if (moduloActual === 'productos') {
+            const module = await import('./productos.js')
             if (module.iniciar) {
                 await module.iniciar()
                 mostrarMensaje('✅ Datos actualizados', 'exito')
