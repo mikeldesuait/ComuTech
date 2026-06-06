@@ -441,3 +441,64 @@ body {
         padding: 6px;
     }
 }
+
+/* Tab Bar inferior con scroll horizontal para móvil */
+.tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(20px);
+    border-top: 0.5px solid var(--ios-border);
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding: 8px 12px 20px;
+    gap: 4px;
+    z-index: 1000;
+}
+
+/* Ocultar scrollbar en Chrome/Safari (opcional, más limpio) */
+.tab-bar::-webkit-scrollbar {
+    height: 3px;
+}
+
+.tab-bar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tab-bar::-webkit-scrollbar-thumb {
+    background: var(--ios-gray-light);
+    border-radius: 10px;
+}
+
+.tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ios-gray);
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    /* Evita que se encojan */
+    min-width: 70px;
+}
+
+.tab-btn span:first-child {
+    font-size: 22px;
+}
+
+.tab-btn.active {
+    color: var(--ios-blue);
+    background: rgba(0,122,255,0.1);
+}
