@@ -30,33 +30,36 @@
 <!-- DASHBOARD PANEL -->
 <div id="dashboardPanel" style="display: none;">
     
-    <!-- Header con stats -->
-    <div class="dashboard-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+    <!-- Header con stats compacto -->
+    <div class="dashboard-header" style="padding: 16px 16px 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div>
-                <div class="admin-label">👑 Super Admin</div>
-                <div class="admin-name" id="nombreAdmin">Cargando...</div>
-                <div class="admin-email" id="emailAdmin"></div>
+                <div class="admin-label" style="font-size: 12px;">👑 Super Admin</div>
+                <div class="admin-name" style="font-size: 17px; font-weight: 600;" id="nombreAdmin">Cargando...</div>
+                <div class="admin-email" style="font-size: 11px; color: var(--ios-gray);" id="emailAdmin"></div>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button id="btnMiEmpresa" class="header-btn">🏢</button>
-                <button id="btnMiPerfil" class="header-btn">👤</button>
-                <button id="btnLogoutHeader" class="header-btn">🚪</button>
+            <div style="display: flex; gap: 6px;">
+                <button id="btnMiEmpresa" class="header-btn" style="padding: 6px 10px; font-size: 14px;">🏢</button>
+                <button id="btnMiPerfil" class="header-btn" style="padding: 6px 10px; font-size: 14px;">👤</button>
+                <button id="btnLogoutHeader" class="header-btn" style="padding: 6px 10px; font-size: 14px;">🚪</button>
             </div>
         </div>
         
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="value" id="statTotal">0</div>
-                <div class="label">Total</div>
+        <!-- Stats compactas en línea -->
+        <div style="display: flex; gap: 16px; justify-content: center; align-items: baseline; margin-top: 8px;">
+            <div style="text-align: center;">
+                <div style="font-size: 22px; font-weight: 700; color: var(--ios-gray);" id="statTotal">0</div>
+                <div style="font-size: 10px; color: var(--ios-gray);">Total</div>
             </div>
-            <div class="stat-card">
-                <div class="value" id="statActivos">0</div>
-                <div class="label">Activos</div>
+            <div style="width: 1px; height: 30px; background: var(--ios-border);"></div>
+            <div style="text-align: center;">
+                <div style="font-size: 22px; font-weight: 700; color: #2c7a4d;" id="statActivos">0</div>
+                <div style="font-size: 10px; color: var(--ios-gray);">Activos</div>
             </div>
-            <div class="stat-card">
-                <div class="value" id="statInactivos">0</div>
-                <div class="label">Inactivos</div>
+            <div style="width: 1px; height: 30px; background: var(--ios-border);"></div>
+            <div style="text-align: center;">
+                <div style="font-size: 22px; font-weight: 700; color: #c2410c;" id="statInactivos">0</div>
+                <div style="font-size: 10px; color: var(--ios-gray);">Inactivos</div>
             </div>
         </div>
     </div>
@@ -314,15 +317,11 @@
     .login-card input { width: 100%; padding: 16px; background: var(--ios-bg); border: none; border-radius: 14px; margin-bottom: 16px; font-size: 16px; }
     .login-card button { width: 100%; padding: 16px; background: var(--ios-blue); color: white; border: none; border-radius: 14px; font-weight: 600; font-size: 17px; }
     .error-msg { color: var(--ios-red); font-size: 14px; margin-top: 12px; text-align: center; }
-    .dashboard-header { background: var(--ios-card); padding: 60px 20px 24px; border-bottom: 0.5px solid var(--ios-border); }
+    .dashboard-header { background: var(--ios-card); border-bottom: 0.5px solid var(--ios-border); }
     .admin-label { font-size: 13px; color: var(--ios-gray); }
     .admin-name { font-size: 20px; font-weight: 600; }
     .admin-email { font-size: 13px; color: var(--ios-gray); }
-    .header-btn { background: var(--ios-gray-light); border: none; border-radius: 30px; padding: 8px 12px; font-size: 16px; }
-    .stats-row { display: flex; gap: 16px; margin-top: 24px; }
-    .stat-card { flex: 1; background: #f8f8fc; border-radius: 20px; padding: 16px 12px; text-align: center; }
-    .stat-card .value { font-size: 28px; font-weight: 700; }
-    .stat-card .label { font-size: 13px; color: var(--ios-gray); margin-top: 4px; }
+    .header-btn { background: var(--ios-gray-light); border: none; border-radius: 30px; cursor: pointer; }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--ios-gray); }
     .password-box { background: var(--ios-bg); padding: 16px; border-radius: 12px; text-align: center; margin: 16px 0; }
     .password-box code { font-size: 18px; font-weight: bold; }
