@@ -1,0 +1,79 @@
+<!-- gerente/templates/tareas/crear.html -->
+<!-- Formulario para crear nueva tarea -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            ➕ Crear Nueva Tarea
+            <button id="btnVolverLista" class="btn-warning" style="float: right; padding: 8px 16px;">◀ Volver</button>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏢 Cliente *</label>
+                <select id="tareaCliente" class="full-width">
+                    <option value="">-- Seleccionar cliente --</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>🏗️ Activo (opcional)</label>
+                <select id="tareaActivo" class="full-width">
+                    <option value="">-- Seleccionar activo --</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>👨‍🔧 Técnico (opcional)</label>
+                <select id="tareaTecnico" class="full-width">
+                    <option value="">-- Sin asignar --</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>⭐ Prioridad</label>
+                <select id="tareaPrioridad" class="full-width">
+                    <option value="baja">🟢 Baja</option>
+                    <option value="media" selected>🟡 Media</option>
+                    <option value="alta">🔴 Alta</option>
+                    <option value="urgente">🔥 Urgente</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📝 Título *</label>
+                <input type="text" id="tareaTitulo" class="full-width" placeholder="Ej: Revisión de piscina">
+            </div>
+            <div class="grupo">
+                <label>📅 Fecha límite</label>
+                <input type="date" id="tareaFechaLimite" class="full-width">
+            </div>
+        </div>
+        
+        <div class="grupo">
+            <label>📄 Descripción</label>
+            <textarea id="tareaDescripcion" rows="3" class="full-width" placeholder="Descripción detallada de la tarea..."></textarea>
+        </div>
+        
+        <div class="grupo">
+            <label>📋 Orden de trabajo</label>
+            <textarea id="tareaOrdenTrabajo" rows="4" class="full-width" placeholder="Instrucciones detalladas para el técnico..."></textarea>
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px;">
+            <button id="btnGuardarTarea" class="btn-success">💾 Guardar tarea</button>
+            <button id="btnCancelarTarea" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Panel Gerente · COMUTECH</title>
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- iOS Web App -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="COMUTECH Gerente">
+    
+    <!-- LIBRERÍAS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- LOGIN PANEL -->
+<div id="loginPanel" class="login-container">
+    <div class="login-card">
+        <h2>🏢 Panel del Gerente</h2>
+        <p>Acceso para gerentes y administradores de empresas</p>
+        <input type="email" id="email" placeholder="Email" autocomplete="email">
+        <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password">
+        <button id="btnLogin">Iniciar sesión</button>
+        <div id="errorMsg" class="error-msg"></div>
+    </div>
+</div>
+
+<!-- DASHBOARD PANEL -->
+<div id="dashboardPanel" style="display: none;">
+    <div class="dashboard-header">
+        <h1 id="nombreEmpresaBanner">Cargando...</h1>
+        <div class="header-gerente">
+            <span>👩‍💼 <span id="nombreGerente">Cargando...</span></span>
+            <span>📧 <span id="emailGerente"></span></span>
+            <div style="display: flex; gap: 8px;">
+                <button id="btnRefrescar" class="btn-logout">🔄</button>
+                <button id="btnLogout" class="btn-logout">🚪 Salir</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="contenidoPanel"></div>
+    
+    <!-- TAB BAR (pestañas del gerente) -->
+    <div class="bottom-nav">
+        <button class="nav-item active" data-tab="tareas">
+            <span>📋</span><span>Tareas</span>
+        </button>
+        <button class="nav-item" data-tab="personal">
+            <span>👥</span><span>Personal</span>
+        </button>
+        <button class="nav-item" data-tab="clientes">
+            <span>🏢</span><span>Clientes</span>
+        </button>
+        <button class="nav-item" data-tab="materiales">
+            <span>📦</span><span>Materiales</span>
+        </button>
+        <button class="nav-item" data-tab="facturacion">
+            <span>💰</span><span>Facturación</span>
+        </button>
+        <button class="nav-item" data-tab="impuestos">
+            <span>📊</span><span>Impuestos</span>
+        </button>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODALES                                                      -->
+<!-- ============================================================ -->
+
+<!-- Modal Confirmación -->
+<div id="modalConfirmacion" class="modal-overlay">
+    <div class="modal-content">
+        <h3>⚠️ Confirmar acción</h3>
+        <p id="mensajeConfirmacion" style="margin-bottom: 20px;"></p>
+        <div class="modal-buttons">
+            <button id="btnConfirmarAccion" class="btn-aceptar">✅ Confirmar</button>
+            <button id="btnCancelarAccion" class="btn-cancelar">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Informativo -->
+<div id="modalInformativo" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modalInformativoTitulo">Información</h3>
+        <p id="modalInformativoMensaje"></p>
+        <div class="modal-buttons">
+            <button id="btnCerrarInformativo" class="btn-aceptar">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Carga -->
+<div id="modalCarga" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 300px; text-align: center;">
+        <div class="spinner" style="margin: 0 auto 16px auto;"></div>
+        <p id="modalCargaMensaje">Cargando...</p>
+    </div>
+</div>
+
+<script type="module">
+    import { init } from './js/main.js'
+    init()
+</script>
+
+</body>
+</html>

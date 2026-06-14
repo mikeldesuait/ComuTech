@@ -1,0 +1,63 @@
+<!-- gerente/templates/clientes/alta.html -->
+<!-- Formulario de alta de cliente -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            ➕ Alta de Cliente
+            <button id="btnVolverClientes" class="btn-warning" style="float: right; padding: 8px 16px;">◀ Volver</button>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏢 Razón Social *</label>
+                <input type="text" id="cliNombre" class="full-width" placeholder="Nombre de la empresa">
+            </div>
+            <div class="grupo">
+                <label>📋 NIF/CIF</label>
+                <input type="text" id="cliNif" class="full-width" placeholder="B12345678">
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📧 Email *</label>
+                <input type="email" id="cliEmail" class="full-width" placeholder="email@empresa.com">
+            </div>
+            <div class="grupo">
+                <label>📞 Teléfono</label>
+                <input type="tel" id="cliTelefono" class="full-width" placeholder="Teléfono">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>📍 Dirección</label>
+            <input type="text" id="cliDireccion" class="full-width" placeholder="Calle, número">
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏙️ Ciudad</label>
+                <input type="text" id="cliCiudad" class="full-width" placeholder="Ciudad">
+            </div>
+            <div class="grupo">
+                <label>📌 Provincia</label>
+                <input type="text" id="cliProvincia" class="full-width" placeholder="Provincia">
+            </div>
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px;">
+            <button id="btnGuardarCliente" class="btn-success">💾 Guardar cliente</button>
+            <button id="btnCancelarCliente" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

@@ -1,0 +1,93 @@
+<!-- gerente/templates/tareas/editar.html -->
+<!-- Formulario de edición de tarea -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            ✏️ Editar Tarea
+            <button id="btnVolverTareas" class="btn-warning" style="float: right; padding: 8px 16px;">◀ Volver</button>
+        </div>
+        
+        <input type="hidden" id="editTareaId">
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏢 Cliente</label>
+                <select id="editTareaCliente" class="full-width">
+                    <option value="">-- Seleccionar cliente --</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>🏗️ Activo</label>
+                <select id="editTareaActivo" class="full-width">
+                    <option value="">-- Seleccionar activo --</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>👨‍🔧 Técnico</label>
+                <select id="editTareaTecnico" class="full-width">
+                    <option value="">-- Sin asignar --</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>⭐ Prioridad</label>
+                <select id="editTareaPrioridad" class="full-width">
+                    <option value="baja">🟢 Baja</option>
+                    <option value="media">🟡 Media</option>
+                    <option value="alta">🔴 Alta</option>
+                    <option value="urgente">🔥 Urgente</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📝 Título *</label>
+                <input type="text" id="editTareaTitulo" class="full-width" placeholder="Título de la tarea">
+            </div>
+            <div class="grupo">
+                <label>📅 Fecha límite</label>
+                <input type="date" id="editTareaFechaLimite" class="full-width">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>📄 Descripción</label>
+            <textarea id="editTareaDescripcion" rows="3" class="full-width" placeholder="Descripción de la tarea..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>📋 Orden de trabajo</label>
+            <textarea id="editTareaOrdenTrabajo" rows="4" class="full-width" placeholder="Instrucciones para el técnico..."></textarea>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📌 Estado</label>
+                <select id="editTareaEstado" class="full-width">
+                    <option value="pendiente">⏳ Pendiente</option>
+                    <option value="en_progreso">⚙️ En progreso</option>
+                    <option value="completada">✅ Completada</option>
+                    <option value="cancelada">❌ Cancelada</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px;">
+            <button id="btnGuardarEdicion" class="btn-success">💾 Guardar cambios</button>
+            <button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

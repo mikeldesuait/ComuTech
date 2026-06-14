@@ -1,0 +1,35 @@
+<!-- gerente/templates/clientes/activos.html -->
+<!-- Gestión de activos por cliente -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            🏗️ Activos por Cliente
+            <button id="btnAgregarActivo" class="btn-success" style="float: right; padding: 8px 16px;">➕ Agregar</button>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏢 Cliente</label>
+                <select id="activoCliente" class="full-width">
+                    <option value="">-- Seleccionar cliente --</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="activosContainer">
+            <div class="text-center" style="padding: 40px;">
+                <p>Selecciona un cliente para ver sus activos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

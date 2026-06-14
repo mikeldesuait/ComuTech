@@ -1,0 +1,43 @@
+<!-- gerente/templates/personal/registro-horario.html -->
+<!-- Registro horario de técnicos -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">⏱️ Registro Horario</div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>👨‍🔧 Técnico</label>
+                <select id="horarioTecnico" class="full-width">
+                    <option value="">-- Todos los técnicos --</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>📅 Desde</label>
+                <input type="date" id="horarioDesde" class="full-width">
+            </div>
+            <div class="grupo">
+                <label>📅 Hasta</label>
+                <input type="date" id="horarioHasta" class="full-width">
+            </div>
+            <div class="grupo" style="display: flex; align-items: flex-end;">
+                <button id="btnFiltrarHorario" class="btn-info full-width">🔍 Filtrar</button>
+            </div>
+        </div>
+        
+        <div id="horarioContainer">
+            <div class="text-center" style="padding: 40px;">
+                <p>Selecciona un período para ver el registro horario</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

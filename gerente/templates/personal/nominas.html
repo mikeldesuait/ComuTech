@@ -1,0 +1,50 @@
+<!-- gerente/templates/personal/nominas.html -->
+<!-- Gestión de nóminas -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">💰 Nóminas</div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📅 Mes</label>
+                <select id="nominaMes" class="full-width">
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+            </div>
+            <div class="grupo">
+                <label>📅 Año</label>
+                <select id="nominaAnio" class="full-width"></select>
+            </div>
+            <div class="grupo" style="display: flex; align-items: flex-end;">
+                <button id="btnCalcularNominas" class="btn-success full-width">📊 Calcular</button>
+            </div>
+        </div>
+        
+        <div id="nominasContainer">
+            <div class="text-center" style="padding: 40px;">
+                <p>Selecciona un mes y año para calcular las nóminas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

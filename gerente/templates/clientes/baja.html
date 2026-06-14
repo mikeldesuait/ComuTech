@@ -1,0 +1,50 @@
+<!-- gerente/templates/clientes/baja.html -->
+<!-- Formulario de baja de cliente -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            ➖ Baja de Cliente
+            <button id="btnVolverClientes" class="btn-warning" style="float: right; padding: 8px 16px;">◀ Volver</button>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏢 Cliente</label>
+                <select id="bajaCliente" class="full-width">
+                    <option value="">-- Seleccionar cliente --</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="infoClienteBaja" style="display: none; background: #fef3c7; padding: 16px; border-radius: 12px; margin: 16px 0;">
+            <p><strong>⚠️ Atención</strong></p>
+            <p>Dar de baja a un cliente:</p>
+            <ul>
+                <li>No se podrán crear nuevas tareas</li>
+                <li>Las tareas existentes se mantienen</li>
+                <li>El cliente no podrá acceder al sistema</li>
+                <li>Se conservará el historial fiscal</li>
+            </ul>
+        </div>
+        
+        <div class="form-group">
+            <label>📝 Motivo de baja *</label>
+            <textarea id="bajaMotivo" rows="3" class="full-width" placeholder="Motivo de la baja..."></textarea>
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px;">
+            <button id="btnConfirmarBaja" class="btn-danger">🗑️ Confirmar baja</button>
+            <button id="btnCancelarBaja" class="btn-info">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>
