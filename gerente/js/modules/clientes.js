@@ -309,7 +309,7 @@ export async function crearActivo(datos, clienteId) {
 }
 
 // ============================================================
-// ACTUALIZAR ACTIVO (SOLO UNA VEZ, COMPLETA)
+// ACTUALIZAR ACTIVO
 // ============================================================
 
 export async function actualizarActivo(id, datos) {
@@ -377,7 +377,7 @@ export async function eliminarActivo(id) {
 }
 
 // ============================================================
-// RENDERIZAR LISTA DE CLIENTES CON BÚSQUEDA Y PAGINACIÓN
+// RENDERIZAR LISTA DE CLIENTES (SIN botón duplicado)
 // ============================================================
 
 export function renderizarListaClientes(clientes, onEditar, onRegenerarCodigo, onToggleAcceso, onVerActivos) {
@@ -385,9 +385,7 @@ export function renderizarListaClientes(clientes, onEditar, onRegenerarCodigo, o
     
     const html = `
         <div class="card" style="margin-top:16px;">
-            <div class="card-header">🏢 Clientes
-                <button id="btnAgregarCliente" class="btn-success btn-sm" style="float:right;">➕ Agregar</button>
-            </div>
+            
             
             <div class="filtros-bar" style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
                 <div style="flex: 2;">
@@ -412,7 +410,7 @@ export function renderizarListaClientes(clientes, onEditar, onRegenerarCodigo, o
         const inputBuscar = document.getElementById('buscarCliente')
         const filtroEstado = document.getElementById('filtroEstadoCliente')
         const btnLimpiar = document.getElementById('btnLimpiarFiltros')
-        const btnAgregar = document.getElementById('btnAgregarCliente')
+        const btnAlta = document.getElementById('btnAltaCliente')
         
         if (inputBuscar) {
             inputBuscar.addEventListener('input', () => aplicarFiltrosClientes(onEditar, onRegenerarCodigo, onToggleAcceso, onVerActivos))
@@ -427,13 +425,17 @@ export function renderizarListaClientes(clientes, onEditar, onRegenerarCodigo, o
                 aplicarFiltrosClientes(onEditar, onRegenerarCodigo, onToggleAcceso, onVerActivos)
             })
         }
-        if (btnAgregar) {
-            btnAgregar.onclick = () => onVerActivos('nuevo')
+        if (btnAlta) {
+            btnAlta.addEventListener('click', () => onVerActivos('nuevo'))
         }
     }, 50)
     
     return html
 }
+
+// ============================================================
+// RENDERIZAR TABLA DE CLIENTES (SIN botón "Agregar")
+// ============================================================
 
 function renderizarTablaClientes(clientes, onEditar, onRegenerarCodigo, onToggleAcceso, onVerActivos, pagina = 1, itemsPorPagina = 10) {
     if (!clientes || clientes.length === 0) {
@@ -448,17 +450,21 @@ function renderizarTablaClientes(clientes, onEditar, onRegenerarCodigo, onToggle
     let html = `<div style="overflow-x: auto;"><table class="data-table"><thead><tr><th>Cliente</th><th>NIF/CIF</th><th>Contacto</th><th>Código acceso</th><th>Estado</th><th>Activos</th><th>Acciones</th></tr></thead><tbody>`
     
     for (const c of clientesPagina) {
-        html += `<tr>
-            <td><strong>${escapeHtml(c.nombre)}</strong><br><small>${escapeHtml(c.direccion || '-')}</small></td>
-            <td>${escapeHtml(c.nif_cif || '-')}</span></div></td>
-            <td>${escapeHtml(c.email || '-')}<br>${escapeHtml(c.telefono || '-')}</td>
-            <td><span class="badge badge-activo" style="font-family: monospace;">${escapeHtml(c.codigo_acceso || '-')}</span></td>
-            <td>${c.acceso_activo ? '<span class="badge badge-activo">✅ Activo</span>' : '<span class="badge badge-inactivo">🔒 Inactivo</span>'}</td>
-            <td><button class="btn-sm ver-activos" data-id="${c.id}" style="background:#0284c7;">🏗️ Ver</button></td>
-            <td><button class="btn-sm editar-cliente" data-id="${c.id}" style="background:#e67e22;">✏️</button>
-            <button class="btn-sm regenerar-codigo" data-id="${c.id}" style="background:#0284c7;">🔄</button>
-            <button class="btn-sm toggle-acceso" data-id="${c.id}" data-activo="${c.acceso_activo}" style="background:${c.acceso_activo ? '#dc2626' : '#2c7a4d'};">${c.acceso_activo ? '🔒' : '✅'}</button></td>
-        </tr>`
+        html += `
+            <tr>
+                <td><strong>${escapeHtml(c.nombre)}</strong><br><small>${escapeHtml(c.direccion || '-')}</small></td>
+                <td>${escapeHtml(c.nif_cif || '-')}</td>
+                <td>${escapeHtml(c.email || '-')}<br>${escapeHtml(c.telefono || '-')}</td>
+                <td><span class="badge badge-activo" style="font-family: monospace;">${escapeHtml(c.codigo_acceso || '-')}</span></td>
+                <td>${c.acceso_activo ? '<span class="badge badge-activo">✅ Activo</span>' : '<span class="badge badge-inactivo">🔒 Inactivo</span>'}</td>
+                <td><button class="btn-sm ver-activos" data-id="${c.id}" style="background:#0284c7;">🏗️ Ver</button></td>
+                <td>
+                    <button class="btn-sm editar-cliente" data-id="${c.id}" style="background:#e67e22;">✏️</button>
+                    <button class="btn-sm regenerar-codigo" data-id="${c.id}" style="background:#0284c7;">🔄</button>
+                    <button class="btn-sm toggle-acceso" data-id="${c.id}" data-activo="${c.acceso_activo}" style="background:${c.acceso_activo ? '#dc2626' : '#2c7a4d'};">${c.acceso_activo ? '🔒' : '✅'}</button>
+                </td>
+            </tr>
+        `
     }
     
     html += `</tbody></table></div>`
@@ -475,6 +481,10 @@ function renderizarTablaClientes(clientes, onEditar, onRegenerarCodigo, onToggle
     
     return html
 }
+
+// ============================================================
+// APLICAR FILTROS A CLIENTES
+// ============================================================
 
 function aplicarFiltrosClientes(onEditar, onRegenerarCodigo, onToggleAcceso, onVerActivos) {
     if (!window.todosClientes) return
@@ -536,7 +546,7 @@ function aplicarFiltrosClientes(onEditar, onRegenerarCodigo, onToggleAcceso, onV
 export function renderizarFormularioCrearCliente() {
     return `
         <div class="card">
-            <div class="card-header">➕ Nuevo Cliente<button id="btnVolverClientes" class="btn-warning" style="float:right;">◀ Volver</button></div>
+            <div class="card-header">➕ Nuevo Cliente</div>
             
             <div class="row-flex">
                 <div class="grupo"><label>🏢 Nombre *</label><input type="text" id="cliNombre" class="full-width" placeholder="Razón social"></div>

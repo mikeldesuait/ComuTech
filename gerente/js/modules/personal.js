@@ -4,6 +4,8 @@
 import { sb } from '../config/supabase.js'
 import { mostrarMensaje, formatearFecha, escapeHtml, formatMoney, mostrarModalCarga, cerrarModalCarga, mostrarModalConfirmacion, mostrarModalInformativo } from './utils.js'
 
+export const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co"
+
 let tecnicosInternos = []
 let tecnicosExternos = []
 let vacacionesPendientes = []
@@ -36,41 +38,53 @@ export async function cargarTecnicosInternos(empresaId) {
     }
 }
 
-export async function crearTecnicoInterno(datos, empresaId) {
-    mostrarModalCarga('Creando técnico...')
+export async function crearTecnicoInterno(datos, empresaId, gerenteEmail) {
+    mostrarModalCarga('Creando trabajador interno...')
     
     try {
-        const { data, error } = await sb
-            .from('tecnicos')
-            .insert({
-                empresa_id: empresaId,
+        const { data: session } = await sb.auth.getSession()
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-tecnico`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
                 tipo: 'interno',
                 nombre: datos.nombre,
-                email: datos.email,
-                telefono: datos.telefono,
-                especialidad: datos.especialidad,
-                salario_hora: datos.salario_hora,
-                activo: true
+                apellido: datos.apellido || '',
+                dni: datos.dni || '',
+                telefono: datos.telefono || '',
+                emailPersonal: datos.email || null,
+                fechaNacimiento: datos.fechaNacimiento || null,
+                fechaAlta: datos.fechaAlta || null,
+                fechaFin: datos.fechaFin || null,
+                especialidad: datos.especialidad || '',
+                seguridadSocial: datos.seguridadSocial || '',
+                salario: datos.salario || 0,
+                empresaId: empresaId,
+                gerenteEmail: gerenteEmail
             })
-            .select()
-            .single()
+        })
         
-        if (error) throw error
+        const result = await response.json()
+        
+        if (!response.ok) throw new Error(result.error)
         
         cerrarModalCarga()
-        mostrarMensaje(`✅ Técnico ${datos.nombre} creado`, 'exito')
-        return data
+        mostrarMensaje(`✅ Trabajador ${result.tecnico.nombre} creado. Nick: ${result.tecnico.nick} | Contraseña: ${result.tecnico.contraseña}`, 'exito')
+        return result.tecnico
         
     } catch (error) {
         cerrarModalCarga()
-        console.error('Error creando técnico:', error)
-        mostrarMensaje('Error al crear técnico', 'error')
+        console.error('Error creando trabajador:', error)
+        mostrarMensaje('Error al crear trabajador: ' + error.message, 'error')
         return null
     }
 }
 
 export async function actualizarTecnicoInterno(id, datos) {
-    mostrarModalCarga('Actualizando...')
+    mostrarModalCarga('Actualizando trabajador...')
     
     try {
         const { error } = await sb
@@ -80,23 +94,83 @@ export async function actualizarTecnicoInterno(id, datos) {
                 email: datos.email,
                 telefono: datos.telefono,
                 especialidad: datos.especialidad,
-                salario_hora: datos.salario_hora,
-                activo: datos.activo
+                salario_hora: datos.salario_hora || 0,
+                activo: datos.activo,
+                fecha_alta: datos.fechaAlta || null,
+                fecha_fin: datos.fechaFin || null,
+                seguridad_social: datos.seguridadSocial || null
             })
             .eq('id', id)
         
         if (error) throw error
         
         cerrarModalCarga()
-        mostrarMensaje('✅ Técnico actualizado', 'exito')
+        mostrarMensaje('✅ Trabajador actualizado', 'exito')
         return true
         
     } catch (error) {
         cerrarModalCarga()
-        console.error('Error actualizando técnico:', error)
+        console.error('Error actualizando trabajador:', error)
         mostrarMensaje('Error al actualizar', 'error')
         return false
     }
+}
+
+export async function eliminarTecnico(id) {
+    mostrarModalConfirmacion('¿Eliminar este trabajador? Esta acción eliminará todos sus datos de acceso.', async () => {
+        mostrarModalCarga('Eliminando trabajador...')
+        
+        try {
+            // 1. Obtener user_id del técnico
+            const { data: tecnico, error: getError } = await sb
+                .from('tecnicos')
+                .select('user_id, email')
+                .eq('id', id)
+                .single()
+            
+            if (getError) throw getError
+            
+            // 2. Eliminar de tecnicos
+            const { error: tecError } = await sb
+                .from('tecnicos')
+                .delete()
+                .eq('id', id)
+            
+            if (tecError) throw tecError
+            
+            // 3. Eliminar de perfiles
+            const { error: perfilError } = await sb
+                .from('perfiles')
+                .delete()
+                .eq('user_id', tecnico.user_id)
+            
+            if (perfilError) throw perfilError
+            
+            // 4. Eliminar de auth.users (usando Edge Function)
+            const { data: session } = await sb.auth.getSession()
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/eliminar-usuario`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ user_id: tecnico.user_id })
+            })
+            
+            const result = await response.json()
+            if (!response.ok) throw new Error(result.error)
+            
+            cerrarModalCarga()
+            mostrarMensaje('✅ Trabajador eliminado correctamente', 'exito')
+            return true
+            
+        } catch (error) {
+            cerrarModalCarga()
+            console.error('Error eliminando trabajador:', error)
+            mostrarMensaje('Error al eliminar: ' + error.message, 'error')
+            return false
+        }
+    })
 }
 
 // ============================================================
@@ -125,36 +199,137 @@ export async function cargarTecnicosExternos(empresaId) {
     }
 }
 
-export async function crearTecnicoExterno(datos, empresaId) {
-    mostrarModalCarga('Creando técnico externo...')
+export async function crearTecnicoExterno(datos, empresaId, gerenteEmail) {
+    mostrarModalCarga('Creando trabajador externo...')
     
     try {
-        const { data, error } = await sb
-            .from('tecnicos')
-            .insert({
-                empresa_id: empresaId,
+        const { data: session } = await sb.auth.getSession()
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/crear-tecnico`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
                 tipo: 'externo',
+                nombre: datos.nombre,
+                apellido: datos.apellido || '',
+                dni: datos.dni || '',
+                telefono: datos.telefono || '',
+                emailPersonal: datos.email || null,
+                fechaNacimiento: datos.fechaNacimiento || null,
+                fechaAlta: datos.fechaAlta || null,
+                fechaFin: datos.fechaFin || null,
+                especialidad: datos.especialidad || '',
+                empresaExterna: datos.empresaExterna || '',
+                empresaId: empresaId,
+                gerenteEmail: gerenteEmail
+            })
+        })
+        
+        const result = await response.json()
+        
+        if (!response.ok) throw new Error(result.error)
+        
+        cerrarModalCarga()
+        mostrarMensaje(`✅ Trabajador externo ${result.tecnico.nombre} creado. Nick: ${result.tecnico.nick} | Contraseña: ${result.tecnico.contraseña}`, 'exito')
+        return result.tecnico
+        
+    } catch (error) {
+        cerrarModalCarga()
+        console.error('Error creando trabajador externo:', error)
+        mostrarMensaje('Error al crear trabajador externo: ' + error.message, 'error')
+        return null
+    }
+}
+
+export async function actualizarTecnicoExterno(id, datos) {
+    mostrarModalCarga('Actualizando trabajador externo...')
+    
+    try {
+        const { error } = await sb
+            .from('tecnicos')
+            .update({
                 nombre: datos.nombre,
                 email: datos.email,
                 telefono: datos.telefono,
                 especialidad: datos.especialidad,
-                activo: true
+                activo: datos.activo,
+                fecha_alta: datos.fechaAlta || null,
+                fecha_fin: datos.fechaFin || null,
+                empresa_externa: datos.empresaExterna || null
             })
-            .select()
-            .single()
+            .eq('id', id)
         
         if (error) throw error
         
         cerrarModalCarga()
-        mostrarMensaje(`✅ Técnico externo ${datos.nombre} creado`, 'exito')
-        return data
+        mostrarMensaje('✅ Trabajador externo actualizado', 'exito')
+        return true
         
     } catch (error) {
         cerrarModalCarga()
-        console.error('Error creando técnico externo:', error)
-        mostrarMensaje('Error al crear técnico', 'error')
-        return null
+        console.error('Error actualizando trabajador externo:', error)
+        mostrarMensaje('Error al actualizar', 'error')
+        return false
     }
+}
+
+export async function eliminarTecnicoExterno(id) {
+    mostrarModalConfirmacion('¿Eliminar este trabajador externo? Esta acción eliminará todos sus datos de acceso.', async () => {
+        mostrarModalCarga('Eliminando trabajador externo...')
+        
+        try {
+            // 1. Obtener user_id del técnico externo
+            const { data: tecnico, error: getError } = await sb
+                .from('tecnicos')
+                .select('user_id, email')
+                .eq('id', id)
+                .single()
+            
+            if (getError) throw getError
+            
+            // 2. Eliminar de tecnicos
+            const { error: tecError } = await sb
+                .from('tecnicos')
+                .delete()
+                .eq('id', id)
+            
+            if (tecError) throw tecError
+            
+            // 3. Eliminar de perfiles
+            const { error: perfilError } = await sb
+                .from('perfiles')
+                .delete()
+                .eq('user_id', tecnico.user_id)
+            
+            if (perfilError) throw perfilError
+            
+            // 4. Eliminar de auth.users (usando Edge Function)
+            const { data: session } = await sb.auth.getSession()
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/eliminar-usuario`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ user_id: tecnico.user_id })
+            })
+            
+            const result = await response.json()
+            if (!response.ok) throw new Error(result.error)
+            
+            cerrarModalCarga()
+            mostrarMensaje('✅ Trabajador externo eliminado correctamente', 'exito')
+            return true
+            
+        } catch (error) {
+            cerrarModalCarga()
+            console.error('Error eliminando trabajador externo:', error)
+            mostrarMensaje('Error al eliminar: ' + error.message, 'error')
+            return false
+        }
+    })
 }
 
 // ============================================================
@@ -303,7 +478,6 @@ export async function calcularNomina(tecnicoId, mes, año) {
     mostrarModalCarga('Calculando nómina...')
     
     try {
-        // Obtener horas trabajadas del técnico en el mes
         const inicioMes = `${año}-${String(mes).padStart(2, '0')}-01`
         const finMes = new Date(año, mes, 0).toISOString().split('T')[0]
         
@@ -323,7 +497,6 @@ export async function calcularNomina(tecnicoId, mes, año) {
         const totalMinutos = seguimiento.reduce((sum, s) => sum + (s.duracion_minutos || 0), 0)
         const totalHoras = totalMinutos / 60
         
-        // Obtener salario del técnico
         const { data: tecnico } = await sb
             .from('tecnicos')
             .select('salario_hora')
@@ -356,19 +529,103 @@ export async function calcularNomina(tecnicoId, mes, año) {
 }
 
 // ============================================================
-// RENDERIZADO DE INTERFAZ
+// RENDERIZADO CON BÚSQUEDA Y PAGINACIÓN
 // ============================================================
 
-export function renderizarTecnicosInternos(tecnicos, onEditar, onEliminar) {
-    if (!tecnicos || tecnicos.length === 0) {
-        return `
-            <div class="text-center" style="padding: 40px; color: var(--ios-gray);">
-                👨‍🔧 No hay técnicos internos
-                <br><br>
-                <button class="btn-success" id="btnAgregarTecnicoInterno">➕ Agregar técnico</button>
+export function renderizarListaTecnicos(tecnicos, tipo, onEditar, onEliminar, onAgregar) {
+    const titulo = tipo === 'interno' ? '👨‍🔧 Trabajadores Internos' : '🔌 Trabajadores Externos'
+    
+    let html = `
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 0.5px solid var(--ios-border);">
+            <span style="font-size: 17px; font-weight: 600;">${titulo}</span>
+            <button id="btnAgregarTecnico" class="btn-success btn-sm">➕ Agregar</button>
+        </div>
+        
+        <div class="filtros-bar" style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 2;">
+                <input type="text" id="buscarTecnico" placeholder="🔍 Buscar por nombre, email o especialidad..." 
+                       style="width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border);">
             </div>
-        `
+            <select id="filtroEstadoTecnico" style="padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border);">
+                <option value="todos">📌 Todos</option>
+                <option value="activo">✅ Activos</option>
+                <option value="inactivo">🔒 Inactivos</option>
+            </select>
+            <button id="btnLimpiarFiltrosTecnicos" class="btn-sm" style="background: #6b7280; color: white;">🗑️ Limpiar</button>
+        </div>
+        
+        <div id="tecnicosListaContainer">
+            ${renderizarTablaTecnicos(tecnicos, tipo, onEditar, onEliminar)}
+        </div>
+    `
+    
+    setTimeout(() => {
+        const inputBuscar = document.getElementById('buscarTecnico')
+        const filtroEstado = document.getElementById('filtroEstadoTecnico')
+        const btnLimpiar = document.getElementById('btnLimpiarFiltrosTecnicos')
+        const btnAgregar = document.getElementById('btnAgregarTecnico')
+        
+        if (inputBuscar) {
+            inputBuscar.addEventListener('input', () => {
+                aplicarFiltrosTecnicos(tecnicos, tipo, onEditar, onEliminar)
+            })
+        }
+        if (filtroEstado) {
+            filtroEstado.addEventListener('change', () => {
+                aplicarFiltrosTecnicos(tecnicos, tipo, onEditar, onEliminar)
+            })
+        }
+        if (btnLimpiar) {
+            btnLimpiar.addEventListener('click', () => {
+                if (inputBuscar) inputBuscar.value = ''
+                if (filtroEstado) filtroEstado.value = 'todos'
+                aplicarFiltrosTecnicos(tecnicos, tipo, onEditar, onEliminar)
+            })
+        }
+        if (btnAgregar && onAgregar) {
+            btnAgregar.onclick = onAgregar
+        }
+        
+        // ============================================================
+        // ASIGNAR EVENTOS DIRECTAMENTE A LOS BOTONES
+        // ============================================================
+        document.querySelectorAll('.editar-tecnico').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                e.stopPropagation()
+                const id = this.dataset.id
+                console.log('✏️ Editando técnico ID:', id)
+                if (onEditar) {
+                    onEditar(id)
+                }
+            }
+        })
+        
+        document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                e.stopPropagation()
+                const id = this.dataset.id
+                console.log('🗑️ Eliminando técnico ID:', id)
+                if (onEliminar) {
+                    onEliminar(id)
+                }
+            }
+        })
+    }, 50)
+    
+    return html
+}
+
+function renderizarTablaTecnicos(tecnicos, tipo, onEditar, onEliminar, pagina = 1, itemsPorPagina = 10) {
+    if (!tecnicos || tecnicos.length === 0) {
+        return `<div class="text-center" style="padding: 30px; color: var(--ios-gray);">👨‍🔧 No hay trabajadores registrados</div>`
     }
+    
+    const inicio = (pagina - 1) * itemsPorPagina
+    const fin = inicio + itemsPorPagina
+    const tecnicosPagina = tecnicos.slice(inicio, fin)
+    const totalPaginas = Math.ceil(tecnicos.length / itemsPorPagina)
     
     let html = `
         <div style="overflow-x: auto;">
@@ -379,7 +636,7 @@ export function renderizarTecnicosInternos(tecnicos, onEditar, onEliminar) {
                         <th>Email</th>
                         <th>Teléfono</th>
                         <th>Especialidad</th>
-                        <th>€/hora</th>
+                        ${tipo === 'interno' ? '<th>€/hora</th>' : ''}
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -387,18 +644,18 @@ export function renderizarTecnicosInternos(tecnicos, onEditar, onEliminar) {
                 <tbody>
     `
     
-    for (const t of tecnicos) {
+    for (const t of tecnicosPagina) {
         html += `
             <tr>
-                <td>${escapeHtml(t.nombre)}</td>
+                <td><strong>${escapeHtml(t.nombre)}</strong></td>
                 <td>${escapeHtml(t.email)}</td>
                 <td>${escapeHtml(t.telefono || '-')}</td>
                 <td>${escapeHtml(t.especialidad || '-')}</td>
-                <td>${formatMoney(t.salario_hora || 0)}€</td>
+                ${tipo === 'interno' ? `<td>${formatMoney(t.salario_hora || 0)}€</td>` : ''}
                 <td>${t.activo ? '<span class="badge badge-activo">✅ Activo</span>' : '<span class="badge badge-inactivo">❌ Inactivo</span>'}</td>
                 <td>
-                    <button class="btn-sm editar-tecnico" data-id="${t.id}" style="background:#e67e22; color:white;">✏️ Editar</button>
-                    <button class="btn-sm eliminar-tecnico" data-id="${t.id}" style="background:#dc2626; color:white;">🗑️ Eliminar</button>
+                    <button class="btn-sm editar-tecnico" data-id="${t.id}" style="background:#e67e22;">✏️</button>
+                    <button class="btn-sm eliminar-tecnico" data-id="${t.id}" style="background:#dc2626;">🗑️</button>
                 </td>
             </tr>
         `
@@ -408,20 +665,90 @@ export function renderizarTecnicosInternos(tecnicos, onEditar, onEliminar) {
                 </tbody>
             </table>
         </div>
-        <div style="margin-top: 16px; text-align: right;">
-            <button class="btn-success" id="btnAgregarTecnicoInterno">➕ Agregar técnico</button>
-        </div>
     `
     
+    if (totalPaginas > 1) {
+        html += `<div class="pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;">`
+        if (pagina > 1) html += `<button class="btn-sm pagina-tecnico" data-pagina="${pagina - 1}" style="background: #64748b; color: white;">◀ Anterior</button>`
+        for (let i = 1; i <= totalPaginas; i++) {
+            html += `<button class="btn-sm pagina-tecnico ${i === pagina ? 'active' : ''}" data-pagina="${i}" style="${i === pagina ? 'background: #2c7a4d; color: white;' : 'background: #e2e8f0;'}">${i}</button>`
+        }
+        if (pagina < totalPaginas) html += `<button class="btn-sm pagina-tecnico" data-pagina="${pagina + 1}" style="background: #64748b; color: white;">Siguiente ▶</button>`
+        html += `</div>`
+    }
+    
+    // Devolver HTML con un contenedor para asignar eventos después
     return html
 }
 
-export function renderizarVacaciones(vacaciones, tecnicos, onAprobar) {
+function aplicarFiltrosTecnicos(tecnicosOriginales, tipo, onEditar, onEliminar) {
+    const busqueda = (document.getElementById('buscarTecnico')?.value || '').toLowerCase()
+    const filtroEstado = document.getElementById('filtroEstadoTecnico')?.value || 'todos'
+    
+    let filtrados = tecnicosOriginales
+    
+    if (busqueda) {
+        filtrados = filtrados.filter(t => 
+            t.nombre?.toLowerCase().includes(busqueda) ||
+            t.email?.toLowerCase().includes(busqueda) ||
+            t.especialidad?.toLowerCase().includes(busqueda)
+        )
+    }
+    
+    if (filtroEstado === 'activo') {
+        filtrados = filtrados.filter(t => t.activo === true)
+    } else if (filtroEstado === 'inactivo') {
+        filtrados = filtrados.filter(t => t.activo === false)
+    }
+    
+    const container = document.getElementById('tecnicosListaContainer')
+    if (container) {
+        container.innerHTML = renderizarTablaTecnicos(filtrados, tipo, onEditar, onEliminar, 1)
+        
+        setTimeout(() => {
+            document.querySelectorAll('.editar-tecnico').forEach(btn => {
+                btn.onclick = function(e) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const id = this.dataset.id
+                    if (onEditar) onEditar(id)
+                }
+            })
+            document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
+                btn.onclick = function(e) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const id = this.dataset.id
+                    if (onEliminar) onEliminar(id)
+                }
+            })
+        }, 50)
+    }
+}
+
+// ============================================================
+// RENDERIZADO DE VACACIONES (con búsqueda)
+// ============================================================
+
+export function renderizarListaVacaciones(vacaciones, tecnicos, onAprobar, onRechazar) {
     if (!vacaciones || vacaciones.length === 0) {
-        return `<div class="text-center" style="padding: 40px; color: var(--ios-gray);">🌴 No hay solicitudes de vacaciones</div>`
+        return `<div class="text-center" style="padding: 40px;">🌴 No hay solicitudes de vacaciones</div>`
     }
     
     let html = `
+        <div class="filtros-bar" style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 2;">
+                <input type="text" id="buscarVacacion" placeholder="🔍 Buscar por técnico..." 
+                       style="width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border);">
+            </div>
+            <select id="filtroEstadoVacacion" style="padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border);">
+                <option value="todos">📌 Todos</option>
+                <option value="pendiente">⏳ Pendientes</option>
+                <option value="aprobada">✅ Aprobadas</option>
+                <option value="rechazada">❌ Rechazadas</option>
+            </select>
+            <button id="btnLimpiarFiltrosVacaciones" class="btn-sm" style="background: #6b7280; color: white;">🗑️ Limpiar</button>
+        </div>
         <div style="overflow-x: auto;">
             <table class="data-table">
                 <thead>
@@ -446,8 +773,8 @@ export function renderizarVacaciones(vacaciones, tecnicos, onAprobar) {
                 <td>${v.estado === 'pendiente' ? '<span class="badge badge-pendiente">⏳ Pendiente</span>' : (v.estado === 'aprobada' ? '<span class="badge badge-activo">✅ Aprobada</span>' : '<span class="badge badge-inactivo">❌ Rechazada</span>')}</td>
                 <td>
                     ${v.estado === 'pendiente' ? `
-                        <button class="btn-sm aprobar-vacacion" data-id="${v.id}" data-estado="aprobada" style="background:#2c7a4d; color:white;">✅ Aprobar</button>
-                        <button class="btn-sm rechazar-vacacion" data-id="${v.id}" data-estado="rechazada" style="background:#dc2626; color:white;">❌ Rechazar</button>
+                        <button class="btn-sm aprobar-vac" data-id="${v.id}" style="background:#2c7a4d; color:white;">✅ Aprobar</button>
+                        <button class="btn-sm rechazar-vac" data-id="${v.id}" style="background:#dc2626; color:white;">❌ Rechazar</button>
                     ` : '-'}
                 </td>
             </tr>
@@ -463,12 +790,30 @@ export function renderizarVacaciones(vacaciones, tecnicos, onAprobar) {
     return html
 }
 
-export function renderizarAusencias(ausencias, tecnicos) {
+// ============================================================
+// RENDERIZADO DE AUSENCIAS
+// ============================================================
+
+export function renderizarListaAusencias(ausencias, tecnicos) {
     if (!ausencias || ausencias.length === 0) {
-        return `<div class="text-center" style="padding: 40px; color: var(--ios-gray);">⚠️ No hay ausencias registradas</div>`
+        return `<div class="text-center" style="padding: 40px;">⚠️ No hay ausencias registradas</div>`
     }
     
     let html = `
+        <div class="filtros-bar" style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 2;">
+                <input type="text" id="buscarAusencia" placeholder="🔍 Buscar por técnico..." 
+                       style="width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border);">
+            </div>
+            <select id="filtroTipoAusencia" style="padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border);">
+                <option value="todos">📌 Todos</option>
+                <option value="baja_medica">🏥 Baja médica</option>
+                <option value="permiso">📋 Permiso</option>
+                <option value="formacion">📚 Formación</option>
+                <option value="otros">📌 Otros</option>
+            </select>
+            <button id="btnLimpiarFiltrosAusencias" class="btn-sm" style="background: #6b7280; color: white;">🗑️ Limpiar</button>
+        </div>
         <div style="overflow-x: auto;">
             <table class="data-table">
                 <thead>
@@ -514,34 +859,278 @@ export function renderizarAusencias(ausencias, tecnicos) {
 // FORMULARIOS MODALES
 // ============================================================
 
-export function renderizarModalAgregarTecnico(tipo) {
-    const titulo = tipo === 'interno' ? 'Agregar técnico interno' : 'Agregar técnico externo'
+export function renderizarModalAgregarTecnico(tipo = 'interno') {
+    const titulo = tipo === 'interno' ? '➕ Alta de trabajador interno' : '➕ Alta de trabajador externo / subcontrata'
     
     return `
-        <div class="form-group">
-            <label>👤 Nombre *</label>
-            <input type="text" id="tecNombre" placeholder="Nombre completo">
-        </div>
-        <div class="form-group">
-            <label>📧 Email *</label>
-            <input type="email" id="tecEmail" placeholder="email@ejemplo.com">
-        </div>
-        <div class="form-group">
-            <label>📞 Teléfono</label>
-            <input type="tel" id="tecTelefono" placeholder="Teléfono">
-        </div>
-        <div class="form-group">
-            <label>🔧 Especialidad</label>
-            <input type="text" id="tecEspecialidad" placeholder="Ej: Electricidad, Fontanería...">
-        </div>
-        ${tipo === 'interno' ? `
+        <div style="max-width: 600px; width: 100%;">
+            <!-- Tipo de trabajador -->
             <div class="form-group">
-                <label>💰 Salario por hora (€)</label>
-                <input type="number" id="tecSalario" step="0.01" placeholder="0.00">
+                <label>📋 Tipo de trabajador *</label>
+                <select id="tecTipo" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--ios-border);">
+                    <option value="interno" ${tipo === 'interno' ? 'selected' : ''}>👨‍🔧 Trabajador interno (contratado)</option>
+                    <option value="externo" ${tipo === 'externo' ? 'selected' : ''}>🔌 Trabajador externo / subcontrata</option>
+                </select>
             </div>
-        ` : ''}
+            
+            <!-- Datos personales -->
+            <div class="card-header" style="margin-top: 8px; font-size: 14px;">📋 Datos personales</div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>👤 Nombre *</label>
+                    <input type="text" id="tecNombre" placeholder="Nombre">
+                </div>
+                <div class="grupo">
+                    <label>Apellido *</label>
+                    <input type="text" id="tecApellido" placeholder="Apellido">
+                </div>
+            </div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📋 DNI / NIE *</label>
+                    <input type="text" id="tecDni" placeholder="12345678A">
+                </div>
+                <div class="grupo">
+                    <label>📅 Fecha de nacimiento</label>
+                    <input type="date" id="tecFechaNacimiento">
+                </div>
+            </div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📞 Teléfono</label>
+                    <input type="tel" id="tecTelefono" placeholder="Teléfono">
+                </div>
+                <div class="grupo">
+                    <label>📧 Email (opcional)</label>
+                    <input type="email" id="tecEmail" placeholder="email@personal.com">
+                </div>
+            </div>
+            
+            <!-- Datos laborales -->
+            <div class="card-header" style="margin-top: 16px; font-size: 14px;">📋 Datos laborales</div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📅 Fecha de alta</label>
+                    <input type="date" id="tecFechaAlta" value="${new Date().toISOString().split('T')[0]}">
+                </div>
+                <div class="grupo">
+                    <label>🔧 Especialidad</label>
+                    <input type="text" id="tecEspecialidad" placeholder="Ej: Electricidad, Fontanería...">
+                </div>
+            </div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📋 Nº Seguridad Social</label>
+                    <input type="text" id="tecSeguridadSocial" placeholder="12/34567890/12">
+                </div>
+                <div class="grupo">
+                    <label>📅 Fecha fin contrato (si aplica)</label>
+                    <input type="date" id="tecFechaFin">
+                </div>
+            </div>
+            
+            <div class="row-flex">
+                <div class="grupo" id="salarioContainer">
+                    <label>💰 Salario por hora (€)</label>
+                    <input type="number" id="tecSalario" step="0.01" placeholder="15.00">
+                </div>
+                <div class="grupo" id="empresaContainer" style="display: none;">
+                    <label>🏢 Empresa subcontratada</label>
+                    <input type="text" id="tecEmpresaExterna" placeholder="Nombre de la empresa externa">
+                </div>
+            </div>
+            
+            <!-- Credenciales de acceso -->
+            <div class="card-header" style="margin-top: 16px; font-size: 14px;">🔐 Credenciales de acceso</div>
+            
+            <div class="alert-info" style="background: #dbeafe; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
+                <small>🔑 <strong>Email:</strong> Se generará automáticamente con el dominio de tu empresa.</small>
+                <br>
+                <small>🔑 <strong>Nick:</strong> Se generará automáticamente a partir del nombre y apellido.</small>
+                <br>
+                <small>🔑 <strong>Contraseña inicial:</strong> <strong>Tecnico2026</strong> (el trabajador deberá cambiarla en su primer acceso).</small>
+            </div>
+            
+            <div class="form-group">
+                <label>📋 Resumen de credenciales</label>
+                <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 14px;">
+                    <div>📧 Email: <span id="previewEmail" style="color: #1e4663;">INT0001@dominio.es</span></div>
+                    <div>👤 Nick: <span id="previewNick" style="color: #1e4663;">nombreapellido</span></div>
+                    <div>🔑 Contraseña: <span id="previewPassword" style="color: #1e4663;">Tecnico2026</span></div>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="btnGuardarTecnico" class="btn-aceptar">💾 Dar de alta</button>
+                <button id="btnCancelarTecnico" class="btn-cancelar">Cancelar</button>
+            </div>
+        </div>
     `
 }
+
+// ============================================================
+// MODAL EDITAR TÉCNICO
+// ============================================================
+
+export function renderizarModalEditarTecnico(tecnico, tipo) {
+    return `
+        <div style="max-width: 600px; width: 100%;">
+            <input type="hidden" id="editTecnicoId" value="${tecnico.id}">
+            <input type="hidden" id="editTecnicoTipo" value="${tipo}">
+            
+            <!-- Datos personales -->
+            <div class="card-header" style="margin-top: 8px; font-size: 14px;">📋 Datos personales</div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>👤 Nombre *</label>
+                    <input type="text" id="editTecNombre" value="${escapeHtml(tecnico.nombre)}">
+                </div>
+                <div class="grupo">
+                    <label>📧 Email</label>
+                    <input type="email" id="editTecEmail" value="${escapeHtml(tecnico.email)}" readonly style="background:#f1f5f9;">
+                </div>
+            </div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>👤 Nick (usuario para login)</label>
+                    <input type="text" id="editTecNick" value="${escapeHtml(tecnico.nick)}">
+                    <small style="color: #6b7280;">El técnico usará este nick para acceder</small>
+                </div>
+                <div class="grupo">
+                    <label>🔑 Nueva contraseña</label>
+                    <input type="password" id="editTecPassword" placeholder="Dejar vacío para no cambiar">
+                    <small style="color: #6b7280;">Mínimo 6 caracteres</small>
+                </div>
+            </div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📞 Teléfono</label>
+                    <input type="tel" id="editTecTelefono" value="${escapeHtml(tecnico.telefono || '')}">
+                </div>
+                <div class="grupo">
+                    <label>🔧 Especialidad</label>
+                    <input type="text" id="editTecEspecialidad" value="${escapeHtml(tecnico.especialidad || '')}">
+                </div>
+            </div>
+            
+            <!-- Datos laborales -->
+            <div class="card-header" style="margin-top: 16px; font-size: 14px;">📋 Datos laborales</div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📅 Fecha de alta</label>
+                    <input type="date" id="editTecFechaAlta" value="${tecnico.fecha_alta || ''}">
+                </div>
+                <div class="grupo">
+                    <label>📅 Fecha fin contrato</label>
+                    <input type="date" id="editTecFechaFin" value="${tecnico.fecha_fin || ''}">
+                </div>
+            </div>
+            
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📋 Nº Seguridad Social</label>
+                    <input type="text" id="editTecSeguridadSocial" value="${escapeHtml(tecnico.seguridad_social || '')}">
+                </div>
+                <div class="grupo">
+                    <label>✅ Estado</label>
+                    <select id="editTecActivo" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--ios-border);">
+                        <option value="true" ${tecnico.activo ? 'selected' : ''}>✅ Activo</option>
+                        <option value="false" ${!tecnico.activo ? 'selected' : ''}>❌ Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            
+            ${tipo === 'interno' ? `
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>💰 Salario por hora (€)</label>
+                    <input type="number" id="editTecSalario" step="0.01" value="${tecnico.salario_hora || 0}">
+                </div>
+            </div>
+            ` : `
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🏢 Empresa subcontratada</label>
+                    <input type="text" id="editTecEmpresaExterna" value="${escapeHtml(tecnico.empresa_externa || '')}">
+                </div>
+            </div>
+            `}
+            
+            <div class="alert-info" style="background: #fef3c7; padding: 12px; border-radius: 12px; margin-top: 16px;">
+                <small>⚠️ Si cambias el nick, el técnico deberá usar el nuevo nick para acceder.</small>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="btnGuardarEdicionTecnico" class="btn-aceptar">💾 Guardar cambios</button>
+                <button id="btnCancelarEdicionTecnico" class="btn-cancelar">Cancelar</button>
+            </div>
+        </div>
+    `
+}
+
+export async function actualizarNickTecnico(userId, nuevoNick) {
+    try {
+        // Actualizar nick en perfiles
+        const { error: perfilError } = await sb
+            .from('perfiles')
+            .update({ nick: nuevoNick })
+            .eq('user_id', userId)
+        
+        if (perfilError) throw perfilError
+        
+        // Actualizar nick en tecnicos
+        const { error: tecError } = await sb
+            .from('tecnicos')
+            .update({ nick: nuevoNick })
+            .eq('user_id', userId)
+        
+        if (tecError) throw tecError
+        
+        return true
+    } catch (error) {
+        console.error('Error actualizando nick:', error)
+        return false
+    }
+}
+
+export async function actualizarPasswordTecnico(userId, nuevaPassword) {
+    try {
+        // Usar admin API para actualizar contraseña
+        const { data: session } = await sb.auth.getSession()
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/actualizar-password-tecnico`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                nueva_password: nuevaPassword
+            })
+        })
+        
+        const result = await response.json()
+        if (!response.ok) throw new Error(result.error)
+        
+        return true
+    } catch (error) {
+        console.error('Error actualizando password:', error)
+        return false
+    }
+}
+
+// ============================================================
+// FORMULARIOS MODALES (VACACIONES Y AUSENCIAS)
+// ============================================================
 
 export function renderizarModalSolicitarVacaciones(tecnicos) {
     const options = tecnicos.map(t => `<option value="${t.id}">${escapeHtml(t.nombre)}</option>`).join('')
@@ -594,4 +1183,28 @@ export function renderizarModalRegistrarAusencia(tecnicos) {
             <textarea id="ausMotivo" rows="2" placeholder="Descripción..."></textarea>
         </div>
     `
+}
+
+export default {
+    cargarTecnicosInternos,
+    crearTecnicoInterno,
+    actualizarTecnicoInterno,
+    eliminarTecnico,
+    cargarTecnicosExternos,
+    crearTecnicoExterno,
+    actualizarTecnicoExterno,
+    eliminarTecnicoExterno,
+    cargarVacaciones,
+    solicitarVacaciones,
+    aprobarVacaciones,
+    cargarAusencias,
+    registrarAusencia,
+    renderizarListaTecnicos,
+    renderizarListaVacaciones,
+    renderizarListaAusencias,
+    renderizarModalAgregarTecnico,
+    renderizarModalEditarTecnico,
+    renderizarModalSolicitarVacaciones,
+    renderizarModalRegistrarAusencia,
+    calcularNomina
 }
