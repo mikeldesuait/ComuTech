@@ -32,17 +32,14 @@ export async function cargarTareas() {
         
         todasTareas = data || []
         
-        // Clasificar por estado (normalizando a minúsculas)
+        // Clasificar por estado (usando solo los estados permitidos)
         tareasNuevas = todasTareas.filter(t => 
             t.estado?.toLowerCase() === 'pendiente' && !t.leida
         )
         
         tareasActivas = todasTareas.filter(t => {
             const estado = t.estado?.toLowerCase()
-            return estado === 'en_progreso' || 
-                   estado === 'desplazamiento' || 
-                   estado === 'en_curso' || 
-                   estado === 'suspendida'
+            return estado === 'en_progreso'
         })
         
         tareasCompletadas = todasTareas.filter(t => {
@@ -101,21 +98,20 @@ export function getContadores() {
 }
 
 // ============================================================
-// OBTENER TAREA POR ID (con datos del activo)
+// OBTENER TAREA POR ID
 // ============================================================
 
 export async function getTareaById(id) {
     // Buscar en caché primero
     const cached = todasTareas.find(t => t.id === id)
-    if (cached && cached.activos) return cached
+    if (cached) return cached
     
-    // Si no está, buscar en BD con JOIN a activos
+    // Si no está, buscar en BD
     const { data, error } = await sb
         .from('tareas')
         .select(`
             *,
-            empresas!empresa_id(id, nombre_empresa),
-            activos!activo_id(*)
+            empresas!empresa_id(id, nombre_empresa)
         `)
         .eq('id', id)
         .single()
@@ -135,11 +131,13 @@ export async function getTareaById(id) {
 export async function actualizarEstadoTarea(id, estado, datosAdicionales = {}) {
     console.log('📤 Actualizando tarea:', { id, estado, datosAdicionales })
     
+    // Filtrar solo los campos que existen en la BD
     const updateData = {
         estado: estado,
         updated_at: new Date().toISOString()
     }
     
+    // Solo añadir campos si existen
     if (datosAdicionales.fecha_propuesta) updateData.fecha_propuesta = datosAdicionales.fecha_propuesta
     if (datosAdicionales.hora_propuesta) updateData.hora_propuesta = datosAdicionales.hora_propuesta
     if (datosAdicionales.leida !== undefined) updateData.leida = datosAdicionales.leida
@@ -210,6 +208,7 @@ export async function guardarNotaInterna(id, notaInterna) {
         return false
     }
     
+    // Actualizar caché
     const tareaIndex = todasTareas.findIndex(t => t.id === id)
     if (tareaIndex !== -1) {
         todasTareas[tareaIndex].nota_interna = notaInterna
@@ -234,6 +233,7 @@ export async function guardarInformeCliente(id, informe) {
         return false
     }
     
+    // Actualizar caché
     const tareaIndex = todasTareas.findIndex(t => t.id === id)
     if (tareaIndex !== -1) {
         todasTareas[tareaIndex].nota_cliente = informe
@@ -275,8 +275,6 @@ export function renderizarTareaCard(tarea, tipo) {
         botonTexto = '👁️ Leer y aceptar'
     } else if (tarea.estado === 'en_progreso') {
         botonTexto = '🚗 Iniciar desplazamiento'
-    } else if (tarea.estado === 'suspendida') {
-        botonTexto = '⏸️ Continuar (suspendida)'
     } else {
         botonTexto = '🔧 Continuar trabajo'
     }

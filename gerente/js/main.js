@@ -199,7 +199,7 @@ async function cargarDatosIniciales() {
     tecnicosInternosData = await personalModule.cargarTecnicosInternos(currentEmpresaId)
     tecnicosExternosData = await personalModule.cargarTecnicosExternos(currentEmpresaId)
     clientesData = await clientesModule.cargarClientes(currentEmpresaId)
-    activosData = await clientesModule.cargarActivos(currentEmpresaId)
+    activosData = []
     stockData = await materialesModule.cargarStockMateriales(currentEmpresaId)
     gastosData = await materialesModule.cargarGastosMateriales(currentEmpresaId)
     facturasData = await facturacionModule.cargarIngresos(currentEmpresaId)
@@ -265,17 +265,22 @@ function renderizarListaTareas() {
     for (const t of tareasData) {
         const prioridadClass = t.prioridad === 'urgente' ? 'badge-inactivo' : (t.prioridad === 'alta' ? 'badge-pendiente' : 'badge-activo')
         const estadoClass = t.estado === 'completada' ? 'badge-activo' : (t.estado === 'cancelada' ? 'badge-inactivo' : 'badge-pendiente')
-        html += `<tr><td>${escapeHtml(t.numero_tarea)}</td><td>${escapeHtml(t.titulo)}</td><td>${escapeHtml(t.empresas?.nombre_empresa || '-')}</td><td>${escapeHtml(t.perfiles?.nombre_razon_social || 'Sin')}</td>
-        <td><span class="badge ${prioridadClass}">${t.prioridad || 'media'}</span></td><td><span class="badge ${estadoClass}">${t.estado || 'pendiente'}</span></td>
+        html += `<tr><td><strong>${escapeHtml(t.numero_tarea)}</strong></td>
+        <td>${escapeHtml(t.titulo)}</span></div></td>
+        <td>${escapeHtml(t.empresas?.nombre_empresa || '-')}</span></div></td>
+        <td>${escapeHtml(t.perfiles?.nombre_razon_social || 'Sin')}</span></div></td>
+        <td><span class="badge ${prioridadClass}">${t.prioridad || 'media'}</span></td>
+        <td><span class="badge ${estadoClass}">${t.estado || 'pendiente'}</span></td>
         <td><button class="btn-sm ver-tarea" data-id="${t.id}" style="background:#0284c7;">👁️</button>
-        ${t.estado === 'pendiente' ? `<button class="btn-sm asignar-tarea" data-id="${t.id}" style="background:#e67e22;">🔄</button>` : ''}</td></tr>`
+        ${t.estado === 'pendiente' ? `<button class="btn-sm asignar-tarea" data-id="${t.id}" style="background:#e67e22;">🔄</button>` : ''}
+        </td>`
     }
     html += `</tbody></table></div></div></div>`
     return html
 }
 
 function renderizarFormularioCrearTarea() {
-    const clientesOptions = clientesData.map(c => `<option value="${c.id}">${escapeHtml(c.nombre_empresa)}</option>`).join('')
+    const clientesOptions = clientesData.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('')
     const tecnicosOptions = `<option value="">-- Sin asignar --</option>` + tecnicosInternosData.map(t => `<option value="${t.id}">${escapeHtml(t.nombre)}</option>`).join('')
     
     return `<div class="container"><div class="card"><div class="card-header">➕ Crear Tarea<button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button></div>
@@ -290,7 +295,7 @@ function renderizarFormularioCrearTarea() {
 }
 
 function renderizarFormularioEditarTarea(tarea) {
-    const clientesOptions = clientesData.map(c => `<option value="${c.id}" ${c.id === tarea.empresa_id ? 'selected' : ''}>${escapeHtml(c.nombre_empresa)}</option>`).join('')
+    const clientesOptions = clientesData.map(c => `<option value="${c.id}" ${c.id === tarea.empresa_id ? 'selected' : ''}>${escapeHtml(c.nombre)}</option>`).join('')
     const tecnicosOptions = `<option value="">-- Sin asignar --</option>` + tecnicosInternosData.map(t => `<option value="${t.id}" ${t.id === tarea.perfil_id ? 'selected' : ''}>${escapeHtml(t.nombre)}</option>`).join('')
     
     return `<div class="container"><div class="card"><div class="card-header">✏️ Editar ${escapeHtml(tarea.numero_tarea)}<button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button></div>
@@ -345,12 +350,12 @@ async function renderizarPersonal() {
 // ============================================================
 
 async function renderizarClientes() {
+    setTimeout(() => mostrarListaClientes(), 50)
+    
     return `<div class="container"><div class="card"><div class="card-header">🏢 Clientes</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <button id="btnListaClientes" class="btn-success">📋 Lista (${clientesData.length})</button>
             <button id="btnAltaCliente" class="btn-info">➕ Alta</button>
-            <button id="btnBajaCliente" class="btn-danger">➖ Baja</button>
-            <button id="btnActivosCliente" class="btn-warning">🏗️ Activos (${activosData.length})</button>
         </div>
         <div id="clientesSubcontenido" style="margin-top:20px;"><div class="text-center" style="padding:40px;">Selecciona una opción</div></div>
     </div></div>`
@@ -401,9 +406,14 @@ async function mostrarInternos() {
     }
     let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Especialidad</th><th>€/hora</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`
     for (const t of tecnicosInternosData) {
-        html += `<tr><td>${escapeHtml(t.nombre)}</td><td>${escapeHtml(t.email)}</td><td>${escapeHtml(t.telefono || '-')}</td><td>${escapeHtml(t.especialidad || '-')}</td><td>${formatMoney(t.salario_hora || 0)}€</td>
+        html += `<tr><td>${escapeHtml(t.nombre)}</td>
+        <td>${escapeHtml(t.email)}</td>
+        <td>${escapeHtml(t.telefono || '-')}</td>
+        <td>${escapeHtml(t.especialidad || '-')}</td>
+        <td>${formatMoney(t.salario_hora || 0)}€</td>
         <td>${t.activo ? '<span class="badge badge-activo">✅ Activo</span>' : '<span class="badge badge-inactivo">❌ Inactivo</span>'}</td>
-        <td><button class="btn-sm editar-interno" data-id="${t.id}" style="background:#e67e22;">✏️</button><button class="btn-sm eliminar-interno" data-id="${t.id}" style="background:#dc2626;">🗑️</button></td></tr>`
+        <td><button class="btn-sm editar-interno" data-id="${t.id}" style="background:#e67e22;">✏️</button><button class="btn-sm eliminar-interno" data-id="${t.id}" style="background:#dc2626;">🗑️</button></td>
+        </tr>`
     }
     html += `</tbody></table><div style="margin-top:16px;"><button id="btnAgregarInterno" class="btn-success">➕ Agregar</button></div></div>`
     document.getElementById('personalSubcontenido').innerHTML = html
@@ -420,11 +430,15 @@ async function mostrarExternos() {
     }
     let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Especialidad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`
     for (const t of tecnicosExternosData) {
-        html += `<tr><td>${escapeHtml(t.nombre)}</td><td>${escapeHtml(t.email)}</td><td>${escapeHtml(t.telefono || '-')}</td><td>${escapeHtml(t.especialidad || '-')}</td>
+        html += `<tr><td>${escapeHtml(t.nombre)}</td>
+        <td>${escapeHtml(t.email)}</td>
+        <td>${escapeHtml(t.telefono || '-')}</td>
+        <td>${escapeHtml(t.especialidad || '-')}</td>
         <td>${t.activo ? '<span class="badge badge-activo">✅ Activo</span>' : '<span class="badge badge-inactivo">❌ Inactivo</span>'}</td>
-        <td><button class="btn-sm editar-externo" data-id="${t.id}" style="background:#e67e22;">✏️</button><button class="btn-sm eliminar-externo" data-id="${t.id}" style="background:#dc2626;">🗑️</button></td></tr>`
+        <td><button class="btn-sm editar-externo" data-id="${t.id}" style="background:#e67e22;">✏️</button><button class="btn-sm eliminar-externo" data-id="${t.id}" style="background:#dc2626;">🗑️</button></td>
+        </tr>`
     }
-    html += `</tbody></table><div style="margin-top:16px;"><button id="btnAgregarExterno" class="btn-success">➕ Agregar</button></div></div>`
+    html += `</tbody></td><div style="margin-top:16px;"><button id="btnAgregarExterno" class="btn-success">➕ Agregar</button></div></div>`
     document.getElementById('personalSubcontenido').innerHTML = html
     document.getElementById('btnAgregarExterno')?.addEventListener('click', () => mostrarModalAgregarTecnico('externo'))
     document.querySelectorAll('.editar-externo').forEach(btn => btn.addEventListener('click', () => editarTecnico(btn.dataset.id, 'externo')))
@@ -499,9 +513,13 @@ async function mostrarVacaciones() {
     let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Técnico</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`
     for (const v of vacacionesData) {
         const tecnico = tecnicosInternosData.find(t => t.id === v.tecnico_id)
-        html += `<tr><td>${escapeHtml(tecnico?.nombre || '-')}</td><td>${formatearFecha(v.fecha_inicio)}</td><td>${formatearFecha(v.fecha_fin)}</td>
-        <td>${v.estado === 'pendiente' ? '<span class="badge badge-pendiente">⏳ Pendiente</span>' : (v.estado === 'aprobada' ? '<span class="badge badge-activo">✅ Aprobada</span>' : '<span class="badge badge-inactivo">❌ Rechazada</span>')}</td>
-        <td>${v.estado === 'pendiente' ? `<button class="btn-sm aprobar-vac" data-id="${v.id}" data-estado="aprobada" style="background:#2c7a4d;">✅</button><button class="btn-sm rechazar-vac" data-id="${v.id}" data-estado="rechazada" style="background:#dc2626;">❌</button>` : '-'}</td></tr>`
+        html += `<tr>
+            <td>${escapeHtml(tecnico?.nombre || '-')}</td>
+            <td>${formatearFecha(v.fecha_inicio)}</span></div></td>
+            <td>${formatearFecha(v.fecha_fin)}</span></div></td>
+            <td>${v.estado === 'pendiente' ? '<span class="badge badge-pendiente">⏳ Pendiente</span>' : (v.estado === 'aprobada' ? '<span class="badge badge-activo">✅ Aprobada</span>' : '<span class="badge badge-inactivo">❌ Rechazada</span>')}</td>
+            <td>${v.estado === 'pendiente' ? `<button class="btn-sm aprobar-vac" data-id="${v.id}" data-estado="aprobada" style="background:#2c7a4d;">✅</button><button class="btn-sm rechazar-vac" data-id="${v.id}" data-estado="rechazada" style="background:#dc2626;">❌</button>` : '-'}</td>
+        </tr>`
     }
     html += `</tbody></table><div style="margin-top:16px;"><button id="btnSolicitarVacacion" class="btn-success">➕ Solicitar</button></div></div>`
     document.getElementById('personalSubcontenido').innerHTML = html
@@ -546,9 +564,14 @@ async function mostrarAusencias() {
     for (const a of ausenciasData) {
         const tecnico = tecnicosInternosData.find(t => t.id === a.tecnico_id)
         const tipoTexto = { 'baja_medica': '🏥 Baja médica', 'permiso': '📋 Permiso', 'formacion': '📚 Formación', 'otros': '📌 Otros' }[a.tipo] || a.tipo
-        html += `<tr><td>${escapeHtml(tecnico?.nombre || '-')}</td><td>${formatearFecha(a.fecha)}</td><td>${tipoTexto}</td><td>${escapeHtml(a.motivo || '-')}</td></tr>`
+        html += `<tr>
+            <td>${escapeHtml(tecnico?.nombre || '-')}</td>
+            <td>${formatearFecha(a.fecha)}</span></div></td>
+            <td>${tipoTexto}</td>
+            <td>${escapeHtml(a.motivo || '-')}</td>
+        </tr>`
     }
-    html += `</tbody><tr><div style="margin-top:16px;"><button id="btnRegistrarAusencia" class="btn-success">➕ Registrar</button></div></div>`
+    html += `</tbody></table><div style="margin-top:16px;"><button id="btnRegistrarAusencia" class="btn-success">➕ Registrar</button></div></div>`
     document.getElementById('personalSubcontenido').innerHTML = html
     document.getElementById('btnRegistrarAusencia')?.addEventListener('click', () => mostrarModalRegistrarAusencia())
 }
@@ -581,98 +604,463 @@ function mostrarModalRegistrarAusencia() {
 
 async function mostrarListaClientes() {
     if (clientesData.length === 0) {
-        document.getElementById('clientesSubcontenido').innerHTML = `<div class="text-center" style="padding:40px;"><p>🏢 No hay clientes</p><button id="btnAgregarClienteLista" class="btn-success">➕ Agregar</button></div>`
-        document.getElementById('btnAgregarClienteLista')?.addEventListener('click', () => mostrarAltaCliente())
+        document.getElementById('clientesSubcontenido').innerHTML = `
+            <div class="text-center" style="padding:40px;">
+                <p>🏢 No hay clientes registrados</p>
+                <button id="btnAgregarCliente" class="btn-success">➕ Agregar cliente</button>
+            </div>
+        `
+        document.getElementById('btnAgregarCliente')?.addEventListener('click', () => mostrarAltaCliente())
         return
     }
-    let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Cliente</th><th>NIF</th><th>Email</th><th>Teléfono</th><th>Estado</th></tr></thead><tbody>`
-    for (const c of clientesData) {
-        html += `<tr><td><strong>${escapeHtml(c.nombre_empresa)}</strong></td><td>${escapeHtml(c.nif_cif || '-')}</td><td>${escapeHtml(c.email || '-')}</td><td>${escapeHtml(c.telefono || '-')}</td>
-        <td>${c.activo ? '<span class="badge badge-activo">✅ Activo</span>' : '<span class="badge badge-inactivo">❌ Inactivo</span>'}</td></tr>`
-    }
-    html += `</tbody></table><div style="margin-top:16px;"><button id="btnAgregarClienteLista" class="btn-success">➕ Agregar</button></div></div>`
+    
+    const { renderizarListaClientes } = clientesModule
+    const html = renderizarListaClientes(
+        clientesData,
+        (id) => editarCliente(id),
+        (id) => regenerarCodigoCliente(id),
+        (id, activo) => toggleAccesoCliente(id, activo),
+        (id) => mostrarActivosCliente(id)
+    )
     document.getElementById('clientesSubcontenido').innerHTML = html
-    document.getElementById('btnAgregarClienteLista')?.addEventListener('click', () => mostrarAltaCliente())
+    
+    document.getElementById('btnAgregarCliente')?.addEventListener('click', () => mostrarAltaCliente())
+    document.querySelectorAll('.editar-cliente').forEach(btn => btn.addEventListener('click', () => editarCliente(btn.dataset.id)))
+    document.querySelectorAll('.regenerar-codigo').forEach(btn => btn.addEventListener('click', () => regenerarCodigoCliente(btn.dataset.id)))
+    document.querySelectorAll('.toggle-acceso').forEach(btn => btn.addEventListener('click', () => toggleAccesoCliente(btn.dataset.id, btn.dataset.activo === 'true')))
+    document.querySelectorAll('.ver-activos').forEach(btn => btn.addEventListener('click', () => mostrarActivosCliente(btn.dataset.id)))
 }
 
 async function mostrarAltaCliente() {
-    document.getElementById('clientesSubcontenido').innerHTML = `
-        <div class="card" style="margin-top:16px;"><div class="card-header">➕ Alta Cliente<button id="btnVolverClientes" class="btn-warning" style="float:right;">◀ Volver</button></div>
-        <div class="row-flex"><div class="grupo"><label>🏢 Razón Social *</label><input type="text" id="cliNombre"></div><div class="grupo"><label>📋 NIF</label><input type="text" id="cliNif"></div></div>
-        <div class="row-flex"><div class="grupo"><label>📧 Email</label><input type="email" id="cliEmail"></div><div class="grupo"><label>📞 Teléfono</label><input type="tel" id="cliTelefono"></div></div>
-        <div class="form-group"><label>📍 Dirección</label><input type="text" id="cliDireccion"></div>
-        <div class="row-flex"><div class="grupo"><label>Ciudad</label><input type="text" id="cliCiudad"></div><div class="grupo"><label>Provincia</label><input type="text" id="cliProvincia"></div></div>
-        <div class="btn-group" style="display:flex;gap:12px;"><button id="btnGuardarCliente" class="btn-success">💾 Guardar</button><button id="btnCancelarCliente" class="btn-danger">Cancelar</button></div></div>`
+    const { renderizarFormularioCrearCliente } = clientesModule
+    document.getElementById('clientesSubcontenido').innerHTML = renderizarFormularioCrearCliente()
     
     document.getElementById('btnVolverClientes')?.addEventListener('click', () => renderizarPanel())
     document.getElementById('btnGuardarCliente')?.addEventListener('click', async () => {
         const nombre = document.getElementById('cliNombre').value.trim()
         if (!nombre) { mostrarMensaje('Nombre obligatorio', 'error'); return }
-        const datos = { nombre, nif: document.getElementById('cliNif').value, email: document.getElementById('cliEmail').value, telefono: document.getElementById('cliTelefono').value, direccion: document.getElementById('cliDireccion').value, ciudad: document.getElementById('cliCiudad').value, provincia: document.getElementById('cliProvincia').value }
+        
+        const datos = {
+            nombre: nombre,
+            nifCif: document.getElementById('cliNif').value,
+            email: document.getElementById('cliEmail').value,
+            telefono: document.getElementById('cliTelefono').value,
+            direccion: document.getElementById('cliDireccion').value,
+            ciudad: document.getElementById('cliCiudad').value,
+            provincia: document.getElementById('cliProvincia').value
+        }
+        
         const exito = await clientesModule.crearCliente(datos, currentEmpresaId)
-        if (exito) { await cargarDatosIniciales(); renderizarPanel() }
+        if (exito) {
+            await cargarDatosIniciales()
+            renderizarPanel()
+        }
     })
     document.getElementById('btnCancelarCliente')?.addEventListener('click', () => renderizarPanel())
 }
 
-async function mostrarBajaCliente() {
-    const options = clientesData.filter(c => c.activo).map(c => `<option value="${c.id}">${escapeHtml(c.nombre_empresa)}</option>`).join('')
-    document.getElementById('clientesSubcontenido').innerHTML = `
-        <div class="card" style="margin-top:16px;"><div class="card-header">➖ Baja Cliente<button id="btnVolverClientes" class="btn-warning" style="float:right;">◀ Volver</button></div>
-        <div class="form-group"><label>🏢 Cliente</label><select id="bajaCliente">${options}</select></div>
-        <div class="form-group"><label>📝 Motivo *</label><textarea id="bajaMotivo" rows="3"></textarea></div>
-        <div class="btn-group" style="display:flex;gap:12px;"><button id="btnConfirmarBaja" class="btn-danger">🗑️ Dar de baja</button><button id="btnCancelarBaja" class="btn-info">Cancelar</button></div></div>`
+async function editarCliente(id) {
+    const cliente = clientesData.find(c => c.id === id)
+    if (!cliente) return
     
-    document.getElementById('btnVolverClientes')?.addEventListener('click', () => renderizarPanel())
-    document.getElementById('btnConfirmarBaja')?.addEventListener('click', async () => {
-        const clienteId = document.getElementById('bajaCliente').value
-        const motivo = document.getElementById('bajaMotivo').value.trim()
-        if (!clienteId || !motivo) { mostrarMensaje('Selecciona cliente y motivo', 'error'); return }
-        const exito = await clientesModule.darBajaCliente(clienteId, motivo)
-        if (exito) { await cargarDatosIniciales(); renderizarPanel() }
-    })
-    document.getElementById('btnCancelarBaja')?.addEventListener('click', () => renderizarPanel())
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+    modal.style.display = 'flex'
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:500px;">
+            <h3>✏️ Editar ${escapeHtml(cliente.nombre)}</h3>
+            <input type="hidden" id="editClienteId" value="${cliente.id}">
+            <div class="form-group"><label>🏢 Nombre</label><input type="text" id="editNombre" value="${escapeHtml(cliente.nombre)}"></div>
+            <div class="form-group"><label>📋 NIF/CIF</label><input type="text" id="editNif" value="${escapeHtml(cliente.nif_cif || '')}"></div>
+            <div class="form-group"><label>📧 Email</label><input type="email" id="editEmail" value="${escapeHtml(cliente.email || '')}"></div>
+            <div class="form-group"><label>📞 Teléfono</label><input type="tel" id="editTelefono" value="${escapeHtml(cliente.telefono || '')}"></div>
+            <div class="form-group"><label>📍 Dirección</label><input type="text" id="editDireccion" value="${escapeHtml(cliente.direccion || '')}"></div>
+            <div class="row-flex"><div class="grupo"><label>Ciudad</label><input type="text" id="editCiudad" value="${escapeHtml(cliente.ciudad || '')}"></div>
+            <div class="grupo"><label>Provincia</label><input type="text" id="editProvincia" value="${escapeHtml(cliente.provincia || '')}"></div></div>
+            <div class="form-group"><label>🔑 Código acceso</label><input type="text" id="editCodigo" value="${escapeHtml(cliente.codigo_acceso || '')}" readonly style="background:#f1f5f9;"></div>
+            <div class="modal-buttons"><button id="btnGuardarEdicionCliente" class="btn-aceptar">💾 Guardar</button><button id="btnCancelarEdicionCliente" class="btn-cancelar">Cancelar</button></div>
+        </div>
+    `
+    document.body.appendChild(modal)
+    
+    document.getElementById('btnGuardarEdicionCliente').onclick = async () => {
+        const datos = {
+            nombre: document.getElementById('editNombre').value.trim(),
+            nifCif: document.getElementById('editNif').value,
+            email: document.getElementById('editEmail').value,
+            telefono: document.getElementById('editTelefono').value,
+            direccion: document.getElementById('editDireccion').value,
+            ciudad: document.getElementById('editCiudad').value,
+            provincia: document.getElementById('editProvincia').value
+        }
+        const exito = await clientesModule.actualizarCliente(id, datos)
+        if (exito) {
+            modal.remove()
+            await cargarDatosIniciales()
+            renderizarPanel()
+        }
+    }
+    document.getElementById('btnCancelarEdicionCliente').onclick = () => modal.remove()
 }
 
-async function mostrarActivosCliente() {
-    const options = clientesData.map(c => `<option value="${c.id}">${escapeHtml(c.nombre_empresa)}</option>`).join('')
-    document.getElementById('clientesSubcontenido').innerHTML = `
-        <div class="card" style="margin-top:16px;"><div class="card-header">🏗️ Activos por Cliente<button id="btnVolverClientes" class="btn-warning" style="float:right;">◀ Volver</button></div>
-        <div class="form-group"><label>🏢 Cliente</label><select id="activoCliente">${options}</select></div>
-        <div id="activosLista" class="text-center" style="padding:20px;">Selecciona un cliente</div>
-        <div style="margin-top:16px;"><button id="btnAgregarActivoCliente" class="btn-success">➕ Agregar activo</button></div></div>`
+async function regenerarCodigoCliente(id) {
+    const nuevoCodigo = await clientesModule.regenerarCodigoAcceso(id)
+    if (nuevoCodigo) {
+        await cargarDatosIniciales()
+        mostrarListaClientes()
+    }
+}
+
+async function toggleAccesoCliente(id, activo) {
+    const exito = await clientesModule.toggleAccesoCliente(id, !activo)
+    if (exito) {
+        await cargarDatosIniciales()
+        mostrarListaClientes()
+    }
+}
+
+async function mostrarActivosCliente(clienteId) {
+    const cliente = clientesData.find(c => c.id === clienteId)
+    if (!cliente) return
     
+    const activos = await clientesModule.cargarActivos(clienteId)
+    const { renderizarActivosCliente } = clientesModule
+    
+    document.getElementById('clientesSubcontenido').innerHTML = renderizarActivosCliente(activos, cliente.nombre)
+    
+    // Botón volver
     document.getElementById('btnVolverClientes')?.addEventListener('click', () => renderizarPanel())
-    document.getElementById('activoCliente')?.addEventListener('change', async () => {
-        const clienteId = document.getElementById('activoCliente').value
-        if (!clienteId) return
-        const activos = await clientesModule.cargarActivos(clienteId)
-        if (activos.length === 0) {
-            document.getElementById('activosLista').innerHTML = '<div class="text-center" style="padding:20px;">📭 No hay activos</div>'
-            return
-        }
-        let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nombre</th><th>Dirección</th><th>Localidad</th><th>Acciones</th></tr></thead><tbody>`
-        for (const a of activos) {
-            html += `<tr><td><strong>${escapeHtml(a.nombre)}</strong></td><td>${escapeHtml(a.direccion || '-')}</td><td>${escapeHtml(a.localidad || '-')}</td>
-            <td><button class="btn-sm eliminar-activo" data-id="${a.id}" style="background:#dc2626;">🗑️</button></td></tr>`
-        }
-        html += `</tbody></table></div>`
-        document.getElementById('activosLista').innerHTML = html
-        document.querySelectorAll('.eliminar-activo').forEach(btn => btn.addEventListener('click', async () => {
-            await clientesModule.eliminarActivo(btn.dataset.id)
-            document.getElementById('activoCliente').dispatchEvent(new Event('change'))
-        }))
+    
+    // Botón agregar activo
+    document.getElementById('btnAgregarActivo')?.addEventListener('click', () => mostrarModalCrearActivo(clienteId))
+    
+    // Botones editar activo
+    document.querySelectorAll('.editar-activo').forEach(btn => {
+        btn.addEventListener('click', () => mostrarModalEditarActivo(btn.dataset.id, clienteId))
     })
-    document.getElementById('btnAgregarActivoCliente')?.addEventListener('click', () => {
-        const clienteId = document.getElementById('activoCliente').value
-        if (!clienteId) { mostrarMensaje('Selecciona un cliente', 'error'); return }
-        const nombre = prompt('Nombre del activo:')
-        if (nombre) clientesModule.crearActivo({ nombre }, clienteId).then(() => document.getElementById('activoCliente').dispatchEvent(new Event('change')))
+    
+    // Botones eliminar activo
+    document.querySelectorAll('.eliminar-activo').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (confirm('¿Eliminar este activo?')) {
+                await clientesModule.eliminarActivo(btn.dataset.id)
+                mostrarActivosCliente(clienteId)
+            }
+        })
     })
+    
+    // Botones ver mapa
+    document.querySelectorAll('.ver-mapa').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lat = btn.dataset.lat
+            const lon = btn.dataset.lon
+            const nombre = btn.dataset.nombre
+            if (lat && lon) {
+                window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank')
+            } else {
+                mostrarMensaje('Este activo no tiene coordenadas guardadas', 'error')
+            }
+        })
+    })
+}
+
+
+// ============================================================
+// OBTENER COORDENADAS DESDE DIRECCIÓN (OpenStreetMap mejorado)
+// ============================================================
+
+// ============================================================
+// OBTENER COORDENADAS (versión simplificada)
+// ============================================================
+
+function setupCoordenadas() {
+    const btnObtener = document.getElementById('btnObtenerCoordenadas')
+    if (!btnObtener) return
+    
+    const newBtn = btnObtener.cloneNode(true)
+    btnObtener.parentNode.replaceChild(newBtn, btnObtener)
+    
+    newBtn.onclick = () => {
+        const direccion = document.getElementById('activoDireccion')?.value || ''
+        const localidad = document.getElementById('activoLocalidad')?.value || ''
+        const codigoPostal = document.getElementById('activoCodigoPostal')?.value || ''
+        const nombre = document.getElementById('activoNombre')?.value || ''
+        
+        // Construir texto de búsqueda
+        let searchText = ''
+        if (direccion) searchText += direccion
+        if (localidad) searchText += (searchText ? ', ' : '') + localidad
+        if (codigoPostal) searchText += (searchText ? ', ' : '') + codigoPostal
+        if (!searchText) searchText = nombre
+        
+        const modal = document.createElement('div')
+        modal.className = 'modal-overlay'
+        modal.style.display = 'flex'
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <h3>📍 Obtener coordenadas</h3>
+                <div style="margin-bottom: 16px;">
+                    <p><strong>Ubicación:</strong> ${escapeHtml(searchText || 'No especificada')}</p>
+                </div>
+                <div class="form-group">
+                    <label>🗺️ Latitud</label>
+                    <input type="text" id="modalLatitud" placeholder="Ej: 40.416775" value="${document.getElementById('activoLatitud')?.value || ''}">
+                </div>
+                <div class="form-group">
+                    <label>🗺️ Longitud</label>
+                    <input type="text" id="modalLongitud" placeholder="Ej: -3.703790" value="${document.getElementById('activoLongitud')?.value || ''}">
+                </div>
+                <div class="modal-buttons" style="display: flex; flex-direction: column; gap: 12px;">
+                    <button id="btnBuscarAuto" class="btn-info" ${!searchText ? 'disabled' : ''}>
+                        🔍 Buscar coordenadas automáticamente
+                    </button>
+                    <button id="btnGoogleMaps" class="btn-primary">
+                        🌍 Abrir Google Maps para buscar
+                    </button>
+                    <button id="btnGuardarCoordenadas" class="btn-aceptar">
+                        💾 Guardar coordenadas
+                    </button>
+                    <button id="btnCancelarCoordenadas" class="btn-cancelar">
+                        ✖ Cancelar
+                    </button>
+                </div>
+                <div id="busquedaResultado" style="margin-top: 12px; font-size: 12px; color: #666; display: none;"></div>
+            </div>
+        `
+        document.body.appendChild(modal)
+        
+        // Buscar automáticamente
+        document.getElementById('btnBuscarAuto').onclick = async () => {
+            if (!searchText) {
+                mostrarMensaje('No hay dirección para buscar', 'error')
+                return
+            }
+            
+            const resultadoDiv = document.getElementById('busquedaResultado')
+            resultadoDiv.style.display = 'block'
+            resultadoDiv.innerHTML = '🔍 Buscando...'
+            
+            const query = encodeURIComponent(`${searchText}, España`)
+            const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=3&countrycodes=es`
+            
+            try {
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': 'COMUTECH-App/1.0' }
+                })
+                const data = await response.json()
+                
+                if (data && data.length > 0) {
+                    let opciones = '<div style="margin-top: 8px;"><strong>Resultados:</strong></div>'
+                    data.forEach(lugar => {
+                        opciones += `
+                            <div class="resultado-opcion" data-lat="${lugar.lat}" data-lon="${lugar.lon}" 
+                                 style="padding: 6px; border-bottom: 1px solid #e2e8f0; cursor: pointer;">
+                                📍 ${lugar.display_name.substring(0, 80)}...
+                                <br><small>Lat: ${lugar.lat}, Lon: ${lugar.lon}</small>
+                            </div>
+                        `
+                    })
+                    resultadoDiv.innerHTML = opciones
+                    
+                    document.querySelectorAll('.resultado-opcion').forEach(el => {
+                        el.onclick = () => {
+                            document.getElementById('modalLatitud').value = el.dataset.lat
+                            document.getElementById('modalLongitud').value = el.dataset.lon
+                            resultadoDiv.innerHTML = '<span style="color: green;">✅ Coordenadas seleccionadas</span>'
+                        }
+                    })
+                } else {
+                    resultadoDiv.innerHTML = '<span style="color: red;">❌ No se encontraron resultados</span>'
+                }
+            } catch (error) {
+                resultadoDiv.innerHTML = '<span style="color: red;">❌ Error en la búsqueda</span>'
+            }
+        }
+        
+        // Abrir Google Maps
+        document.getElementById('btnGoogleMaps').onclick = () => {
+            const searchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchText)}`
+            window.open(searchUrl, '_blank')
+            mostrarMensaje('Busca la ubicación en Google Maps y copia las coordenadas', 'exito')
+        }
+        
+        // Guardar
+        document.getElementById('btnGuardarCoordenadas').onclick = () => {
+            const lat = document.getElementById('modalLatitud').value
+            const lng = document.getElementById('modalLongitud').value
+            if (lat && lng) {
+                document.getElementById('activoLatitud').value = lat
+                document.getElementById('activoLongitud').value = lng
+                mostrarMensaje('✅ Coordenadas guardadas', 'exito')
+                modal.remove()
+            } else {
+                mostrarMensaje('Introduce latitud y longitud', 'error')
+            }
+        }
+        
+        document.getElementById('btnCancelarCoordenadas').onclick = () => modal.remove()
+        modal.onclick = (e) => { if (e.target === modal) modal.remove() }
+    }
 }
 
 // ============================================================
-// FUNCIONES DE MATERIALES, FACTURACIÓN E IMPUESTOS (placeholders básicos)
+// MODALES DE ACTIVOS
+// ============================================================
+
+function mostrarModalCrearActivo(clienteId) {
+    const modal = document.getElementById('modalActivo')
+    if (!modal) return
+    
+    document.getElementById('modalActivoTitulo').innerHTML = '🏗️ Nuevo Activo'
+    document.getElementById('activoId').value = ''
+    document.getElementById('activoNombre').value = ''
+    document.getElementById('activoTipoAcceso').value = 'libre'
+    document.getElementById('activoUbicacion').value = ''
+    document.getElementById('activoContacto').value = ''
+    document.getElementById('activoHoraApertura').value = ''
+    document.getElementById('activoHoraCierre').value = ''
+    document.getElementById('activoDireccion').value = ''
+    document.getElementById('activoLocalidad').value = ''
+    document.getElementById('activoCodigoPostal').value = ''
+    document.getElementById('activoInstrucciones').value = ''
+    document.getElementById('activoLatitud').value = ''
+    document.getElementById('activoLongitud').value = ''
+    document.getElementById('activoDatosTecnicos').value = ''
+    
+    modal.style.display = 'flex'
+    
+    setTimeout(() => setupCoordenadas(), 50)
+    
+    const btnGuardar = document.getElementById('btnGuardarActivo')
+    const btnCancelar = document.getElementById('btnCancelarActivo')
+    
+    const guardarHandler = async () => {
+        const datos = {
+            nombre: document.getElementById('activoNombre').value.trim(),
+            tipoAcceso: document.getElementById('activoTipoAcceso').value,
+            ubicacion: document.getElementById('activoUbicacion').value,
+            contacto: document.getElementById('activoContacto').value,
+            horaApertura: document.getElementById('activoHoraApertura').value,
+            horaCierre: document.getElementById('activoHoraCierre').value,
+            direccion: document.getElementById('activoDireccion').value,
+            localidad: document.getElementById('activoLocalidad').value,
+            codigoPostal: document.getElementById('activoCodigoPostal').value,
+            instrucciones: document.getElementById('activoInstrucciones').value,
+            latitud: document.getElementById('activoLatitud').value || null,
+            longitud: document.getElementById('activoLongitud').value || null,
+            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
+        }
+        
+        if (!datos.nombre) {
+            mostrarMensaje('El nombre del activo es obligatorio', 'error')
+            return
+        }
+        
+        await clientesModule.crearActivo(datos, clienteId)
+        modal.style.display = 'none'
+        mostrarActivosCliente(clienteId)
+        
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const cancelarHandler = () => {
+        modal.style.display = 'none'
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const newBtnGuardar = btnGuardar.cloneNode(true)
+    const newBtnCancelar = btnCancelar.cloneNode(true)
+    btnGuardar.parentNode.replaceChild(newBtnGuardar, btnGuardar)
+    btnCancelar.parentNode.replaceChild(newBtnCancelar, btnCancelar)
+    
+    newBtnGuardar.addEventListener('click', guardarHandler)
+    newBtnCancelar.addEventListener('click', cancelarHandler)
+    
+    modal.onclick = (e) => { if (e.target === modal) cancelarHandler() }
+}
+
+async function mostrarModalEditarActivo(activoId, clienteId) {
+    const activos = await clientesModule.cargarActivos(clienteId)
+    const activo = activos.find(a => a.id === activoId)
+    if (!activo) return
+    
+    const modal = document.getElementById('modalActivo')
+    if (!modal) return
+    
+    document.getElementById('modalActivoTitulo').innerHTML = '✏️ Editar Activo'
+    document.getElementById('activoId').value = activo.id
+    document.getElementById('activoNombre').value = activo.nombre || ''
+    document.getElementById('activoTipoAcceso').value = activo.tipo_acceso || 'libre'
+    document.getElementById('activoUbicacion').value = activo.ubicacion || ''
+    document.getElementById('activoContacto').value = activo.contacto || ''
+    document.getElementById('activoHoraApertura').value = activo.hora_apertura || ''
+    document.getElementById('activoHoraCierre').value = activo.hora_cierre || ''
+    document.getElementById('activoDireccion').value = activo.direccion || ''
+    document.getElementById('activoLocalidad').value = activo.localidad || ''
+    document.getElementById('activoCodigoPostal').value = activo.codigo_postal || ''
+    document.getElementById('activoInstrucciones').value = activo.instrucciones_acceso || ''
+    document.getElementById('activoLatitud').value = activo.latitud || ''
+    document.getElementById('activoLongitud').value = activo.longitud || ''
+    document.getElementById('activoDatosTecnicos').value = activo.datos_tecnicos || ''
+    
+    modal.style.display = 'flex'
+    
+    setTimeout(() => setupCoordenadas(), 50)
+    
+    const btnGuardar = document.getElementById('btnGuardarActivo')
+    const btnCancelar = document.getElementById('btnCancelarActivo')
+    
+    const guardarHandler = async () => {
+        const datos = {
+            nombre: document.getElementById('activoNombre').value.trim(),
+            tipoAcceso: document.getElementById('activoTipoAcceso').value,
+            ubicacion: document.getElementById('activoUbicacion').value,
+            contacto: document.getElementById('activoContacto').value,
+            horaApertura: document.getElementById('activoHoraApertura').value,
+            horaCierre: document.getElementById('activoHoraCierre').value,
+            direccion: document.getElementById('activoDireccion').value,
+            localidad: document.getElementById('activoLocalidad').value,
+            codigoPostal: document.getElementById('activoCodigoPostal').value,
+            instrucciones: document.getElementById('activoInstrucciones').value,
+            latitud: document.getElementById('activoLatitud').value || null,
+            longitud: document.getElementById('activoLongitud').value || null,
+            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
+        }
+        
+        if (!datos.nombre) {
+            mostrarMensaje('El nombre del activo es obligatorio', 'error')
+            return
+        }
+        
+        await clientesModule.actualizarActivo(activoId, datos)
+        modal.style.display = 'none'
+        mostrarActivosCliente(clienteId)
+        
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const cancelarHandler = () => {
+        modal.style.display = 'none'
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const newBtnGuardar = btnGuardar.cloneNode(true)
+    const newBtnCancelar = btnCancelar.cloneNode(true)
+    btnGuardar.parentNode.replaceChild(newBtnGuardar, btnGuardar)
+    btnCancelar.parentNode.replaceChild(newBtnCancelar, btnCancelar)
+    
+    newBtnGuardar.addEventListener('click', guardarHandler)
+    newBtnCancelar.addEventListener('click', cancelarHandler)
+    
+    modal.onclick = (e) => { if (e.target === modal) cancelarHandler() }
+}
+
+// ============================================================
+// FUNCIONES DE MATERIALES, FACTURACIÓN E IMPUESTOS (placeholders)
 // ============================================================
 
 async function mostrarStockMateriales() {
@@ -683,7 +1071,13 @@ async function mostrarStockMateriales() {
     }
     let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Material</th><th>Cantidad</th><th>Precio</th><th>Proveedor</th><th>Stock mínimo</th></tr></thead><tbody>`
     for (const m of stockData) {
-        html += `<tr><td><strong>${escapeHtml(m.nombre)}</strong></td><td>${m.cantidad} uds</td><td>${formatMoney(m.precio_unitario || 0)}€</td><td>${escapeHtml(m.proveedor || '-')}</td><td>${m.stock_minimo || 0}</td></tr>`
+        html += `<tr>
+            <td><strong>${escapeHtml(m.nombre)}</strong></td>
+            <td>${m.cantidad} uds</span></div></td>
+            <td>${formatMoney(m.precio_unitario || 0)}€</span></div></td>
+            <td>${escapeHtml(m.proveedor || '-')}</span></div></td>
+            <td>${m.stock_minimo || 0}</span></div></td>
+        </tr>`
     }
     html += `</tbody></table><div style="margin-top:16px;"><button id="btnAgregarMaterial" class="btn-success">➕ Agregar</button></div></div>`
     document.getElementById('materialesSubcontenido').innerHTML = html
@@ -701,9 +1095,14 @@ async function mostrarGastosMateriales() {
     let html = `<div class="card" style="margin-bottom:16px;"><div class="card-header">📊 Total gastos: ${formatMoney(total)}€</div></div>`
     html += `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Proveedor</th><th>Factura</th><th>Fecha</th><th>Importe</th></tr></thead><tbody>`
     for (const g of gastosData) {
-        html += `<tr><td>${escapeHtml(g.proveedor)}</td><td>${escapeHtml(g.numero_factura || '-')}</td><td>${formatearFecha(g.fecha)}</td><td>${formatMoney(g.importe_total || 0)}€</td></tr>`
+        html += `<tr>
+            <td>${escapeHtml(g.proveedor)}</span></div></td>
+            <td>${escapeHtml(g.numero_factura || '-')}</span></div></td>
+            <td>${formatearFecha(g.fecha)}</span></div></td>
+            <td>${formatMoney(g.importe_total || 0)}€</span></div></td>
+        </tr>`
     }
-    html += `</tbody></table><div style="margin-top:16px;"><button id="btnRegistrarGasto" class="btn-success">➕ Registrar</button></div>`
+    html += `</tbody></tr><div style="margin-top:16px;"><button id="btnRegistrarGasto" class="btn-success">➕ Registrar</button></div>`
     document.getElementById('materialesSubcontenido').innerHTML = html
     document.getElementById('btnRegistrarGasto')?.addEventListener('click', () => alert('Próximamente: registrar gasto'))
 }
@@ -719,8 +1118,13 @@ async function mostrarIngresos() {
     let html = `<div class="card" style="margin-bottom:16px;"><div class="card-header">💰 Total facturado: ${formatMoney(total)}€ | Cobrado: ${formatMoney(cobrado)}€ | Pendiente: ${formatMoney(total - cobrado)}€</div></div>`
     html += `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nº</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th></tr></thead><tbody>`
     for (const f of facturasData) {
-        html += `<td><td><strong>${escapeHtml(f.numero_factura)}</strong></td><td>${escapeHtml(f.cliente_nombre || '-')}</td><td>${formatearFecha(f.fecha_expedicion)}</td><td>${formatMoney(f.importe_total)}€</td>
-        <td>${f.estado === 'pagada' ? '<span class="badge badge-activo">✅ Pagada</span>' : '<span class="badge badge-pendiente">⏳ Pendiente</span>'}</td></tr>`
+        html += `<tr>
+            <td><strong>${escapeHtml(f.numero_factura)}</strong></td>
+            <td>${escapeHtml(f.cliente_nombre || '-')}</span></div></td>
+            <td>${formatearFecha(f.fecha_expedicion)}</span></div></td>
+            <td>${formatMoney(f.importe_total)}€</span></div></td>
+            <td>${f.estado === 'pagada' ? '<span class="badge badge-activo">✅ Pagada</span>' : '<span class="badge badge-pendiente">⏳ Pendiente</span>'}</td>
+        </tr>`
     }
     html += `</tbody></table><div style="margin-top:16px;"><button id="btnNuevaFactura" class="btn-success">➕ Nueva</button></div>`
     document.getElementById('facturacionSubcontenido').innerHTML = html
@@ -735,7 +1139,12 @@ async function mostrarPagos() {
     let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Concepto</th><th>Beneficiario</th><th>Importe</th><th>Fecha</th></tr></thead><tbody>`
     for (const p of pagosData) {
         const importe = p.total_general || p.importe_total || 0
-        html += `<tr><td>${p.tipo === 'tecnico' ? 'Pago a técnico' : 'Compra proveedor'}</td><td>${escapeHtml(p.tecnicos?.nombre || p.proveedor || '-')}</td><td>${formatMoney(importe)}€</td><td>${formatearFecha(p.created_at || p.fecha)}</td></tr>`
+        html += `<tr>
+            <td>${p.tipo === 'tecnico' ? 'Pago a técnico' : 'Compra proveedor'}</td>
+            <td>${escapeHtml(p.tecnicos?.nombre || p.proveedor || '-')}</td>
+            <td>${formatMoney(importe)}€</span></div></td>
+            <td>${formatearFecha(p.created_at || p.fecha)}</span></div></td>
+        </tr>`
     }
     html += `</tbody></table>`
     document.getElementById('facturacionSubcontenido').innerHTML = html
@@ -872,8 +1281,6 @@ function asignarEventosSubmodulos() {
     // Clientes
     document.getElementById('btnListaClientes')?.addEventListener('click', () => mostrarListaClientes())
     document.getElementById('btnAltaCliente')?.addEventListener('click', () => mostrarAltaCliente())
-    document.getElementById('btnBajaCliente')?.addEventListener('click', () => mostrarBajaCliente())
-    document.getElementById('btnActivosCliente')?.addEventListener('click', () => mostrarActivosCliente())
     
     // Materiales
     document.getElementById('btnStockMateriales')?.addEventListener('click', () => mostrarStockMateriales())

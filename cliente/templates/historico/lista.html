@@ -1,0 +1,33 @@
+<!-- cliente/templates/historico/lista.html -->
+<!-- Histórico de tareas completadas -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            📜 Histórico de trabajos
+            <small style="font-size: 12px; font-weight: normal;">Más de 30 días</small>
+        </div>
+        
+        <div class="filtros-bar" style="margin-bottom: 16px;">
+            <input type="text" id="filtroHistorico" placeholder="🔍 Buscar en histórico..." class="full-width" style="flex: 2;">
+            <button id="btnFiltrarHistorico" class="btn-info">🔍 Filtrar</button>
+            <button id="btnLimpiarHistorico" class="btn-warning">🗑️ Limpiar</button>
+        </div>
+        
+        <div id="historicoLista">
+            <div class="text-center" style="padding: 40px;">
+                <div class="spinner"></div>
+                <p>Cargando histórico...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

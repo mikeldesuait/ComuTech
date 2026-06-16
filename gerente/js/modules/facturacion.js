@@ -142,13 +142,12 @@ export async function cargarPagos(empresaId) {
     
     try {
         // Pagos a técnicos (facturas_externas)
-        const { data: pagosTecnicos } = await sb
+        const { data: pagosTecnicos, error } = await sb
             .from('facturas_externas')
-            .select(`
-                *,
-                tecnicos!tecnico_id(id, nombre)
-            `)
+            .select('*')
             .order('created_at', { ascending: false })
+        
+        if (error) throw error
         
         // Gastos a proveedores (facturas_gastos)
         const { data: pagosProveedores } = await sb
@@ -156,7 +155,7 @@ export async function cargarPagos(empresaId) {
             .select('*')
             .order('fecha', { ascending: false })
         
-        pagosRealizados = [
+        const pagosRealizados = [
             ...(pagosTecnicos || []).map(p => ({ ...p, tipo: 'tecnico' })),
             ...(pagosProveedores || []).map(p => ({ ...p, tipo: 'proveedor' }))
         ]

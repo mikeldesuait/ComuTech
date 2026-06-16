@@ -1,0 +1,42 @@
+<!-- cliente/templates/incidencias/crear.html -->
+<!-- Formulario para crear nueva incidencia -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            ⚠️ Reportar nueva incidencia
+            <button id="btnVolverIncidencias" class="btn-warning btn-sm" style="float: right;">◀ Volver</button>
+        </div>
+        
+        <div class="form-group">
+            <label>📝 Título *</label>
+            <input type="text" id="nuevaIncidenciaTitulo" class="full-width" placeholder="Ej: Bomba de la piscina no funciona">
+        </div>
+        
+        <div class="form-group">
+            <label>🏗️ Activo (opcional)</label>
+            <select id="nuevaIncidenciaActivo" class="full-width">
+                <option value="">-- Seleccionar activo --</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>📄 Descripción *</label>
+            <textarea id="nuevaIncidenciaDescripcion" rows="5" class="full-width" placeholder="Describe el problema detalladamente..."></textarea>
+        </div>
+        
+        <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px;">
+            <button id="btnGuardarIncidencia" class="btn-success">✅ Reportar incidencia</button>
+            <button id="btnCancelarIncidencia" class="btn-danger">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--ios-border);
+    }
+</style>

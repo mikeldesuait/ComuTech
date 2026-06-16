@@ -102,6 +102,112 @@
     </div>
 </div>
 
+<!-- Modal Crear/Editar Activo -->
+<div id="modalActivo" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px;">
+        <h3 id="modalActivoTitulo">🏗️ Nuevo Activo</h3>
+        <input type="hidden" id="activoId">
+
+                
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏷️ Nombre del activo *</label>
+                <input type="text" id="activoNombre" placeholder="Ej: Piscina comunitaria">
+            </div>
+            <div class="grupo">
+                <label>📋 Tipo de acceso</label>
+                <select id="activoTipoAcceso">
+                    <option value="libre">🔓 Libre acceso</option>
+                    <option value="llave">🔑 Llave física</option>
+                    <option value="codigo">🔢 Código numérico</option>
+                    <option value="tarjeta">💳 Tarjeta magnética</option>
+                    <option value="control">🎛️ Control remoto</option>
+                    <option value="personal">👤 Personal autorizado</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>📍 Ubicación</label>
+                <input type="text" id="activoUbicacion" placeholder="Ej: Planta baja, zona este">
+            </div>
+            <div class="grupo">
+                <label>📱 Contacto</label>
+                <input type="text" id="activoContacto" placeholder="Persona de contacto / teléfono">
+            </div>
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🕐 Horario apertura</label>
+                <input type="time" id="activoHoraApertura" placeholder="09:00">
+            </div>
+            <div class="grupo">
+                <label>🕐 Horario cierre</label>
+                <input type="time" id="activoHoraCierre" placeholder="20:00">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>📍 Dirección</label>
+            <input type="text" id="activoDireccion" placeholder="Calle, número">
+        </div>
+        
+        <div class="row-flex">
+            <div class="grupo">
+                <label>🏙️ Localidad</label>
+                <input type="text" id="activoLocalidad" placeholder="Ciudad">
+            </div>
+            <div class="grupo">
+                <label>📌 Código postal</label>
+                <input type="text" id="activoCodigoPostal" placeholder="Código postal">
+            </div>
+        </div>
+
+        <div class="row-flex">
+    <div class="grupo">
+        <label>🗺️ Latitud</label>
+        <input type="text" id="activoLatitud" placeholder="Ej: 40.416775">
+    </div>
+    <div class="grupo">
+        <label>🗺️ Longitud</label>
+        <input type="text" id="activoLongitud" placeholder="Ej: -3.703790">
+    </div>
+    <div class="grupo" style="display: flex; align-items: flex-end;">
+        <button id="btnObtenerCoordenadas" class="btn-info" style="width: 100%;">📍 Obtener coordenadas</button>
+    </div>
+</div>
+        
+        <div class="form-group">
+            <label>📝 Instrucciones de acceso</label>
+            <textarea id="activoInstrucciones" rows="3" placeholder="Instrucciones detalladas para acceder al activo..."></textarea>
+        </div>
+
+        <div class="form-group">
+    <label>🔧 Datos técnicos</label>
+    <textarea id="activoDatosTecnicos" rows="4" placeholder="Ejemplo para piscina:
+- Tipo de motor: Hidroari 2.5CV
+- Modelo filtro: Astral 450mm
+- Clorador salino: Sí, modelo AquaSalt
+- Caudal: 12m³/h
+- Presión de trabajo: 1.5 bar
+
+Ejemplo para jardín:
+- Sistema riego: Automático, 8 zonas
+- Tipo césped: Bermuda
+- Maquinaria: Cortacésped Husqvarna
+- Fertilizante: Líquido, cada 15 días"></textarea>
+    <small>Puedes incluir información técnica relevante del activo (motor, filtro, sistema de riego, etc.)</small>
+</div>
+        
+        <div class="modal-buttons">
+            <button id="btnGuardarActivo" class="btn-aceptar">💾 Guardar activo</button>
+            <button id="btnCancelarActivo" class="btn-cancelar">✖ Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script type="module">
     import { init } from './js/main.js'
     init()
