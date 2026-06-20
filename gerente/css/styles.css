@@ -488,6 +488,63 @@ textarea {
 }
 
 /* ============================================================ */
+/* RESUMEN DE TAREAS - ESTADOS EN CÍRCULOS                      */
+/* ============================================================ */
+
+.resumen-tareas {
+    background: var(--ios-card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 0.5px solid var(--ios-border);
+}
+
+.resumen-tareas .estado-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+
+.resumen-tareas .estado-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px 4px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Colores para estados */
+.estado-pendiente-aceptacion { background: #fef3c7; color: #92400e; }
+.estado-vista { background: #dbeafe; color: #1e40af; }
+.estado-aceptada { background: #d4edda; color: #155724; }
+.estado-rechazada { background: #f8d7da; color: #721c24; }
+.estado-en-desplazamiento { background: #fef3c7; color: #92400e; }
+.estado-trabajando-onsite { background: #d1ecf1; color: #0c5460; }
+.estado-terminada { background: #d4edda; color: #155724; }
+.estado-suspendida { background: #f8d7da; color: #721c24; }
+.estado-cancelada { background: #e2e3e5; color: #383d41; }
+.estado-pendiente { background: #fef3c7; color: #92400e; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .resumen-tareas {
+        padding: 12px;
+        gap: 8px;
+    }
+    .resumen-tareas > div {
+        font-size: 12px;
+    }
+    .resumen-tareas .estado-item {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+}
+
+/* ============================================================ */
 /* RESPONSIVE                                                  */
 /* ============================================================ */
 

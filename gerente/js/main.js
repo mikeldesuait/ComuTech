@@ -1,5 +1,5 @@
 // gerente/js/main.js
-// Punto de entrada principal del panel gerente
+// Punto de entrada principal del panel gerente - VERSIÓN ACTUALIZADA
 
 import { sb } from './config/supabase.js'
 import { 
@@ -9,8 +9,11 @@ import {
 import { 
     mostrarMensaje, formatearFecha, formatearFechaHora, 
     escapeHtml, formatMoney, mostrarModalCarga, cerrarModalCarga,
-    mostrarModalConfirmacion, mostrarModalInformativo
+    mostrarModalConfirmacion, mostrarModalInformativo,
+    getEstadoBadge, getPrioridadBadge, getEstadoLabel,
+    getEstadosDisponibles, getEstadoColor, getEstadoIcono
 } from './modules/utils.js'
+import { ESTADOS_TAREA } from './modules/tareas.js'
 
 // ============================================================
 // VARIABLES GLOBALES
@@ -236,102 +239,351 @@ async function renderizarPanel() {
 }
 
 // ============================================================
-// RENDERIZADO DE TAREAS
+// RENDERIZADO DE TAREAS (ACTUALIZADO)
+// ============================================================
+
+// ============================================================
+// RENDERIZADO DE TAREAS (ACTUALIZADO)
 // ============================================================
 
 async function renderizarTareas() {
     const subvista = localStorage.getItem('gerente_tareas_subvista') || 'lista'
     
-    if (subvista === 'crear') return renderizarFormularioCrearTarea()
-    if (subvista === 'editar') {
-        const tareaId = localStorage.getItem('gerente_tarea_editar')
-        const tarea = tareasData.find(t => t.id === tareaId)
-        if (tarea) return renderizarFormularioEditarTarea(tarea)
+    if (subvista === 'crear') {
+        const { renderizarFormularioCrear } = tareasModule
+        const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
+        // ✅ CAMBIADO: usar cargarClientesDeEmpresa en lugar de cargarClientes
+        const clientes = await tareasModule.cargarClientesDeEmpresa(currentEmpresaId)
+        
+        return `<div class="container">
+            <div class="card">
+                <div class="card-header">📋 Tareas
+                    <button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button>
+                </div>
+                ${renderizarFormularioCrear(clientes, tecnicos)}
+            </div>
+        </div>`
     }
+    
     if (subvista === 'detalle') {
         const tareaId = localStorage.getItem('gerente_tarea_detalle')
         const tarea = tareasData.find(t => t.id === tareaId)
-        if (tarea) return await renderizarDetalleTarea(tarea)
+        if (tarea) {
+            return await renderizarDetalleTarea(tarea)
+        }
     }
+    
+    // Vista lista (default)
     return renderizarListaTareas()
-}
-
-function renderizarListaTareas() {
-    if (!tareasData || tareasData.length === 0) {
-        return `<div class="container"><div class="card"><div class="card-header">📋 Lista de Tareas</div><div class="text-center" style="padding:40px;"><p>📭 No hay tareas</p><button id="btnCrearTareaLista" class="btn-success">➕ Crear</button></div></div></div>`
-    }
-    
-    let html = `<div class="container"><div class="card"><div class="card-header">📋 Tareas<button id="btnCrearTareaLista" class="btn-success" style="float:right;">➕ Nueva</button></div><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nº</th><th>Título</th><th>Cliente</th><th>Técnico</th><th>Prioridad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`
-    for (const t of tareasData) {
-        const prioridadClass = t.prioridad === 'urgente' ? 'badge-inactivo' : (t.prioridad === 'alta' ? 'badge-pendiente' : 'badge-activo')
-        const estadoClass = t.estado === 'completada' ? 'badge-activo' : (t.estado === 'cancelada' ? 'badge-inactivo' : 'badge-pendiente')
-        html += `<tr><td><strong>${escapeHtml(t.numero_tarea)}</strong></td>
-        <td>${escapeHtml(t.titulo)}</span></div></td>
-        <td>${escapeHtml(t.empresas?.nombre_empresa || '-')}</span></div></td>
-        <td>${escapeHtml(t.perfiles?.nombre_razon_social || 'Sin')}</span></div></td>
-        <td><span class="badge ${prioridadClass}">${t.prioridad || 'media'}</span></td>
-        <td><span class="badge ${estadoClass}">${t.estado || 'pendiente'}</span></td>
-        <td><button class="btn-sm ver-tarea" data-id="${t.id}" style="background:#0284c7;">👁️</button>
-        ${t.estado === 'pendiente' ? `<button class="btn-sm asignar-tarea" data-id="${t.id}" style="background:#e67e22;">🔄</button>` : ''}
-        </td>`
-    }
-    html += `</tbody></table></div></div></div>`
-    return html
-}
-
-function renderizarFormularioCrearTarea() {
-    const clientesOptions = clientesData.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('')
-    const tecnicosOptions = `<option value="">-- Sin asignar --</option>` + tecnicosInternosData.map(t => `<option value="${t.id}">${escapeHtml(t.nombre)}</option>`).join('')
-    
-    return `<div class="container"><div class="card"><div class="card-header">➕ Crear Tarea<button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button></div>
-        <div class="row-flex"><div class="grupo"><label>🏢 Cliente *</label><select id="tareaCliente">${clientesOptions}</select></div>
-        <div class="grupo"><label>👨‍🔧 Técnico</label><select id="tareaTecnico">${tecnicosOptions}</select></div></div>
-        <div class="row-flex"><div class="grupo"><label>⭐ Prioridad</label><select id="tareaPrioridad"><option value="baja">🟢 Baja</option><option value="media" selected>🟡 Media</option><option value="alta">🔴 Alta</option><option value="urgente">🔥 Urgente</option></select></div>
-        <div class="grupo"><label>📝 Título *</label><input type="text" id="tareaTitulo"></div></div>
-        <div class="form-group"><label>📄 Descripción</label><textarea id="tareaDescripcion" rows="3"></textarea></div>
-        <div class="form-group"><label>📋 Orden de trabajo</label><textarea id="tareaOrdenTrabajo" rows="4"></textarea></div>
-        <div class="btn-group" style="display:flex;gap:12px;"><button id="btnGuardarTarea" class="btn-success">💾 Guardar</button><button id="btnCancelarTarea" class="btn-danger">✖ Cancelar</button></div>
-    </div></div><style>.full-width{width:100%;padding:10px;border-radius:8px;border:1px solid var(--ios-border);}</style>`
-}
-
-function renderizarFormularioEditarTarea(tarea) {
-    const clientesOptions = clientesData.map(c => `<option value="${c.id}" ${c.id === tarea.empresa_id ? 'selected' : ''}>${escapeHtml(c.nombre)}</option>`).join('')
-    const tecnicosOptions = `<option value="">-- Sin asignar --</option>` + tecnicosInternosData.map(t => `<option value="${t.id}" ${t.id === tarea.perfil_id ? 'selected' : ''}>${escapeHtml(t.nombre)}</option>`).join('')
-    
-    return `<div class="container"><div class="card"><div class="card-header">✏️ Editar ${escapeHtml(tarea.numero_tarea)}<button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button></div>
-        <input type="hidden" id="editTareaId" value="${tarea.id}">
-        <div class="row-flex"><div class="grupo"><label>🏢 Cliente</label><select id="editTareaCliente">${clientesOptions}</select></div>
-        <div class="grupo"><label>👨‍🔧 Técnico</label><select id="editTareaTecnico">${tecnicosOptions}</select></div></div>
-        <div class="row-flex"><div class="grupo"><label>⭐ Prioridad</label><select id="editTareaPrioridad"><option value="baja" ${tarea.prioridad === 'baja' ? 'selected' : ''}>🟢 Baja</option><option value="media" ${tarea.prioridad === 'media' ? 'selected' : ''}>🟡 Media</option><option value="alta" ${tarea.prioridad === 'alta' ? 'selected' : ''}>🔴 Alta</option><option value="urgente" ${tarea.prioridad === 'urgente' ? 'selected' : ''}>🔥 Urgente</option></select></div>
-        <div class="grupo"><label>📝 Título</label><input type="text" id="editTareaTitulo" value="${escapeHtml(tarea.titulo)}"></div></div>
-        <div class="form-group"><label>📄 Descripción</label><textarea id="editTareaDescripcion" rows="3">${escapeHtml(tarea.descripcion || '')}</textarea></div>
-        <div class="form-group"><label>📋 Orden de trabajo</label><textarea id="editTareaOrdenTrabajo" rows="4">${escapeHtml(tarea.orden_trabajo || '')}</textarea></div>
-        <div class="row-flex"><div class="grupo"><label>📌 Estado</label><select id="editTareaEstado"><option value="pendiente" ${tarea.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option><option value="en_progreso" ${tarea.estado === 'en_progreso' ? 'selected' : ''}>⚙️ Progreso</option><option value="completada" ${tarea.estado === 'completada' ? 'selected' : ''}>✅ Completada</option><option value="cancelada" ${tarea.estado === 'cancelada' ? 'selected' : ''}>❌ Cancelada</option></select></div></div>
-        <div class="btn-group" style="display:flex;gap:12px;"><button id="btnGuardarEdicion" class="btn-success">💾 Guardar</button><button id="btnCancelarEdicion" class="btn-danger">✖ Cancelar</button></div>
-    </div></div>`
-}
-
-async function renderizarDetalleTarea(tarea) {
-    const historial = await tareasModule.getHistorialAsignaciones(tarea.id)
-    const prioridadClass = tarea.prioridad === 'urgente' ? 'badge-inactivo' : (tarea.prioridad === 'alta' ? 'badge-pendiente' : 'badge-activo')
-    const estadoClass = tarea.estado === 'completada' ? 'badge-activo' : (tarea.estado === 'cancelada' ? 'badge-inactivo' : 'badge-pendiente')
-    
-    let historialHtml = ''
-    if (historial.length > 0) {
-        historialHtml = `<div class="card" style="margin-top:16px;"><div class="card-header">📜 Historial</div>${historial.map(h => `<div style="padding:8px;border-bottom:1px solid var(--ios-border);"><small>${h.tipo === 'asignacion' ? '📌 Asignada' : '🔄 Reasignada'} a ${escapeHtml(h.perfiles?.nombre_razon_social || '?')} el ${formatearFechaHora(h.fecha_asignacion)}${h.motivo ? `<br>Motivo: ${escapeHtml(h.motivo)}` : ''}</small></div>`).join('')}</div>`
-    }
-    
-    return `<div class="container"><div class="card"><div class="card-header">📋 ${escapeHtml(tarea.numero_tarea)} - ${escapeHtml(tarea.titulo)}
-        <div style="float:right;"><button id="btnEditarTarea" class="btn-info">✏️ Editar</button><button id="btnAsignarTarea" class="btn-warning">🔄 Asignar</button><button id="btnCerrarDetalle" class="btn-danger">✖ Cerrar</button></div></div>
-        <div style="background:var(--ios-bg);padding:16px;border-radius:12px;"><p><strong>Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || '-')}</p><p><strong>Técnico:</strong> ${escapeHtml(tarea.perfiles?.nombre_razon_social || 'Sin asignar')}</p>
-        <p><strong>Prioridad:</strong> <span class="badge ${prioridadClass}">${tarea.prioridad || 'media'}</span></p><p><strong>Estado:</strong> <span class="badge ${estadoClass}">${tarea.estado || 'pendiente'}</span></p>
-        <p><strong>Descripción:</strong> ${escapeHtml(tarea.descripcion || '-')}</p>${tarea.orden_trabajo ? `<p><strong>Orden trabajo:</strong><br><div style="background:white;padding:12px;border-radius:8px;">${escapeHtml(tarea.orden_trabajo)}</div></p>` : ''}</div>
-        ${historialHtml}</div></div>`
 }
 
 
 // ============================================================
-// RENDERIZADO DE PERSONAL
+// RENDERIZAR LISTA DE TAREAS CON RESUMEN
+// ============================================================
+
+// ============================================================
+// RENDERIZAR LISTA DE TAREAS CON RESUMEN, FILTROS Y BÚSQUEDA
+// ============================================================
+
+function renderizarListaTareas() {
+    const { renderizarListaTareas, aplicarFiltrosTareas } = tareasModule
+    
+    // Obtener técnicos activos para las estadísticas
+    const tecnicosActivos = tecnicosInternosData.filter(t => t.activo !== false)
+    
+    // Obtener clientes
+    const clientes = clientesData || []
+    
+    // Obtener activos
+    const activos = activosData || []
+    
+    // Generar HTML inicial con todos los datos
+    const html = renderizarListaTareas(tareasData, null, null, tecnicosActivos, clientes, activos)
+    
+    // Envolver en container
+    return `<div class="container" id="tareasContainer">${html}</div>`
+}
+
+// ============================================================
+// ✅ NUEVO: RENDERIZAR DETALLE DE TAREA CON CAMBIO DE ESTADO
+// ============================================================
+
+async function renderizarDetalleTarea(tarea) {
+    const { renderizarDetalleTarea, cambiarEstadoTarea, reasignarTarea } = tareasModule
+    
+    // Obtener historial
+    const historial = await tareasModule.getHistorialAsignaciones(tarea.id)
+    const historialEstados = await tareasModule.getHistorialEstados(tarea.id)
+    
+    const html = await renderizarDetalleTarea(tarea, null, null)
+    
+    // Envolver en container
+    return `<div class="container">
+        <div class="card">
+            <div class="card-header">
+                📋 ${escapeHtml(tarea.numero_tarea)} - ${escapeHtml(tarea.titulo)}
+                <div style="float:right;">
+                    <button id="btnVolverTareas" class="btn-warning" style="margin-right:8px;">◀ Volver</button>
+                    <button id="btnReasignarTarea" class="btn-info" style="background:#e67e22;">🔄 Reasignar</button>
+                </div>
+            </div>
+            
+            <!-- Información de la tarea -->
+            <div style="background:var(--ios-bg); padding:16px; border-radius:12px;">
+                <div class="row-flex">
+                    <div class="grupo"><strong>Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || '-')}</div>
+                    <div class="grupo"><strong>Técnico:</strong> ${escapeHtml(tarea.perfiles?.nombre_razon_social || 'Sin asignar')}</div>
+                </div>
+                <div class="row-flex">
+                    <div class="grupo"><strong>Prioridad:</strong> ${getPrioridadBadge(tarea.prioridad)}</div>
+                    <div class="grupo"><strong>Estado:</strong> ${getEstadoBadge(tarea.estado)}</div>
+                </div>
+                <div class="row-flex">
+                    <div class="grupo"><strong>Fecha creación:</strong> ${formatearFecha(tarea.created_at)}</div>
+                    <div class="grupo"><strong>Fecha límite:</strong> ${formatearFecha(tarea.fecha_limite) || 'Sin fecha'}</div>
+                </div>
+                ${tarea.fecha_aceptacion ? `<div><strong>Fecha aceptación:</strong> ${formatearFecha(tarea.fecha_aceptacion)}</div>` : ''}
+                ${tarea.fecha_desplazamiento ? `<div><strong>Inicio desplazamiento:</strong> ${formatearFecha(tarea.fecha_desplazamiento)}</div>` : ''}
+                ${tarea.fecha_llegada ? `<div><strong>Llegada al sitio:</strong> ${formatearFecha(tarea.fecha_llegada)}</div>` : ''}
+                ${tarea.fecha_fin_trabajo ? `<div><strong>Finalización:</strong> ${formatearFecha(tarea.fecha_fin_trabajo)}</div>` : ''}
+                ${tarea.tiempo_estimado_minutos ? `<div><strong>Tiempo estimado:</strong> ${tarea.tiempo_estimado_minutos} min</div>` : ''}
+                ${tarea.tiempo_real_minutos ? `<div><strong>Tiempo real:</strong> ${tarea.tiempo_real_minutos} min</div>` : ''}
+                ${tarea.motivo_suspension ? `<div><strong>Motivo suspensión:</strong> ${escapeHtml(tarea.motivo_suspension)}</div>` : ''}
+                
+                <div style="margin-top:12px;">
+                    <strong>Descripción:</strong><br>
+                    ${escapeHtml(tarea.descripcion || '-')}
+                </div>
+                ${tarea.orden_trabajo ? `
+                <div style="margin-top:12px;">
+                    <strong>📋 Orden de trabajo:</strong><br>
+                    <div style="background:white; padding:12px; border-radius:8px;">${escapeHtml(tarea.orden_trabajo)}</div>
+                </div>` : ''}
+            </div>
+            
+            <!-- ✅ NUEVO: Botones para cambiar estado -->
+            ${getEstadosDisponibles(tarea.estado).length > 0 ? `
+            <div style="margin-top:16px; padding:16px; background:#f8fafc; border-radius:12px;">
+                <strong>🔄 Cambiar estado:</strong>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                    ${getEstadosDisponibles(tarea.estado).map(e => `
+                        <button class="btn-sm btn-cambiar-estado" 
+                                data-tarea-id="${tarea.id}"
+                                data-estado="${e.value}" 
+                                style="background:#2c7a4d; color:white;">
+                            ${e.label}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>` : ''}
+            
+            <!-- Historial de estados -->
+            ${historialEstados && historialEstados.length > 0 ? `
+            <div class="card" style="margin-top:16px;">
+                <div class="card-header">📜 Historial de estados</div>
+                ${historialEstados.slice(0, 10).map(h => `
+                    <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
+                        <span class="badge ${getEstadoBadgeClass(h.estado_nuevo)}">${getEstadoLabel(h.estado_nuevo)}</span>
+                        <span style="color:#6b7280;">${formatearFecha(h.fecha)}</span>
+                        ${h.comentario ? `<span style="color:#6b7280;">- ${escapeHtml(h.comentario)}</span>` : ''}
+                        <span style="color:#6b7280; font-size:11px;">(${h.usuario_tipo})</span>
+                    </div>
+                `).join('')}
+            </div>` : ''}
+            
+            <!-- Historial de asignaciones -->
+            ${historial && historial.length > 0 ? `
+            <div class="card" style="margin-top:16px;">
+                <div class="card-header">🔄 Historial de asignaciones</div>
+                ${historial.slice(0, 10).map(h => `
+                    <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
+                        ${h.tipo === 'asignacion' ? '📌 Asignada' : '🔄 Reasignada'} a 
+                        ${escapeHtml(h.perfiles?.nombre_razon_social || '?')} 
+                        el ${formatearFecha(h.fecha_asignacion)}
+                        ${h.motivo ? `<br><span style="color:#6b7280;">Motivo: ${escapeHtml(h.motivo)}</span>` : ''}
+                    </div>
+                `).join('')}
+            </div>` : ''}
+        </div>
+    </div>`
+}
+
+function getEstadoBadgeClass(estado) {
+    const clases = {
+        'pendiente_aceptacion': 'badge-pendiente',
+        'vista': 'badge-info',
+        'aceptada': 'badge-activo',
+        'rechazada': 'badge-inactivo',
+        'en_desplazamiento': 'badge-warning',
+        'trabajando_onsite': 'badge-info',
+        'terminada': 'badge-completada',
+        'suspendida': 'badge-danger',
+        'cancelada': 'badge-cancelada'
+    }
+    return clases[estado] || 'badge-pendiente'
+}
+
+// ============================================================
+// ✅ NUEVO: FUNCIÓN PARA CAMBIAR ESTADO DESDE EL DETALLE
+// ============================================================
+
+async function handleCambiarEstado(tareaId, nuevoEstado) {
+    const { cambiarEstadoTarea } = tareasModule
+    
+    // Si es suspensión, pedir motivo
+    if (nuevoEstado === ESTADOS_TAREA.SUSPENDIDA) {
+        const motivo = prompt('📝 Motivo de la suspensión:')
+        if (!motivo) {
+            mostrarMensaje('Debes indicar un motivo', 'error')
+            return
+        }
+        const exito = await cambiarEstadoTarea(tareaId, nuevoEstado, motivo, 'gerente')
+        if (exito) {
+            await cargarDatosIniciales()
+            await renderizarPanel()
+        }
+        return
+    }
+    
+    // Confirmar cambio
+    const estadoLabel = getEstadoLabel(nuevoEstado)
+    mostrarModalConfirmacion(
+        `¿Confirmas el cambio de estado a "${estadoLabel}"?`,
+        async () => {
+            const exito = await cambiarEstadoTarea(tareaId, nuevoEstado, '', 'gerente')
+            if (exito) {
+                await cargarDatosIniciales()
+                await renderizarPanel()
+            }
+        },
+        `✅ Cambiar a ${estadoLabel}`,
+        'Cancelar'
+    )
+}
+
+// ============================================================
+// ✅ NUEVO: FUNCIÓN PARA REASIGNAR TAREA
+// ============================================================
+
+async function handleReasignarTarea(tareaId) {
+    const tarea = tareasData.find(t => t.id === tareaId)
+    if (!tarea) {
+        mostrarMensaje('Tarea no encontrada', 'error')
+        return
+    }
+    
+    // Obtener técnicos disponibles
+    const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
+    const tecnicosOptions = tecnicos
+        .filter(t => t.id !== tarea.perfil_id) // Excluir al técnico actual
+        .map(t => `<option value="${t.id}">${escapeHtml(t.nombre_razon_social)}</option>`)
+        .join('')
+    
+    if (!tecnicosOptions) {
+        mostrarMensaje('No hay otros técnicos disponibles', 'error')
+        return
+    }
+    
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+    modal.style.display = 'flex'
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <h3>🔄 Reasignar tarea</h3>
+            <p><strong>Tarea:</strong> ${escapeHtml(tarea.titulo)} (${escapeHtml(tarea.numero_tarea)})</p>
+            <p><strong>Técnico actual:</strong> ${escapeHtml(tarea.perfiles?.nombre_razon_social || 'Sin asignar')}</p>
+            <div class="form-group">
+                <label>👨‍🔧 Nuevo técnico</label>
+                <select id="reasignarTecnico" style="width:100%; padding:12px; border-radius:12px;">
+                    <option value="">-- Seleccionar --</option>
+                    ${tecnicosOptions}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>📝 Motivo</label>
+                <textarea id="reasignarMotivo" rows="2" placeholder="Motivo de la reasignación..."></textarea>
+            </div>
+            <div style="background:#fef3c7; padding:12px; border-radius:12px; margin-top:8px;">
+                <small>⚠️ Al reasignar, la tarea volverá al estado <strong>"Pendiente de aceptación"</strong></small>
+            </div>
+            <div class="modal-buttons">
+                <button id="btnConfirmarReasignar" class="btn-aceptar">✅ Reasignar</button>
+                <button id="btnCancelarReasignar" class="btn-cancelar">Cancelar</button>
+            </div>
+        </div>
+    `
+    document.body.appendChild(modal)
+    
+    document.getElementById('btnConfirmarReasignar').onclick = async () => {
+        const nuevoTecnicoId = document.getElementById('reasignarTecnico').value
+        const motivo = document.getElementById('reasignarMotivo').value.trim()
+        
+        if (!nuevoTecnicoId) {
+            mostrarMensaje('Selecciona un técnico', 'error')
+            return
+        }
+        
+        const { reasignarTarea } = tareasModule
+        const exito = await reasignarTarea(tareaId, nuevoTecnicoId, motivo)
+        
+        if (exito) {
+            modal.remove()
+            await cargarDatosIniciales()
+            await renderizarPanel()
+        }
+    }
+    
+    document.getElementById('btnCancelarReasignar').onclick = () => modal.remove()
+    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
+}
+
+// ============================================================
+// FUNCIONES DE TAREAS (CRUD)
+// ============================================================
+
+async function guardarNuevaTarea() {
+    const clienteId = document.getElementById('tareaCliente')?.value
+    const activoId = document.getElementById('tareaActivo')?.value || null
+    const tecnicoId = document.getElementById('tareaTecnico')?.value || null
+    const prioridad = document.getElementById('tareaPrioridad')?.value || 'media'
+    const titulo = document.getElementById('tareaTitulo')?.value.trim()
+    const descripcion = document.getElementById('tareaDescripcion')?.value.trim()
+    const ordenTrabajo = document.getElementById('tareaOrdenTrabajo')?.value.trim()
+    const fechaLimite = document.getElementById('tareaFechaLimite')?.value || null
+    const tiempoEstimado = parseInt(document.getElementById('tareaTiempoEstimado')?.value) || null
+    const notaInterna = document.getElementById('tareaNotaInterna')?.value.trim() || null
+    const notaCliente = document.getElementById('tareaNotaCliente')?.value.trim() || null
+    
+    if (!clienteId || !titulo) {
+        mostrarMensaje('Completa los campos obligatorios', 'error')
+        return
+    }
+    
+    const { crearTarea } = tareasModule
+    const nuevaTarea = await crearTarea({
+        clienteId,
+        activoId,
+        tecnicoId,
+        titulo,
+        descripcion,
+        prioridad,
+        fechaLimite,
+        ordenTrabajo,
+        tiempoEstimado,
+        notaInterna,
+        notaCliente
+    })
+    
+    if (nuevaTarea) {
+        await cargarDatosIniciales()
+        localStorage.setItem('gerente_tareas_subvista', 'lista')
+        await renderizarPanel()
+    }
+}
+
+// ============================================================
+// PERSONAL (sin cambios)
 // ============================================================
 
 async function renderizarPersonal() {
@@ -348,7 +600,7 @@ async function renderizarPersonal() {
     ausenciasData = await personalModule.cargarAusencias(currentEmpresaId)
     
     const html = `<div class="container"><div class="card"><div class="card-header">👥 Personal</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
             <button class="btn-sm ${subvista === 'internos' ? 'btn-success' : 'btn-info'}" data-subtab="internos">👨‍🔧 Internos (${tecnicosInternosData.length})</button>
             <button class="btn-sm ${subvista === 'externos' ? 'btn-success' : 'btn-info'}" data-subtab="externos">🔌 Externos (${tecnicosExternosData.length})</button>
             <button class="btn-sm ${subvista === 'vacaciones' ? 'btn-warning' : 'btn-info'}" data-subtab="vacaciones">🌴 Vacaciones (${vacacionesData.filter(v=>v.estado==='pendiente').length})</button>
@@ -359,10 +611,6 @@ async function renderizarPersonal() {
     
     return html
 }
-
-// ============================================================
-// RENDERIZAR SUBVISTA DE PERSONAL
-// ============================================================
 
 async function renderizarPersonalSubvista(subvista) {
     if (!personalModule) {
@@ -396,238 +644,47 @@ async function renderizarPersonalSubvista(subvista) {
 }
 
 // ============================================================
-// FUNCIONES DE PERSONAL
+// CLIENTES (sin cambios)
 // ============================================================
 
-// ============================================================
-// MODAL AGREGAR TÉCNICO
-// ============================================================
-
-function mostrarModalAgregarTecnico(tipo = 'interno') {
-    const titulo = tipo === 'interno' ? '➕ Alta de trabajador interno' : '➕ Alta de trabajador externo / subcontrata'
+async function renderizarClientes() {
+    const subvista = localStorage.getItem('gerente_clientes_subvista') || 'lista'
     
-    const modal = document.createElement('div')
-    modal.className = 'modal-overlay'
-    modal.style.display = 'flex'
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
-            <h3>${titulo}</h3>
-            
-            <!-- Tipo de trabajador -->
-            <div class="form-group">
-                <label>📋 Tipo de trabajador *</label>
-                <select id="tecTipo" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--ios-border);">
-                    <option value="interno" ${tipo === 'interno' ? 'selected' : ''}>👨‍🔧 Trabajador interno (contratado)</option>
-                    <option value="externo" ${tipo === 'externo' ? 'selected' : ''}>🔌 Trabajador externo / subcontrata</option>
-                </select>
-            </div>
-            
-            <!-- Datos personales -->
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>👤 Nombre *</label>
-                    <input type="text" id="tecNombre" placeholder="Nombre">
+    if (!clientesModule) {
+        clientesModule = await import('./modules/clientes.js')
+    }
+    
+    if (subvista === 'crear') {
+        const { renderizarFormularioCrearCliente } = clientesModule
+        return `<div class="container">
+            <div class="card">
+                <div class="card-header">➕ Nuevo Cliente
+                    <button id="btnVolverClientes" class="btn-warning btn-sm" style="float:right;">◀ Volver</button>
                 </div>
-                <div class="grupo">
-                    <label>Apellido *</label>
-                    <input type="text" id="tecApellido" placeholder="Apellido">
+                <div id="clientesSubcontenido">
+                    ${renderizarFormularioCrearCliente()}
                 </div>
             </div>
-            
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>📋 DNI / NIE *</label>
-                    <input type="text" id="tecDni" placeholder="12345678A">
-                </div>
-                <div class="grupo">
-                    <label>📅 Fecha de nacimiento</label>
-                    <input type="date" id="tecFechaNacimiento">
-                </div>
+        </div>`
+    }
+    
+    setTimeout(() => mostrarListaClientes(), 50)
+    
+    return `<div class="container">
+        <div class="card">
+            <div class="card-header">🏢 Clientes
+                <button id="btnAltaCliente" class="btn-success btn-sm" style="float:right;">➕ Alta</button>
             </div>
-            
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>📞 Teléfono</label>
-                    <input type="tel" id="tecTelefono" placeholder="Teléfono">
-                </div>
-                <div class="grupo">
-                    <label>📧 Email (opcional)</label>
-                    <input type="email" id="tecEmail" placeholder="email@personal.com">
-                </div>
-            </div>
-            
-            <!-- Datos laborales -->
-            <div class="card-header" style="margin-top: 16px;">📋 Datos laborales</div>
-            
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>📅 Fecha de alta</label>
-                    <input type="date" id="tecFechaAlta" value="${new Date().toISOString().split('T')[0]}">
-                </div>
-                <div class="grupo">
-                    <label>🔧 Especialidad</label>
-                    <input type="text" id="tecEspecialidad" placeholder="Ej: Electricidad, Fontanería...">
-                </div>
-            </div>
-            
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>📋 Nº Seguridad Social</label>
-                    <input type="text" id="tecSeguridadSocial" placeholder="12/34567890/12">
-                </div>
-                <div class="grupo">
-                    <label>📅 Fecha fin contrato (si aplica)</label>
-                    <input type="date" id="tecFechaFin">
-                </div>
-            </div>
-            
-            <div class="row-flex">
-                <div class="grupo" id="salarioContainer">
-                    <label>💰 Salario por hora (€)</label>
-                    <input type="number" id="tecSalario" step="0.01" placeholder="15.00">
-                </div>
-                <div class="grupo" id="empresaContainer" style="display: none;">
-                    <label>🏢 Empresa subcontratada</label>
-                    <input type="text" id="tecEmpresaExterna" placeholder="Nombre de la empresa externa">
-                </div>
-            </div>
-            
-            <!-- Credenciales de acceso -->
-            <div class="card-header" style="margin-top: 16px;">🔐 Credenciales de acceso</div>
-            
-            <div class="alert-info" style="background: #dbeafe; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
-                <small>🔑 <strong>Email:</strong> Se generará automáticamente con el dominio de tu empresa.</small>
-                <br>
-                <small>🔑 <strong>Nick:</strong> Se generará automáticamente a partir del nombre y apellido.</small>
-                <br>
-                <small>🔑 <strong>Contraseña inicial:</strong> <strong>Tecnico2026</strong> (el trabajador deberá cambiarla en su primer acceso).</small>
-            </div>
-            
-            <div class="form-group">
-                <label>📋 Resumen de credenciales</label>
-                <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 14px;">
-                    <div>📧 Email: <span id="previewEmail" style="color: #1e4663;">INT0001@dominio.es</span></div>
-                    <div>👤 Nick: <span id="previewNick" style="color: #1e4663;">nombreapellido</span></div>
-                    <div>🔑 Contraseña: <span id="previewPassword" style="color: #1e4663;">Tecnico2026</span></div>
-                </div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button id="btnGuardarTecnico" class="btn-aceptar">💾 Dar de alta</button>
-                <button id="btnCancelarTecnico" class="btn-cancelar">Cancelar</button>
+            <div id="clientesSubcontenido">
+                <div class="text-center" style="padding:40px;">Cargando clientes...</div>
             </div>
         </div>
-    `
-    document.body.appendChild(modal)
-    
-    // Mostrar/ocultar campos según tipo
-    const tipoSelect = document.getElementById('tecTipo')
-    const salarioContainer = document.getElementById('salarioContainer')
-    const empresaContainer = document.getElementById('empresaContainer')
-    
-    if (tipoSelect) {
-        tipoSelect.onchange = () => {
-            if (tipoSelect.value === 'interno') {
-                salarioContainer.style.display = 'block'
-                empresaContainer.style.display = 'none'
-            } else {
-                salarioContainer.style.display = 'none'
-                empresaContainer.style.display = 'block'
-            }
-            actualizarPreview()
-        }
-    }
-    
-    // Generar vista previa de credenciales
-    const nombreInput = document.getElementById('tecNombre')
-    const apellidoInput = document.getElementById('tecApellido')
-    const emailInput = document.getElementById('tecEmail')
-    const previewEmail = document.getElementById('previewEmail')
-    const previewNick = document.getElementById('previewNick')
-    
-    function actualizarPreview() {
-        const nombre = nombreInput?.value.trim() || 'nombre'
-        const apellido = apellidoInput?.value.trim() || 'apellido'
-        const email = emailInput?.value.trim()
-        const dominio = currentUser?.email?.split('@')[1] || 'empresa.es'
-        const prefijo = tipoSelect?.value === 'interno' ? 'INT' : 'EXT'
-        const nick = `${nombre.toLowerCase()}${apellido.toLowerCase()}`
-        
-        if (previewEmail) {
-            previewEmail.textContent = email || `${prefijo}0001@${dominio}`
-        }
-        if (previewNick) {
-            previewNick.textContent = nick
-        }
-    }
-    
-    if (nombreInput) nombreInput.oninput = actualizarPreview
-    if (apellidoInput) apellidoInput.oninput = actualizarPreview
-    if (emailInput) emailInput.oninput = actualizarPreview
-    
-    // Guardar
-    document.getElementById('btnGuardarTecnico').onclick = async () => {
-        const tipo = document.getElementById('tecTipo').value
-        const nombre = document.getElementById('tecNombre').value.trim()
-        const apellido = document.getElementById('tecApellido').value.trim()
-        const dni = document.getElementById('tecDni').value.trim()
-        const telefono = document.getElementById('tecTelefono').value.trim()
-        const emailPersonal = document.getElementById('tecEmail').value.trim()
-        const fechaNacimiento = document.getElementById('tecFechaNacimiento').value
-        const fechaAlta = document.getElementById('tecFechaAlta').value
-        const fechaFin = document.getElementById('tecFechaFin').value
-        const especialidad = document.getElementById('tecEspecialidad').value.trim()
-        const seguridadSocial = document.getElementById('tecSeguridadSocial').value.trim()
-        const salario = parseFloat(document.getElementById('tecSalario').value) || 0
-        const empresaExterna = document.getElementById('tecEmpresaExterna').value.trim()
-        
-        if (!nombre || !apellido) {
-            mostrarMensaje('Nombre y apellido obligatorios', 'error')
-            return
-        }
-        
-        if (!dni) {
-            mostrarMensaje('DNI/NIE obligatorio', 'error')
-            return
-        }
-        
-        const datos = {
-            nombre,
-            apellido,
-            dni,
-            telefono,
-            email: emailPersonal || null,
-            fechaNacimiento: fechaNacimiento || null,
-            fechaAlta: fechaAlta || null,
-            fechaFin: fechaFin || null,
-            especialidad: especialidad || null,
-            seguridadSocial: seguridadSocial || null,
-            salario: salario,
-            empresaExterna: empresaExterna || null
-        }
-        
-        const email = currentUser?.email
-        
-        const exito = tipo === 'interno' 
-            ? await personalModule.crearTecnicoInterno(datos, currentEmpresaId, email) 
-            : await personalModule.crearTecnicoExterno(datos, currentEmpresaId, email)
-        
-        if (exito) {
-            modal.remove()
-            // Recargar datos y forzar actualización de la subvista
-            await cargarDatosIniciales()
-            const subvistaActual = localStorage.getItem('gerente_personal_subvista') || 'internos'
-            localStorage.setItem('gerente_personal_subvista', subvistaActual)
-            await renderizarPanel()
-        }
-    }
-    
-    document.getElementById('btnCancelarTecnico').onclick = () => modal.remove()
-    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
+    </div>`
 }
 
-// gerente/js/main.js
-// Función editarTecnico completa (reemplazar en main.js)
+// ============================================================
+// FUNCIONES DE PERSONAL (ya existentes)
+// ============================================================
 
 async function editarTecnico(id, tipo) {
     const tecnicos = tipo === 'interno' ? tecnicosInternosData : tecnicosExternosData
@@ -635,8 +692,6 @@ async function editarTecnico(id, tipo) {
     if (!tecnico) return
     
     const { renderizarModalEditarTecnico } = personalModule
-    
-    // Obtener SUPABASE_URL para Edge Functions
     const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co"
     
     const modal = document.createElement('div')
@@ -662,57 +717,27 @@ async function editarTecnico(id, tipo) {
             activo: document.getElementById('editTecActivo').value === 'true'
         }
         
-        // ============================================================
-        // 1. ACTUALIZAR NICK EN perfiles, tecnicos y auth.users
-        // ============================================================
+        // Actualizar nick
         const nuevoNick = document.getElementById('editTecNick').value.trim()
-        let nickActualizado = false
-        
         if (nuevoNick && nuevoNick !== tecnico.nick) {
-            // Verificar que el nick no esté en uso por otro usuario
-            const { data: existente, error: checkError } = await sb
+            const { data: existente } = await sb
                 .from('perfiles')
                 .select('id')
                 .eq('nick', nuevoNick)
                 .neq('user_id', tecnico.user_id)
                 .maybeSingle()
             
-            if (checkError) {
-                mostrarMensaje('Error al verificar nick', 'error')
-                return
-            }
-            
             if (existente) {
-                mostrarMensaje('❌ El nick ya está en uso por otro usuario', 'error')
+                mostrarMensaje('❌ El nick ya está en uso', 'error')
                 return
             }
             
-            // 1a. Actualizar nick en perfiles
-            const { error: perfilError } = await sb
-                .from('perfiles')
-                .update({ nick: nuevoNick })
-                .eq('user_id', tecnico.user_id)
+            await sb.from('perfiles').update({ nick: nuevoNick }).eq('user_id', tecnico.user_id)
+            await sb.from('tecnicos').update({ nick: nuevoNick }).eq('id', id)
             
-            if (perfilError) {
-                mostrarMensaje('Error al actualizar nick en perfiles', 'error')
-                return
-            }
-            
-            // 1b. Actualizar nick en tecnicos
-            const { error: tecError } = await sb
-                .from('tecnicos')
-                .update({ nick: nuevoNick })
-                .eq('id', id)
-            
-            if (tecError) {
-                mostrarMensaje('Error al actualizar nick en tecnicos', 'error')
-                return
-            }
-            
-            // 1c. Actualizar metadata en auth.users (vía Edge Function)
             try {
                 const { data: session } = await sb.auth.getSession()
-                const response = await fetch(`${SUPABASE_URL}/functions/v1/actualizar-metadata-tecnico`, {
+                await fetch(`${SUPABASE_URL}/functions/v1/actualizar-metadata-tecnico`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -724,30 +749,17 @@ async function editarTecnico(id, tipo) {
                         nombre: datos.nombre
                     })
                 })
-                
-                const result = await response.json()
-                if (!response.ok) {
-                    console.error('Error actualizando metadata:', result)
-                    mostrarMensaje('⚠️ Nick actualizado en la app pero no en metadata de auth', 'error')
-                } else {
-                    nickActualizado = true
-                }
             } catch (error) {
-                console.error('Error en Edge Function:', error)
-                mostrarMensaje('⚠️ Nick actualizado pero metadata no se sincronizó', 'error')
+                console.error('Error actualizando metadata:', error)
             }
         }
         
-        // ============================================================
-        // 2. ACTUALIZAR CONTRASEÑA EN auth.users (vía Edge Function)
-        // ============================================================
+        // Actualizar contraseña
         const nuevaPassword = document.getElementById('editTecPassword').value
-        let passActualizada = false
-        
         if (nuevaPassword && nuevaPassword.length >= 6) {
             try {
                 const { data: session } = await sb.auth.getSession()
-                const response = await fetch(`${SUPABASE_URL}/functions/v1/actualizar-password-tecnico`, {
+                await fetch(`${SUPABASE_URL}/functions/v1/actualizar-password-tecnico`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -758,24 +770,13 @@ async function editarTecnico(id, tipo) {
                         nueva_password: nuevaPassword
                     })
                 })
-                
-                const result = await response.json()
-                if (!response.ok) throw new Error(result.error)
-                
-                passActualizada = true
                 mostrarMensaje('✅ Contraseña actualizada', 'exito')
             } catch (error) {
                 console.error('Error actualizando password:', error)
-                mostrarMensaje('Error al actualizar contraseña', 'error')
-                return
             }
         }
         
-        // ============================================================
-        // 3. ACTUALIZAR DATOS LABORALES
-        // ============================================================
         let exito = false
-        
         if (tipo === 'interno') {
             datos.salario_hora = parseFloat(document.getElementById('editTecSalario').value) || 0
             exito = await personalModule.actualizarTecnicoInterno(id, datos)
@@ -787,16 +788,10 @@ async function editarTecnico(id, tipo) {
         if (exito) {
             modal.remove()
             await cargarDatosIniciales()
-            const subvista = localStorage.getItem('gerente_personal_subvista') || (tipo === 'interno' ? 'internos' : 'externos')
+            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
             localStorage.setItem('gerente_personal_subvista', subvista)
             await renderizarPanel()
-            
-            let mensaje = '✅ Cambios guardados'
-            if (nickActualizada) mensaje += ' | Nick actualizado'
-            if (passActualizada) mensaje += ' | Contraseña actualizada'
-            mostrarMensaje(mensaje, 'exito')
-        } else {
-            mostrarMensaje('Error al actualizar datos laborales', 'error')
+            mostrarMensaje('✅ Cambios guardados', 'exito')
         }
     }
     
@@ -832,52 +827,112 @@ async function aprobarVacacion(id, estado) {
     const exito = await personalModule.aprobarVacaciones(id, estado, currentPerfil?.id)
     if (exito) {
         await cargarDatosIniciales()
-        renderizarPanel()
+        await renderizarPanel()
     }
 }
 
-// ============================================================
-// RENDERIZADO DE CLIENTES
-// ============================================================
-
-async function renderizarClientes() {
-    const subvista = localStorage.getItem('gerente_clientes_subvista') || 'lista'
+function mostrarModalAgregarTecnico(tipo = 'interno') {
+    const { renderizarModalAgregarTecnico } = personalModule
     
-    if (!clientesModule) {
-        clientesModule = await import('./modules/clientes.js')
-    }
-    
-    if (subvista === 'crear') {
-        const { renderizarFormularioCrearCliente } = clientesModule
-        return `<div class="container">
-            <div class="card">
-                <div class="card-header">➕ Nuevo Cliente
-                    <button id="btnVolverClientes" class="btn-warning btn-sm" style="float:right;">◀ Volver</button>
-                </div>
-                <div id="clientesSubcontenido">
-                    ${renderizarFormularioCrearCliente()}
-                </div>
-            </div>
-        </div>`
-    }
-    
-    // Vista lista
-    setTimeout(() => mostrarListaClientes(), 50)
-    
-    return `<div class="container">
-        <div class="card">
-            <div class="card-header">🏢 Clientes
-                <button id="btnAltaCliente" class="btn-success btn-sm" style="float:right;">➕ Alta</button>
-            </div>
-            <div id="clientesSubcontenido">
-                <div class="text-center" style="padding:40px;">Cargando clientes...</div>
-            </div>
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+    modal.style.display = 'flex'
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <h3>${tipo === 'interno' ? '➕ Alta de trabajador interno' : '➕ Alta de trabajador externo'}</h3>
+            ${renderizarModalAgregarTecnico(tipo)}
         </div>
-    </div>`
+    `
+    document.body.appendChild(modal)
+    
+    // Funcionalidad de vista previa
+    const tipoSelect = document.getElementById('tecTipo')
+    const nombreInput = document.getElementById('tecNombre')
+    const apellidoInput = document.getElementById('tecApellido')
+    const emailInput = document.getElementById('tecEmail')
+    const previewEmail = document.getElementById('previewEmail')
+    const previewNick = document.getElementById('previewNick')
+    
+    function actualizarPreview() {
+        const nombre = nombreInput?.value.trim() || 'nombre'
+        const apellido = apellidoInput?.value.trim() || 'apellido'
+        const email = emailInput?.value.trim()
+        const dominio = currentUser?.email?.split('@')[1] || 'empresa.es'
+        const prefijo = tipoSelect?.value === 'interno' ? 'INT' : 'EXT'
+        const nick = `${nombre.toLowerCase()}${apellido.toLowerCase()}`
+        
+        if (previewEmail) {
+            previewEmail.textContent = email || `${prefijo}0001@${dominio}`
+        }
+        if (previewNick) {
+            previewNick.textContent = nick
+        }
+    }
+    
+    if (tipoSelect) tipoSelect.onchange = actualizarPreview
+    if (nombreInput) nombreInput.oninput = actualizarPreview
+    if (apellidoInput) apellidoInput.oninput = actualizarPreview
+    if (emailInput) emailInput.oninput = actualizarPreview
+    
+    document.getElementById('btnGuardarTecnico').onclick = async () => {
+        const tipo = document.getElementById('tecTipo').value
+        const nombre = document.getElementById('tecNombre').value.trim()
+        const apellido = document.getElementById('tecApellido').value.trim()
+        const dni = document.getElementById('tecDni').value.trim()
+        const telefono = document.getElementById('tecTelefono').value.trim()
+        const emailPersonal = document.getElementById('tecEmail').value.trim()
+        const fechaNacimiento = document.getElementById('tecFechaNacimiento').value
+        const fechaAlta = document.getElementById('tecFechaAlta').value
+        const fechaFin = document.getElementById('tecFechaFin').value
+        const especialidad = document.getElementById('tecEspecialidad').value.trim()
+        const seguridadSocial = document.getElementById('tecSeguridadSocial').value.trim()
+        const salario = parseFloat(document.getElementById('tecSalario').value) || 0
+        const empresaExterna = document.getElementById('tecEmpresaExterna').value.trim()
+        
+        if (!nombre || !apellido) {
+            mostrarMensaje('Nombre y apellido obligatorios', 'error')
+            return
+        }
+        if (!dni) {
+            mostrarMensaje('DNI/NIE obligatorio', 'error')
+            return
+        }
+        
+        const datos = {
+            nombre,
+            apellido,
+            dni,
+            telefono,
+            email: emailPersonal || null,
+            fechaNacimiento: fechaNacimiento || null,
+            fechaAlta: fechaAlta || null,
+            fechaFin: fechaFin || null,
+            especialidad: especialidad || null,
+            seguridadSocial: seguridadSocial || null,
+            salario: salario,
+            empresaExterna: empresaExterna || null
+        }
+        
+        const email = currentUser?.email
+        const exito = tipo === 'interno' 
+            ? await personalModule.crearTecnicoInterno(datos, currentEmpresaId, email) 
+            : await personalModule.crearTecnicoExterno(datos, currentEmpresaId, email)
+        
+        if (exito) {
+            modal.remove()
+            await cargarDatosIniciales()
+            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
+            localStorage.setItem('gerente_personal_subvista', subvista)
+            await renderizarPanel()
+        }
+    }
+    
+    document.getElementById('btnCancelarTecnico').onclick = () => modal.remove()
+    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
 }
 
 // ============================================================
-// FUNCIONES DE CLIENTES
+// FUNCIONES DE CLIENTES (ya existentes)
 // ============================================================
 
 async function mostrarListaClientes() {
@@ -899,12 +954,6 @@ async function mostrarListaClientes() {
         (id) => mostrarActivosCliente(id)
     )
     document.getElementById('clientesSubcontenido').innerHTML = html
-    
-    document.getElementById('btnAltaCliente')?.addEventListener('click', () => mostrarAltaCliente())
-    document.querySelectorAll('.editar-cliente').forEach(btn => btn.addEventListener('click', () => editarCliente(btn.dataset.id)))
-    document.querySelectorAll('.regenerar-codigo').forEach(btn => btn.addEventListener('click', () => regenerarCodigoCliente(btn.dataset.id)))
-    document.querySelectorAll('.toggle-acceso').forEach(btn => btn.addEventListener('click', () => toggleAccesoCliente(btn.dataset.id, btn.dataset.activo === 'true')))
-    document.querySelectorAll('.ver-activos').forEach(btn => btn.addEventListener('click', () => mostrarActivosCliente(btn.dataset.id)))
 }
 
 async function mostrarAltaCliente() {
@@ -930,7 +979,7 @@ async function editarCliente(id) {
             <div class="form-group"><label>📍 Dirección</label><input type="text" id="editDireccion" value="${escapeHtml(cliente.direccion || '')}"></div>
             <div class="row-flex"><div class="grupo"><label>Ciudad</label><input type="text" id="editCiudad" value="${escapeHtml(cliente.ciudad || '')}"></div>
             <div class="grupo"><label>Provincia</label><input type="text" id="editProvincia" value="${escapeHtml(cliente.provincia || '')}"></div></div>
-            <div class="form-group"><label>🔑 Código acceso</label><input type="text" id="editCodigo" value="${escapeHtml(cliente.codigo_acceso || '')}" readonly style="background:#f1f5f9;"></div>
+            <div class="form-group"><label>🔑 Código acceso</label><input type="text" value="${escapeHtml(cliente.codigo_acceso || '')}" readonly style="background:#f1f5f9;"></div>
             <div class="modal-buttons"><button id="btnGuardarEdicionCliente" class="btn-aceptar">💾 Guardar</button><button id="btnCancelarEdicionCliente" class="btn-cancelar">Cancelar</button></div>
         </div>
     `
@@ -950,7 +999,7 @@ async function editarCliente(id) {
         if (exito) {
             modal.remove()
             await cargarDatosIniciales()
-            renderizarPanel()
+            await renderizarPanel()
         }
     }
     document.getElementById('btnCancelarEdicionCliente').onclick = () => modal.remove()
@@ -960,7 +1009,7 @@ async function regenerarCodigoCliente(id) {
     const nuevoCodigo = await clientesModule.regenerarCodigoAcceso(id)
     if (nuevoCodigo) {
         await cargarDatosIniciales()
-        mostrarListaClientes()
+        await renderizarPanel()
     }
 }
 
@@ -968,7 +1017,7 @@ async function toggleAccesoCliente(id, activo) {
     const exito = await clientesModule.toggleAccesoCliente(id, !activo)
     if (exito) {
         await cargarDatosIniciales()
-        mostrarListaClientes()
+        await renderizarPanel()
     }
 }
 
@@ -985,27 +1034,172 @@ async function mostrarActivosCliente(clienteId) {
         localStorage.setItem('gerente_clientes_subvista', 'lista')
         renderizarPanel()
     })
+    
     document.getElementById('btnAgregarActivo')?.addEventListener('click', () => mostrarModalCrearActivo(clienteId))
-    document.querySelectorAll('.editar-activo').forEach(btn => btn.addEventListener('click', () => mostrarModalEditarActivo(btn.dataset.id, clienteId)))
-    document.querySelectorAll('.eliminar-activo').forEach(btn => btn.addEventListener('click', async () => {
-        if (confirm('¿Eliminar este activo?')) {
-            await clientesModule.eliminarActivo(btn.dataset.id)
-            mostrarActivosCliente(clienteId)
+    document.querySelectorAll('.editar-activo').forEach(btn => {
+        btn.addEventListener('click', () => mostrarModalEditarActivo(btn.dataset.id, clienteId))
+    })
+    document.querySelectorAll('.eliminar-activo').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (confirm('¿Eliminar este activo?')) {
+                await clientesModule.eliminarActivo(btn.dataset.id)
+                mostrarActivosCliente(clienteId)
+            }
+        })
+    })
+    document.querySelectorAll('.ver-mapa').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lat = parseFloat(btn.dataset.lat)
+            const lon = parseFloat(btn.dataset.lon)
+            const nombre = btn.dataset.nombre || 'Ubicación'
+            if (lat && lon) {
+                window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank')
+                mostrarMensaje(`📍 Abriendo mapa de ${nombre}`, 'exito')
+            } else {
+                mostrarMensaje('❌ Sin coordenadas', 'error')
+            }
+        })
+    })
+}
+
+function mostrarModalCrearActivo(clienteId) {
+    const modal = document.getElementById('modalActivo')
+    if (!modal) return
+    
+    document.getElementById('modalActivoTitulo').innerHTML = '🏗️ Nuevo Activo'
+    document.getElementById('activoId').value = ''
+    document.getElementById('activoNombre').value = ''
+    document.getElementById('activoTipoAcceso').value = 'libre'
+    document.getElementById('activoContacto').value = ''
+    document.getElementById('activoHoraApertura').value = ''
+    document.getElementById('activoHoraCierre').value = ''
+    document.getElementById('activoDireccion').value = ''
+    document.getElementById('activoLocalidad').value = ''
+    document.getElementById('activoCodigoPostal').value = ''
+    document.getElementById('activoInstrucciones').value = ''
+    document.getElementById('activoLatitud').value = ''
+    document.getElementById('activoLongitud').value = ''
+    document.getElementById('activoDatosTecnicos').value = ''
+    
+    modal.style.display = 'flex'
+    setTimeout(() => setupCoordenadas(), 50)
+    
+    const btnGuardar = document.getElementById('btnGuardarActivo')
+    const btnCancelar = document.getElementById('btnCancelarActivo')
+    
+    const guardarHandler = async () => {
+        const datos = {
+            nombre: document.getElementById('activoNombre').value.trim(),
+            tipoAcceso: document.getElementById('activoTipoAcceso').value,
+            contacto: document.getElementById('activoContacto').value,
+            horaApertura: document.getElementById('activoHoraApertura').value,
+            horaCierre: document.getElementById('activoHoraCierre').value,
+            direccion: document.getElementById('activoDireccion').value,
+            localidad: document.getElementById('activoLocalidad').value,
+            codigoPostal: document.getElementById('activoCodigoPostal').value,
+            instrucciones: document.getElementById('activoInstrucciones').value,
+            latitud: document.getElementById('activoLatitud').value || null,
+            longitud: document.getElementById('activoLongitud').value || null,
+            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
         }
-    }))
-    document.querySelectorAll('.ver-mapa').forEach(btn => btn.addEventListener('click', () => {
-        const lat = btn.dataset.lat
-        const lon = btn.dataset.lon
-        if (lat && lon) {
-            window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank')
-        } else {
-            mostrarMensaje('Este activo no tiene coordenadas guardadas', 'error')
+        if (!datos.nombre) {
+            mostrarMensaje('El nombre del activo es obligatorio', 'error')
+            return
         }
-    }))
+        await clientesModule.crearActivo(datos, clienteId)
+        modal.style.display = 'none'
+        mostrarActivosCliente(clienteId)
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const cancelarHandler = () => {
+        modal.style.display = 'none'
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const newBtnGuardar = btnGuardar.cloneNode(true)
+    const newBtnCancelar = btnCancelar.cloneNode(true)
+    btnGuardar.parentNode.replaceChild(newBtnGuardar, btnGuardar)
+    btnCancelar.parentNode.replaceChild(newBtnCancelar, btnCancelar)
+    newBtnGuardar.addEventListener('click', guardarHandler)
+    newBtnCancelar.addEventListener('click', cancelarHandler)
+    modal.onclick = (e) => { if (e.target === modal) cancelarHandler() }
+}
+
+async function mostrarModalEditarActivo(activoId, clienteId) {
+    const activos = await clientesModule.cargarActivos(clienteId)
+    const activo = activos.find(a => a.id === activoId)
+    if (!activo) return
+    
+    const modal = document.getElementById('modalActivo')
+    if (!modal) return
+    
+    document.getElementById('modalActivoTitulo').innerHTML = '✏️ Editar Activo'
+    document.getElementById('activoId').value = activo.id
+    document.getElementById('activoNombre').value = activo.nombre || ''
+    document.getElementById('activoTipoAcceso').value = activo.tipo_acceso || 'libre'
+    document.getElementById('activoContacto').value = activo.contacto || ''
+    document.getElementById('activoHoraApertura').value = activo.hora_apertura || ''
+    document.getElementById('activoHoraCierre').value = activo.hora_cierre || ''
+    document.getElementById('activoDireccion').value = activo.direccion || ''
+    document.getElementById('activoLocalidad').value = activo.localidad || ''
+    document.getElementById('activoCodigoPostal').value = activo.codigo_postal || ''
+    document.getElementById('activoInstrucciones').value = activo.instrucciones_acceso || ''
+    document.getElementById('activoLatitud').value = activo.latitud || ''
+    document.getElementById('activoLongitud').value = activo.longitud || ''
+    document.getElementById('activoDatosTecnicos').value = activo.datos_tecnicos || ''
+    
+    modal.style.display = 'flex'
+    setTimeout(() => setupCoordenadas(), 50)
+    
+    const btnGuardar = document.getElementById('btnGuardarActivo')
+    const btnCancelar = document.getElementById('btnCancelarActivo')
+    
+    const guardarHandler = async () => {
+        const datos = {
+            nombre: document.getElementById('activoNombre').value.trim(),
+            tipoAcceso: document.getElementById('activoTipoAcceso').value,
+            contacto: document.getElementById('activoContacto').value,
+            horaApertura: document.getElementById('activoHoraApertura').value,
+            horaCierre: document.getElementById('activoHoraCierre').value,
+            direccion: document.getElementById('activoDireccion').value,
+            localidad: document.getElementById('activoLocalidad').value,
+            codigoPostal: document.getElementById('activoCodigoPostal').value,
+            instrucciones: document.getElementById('activoInstrucciones').value,
+            latitud: document.getElementById('activoLatitud').value || null,
+            longitud: document.getElementById('activoLongitud').value || null,
+            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
+        }
+        if (!datos.nombre) {
+            mostrarMensaje('El nombre del activo es obligatorio', 'error')
+            return
+        }
+        await clientesModule.actualizarActivo(activoId, datos)
+        modal.style.display = 'none'
+        mostrarActivosCliente(clienteId)
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const cancelarHandler = () => {
+        modal.style.display = 'none'
+        btnGuardar.removeEventListener('click', guardarHandler)
+        btnCancelar.removeEventListener('click', cancelarHandler)
+    }
+    
+    const newBtnGuardar = btnGuardar.cloneNode(true)
+    const newBtnCancelar = btnCancelar.cloneNode(true)
+    btnGuardar.parentNode.replaceChild(newBtnGuardar, btnGuardar)
+    btnCancelar.parentNode.replaceChild(newBtnCancelar, btnCancelar)
+    newBtnGuardar.addEventListener('click', guardarHandler)
+    newBtnCancelar.addEventListener('click', cancelarHandler)
+    modal.onclick = (e) => { if (e.target === modal) cancelarHandler() }
 }
 
 // ============================================================
-// OBTENER COORDENADAS DESDE DIRECCIÓN
+// COORDENADAS
 // ============================================================
 
 function setupCoordenadas() {
@@ -1025,188 +1219,91 @@ function setupCoordenadas() {
             return
         }
         
-        const query = encodeURIComponent(`${direccion}, ${localidad}, ${codigoPostal}, España`)
-        const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`
-        
-        mostrarMensaje('🔍 Buscando coordenadas...', 'exito')
+        newBtn.innerHTML = '⏳ Buscando...'
+        newBtn.disabled = true
         
         try {
-            const response = await fetch(url)
+            let queryParts = []
+            if (direccion) queryParts.push(direccion)
+            if (codigoPostal) queryParts.push(codigoPostal)
+            if (localidad) queryParts.push(localidad)
+            queryParts.push('España')
+            
+            const query = encodeURIComponent(queryParts.join(', '))
+            const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=5&addressdetails=1&countrycodes=es&dedupe=1`
+            
+            const response = await fetch(url, {
+                headers: { 'User-Agent': 'COMUTECH-App/1.0' }
+            })
             const data = await response.json()
             
             if (data && data.length > 0) {
-                document.getElementById('activoLatitud').value = data[0].lat
-                document.getElementById('activoLongitud').value = data[0].lon
-                mostrarMensaje('✅ Coordenadas obtenidas', 'exito')
+                const lat = parseFloat(data[0].lat).toFixed(6)
+                const lon = parseFloat(data[0].lon).toFixed(6)
+                document.getElementById('activoLatitud').value = lat
+                document.getElementById('activoLongitud').value = lon
+                mostrarMensaje(`✅ Coordenadas: ${lat}, ${lon}`, 'exito')
             } else {
                 mostrarMensaje('❌ No se encontró la ubicación', 'error')
             }
         } catch (error) {
             console.error(error)
             mostrarMensaje('Error al obtener coordenadas', 'error')
+        } finally {
+            newBtn.innerHTML = '📍 Obtener coordenadas'
+            newBtn.disabled = false
         }
     }
 }
 
 // ============================================================
-// MODALES DE ACTIVOS
+// MATERIALES, FACTURACIÓN E IMPUESTOS (placeholders)
 // ============================================================
 
-function mostrarModalCrearActivo(clienteId) {
-    const modal = document.getElementById('modalActivo')
-    if (!modal) return
-    
-    document.getElementById('modalActivoTitulo').innerHTML = '🏗️ Nuevo Activo'
-    document.getElementById('activoId').value = ''
-    document.getElementById('activoNombre').value = ''
-    document.getElementById('activoTipoAcceso').value = 'libre'
-    document.getElementById('activoUbicacion').value = ''
-    document.getElementById('activoContacto').value = ''
-    document.getElementById('activoHoraApertura').value = ''
-    document.getElementById('activoHoraCierre').value = ''
-    document.getElementById('activoDireccion').value = ''
-    document.getElementById('activoLocalidad').value = ''
-    document.getElementById('activoCodigoPostal').value = ''
-    document.getElementById('activoInstrucciones').value = ''
-    document.getElementById('activoLatitud').value = ''
-    document.getElementById('activoLongitud').value = ''
-    document.getElementById('activoDatosTecnicos').value = ''
-    
-    modal.style.display = 'flex'
-    
-    setTimeout(() => setupCoordenadas(), 50)
-    
-    const btnGuardar = document.getElementById('btnGuardarActivo')
-    const btnCancelar = document.getElementById('btnCancelarActivo')
-    
-    const guardarHandler = async () => {
-        const datos = {
-            nombre: document.getElementById('activoNombre').value.trim(),
-            tipoAcceso: document.getElementById('activoTipoAcceso').value,
-            ubicacion: document.getElementById('activoUbicacion').value,
-            contacto: document.getElementById('activoContacto').value,
-            horaApertura: document.getElementById('activoHoraApertura').value,
-            horaCierre: document.getElementById('activoHoraCierre').value,
-            direccion: document.getElementById('activoDireccion').value,
-            localidad: document.getElementById('activoLocalidad').value,
-            codigoPostal: document.getElementById('activoCodigoPostal').value,
-            instrucciones: document.getElementById('activoInstrucciones').value,
-            latitud: document.getElementById('activoLatitud').value || null,
-            longitud: document.getElementById('activoLongitud').value || null,
-            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
-        }
-        
-        if (!datos.nombre) {
-            mostrarMensaje('El nombre del activo es obligatorio', 'error')
-            return
-        }
-        
-        await clientesModule.crearActivo(datos, clienteId)
-        modal.style.display = 'none'
-        mostrarActivosCliente(clienteId)
-        
-        btnGuardar.removeEventListener('click', guardarHandler)
-        btnCancelar.removeEventListener('click', cancelarHandler)
-    }
-    
-    const cancelarHandler = () => {
-        modal.style.display = 'none'
-        btnGuardar.removeEventListener('click', guardarHandler)
-        btnCancelar.removeEventListener('click', cancelarHandler)
-    }
-    
-    const newBtnGuardar = btnGuardar.cloneNode(true)
-    const newBtnCancelar = btnCancelar.cloneNode(true)
-    btnGuardar.parentNode.replaceChild(newBtnGuardar, btnGuardar)
-    btnCancelar.parentNode.replaceChild(newBtnCancelar, btnCancelar)
-    
-    newBtnGuardar.addEventListener('click', guardarHandler)
-    newBtnCancelar.addEventListener('click', cancelarHandler)
-    
-    modal.onclick = (e) => { if (e.target === modal) cancelarHandler() }
+async function renderizarMateriales() {
+    return `<div class="container">
+        <div class="card">
+            <div class="card-header">📦 Materiales</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                <button id="btnStockMateriales" class="btn-info">📦 Stock (${stockData.length})</button>
+                <button id="btnGastosMateriales" class="btn-info">💰 Gastos (${gastosData.length})</button>
+            </div>
+            <div id="materialesSubcontenido">
+                <div class="text-center" style="padding:40px;">Selecciona una opción</div>
+            </div>
+        </div>
+    </div>`
 }
 
-async function mostrarModalEditarActivo(activoId, clienteId) {
-    const activos = await clientesModule.cargarActivos(clienteId)
-    const activo = activos.find(a => a.id === activoId)
-    if (!activo) return
-    
-    const modal = document.getElementById('modalActivo')
-    if (!modal) return
-    
-    document.getElementById('modalActivoTitulo').innerHTML = '✏️ Editar Activo'
-    document.getElementById('activoId').value = activo.id
-    document.getElementById('activoNombre').value = activo.nombre || ''
-    document.getElementById('activoTipoAcceso').value = activo.tipo_acceso || 'libre'
-    document.getElementById('activoUbicacion').value = activo.ubicacion || ''
-    document.getElementById('activoContacto').value = activo.contacto || ''
-    document.getElementById('activoHoraApertura').value = activo.hora_apertura || ''
-    document.getElementById('activoHoraCierre').value = activo.hora_cierre || ''
-    document.getElementById('activoDireccion').value = activo.direccion || ''
-    document.getElementById('activoLocalidad').value = activo.localidad || ''
-    document.getElementById('activoCodigoPostal').value = activo.codigo_postal || ''
-    document.getElementById('activoInstrucciones').value = activo.instrucciones_acceso || ''
-    document.getElementById('activoLatitud').value = activo.latitud || ''
-    document.getElementById('activoLongitud').value = activo.longitud || ''
-    document.getElementById('activoDatosTecnicos').value = activo.datos_tecnicos || ''
-    
-    modal.style.display = 'flex'
-    
-    setTimeout(() => setupCoordenadas(), 50)
-    
-    const btnGuardar = document.getElementById('btnGuardarActivo')
-    const btnCancelar = document.getElementById('btnCancelarActivo')
-    
-    const guardarHandler = async () => {
-        const datos = {
-            nombre: document.getElementById('activoNombre').value.trim(),
-            tipoAcceso: document.getElementById('activoTipoAcceso').value,
-            ubicacion: document.getElementById('activoUbicacion').value,
-            contacto: document.getElementById('activoContacto').value,
-            horaApertura: document.getElementById('activoHoraApertura').value,
-            horaCierre: document.getElementById('activoHoraCierre').value,
-            direccion: document.getElementById('activoDireccion').value,
-            localidad: document.getElementById('activoLocalidad').value,
-            codigoPostal: document.getElementById('activoCodigoPostal').value,
-            instrucciones: document.getElementById('activoInstrucciones').value,
-            latitud: document.getElementById('activoLatitud').value || null,
-            longitud: document.getElementById('activoLongitud').value || null,
-            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
-        }
-        
-        if (!datos.nombre) {
-            mostrarMensaje('El nombre del activo es obligatorio', 'error')
-            return
-        }
-        
-        await clientesModule.actualizarActivo(activoId, datos)
-        modal.style.display = 'none'
-        mostrarActivosCliente(clienteId)
-        
-        btnGuardar.removeEventListener('click', guardarHandler)
-        btnCancelar.removeEventListener('click', cancelarHandler)
-    }
-    
-    const cancelarHandler = () => {
-        modal.style.display = 'none'
-        btnGuardar.removeEventListener('click', guardarHandler)
-        btnCancelar.removeEventListener('click', cancelarHandler)
-    }
-    
-    const newBtnGuardar = btnGuardar.cloneNode(true)
-    const newBtnCancelar = btnCancelar.cloneNode(true)
-    btnGuardar.parentNode.replaceChild(newBtnGuardar, btnGuardar)
-    btnCancelar.parentNode.replaceChild(newBtnCancelar, btnCancelar)
-    
-    newBtnGuardar.addEventListener('click', guardarHandler)
-    newBtnCancelar.addEventListener('click', cancelarHandler)
-    
-    modal.onclick = (e) => { if (e.target === modal) cancelarHandler() }
+async function renderizarFacturacion() {
+    return `<div class="container">
+        <div class="card">
+            <div class="card-header">💰 Facturación</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                <button id="btnIngresos" class="btn-info">📈 Ingresos (${facturasData.length})</button>
+                <button id="btnPagos" class="btn-info">💳 Pagos (${pagosData.length})</button>
+            </div>
+            <div id="facturacionSubcontenido">
+                <div class="text-center" style="padding:40px;">Selecciona una opción</div>
+            </div>
+        </div>
+    </div>`
 }
 
-// ============================================================
-// FUNCIONES DE MATERIALES, FACTURACIÓN E IMPUESTOS (placeholders)
-// ============================================================
+async function renderizarImpuestos() {
+    return `<div class="container">
+        <div class="card">
+            <div class="card-header">📊 Impuestos</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                <button id="btnIRPF" class="btn-info">📋 IRPF</button>
+                <button id="btnIVA" class="btn-info">📋 IVA</button>
+            </div>
+            <div id="impuestosSubcontenido">
+                <div class="text-center" style="padding:40px;">Selecciona una opción</div>
+            </div>
+        </div>
+    </div>`
+}
 
 async function mostrarStockMateriales() {
     if (stockData.length === 0) {
@@ -1217,11 +1314,10 @@ async function mostrarStockMateriales() {
     let html = `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Material</th><th>Cantidad</th><th>Precio</th><th>Proveedor</th><th>Stock mínimo</th></tr></thead><tbody>`
     for (const m of stockData) {
         html += `<tr><td><strong>${escapeHtml(m.nombre)}</strong></td>
-        <td>${m.cantidad} uds</span></div></td>
-        <td>${formatMoney(m.precio_unitario || 0)}€</span></div></td>
-        <td>${escapeHtml(m.proveedor || '-')}</span></div></td>
-        <td>${m.stock_minimo || 0}</span></div></td>
-        `
+        <td>${m.cantidad} uds</td>
+        <td>${formatMoney(m.precio_unitario || 0)}€</td>
+        <td>${escapeHtml(m.proveedor || '-')}</td>
+        <td>${m.stock_minimo || 0}</td></tr>`
     }
     html += `</tbody></table><div style="margin-top:16px;"><button id="btnAgregarMaterial" class="btn-success">➕ Agregar</button></div></div>`
     document.getElementById('materialesSubcontenido').innerHTML = html
@@ -1239,11 +1335,7 @@ async function mostrarGastosMateriales() {
     let html = `<div class="card" style="margin-bottom:16px;"><div class="card-header">📊 Total gastos: ${formatMoney(total)}€</div></div>`
     html += `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Proveedor</th><th>Factura</th><th>Fecha</th><th>Importe</th></tr></thead><tbody>`
     for (const g of gastosData) {
-        html += `<tr><td>${escapeHtml(g.proveedor)}</span></div></td>
-        <td>${escapeHtml(g.numero_factura || '-')}</span></div></td>
-        <td>${formatearFecha(g.fecha)}</span></div></td>
-        <td>${formatMoney(g.importe_total || 0)}€</span></div></td>
-        `
+        html += `<tr><td>${escapeHtml(g.proveedor)}</td><td>${escapeHtml(g.numero_factura || '-')}</td><td>${formatearFecha(g.fecha)}</td><td>${formatMoney(g.importe_total || 0)}€</td></tr>`
     }
     html += `</tbody></table><div style="margin-top:16px;"><button id="btnRegistrarGasto" class="btn-success">➕ Registrar</button></div>`
     document.getElementById('materialesSubcontenido').innerHTML = html
@@ -1261,7 +1353,7 @@ async function mostrarIngresos() {
     let html = `<div class="card" style="margin-bottom:16px;"><div class="card-header">💰 Total facturado: ${formatMoney(total)}€ | Cobrado: ${formatMoney(cobrado)}€ | Pendiente: ${formatMoney(total - cobrado)}€</div></div>`
     html += `<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nº</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th></tr></thead><tbody>`
     for (const f of facturasData) {
-        html += `<td><td><strong>${escapeHtml(f.numero_factura)}</strong></td><td>${escapeHtml(f.cliente_nombre || '-')}</td><td>${formatearFecha(f.fecha_expedicion)}</td><td>${formatMoney(f.importe_total)}€</td><td>${f.estado === 'pagada' ? '<span class="badge badge-activo">✅ Pagada</span>' : '<span class="badge badge-pendiente">⏳ Pendiente</span>'}</td></tr>`
+        html += `<tr><td><strong>${escapeHtml(f.numero_factura)}</strong></td><td>${escapeHtml(f.cliente_nombre || '-')}</td><td>${formatearFecha(f.fecha_expedicion)}</td><td>${formatMoney(f.importe_total)}€</td><td>${f.estado === 'pagada' ? '<span class="badge badge-activo">✅ Pagada</span>' : '<span class="badge badge-pendiente">⏳ Pendiente</span>'}</td></tr>`
     }
     html += `</tbody></table><div style="margin-top:16px;"><button id="btnNuevaFactura" class="btn-success">➕ Nueva</button></div>`
     document.getElementById('facturacionSubcontenido').innerHTML = html
@@ -1331,80 +1423,323 @@ async function mostrarIVA() {
     })
 }
 
+
 // ============================================================
-// FUNCIONES CRUD DE TAREAS
+// EVENTOS DE FILTROS DE TAREAS
 // ============================================================
 
-async function guardarNuevaTarea() {
-    const clienteId = document.getElementById('tareaCliente')?.value
-    const tecnicoId = document.getElementById('tareaTecnico')?.value || null
-    const prioridad = document.getElementById('tareaPrioridad')?.value
-    const titulo = document.getElementById('tareaTitulo')?.value.trim()
-    const descripcion = document.getElementById('tareaDescripcion')?.value.trim()
-    const ordenTrabajo = document.getElementById('tareaOrdenTrabajo')?.value.trim()
-    
-    if (!clienteId || !titulo) { mostrarMensaje('Completa los campos obligatorios', 'error'); return }
-    const nuevaTarea = await tareasModule.crearTarea({ clienteId, tecnicoId, titulo, descripcion, prioridad, ordenTrabajo })
-    if (nuevaTarea) { await cargarDatosIniciales(); localStorage.setItem('gerente_tareas_subvista', 'lista'); renderizarPanel() }
-}
-
-async function guardarEdicionTarea() {
-    const tareaId = document.getElementById('editTareaId')?.value
-    const clienteId = document.getElementById('editTareaCliente')?.value
-    const tecnicoId = document.getElementById('editTareaTecnico')?.value || null
-    const prioridad = document.getElementById('editTareaPrioridad')?.value
-    const titulo = document.getElementById('editTareaTitulo')?.value.trim()
-    const descripcion = document.getElementById('editTareaDescripcion')?.value.trim()
-    const ordenTrabajo = document.getElementById('editTareaOrdenTrabajo')?.value.trim()
-    const estado = document.getElementById('editTareaEstado')?.value
-    
-    const exito = await tareasModule.actualizarTarea(tareaId, { clienteId, tecnicoId, titulo, descripcion, prioridad, ordenTrabajo, estado })
-    if (exito) { await cargarDatosIniciales(); localStorage.setItem('gerente_tareas_subvista', 'lista'); renderizarPanel() }
-}
-
-async function abrirModalAsignar(tareaId) {
-    const tarea = tareasData.find(t => t.id === tareaId)
-    if (!tarea) return
-    const tecnicosOptions = tecnicosInternosData.map(t => `<option value="${t.id}">${escapeHtml(t.nombre)}</option>`).join('')
-    const modal = document.createElement('div')
-    modal.className = 'modal-overlay'
-    modal.style.display = 'flex'
-    modal.innerHTML = `<div class="modal-content" style="max-width:450px;"><h3>🔄 Reasignar: ${escapeHtml(tarea.titulo)}</h3>
-        <div class="form-group"><label>👨‍🔧 Técnico</label><select id="asignarTecnico">${tecnicosOptions}</select></div>
-        <div class="form-group"><label>Motivo</label><textarea id="asignarMotivo" rows="2"></textarea></div>
-        <div class="modal-buttons"><button id="btnConfirmarAsignar" class="btn-aceptar">✅ Asignar</button><button id="btnCancelarAsignar" class="btn-cancelar">Cancelar</button></div></div>`
-    document.body.appendChild(modal)
-    
-    document.getElementById('btnConfirmarAsignar').onclick = async () => {
-        const nuevoTecnicoId = document.getElementById('asignarTecnico').value
-        const motivo = document.getElementById('asignarMotivo').value
-        if (!nuevoTecnicoId) { mostrarMensaje('Selecciona un técnico', 'error'); return }
-        const exito = await tareasModule.asignarTarea(tareaId, nuevoTecnicoId, motivo)
-        if (exito) { modal.remove(); await cargarDatosIniciales(); renderizarPanel() }
+function asignarEventosFiltrosTareas() {
+    const filtros = {
+        busqueda: '',
+        estado: 'todos',
+        tecnico: 'todos',
+        cliente: 'todos',
+        prioridad: 'todos',
+        fecha: 'todos'
     }
-    document.getElementById('btnCancelarAsignar').onclick = () => modal.remove()
+    
+    function aplicarFiltrosYActualizar() {
+        if (!tareasModule || typeof tareasModule.aplicarFiltrosTareas !== 'function') {
+            setTimeout(aplicarFiltrosYActualizar, 500)
+            return
+        }
+        
+        const { aplicarFiltrosTareas } = tareasModule
+        
+        const buscarInput = document.getElementById('buscarTarea')
+        const estadoSelect = document.getElementById('filtroEstadoTarea')
+        const tecnicoSelect = document.getElementById('filtroTecnicoTarea')
+        const clienteSelect = document.getElementById('filtroClienteTarea')
+        const prioridadSelect = document.getElementById('filtroPrioridadTarea')
+        const fechaSelect = document.getElementById('filtroFechaTarea')
+        
+        filtros.busqueda = buscarInput?.value || ''
+        filtros.estado = estadoSelect?.value || 'todos'
+        filtros.tecnico = tecnicoSelect?.value || 'todos'
+        filtros.cliente = clienteSelect?.value || 'todos'
+        filtros.prioridad = prioridadSelect?.value || 'todos'
+        filtros.fecha = fechaSelect?.value || 'todos'
+        
+        const resultado = aplicarFiltrosTareas(tareasData, filtros)
+        
+        const contador = document.getElementById('contadorResultados')
+        if (contador) contador.textContent = resultado.length
+        
+        const resultadosSpan = document.getElementById('resultadosBusqueda')
+        if (resultadosSpan) {
+            resultadosSpan.textContent = resultado.length > 0 ? `(${resultado.length})` : ''
+        }
+        
+        const container = document.getElementById('tablaTareasContainer')
+        if (container) {
+            if (typeof tareasModule.renderizarTablaTareas === 'function') {
+                container.innerHTML = tareasModule.renderizarTablaTareas(resultado)
+            } else {
+                // Fallback: reconstruir la tabla
+                let html = `<table class="data-table"><thead><tr>
+                    <th>Nº Tarea</th><th>Título</th><th>Cliente / Activo</th>
+                    <th>Técnico</th><th>Prioridad</th><th>Estado</th>
+                    <th>Fecha límite</th><th>Acciones</th>
+                </tr></thead><tbody>`
+                
+                for (const t of resultado) {
+                    const tecnicoNombre = t.perfiles?.nombre_razon_social || 'Sin asignar'
+                    const clienteNombre = t.empresas?.nombre_empresa || '-'
+                    const puedeReasignar = !['terminada', 'cancelada'].includes(t.estado)
+                    
+                    html += `<tr>
+                        <td><strong>${escapeHtml(t.numero_tarea)}</strong></td>
+                        <td>${escapeHtml(t.titulo)}</td>
+                        <td>${escapeHtml(clienteNombre)}${t.activos?.nombre ? `<br><small style="color:var(--ios-gray);">🏗️ ${escapeHtml(t.activos.nombre)}</small>` : ''}</td>
+                        <td>${escapeHtml(tecnicoNombre)}</td>
+                        <td>${getPrioridadBadge(t.prioridad)}</td>
+                        <td>${getEstadoBadge(t.estado)}</td>
+                        <td style="font-size:12px;">${formatearFecha(t.fecha_limite) || '-'}</td>
+                        <td>
+                            <button class="btn-sm ver-tarea" data-id="${t.id}" style="background:#0284c7; color:white;">👁️ Ver</button>
+                            ${puedeReasignar ? `<button class="btn-sm asignar-tarea" data-id="${t.id}" style="background:#e67e22; color:white;">🔄</button>` : ''}
+                        </td>
+                    </tr>`
+                }
+                html += `</tbody></table>`
+                container.innerHTML = html
+            }
+            
+            // Reasignar eventos
+            document.querySelectorAll('.ver-tarea').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    localStorage.setItem('gerente_tareas_subvista', 'detalle')
+                    localStorage.setItem('gerente_tarea_detalle', btn.dataset.id)
+                    renderizarPanel()
+                })
+            })
+            
+            document.querySelectorAll('.asignar-tarea').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    handleReasignarTarea(btn.dataset.id)
+                })
+            })
+        }
+        
+        actualizarFiltrosActivos(filtros)
+    }
+    
+    function actualizarFiltrosActivos(filtros) {
+        const container = document.getElementById('filtrosActivos')
+        if (!container) return
+        
+        const tags = []
+        
+        if (filtros.estado && filtros.estado !== 'todos') {
+            tags.push({ key: 'estado', label: `📌 ${getEstadoLabel(filtros.estado)}` })
+        }
+        
+        if (filtros.tecnico && filtros.tecnico !== 'todos') {
+            const tecnico = tecnicosInternosData.find(t => t.id === filtros.tecnico)
+            if (tecnico) tags.push({ key: 'tecnico', label: `👨‍🔧 ${escapeHtml(tecnico.nombre_razon_social)}` })
+        }
+        
+        if (filtros.cliente && filtros.cliente !== 'todos') {
+            const cliente = clientesData.find(c => c.id === filtros.cliente)
+            if (cliente) tags.push({ key: 'cliente', label: `🏢 ${escapeHtml(cliente.nombre_empresa || cliente.nombre)}` })
+        }
+        
+        if (filtros.prioridad && filtros.prioridad !== 'todos') {
+            const prioridades = { baja: '🟢 Baja', media: '🟡 Media', alta: '🔴 Alta', urgente: '🔥 Urgente' }
+            tags.push({ key: 'prioridad', label: `⭐ ${prioridades[filtros.prioridad]}` })
+        }
+        
+        if (filtros.fecha && filtros.fecha !== 'todos') {
+            const fechas = { hoy: '📅 Hoy', semana: '📅 Esta semana', mes: '📅 Este mes', atrasadas: '⏰ Atrasadas' }
+            tags.push({ key: 'fecha', label: fechas[filtros.fecha] })
+        }
+        
+        if (filtros.busqueda && filtros.busqueda.trim()) {
+            const corta = filtros.busqueda.length > 20 ? filtros.busqueda.substring(0, 20) + '...' : filtros.busqueda
+            tags.push({ key: 'busqueda', label: `🔍 "${escapeHtml(corta)}"` })
+        }
+        
+        if (tags.length === 0) {
+            container.innerHTML = '<span style="font-size:12px; color:var(--ios-gray);">📋 Sin filtros activos</span>'
+            return
+        }
+        
+        container.innerHTML = tags.map(tag => `
+            <span style="display:inline-flex; align-items:center; gap:4px; background:var(--ios-bg); padding:4px 12px; border-radius:20px; font-size:12px; border:1px solid var(--ios-border);">
+                ${tag.label}
+                <span class="eliminar-filtro" data-key="${tag.key}" style="cursor:pointer; color:var(--ios-gray); font-weight:bold; margin-left:4px;">✕</span>
+            </span>
+        `).join('')
+        
+        document.querySelectorAll('.eliminar-filtro').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation()
+                const key = this.dataset.key
+                
+                if (key === 'busqueda') {
+                    const input = document.getElementById('buscarTarea')
+                    if (input) { input.value = ''; input.dispatchEvent(new Event('input')) }
+                } else {
+                    const selectMap = {
+                        'estado': 'filtroEstadoTarea',
+                        'tecnico': 'filtroTecnicoTarea',
+                        'cliente': 'filtroClienteTarea',
+                        'prioridad': 'filtroPrioridadTarea',
+                        'fecha': 'filtroFechaTarea'
+                    }
+                    const selectId = selectMap[key]
+                    if (selectId) {
+                        const select = document.getElementById(selectId)
+                        if (select) { select.value = 'todos'; select.dispatchEvent(new Event('change')) }
+                    }
+                }
+            })
+        })
+    }
+    
+    // --- EVENTOS ---
+    const buscarInput = document.getElementById('buscarTarea')
+    if (buscarInput) {
+        let timeoutId = null
+        buscarInput.addEventListener('input', function() {
+            clearTimeout(timeoutId)
+            timeoutId = setTimeout(aplicarFiltrosYActualizar, 300)
+        })
+        buscarInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { clearTimeout(timeoutId); aplicarFiltrosYActualizar() }
+        })
+    }
+    
+    document.getElementById('filtroEstadoTarea')?.addEventListener('change', aplicarFiltrosYActualizar)
+    document.getElementById('filtroTecnicoTarea')?.addEventListener('change', aplicarFiltrosYActualizar)
+    document.getElementById('filtroClienteTarea')?.addEventListener('change', aplicarFiltrosYActualizar)
+    document.getElementById('filtroPrioridadTarea')?.addEventListener('change', aplicarFiltrosYActualizar)
+    document.getElementById('filtroFechaTarea')?.addEventListener('change', aplicarFiltrosYActualizar)
+    
+    document.getElementById('btnLimpiarFiltrosTareas')?.addEventListener('click', function() {
+        document.getElementById('buscarTarea').value = ''
+        document.getElementById('filtroEstadoTarea').value = 'todos'
+        document.getElementById('filtroTecnicoTarea').value = 'todos'
+        document.getElementById('filtroClienteTarea').value = 'todos'
+        document.getElementById('filtroPrioridadTarea').value = 'todos'
+        document.getElementById('filtroFechaTarea').value = 'todos'
+        setTimeout(aplicarFiltrosYActualizar, 50)
+    })
+    
+    setTimeout(aplicarFiltrosYActualizar, 300)
 }
 
+
 // ============================================================
-// ASIGNAR EVENTOS DE SUBMÓDULOS
+// ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA
+// ============================================================
+
+// ============================================================
+// ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA
 // ============================================================
 
 function asignarEventosSubmodulos() {
-    // Tareas
-    document.getElementById('btnCrearTareaLista')?.addEventListener('click', () => { localStorage.setItem('gerente_tareas_subvista', 'crear'); renderizarPanel() })
-    document.getElementById('btnVolverTareas')?.addEventListener('click', () => { localStorage.setItem('gerente_tareas_subvista', 'lista'); renderizarPanel() })
+    // ============================================================
+    // TAREAS
+    // ============================================================
+    
+    // Botón crear tarea desde lista
+    document.getElementById('btnCrearTareaLista')?.addEventListener('click', () => {
+        localStorage.setItem('gerente_tareas_subvista', 'crear')
+        renderizarPanel()
+    })
+    
+    // Botón volver a lista de tareas
+    document.getElementById('btnVolverTareas')?.addEventListener('click', () => {
+        localStorage.setItem('gerente_tareas_subvista', 'lista')
+        renderizarPanel()
+    })
+    
+    // Guardar nueva tarea
     document.getElementById('btnGuardarTarea')?.addEventListener('click', guardarNuevaTarea)
-    document.getElementById('btnCancelarTarea')?.addEventListener('click', () => { localStorage.setItem('gerente_tareas_subvista', 'lista'); renderizarPanel() })
-    document.getElementById('btnGuardarEdicion')?.addEventListener('click', guardarEdicionTarea)
-    document.getElementById('btnCancelarEdicion')?.addEventListener('click', () => { localStorage.setItem('gerente_tareas_subvista', 'lista'); renderizarPanel() })
-    document.getElementById('btnEditarTarea')?.addEventListener('click', () => { const id = localStorage.getItem('gerente_tarea_detalle'); localStorage.setItem('gerente_tareas_subvista', 'editar'); localStorage.setItem('gerente_tarea_editar', id); renderizarPanel() })
-    document.getElementById('btnAsignarTarea')?.addEventListener('click', () => { const id = localStorage.getItem('gerente_tarea_detalle'); abrirModalAsignar(id) })
-    document.getElementById('btnCerrarDetalle')?.addEventListener('click', () => { localStorage.setItem('gerente_tareas_subvista', 'lista'); renderizarPanel() })
     
-    document.querySelectorAll('.ver-tarea').forEach(btn => btn.addEventListener('click', () => { localStorage.setItem('gerente_tareas_subvista', 'detalle'); localStorage.setItem('gerente_tarea_detalle', btn.dataset.id); renderizarPanel() }))
-    document.querySelectorAll('.asignar-tarea').forEach(btn => btn.addEventListener('click', () => abrirModalAsignar(btn.dataset.id)))
+    // Cancelar creación de tarea
+    document.getElementById('btnCancelarTarea')?.addEventListener('click', () => {
+        localStorage.setItem('gerente_tareas_subvista', 'lista')
+        renderizarPanel()
+    })
     
-    // Personal
+    // ✅ Cargar activos al seleccionar cliente (VERSIÓN CORREGIDA)
+    const clienteSelect = document.getElementById('tareaCliente')
+    if (clienteSelect) {
+        // Eliminar eventos anteriores (evita duplicados)
+        const newClienteSelect = clienteSelect.cloneNode(true)
+        clienteSelect.parentNode.replaceChild(newClienteSelect, clienteSelect)
+        
+        newClienteSelect.addEventListener('change', async function() {
+            const clienteId = this.value
+            const activoSelect = document.getElementById('tareaActivo')
+            
+            console.log('📌 Cliente seleccionado:', clienteId)
+            
+            if (!clienteId) {
+                activoSelect.innerHTML = '<option value="">-- Seleccionar activo --</option>'
+                return
+            }
+            
+            try {
+                console.log('🔄 Cargando activos...')
+                const activos = await tareasModule.cargarActivos(clienteId)
+                console.log('📦 Activos recibidos:', activos)
+                
+                let options = '<option value="">-- Seleccionar activo --</option>'
+                if (activos && activos.length > 0) {
+                    activos.forEach(a => {
+                        options += `<option value="${a.id}">${escapeHtml(a.nombre)}</option>`
+                    })
+                } else {
+                    options += '<option value="" disabled>📭 Sin activos</option>'
+                }
+                activoSelect.innerHTML = options
+                console.log('✅ Selector actualizado')
+            } catch (error) {
+                console.error('❌ Error cargando activos:', error)
+                activoSelect.innerHTML = '<option value="">-- Error al cargar --</option>'
+            }
+        })
+    }
+    
+    // Eventos para cambiar estado en detalle
+    document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tareaId = btn.dataset.tareaId
+            const nuevoEstado = btn.dataset.estado
+            handleCambiarEstado(tareaId, nuevoEstado)
+        })
+    })
+    
+    // Evento para reasignar tarea desde detalle
+    document.getElementById('btnReasignarTarea')?.addEventListener('click', () => {
+        const tareaId = localStorage.getItem('gerente_tarea_detalle')
+        if (tareaId) handleReasignarTarea(tareaId)
+    })
+    
+    // Ver detalle de tarea
+    document.querySelectorAll('.ver-tarea').forEach(btn => {
+        btn.addEventListener('click', () => {
+            localStorage.setItem('gerente_tareas_subvista', 'detalle')
+            localStorage.setItem('gerente_tarea_detalle', btn.dataset.id)
+            renderizarPanel()
+        })
+    })
+    
+    // Asignar/Reasignar tarea desde lista
+    document.querySelectorAll('.asignar-tarea').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tareaId = btn.dataset.id
+            handleReasignarTarea(tareaId)
+        })
+    })
+    
+    // ============================================================
+    // PERSONAL
+    // ============================================================
+    
     document.querySelectorAll('[data-subtab]').forEach(btn => {
         btn.addEventListener('click', () => {
             localStorage.setItem('gerente_personal_subvista', btn.dataset.subtab)
@@ -1412,24 +1747,73 @@ function asignarEventosSubmodulos() {
         })
     })
     
-    // Clientes
+    // ============================================================
+    // CLIENTES
+    // ============================================================
+    
     document.getElementById('btnAltaCliente')?.addEventListener('click', () => mostrarAltaCliente())
+    
     document.getElementById('btnVolverClientes')?.addEventListener('click', () => {
         localStorage.setItem('gerente_clientes_subvista', 'lista')
         renderizarPanel()
     })
     
-    // Materiales
+    // Botón guardar cliente en formulario de alta
+    document.getElementById('btnGuardarCliente')?.addEventListener('click', async () => {
+        const nombre = document.getElementById('cliNombre')?.value.trim()
+        const nifCif = document.getElementById('cliNif')?.value.trim()
+        const email = document.getElementById('cliEmail')?.value.trim()
+        const telefono = document.getElementById('cliTelefono')?.value.trim()
+        const direccion = document.getElementById('cliDireccion')?.value.trim()
+        const ciudad = document.getElementById('cliCiudad')?.value.trim()
+        const provincia = document.getElementById('cliProvincia')?.value
+        
+        if (!nombre) {
+            mostrarMensaje('El nombre del cliente es obligatorio', 'error')
+            return
+        }
+        
+        const datos = { nombre, nifCif, email, telefono, direccion, ciudad, provincia }
+        const exito = await clientesModule.crearCliente(datos, currentEmpresaId)
+        
+        if (exito) {
+            await cargarDatosIniciales()
+            localStorage.setItem('gerente_clientes_subvista', 'lista')
+            renderizarPanel()
+        }
+    })
+    
+    document.getElementById('btnCancelarCliente')?.addEventListener('click', () => {
+        localStorage.setItem('gerente_clientes_subvista', 'lista')
+        renderizarPanel()
+    })
+    
+    // ============================================================
+    // MATERIALES
+    // ============================================================
+    
     document.getElementById('btnStockMateriales')?.addEventListener('click', () => mostrarStockMateriales())
     document.getElementById('btnGastosMateriales')?.addEventListener('click', () => mostrarGastosMateriales())
     
-    // Facturación
+    // ============================================================
+    // FACTURACIÓN
+    // ============================================================
+    
     document.getElementById('btnIngresos')?.addEventListener('click', () => mostrarIngresos())
     document.getElementById('btnPagos')?.addEventListener('click', () => mostrarPagos())
     
-    // Impuestos
+    // ============================================================
+    // IMPUESTOS
+    // ============================================================
+    
     document.getElementById('btnIRPF')?.addEventListener('click', () => mostrarIRPF())
     document.getElementById('btnIVA')?.addEventListener('click', () => mostrarIVA())
+    
+    // ============================================================
+    // FILTROS DE TAREAS
+    // ============================================================
+    
+    setTimeout(() => asignarEventosFiltrosTareas(), 400)
 }
 
 export default { init }

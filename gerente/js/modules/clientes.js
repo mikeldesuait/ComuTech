@@ -279,7 +279,7 @@ export async function crearActivo(datos, clienteId) {
                 cliente_id: clienteId,
                 nombre: datos.nombre,
                 tipo_acceso: datos.tipoAcceso || 'libre',
-                ubicacion: datos.ubicacion || null,
+                // ubicacion: datos.ubicacion || null,
                 contacto: datos.contacto || null,
                 hora_apertura: datos.horaApertura || null,
                 hora_cierre: datos.horaCierre || null,
@@ -594,6 +594,10 @@ export function renderizarFormularioCrearCliente() {
 // RENDERIZAR ACTIVOS DE UN CLIENTE (con botón mapa)
 // ============================================================
 
+// ============================================================
+// RENDERIZAR ACTIVOS DE UN CLIENTE (con botón mapa mejorado)
+// ============================================================
+
 export function renderizarActivosCliente(activos, clienteNombre, onEditar, onEliminar) {
     if (!activos || activos.length === 0) {
         return `
@@ -617,7 +621,6 @@ export function renderizarActivosCliente(activos, clienteNombre, onEditar, onEli
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Ubicación</th>
                             <th>Horario</th>
                             <th>Tipo acceso</th>
                             <th>Contacto</th>
@@ -631,14 +634,21 @@ export function renderizarActivosCliente(activos, clienteNombre, onEditar, onEli
     for (const a of activos) {
         const horario = `${a.hora_apertura || '--:--'} - ${a.hora_cierre || '--:--'}`
         const tieneCoordenadas = a.latitud && a.longitud
+        
+        // Botón mapa mejorado con detección de móvil
         const mapaBtn = tieneCoordenadas 
-            ? `<button class="btn-sm ver-mapa" data-lat="${a.latitud}" data-lon="${a.longitud}" data-nombre="${escapeHtml(a.nombre)}" style="background:#0284c7; color:white;">🗺️ Ver</button>`
+            ? `<button class="btn-sm ver-mapa" 
+                data-lat="${a.latitud}" 
+                data-lon="${a.longitud}" 
+                data-nombre="${escapeHtml(a.nombre)}" 
+                style="background:#0284c7; color:white; font-size:12px;">
+                🗺️ Ver
+            </button>`
             : `<span class="badge badge-inactivo" style="font-size: 10px;">❌ Sin mapa</span>`
         
         html += `
             <tr>
                 <td><strong>${escapeHtml(a.nombre)}</strong><br><small>${escapeHtml(a.direccion || '')}</small></td>
-                <td>${escapeHtml(a.ubicacion || '-')}</td>
                 <td>${horario}</td>
                 <td>${escapeHtml(a.tipo_acceso || 'libre')}</td>
                 <td>${escapeHtml(a.contacto || '-')}</td>

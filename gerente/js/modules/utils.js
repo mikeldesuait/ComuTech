@@ -1,5 +1,5 @@
 // gerente/js/modules/utils.js
-// Funciones auxiliares para el panel gerente
+// Funciones auxiliares para el panel gerente - VERSIÓN ACTUALIZADA
 
 // ============================================================
 // MENSAJES FLOTANTES
@@ -35,7 +35,13 @@ export function formatearFecha(fecha) {
 export function formatearFechaHora(isoString) {
     if (!isoString) return '-'
     const fecha = new Date(isoString)
-    return fecha.toLocaleString('es-ES')
+    return fecha.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
 }
 
 export function formatearDuracion(minutos) {
@@ -160,16 +166,27 @@ export function mostrarModalConfirmacion(mensaje, onConfirmar, textoConfirmar = 
 }
 
 // ============================================================
-// BADGES
+// ✅ BADGES - ACTUALIZADOS CON NUEVOS ESTADOS
 // ============================================================
 
 export function getEstadoBadge(estado) {
     const badges = {
-        'pendiente': '<span class="badge badge-pendiente">⏳ Pendiente</span>',
-        'en_progreso': '<span class="badge badge-activo">⚙️ En progreso</span>',
-        'completada': '<span class="badge badge-completada">✅ Completada</span>',
+        // ✅ NUEVOS ESTADOS DEL FLUJO
+        'pendiente_aceptacion': '<span class="badge badge-pendiente">⏳ Pendiente aceptación</span>',
+        'vista': '<span class="badge" style="background:#dbeafe; color:#1e40af;">👁️ Vista</span>',
+        'aceptada': '<span class="badge" style="background:#d4edda; color:#155724;">✅ Aceptada</span>',
+        'rechazada': '<span class="badge badge-inactivo">❌ Rechazada</span>',
+        'en_desplazamiento': '<span class="badge" style="background:#fef3c7; color:#92400e;">🚗 En desplazamiento</span>',
+        'trabajando_onsite': '<span class="badge" style="background:#d1ecf1; color:#0c5460;">🔧 Trabajando OnSite</span>',
+        'terminada': '<span class="badge badge-completada">✅ Terminada</span>',
+        'suspendida': '<span class="badge" style="background:#f8d7da; color:#721c24;">⏸️ Suspendida</span>',
         'cancelada': '<span class="badge badge-cancelada">❌ Cancelada</span>',
-        'facturada': '<span class="badge badge-activo">💰 Facturada</span>'
+        
+        // Estados antiguos (compatibilidad)
+        'pendiente': '<span class="badge badge-pendiente">⏳ Pendiente</span>',
+        'en_progreso': '<span class="badge" style="background:#d1ecf1; color:#0c5460;">⚙️ En progreso</span>',
+        'completada': '<span class="badge badge-completada">✅ Completada</span>',
+        'facturada': '<span class="badge" style="background:#d4edda; color:#155724;">💰 Facturada</span>'
     }
     return badges[estado] || '<span class="badge badge-pendiente">📋 Otro</span>'
 }
@@ -182,6 +199,90 @@ export function getPrioridadBadge(prioridad) {
         'urgente': '<span class="badge" style="background:#dc2626; color:white;">🔥 Urgente</span>'
     }
     return badges[prioridad] || badges['media']
+}
+
+// ============================================================
+// ✅ NUEVO: OBTENER COLOR DEL ESTADO (para estilos dinámicos)
+// ============================================================
+
+export function getEstadoColor(estado) {
+    const colores = {
+        'pendiente_aceptacion': '#fef3c7',  // Amarillo claro
+        'vista': '#dbeafe',                 // Azul claro
+        'aceptada': '#d4edda',              // Verde claro
+        'rechazada': '#f8d7da',             // Rojo claro
+        'en_desplazamiento': '#fef3c7',     // Amarillo claro
+        'trabajando_onsite': '#d1ecf1',     // Azul turquesa
+        'terminada': '#d4edda',             // Verde claro
+        'suspendida': '#f8d7da',            // Rojo claro
+        'cancelada': '#e2e3e5',             // Gris claro
+        'pendiente': '#fef3c7',
+        'en_progreso': '#d1ecf1',
+        'completada': '#d4edda'
+    }
+    return colores[estado] || '#e2e3e5'
+}
+
+export function getEstadoTextoColor(estado) {
+    const colores = {
+        'pendiente_aceptacion': '#92400e',
+        'vista': '#1e40af',
+        'aceptada': '#155724',
+        'rechazada': '#721c24',
+        'en_desplazamiento': '#92400e',
+        'trabajando_onsite': '#0c5460',
+        'terminada': '#155724',
+        'suspendida': '#721c24',
+        'cancelada': '#383d41',
+        'pendiente': '#92400e',
+        'en_progreso': '#0c5460',
+        'completada': '#155724'
+    }
+    return colores[estado] || '#383d41'
+}
+
+// ============================================================
+// ✅ NUEVO: OBTENER ICONO DEL ESTADO
+// ============================================================
+
+export function getEstadoIcono(estado) {
+    const iconos = {
+        'pendiente_aceptacion': '⏳',
+        'vista': '👁️',
+        'aceptada': '✅',
+        'rechazada': '❌',
+        'en_desplazamiento': '🚗',
+        'trabajando_onsite': '🔧',
+        'terminada': '✅',
+        'suspendida': '⏸️',
+        'cancelada': '❌',
+        'pendiente': '⏳',
+        'en_progreso': '⚙️',
+        'completada': '✅'
+    }
+    return iconos[estado] || '📋'
+}
+
+// ============================================================
+// ✅ NUEVO: OBTENER LABEL DEL ESTADO
+// ============================================================
+
+export function getEstadoLabel(estado) {
+    const labels = {
+        'pendiente_aceptacion': 'Pendiente de aceptación',
+        'vista': 'Vista',
+        'aceptada': 'Aceptada',
+        'rechazada': 'Rechazada',
+        'en_desplazamiento': 'En desplazamiento',
+        'trabajando_onsite': 'Trabajando en el sitio',
+        'terminada': 'Terminada',
+        'suspendida': 'Suspendida',
+        'cancelada': 'Cancelada',
+        'pendiente': 'Pendiente',
+        'en_progreso': 'En progreso',
+        'completada': 'Completada'
+    }
+    return labels[estado] || estado || 'Desconocido'
 }
 
 // ============================================================
@@ -205,4 +306,70 @@ export function isValidNIF(nif) {
 
 export function generarIdUnico() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2)
+}
+
+// ============================================================
+// ✅ NUEVO: VALIDAR TRANSICIÓN DE ESTADO
+// ============================================================
+
+export function validarTransicionEstado(estadoActual, nuevoEstado) {
+    const transiciones = {
+        'pendiente_aceptacion': ['vista', 'rechazada', 'cancelada'],
+        'vista': ['aceptada', 'rechazada', 'cancelada'],
+        'aceptada': ['en_desplazamiento', 'suspendida', 'cancelada'],
+        'en_desplazamiento': ['trabajando_onsite', 'suspendida', 'cancelada'],
+        'trabajando_onsite': ['terminada', 'suspendida', 'cancelada'],
+        'suspendida': ['aceptada', 'cancelada'],
+        'rechazada': ['pendiente_aceptacion', 'cancelada'],
+        'terminada': [],
+        'cancelada': []
+    }
+    
+    return transiciones[estadoActual]?.includes(nuevoEstado) || false
+}
+
+// ============================================================
+// ✅ NUEVO: OBTENER ESTADOS DISPONIBLES PARA UN ESTADO ACTUAL
+// ============================================================
+
+export function getEstadosDisponibles(estadoActual) {
+    const transiciones = {
+        'pendiente_aceptacion': [
+            { value: 'vista', label: '👁️ Marcar como vista' },
+            { value: 'rechazada', label: '❌ Rechazar tarea' },
+            { value: 'cancelada', label: '❌ Cancelar tarea' }
+        ],
+        'vista': [
+            { value: 'aceptada', label: '✅ Aceptar tarea' },
+            { value: 'rechazada', label: '❌ Rechazar tarea' },
+            { value: 'cancelada', label: '❌ Cancelar tarea' }
+        ],
+        'aceptada': [
+            { value: 'en_desplazamiento', label: '🚗 Iniciar desplazamiento' },
+            { value: 'suspendida', label: '⏸️ Suspender tarea' },
+            { value: 'cancelada', label: '❌ Cancelar tarea' }
+        ],
+        'en_desplazamiento': [
+            { value: 'trabajando_onsite', label: '🔧 Llegada al sitio' },
+            { value: 'suspendida', label: '⏸️ Suspender tarea' },
+            { value: 'cancelada', label: '❌ Cancelar tarea' }
+        ],
+        'trabajando_onsite': [
+            { value: 'terminada', label: '✅ Finalizar tarea' },
+            { value: 'suspendida', label: '⏸️ Suspender tarea' },
+            { value: 'cancelada', label: '❌ Cancelar tarea' }
+        ],
+        'suspendida': [
+            { value: 'aceptada', label: '▶️ Reactivar tarea' },
+            { value: 'cancelada', label: '❌ Cancelar tarea' }
+        ],
+        'rechazada': [
+            { value: 'pendiente_aceptacion', label: '🔄 Reasignar y reiniciar' },
+            { value: 'cancelada', label: '❌ Cancelar definitivamente' }
+        ],
+        'terminada': [],
+        'cancelada': []
+    }
+    
+    return transiciones[estadoActual] || []
 }
