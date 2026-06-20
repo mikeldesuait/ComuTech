@@ -1,5 +1,5 @@
 // gerente/js/modules/tareas.js
-// Gestión de tareas para el panel gerente - VERSIÓN COMPLETA Y CORREGIDA
+// Gestión de tareas para el panel gerente - VERSIÓN CON SERVICIOS Y TIPOS DE TAREA
 
 import { sb } from '../config/supabase.js'
 import { 
@@ -13,6 +13,9 @@ let todasTareas = []
 let tecnicosDisponibles = []
 let clientesDisponibles = []
 let activosDisponibles = []
+let serviciosDisponibles = []
+let tiposTareaDisponibles = []
+let plantillasDisponibles = []
 
 // ============================================================
 // CONSTANTES DE ESTADOS (NUEVO FLUJO)
@@ -78,7 +81,9 @@ export async function cargarTareas(empresaId) {
                 *,
                 perfiles!perfil_id(id, nombre_razon_social, email, nick),
                 cliente:clientes!cliente_id(id, nombre),
-                activos!activo_id(id, nombre, direccion)
+                activos!activo_id(id, nombre, direccion),
+                servicio:servicios!servicio_id(id, nombre, icono),
+                tipo_tarea:tipos_tarea!tipo_tarea_id(id, nombre, tiempo_estimado)
             `)
             .eq('empresa_id', empresaId)
             .order('created_at', { ascending: false })
@@ -178,8 +183,88 @@ export async function cargarActivos(clienteId) {
 }
 
 // ============================================================
-// CREAR NUEVA TAREA (CON NUEVO ESTADO INICIAL)
+// OBTENER SERVICIOS
 // ============================================================
+
+export async function cargarServicios() {
+    try {
+        const { data, error } = await sb
+            .from('servicios')
+            .select('*')
+            .eq('activo', true)
+            .order('nombre')
+        
+        if (error) throw error
+        
+        serviciosDisponibles = data || []
+        return serviciosDisponibles
+        
+    } catch (error) {
+        console.error('Error cargando servicios:', error)
+        return []
+    }
+}
+
+// ============================================================
+// OBTENER TIPOS DE TAREA POR SERVICIO
+// ============================================================
+
+export async function cargarTiposTarea(servicioId = null) {
+    try {
+        let query = sb
+            .from('tipos_tarea')
+            .select('*')
+            .eq('activo', true)
+            .order('nombre')
+        
+        if (servicioId) {
+            query = query.eq('servicio_id', servicioId)
+        }
+        
+        const { data, error } = await query
+        
+        if (error) throw error
+        
+        tiposTareaDisponibles = data || []
+        return tiposTareaDisponibles
+        
+    } catch (error) {
+        console.error('Error cargando tipos de tarea:', error)
+        return []
+    }
+}
+
+// ============================================================
+// OBTENER PLANTILLAS DE TAREA POR TIPO
+// ============================================================
+
+export async function cargarPlantillasTarea(empresaId, tipoTareaId = null) {
+    if (!empresaId) return []
+    
+    try {
+        let query = sb
+            .from('plantillas_tarea')
+            .select('*')
+            .eq('empresa_id', empresaId)
+            .eq('activo', true)
+            .order('titulo')
+        
+        if (tipoTareaId) {
+            query = query.eq('tipo_tarea_id', tipoTareaId)
+        }
+        
+        const { data, error } = await query
+        
+        if (error) throw error
+        
+        plantillasDisponibles = data || []
+        return plantillasDisponibles
+        
+    } catch (error) {
+        console.error('Error cargando plantillas:', error)
+        return []
+    }
+}
 
 // ============================================================
 // CREAR NUEVA TAREA (CON NUEVO ESTADO INICIAL Y FORMATO TDDMMNNNN)
@@ -187,12 +272,11 @@ export async function cargarActivos(clienteId) {
 
 export async function crearTarea(datos) {
     const { 
-        clienteId, activoId, tecnicoId, titulo, descripcion, 
-        prioridad, fechaLimite, ordenTrabajo, notaCliente, notaInterna,
-        tiempoEstimado
+        clienteId, activoId, tecnicoId, servicioId, tipoTareaId, plantillaId,
+        titulo, descripcion, prioridad, fechaLimite, tiempoEstimado
     } = datos
     
-    if (!clienteId || !titulo) {
+    if (!clienteId || !servicioId || !tipoTareaId || !titulo) {
         mostrarMensaje('Completa los campos obligatorios', 'error')
         return null
     }
@@ -200,13 +284,12 @@ export async function crearTarea(datos) {
     mostrarModalCarga('Creando tarea...')
     
     try {
-        // ✅ Generar número de tarea: TDDMMNNNN (día+mes+secuencia del día)
+        // ✅ Generar número de tarea: TDDMMNNNN
         const hoy = new Date()
         const dia = String(hoy.getDate()).padStart(2, '0')
         const mes = String(hoy.getMonth() + 1).padStart(2, '0')
-        const fechaStr = `${dia}${mes}` // Ej: '2006' para 20 de junio
+        const fechaStr = `${dia}${mes}`
         
-        // Buscar la última tarea del día actual (mismo día y mes)
         const { data: ultimaTarea } = await sb
             .from('tareas')
             .select('numero_tarea')
@@ -223,7 +306,6 @@ export async function crearTarea(datos) {
         
         const numeroTarea = `T${fechaStr}${String(secuencia).padStart(4, '0')}`
         
-        // Obtener empresa_id del gerente
         const empresaId = await getEmpresaId()
         if (!empresaId) {
             throw new Error('No se pudo obtener la empresa del gerente')
@@ -238,15 +320,15 @@ export async function crearTarea(datos) {
                 cliente_id: clienteId,
                 perfil_id: tecnicoId || null,
                 activo_id: activoId || null,
+                servicio_id: servicioId || null,
+                tipo_tarea_id: tipoTareaId || null,
+                plantilla_id: plantillaId || null,
                 numero_tarea: numeroTarea,
                 titulo: titulo,
-                descripcion: descripcion,
+                descripcion: descripcion || '',
                 prioridad: prioridad || 'media',
                 estado: estadoInicial,
                 fecha_fin_prevista: fechaLimite || null,
-                orden_trabajo: ordenTrabajo || null,
-                nota_cliente: notaCliente || null,
-                nota_interna: notaInterna || null,
                 tiempo_estimado_minutos: tiempoEstimado || null,
                 leida: false,
                 fecha_asignacion: tecnicoId ? new Date() : null
@@ -259,7 +341,6 @@ export async function crearTarea(datos) {
             throw error
         }
         
-        // Registrar en historial de estados
         await registrarCambioEstado(
             data.id,
             null,
@@ -268,12 +349,10 @@ export async function crearTarea(datos) {
             'Tarea creada'
         )
         
-        // Registrar en historial de asignaciones
         if (tecnicoId) {
             await registrarHistorialAsignacion(data.id, tecnicoId, 'asignacion')
         }
         
-        // Crear notificación al técnico
         if (tecnicoId) {
             await crearNotificacion(
                 tecnicoId,
@@ -284,7 +363,6 @@ export async function crearTarea(datos) {
             )
         }
         
-        // Crear notificación al cliente
         await crearNotificacionCliente(
             clienteId,
             'Nueva tarea pendiente',
@@ -513,11 +591,11 @@ async function registrarCambioEstado(tareaId, estadoAnterior, estadoNuevo, usuar
                 estado_anterior: estadoAnterior,
                 estado_nuevo: estadoNuevo,
                 usuario_tipo: usuarioTipo,
-                perfil_id: await getPerfilId(),  // ✅ Solo perfil_id
+                perfil_id: await getPerfilId(),
                 comentario: comentario,
                 fecha: new Date()
             })
-        // ❌ ELIMINAR usuario_id si no existe
+        
         if (error) console.error('Error registrando historial:', error)
     } catch (error) {
         console.error('Error en registrarCambioEstado:', error)
@@ -843,6 +921,8 @@ function renderizarTablaTareas(tareas) {
                     <th>Título</th>
                     <th>Cliente / Activo</th>
                     <th>Técnico</th>
+                    <th>Servicio</th>
+                    <th>Tipo</th>
                     <th>Prioridad</th>
                     <th>Estado</th>
                     <th>Fecha límite</th>
@@ -857,6 +937,9 @@ function renderizarTablaTareas(tareas) {
         const clienteNombre = tarea.cliente?.nombre || '-'
         const activoNombre = tarea.activos?.nombre || ''
         const activoDireccion = tarea.activos?.direccion || ''
+        const servicioNombre = tarea.servicio?.nombre || '-'
+        const servicioIcono = tarea.servicio?.icono || ''
+        const tipoNombre = tarea.tipo_tarea?.nombre || '-'
         
         const puedeReasignar = !['terminada', 'cancelada'].includes(tarea.estado)
         
@@ -875,6 +958,8 @@ function renderizarTablaTareas(tareas) {
                 <td>${escapeHtml(tarea.titulo)}</td>
                 <td>${clienteActivo}</td>
                 <td>${escapeHtml(tecnicoNombre)}</td>
+                <td>${servicioIcono} ${escapeHtml(servicioNombre)}</td>
+                <td>${escapeHtml(tipoNombre)}</td>
                 <td>${getPrioridadBadge(tarea.prioridad)}</td>
                 <td>${getEstadoBadge(tarea.estado)}</td>
                 <td style="font-size:12px;">${formatearFecha(tarea.fecha_fin_prevista) || '-'}</td>
@@ -896,10 +981,14 @@ function renderizarTablaTareas(tareas) {
 }
 
 // ============================================================
-// RENDERIZAR FORMULARIO CREAR TAREA
+// RENDERIZAR FORMULARIO CREAR TAREA (CON SERVICIOS Y TIPOS)
 // ============================================================
 
-export function renderizarFormularioCrear(clientes, tecnicos, onGuardar, onCancelar) {
+// ============================================================
+// RENDERIZAR FORMULARIO CREAR TAREA (SIMPLIFICADO)
+// ============================================================
+
+export function renderizarFormularioCrear(clientes, tecnicos, servicios, tiposTarea, plantillas, onGuardar, onCancelar) {
     const clientesOptions = clientes.map(c => 
         `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`
     ).join('')
@@ -911,26 +1000,75 @@ export function renderizarFormularioCrear(clientes, tecnicos, onGuardar, onCance
         ).join('')}
     `
     
+    const serviciosOptions = `
+        <option value="">-- Seleccionar servicio --</option>
+        ${servicios.map(s => 
+            `<option value="${s.id}" data-icon="${s.icono || '📋'}">${s.icono || '📋'} ${escapeHtml(s.nombre)}</option>`
+        ).join('')}
+    `
+    
+    const tiposOptions = `
+        <option value="">-- Seleccionar tipo --</option>
+        ${tiposTarea.map(t => 
+            `<option value="${t.id}" data-servicio="${t.servicio_id}">${escapeHtml(t.nombre)}</option>`
+        ).join('')}
+    `
+    
+    const plantillasOptions = `
+        <option value="">-- Seleccionar plantilla --</option>
+        ${plantillas.map(p => 
+            `<option value="${p.id}" data-tipo="${p.tipo_tarea_id}">${escapeHtml(p.titulo)}</option>`
+        ).join('')}
+    `
+    
     return `
         <div class="card">
             <div class="card-header">➕ Crear nueva tarea</div>
             
+            <!-- Servicio y Tipo -->
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🏗️ Servicio *</label>
+                    <select id="tareaServicio" required>
+                        ${serviciosOptions}
+                    </select>
+                </div>
+                <div class="grupo">
+                    <label>📋 Tipo de tarea *</label>
+                    <select id="tareaTipo" required>
+                        ${tiposOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Plantilla -->
+            <div class="row-flex" id="plantillaContainer" style="display:none;">
+                <div class="grupo">
+                    <label>📄 Plantilla</label>
+                    <select id="tareaPlantilla">
+                        ${plantillasOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Cliente y Activo -->
             <div class="row-flex">
                 <div class="grupo">
                     <label>🏢 Cliente *</label>
-                    <select id="tareaCliente">
+                    <select id="tareaCliente" required>
                         <option value="">-- Seleccionar cliente --</option>
                         ${clientesOptions}
                     </select>
                 </div>
                 <div class="grupo">
-                    <label>🏗️ Activo (opcional)</label>
+                    <label>🏗️ Activo</label>
                     <select id="tareaActivo">
                         <option value="">-- Seleccionar activo --</option>
                     </select>
                 </div>
             </div>
             
+            <!-- Técnico y Prioridad -->
             <div class="row-flex">
                 <div class="grupo">
                     <label>👨‍🔧 Técnico</label>
@@ -950,45 +1088,25 @@ export function renderizarFormularioCrear(clientes, tecnicos, onGuardar, onCance
                 </div>
             </div>
             
+            <!-- Tiempo estimado y Fecha límite -->
             <div class="row-flex">
-                <div class="grupo">
-                    <label>📝 Título *</label>
-                    <input type="text" id="tareaTitulo" placeholder="Ej: Revisión de piscina">
-                </div>
                 <div class="grupo">
                     <label>⏱️ Tiempo estimado (minutos)</label>
                     <input type="number" id="tareaTiempoEstimado" placeholder="60" min="1">
                 </div>
-            </div>
-            
-            <div class="row-flex">
                 <div class="grupo">
                     <label>📅 Fecha límite</label>
                     <input type="date" id="tareaFechaLimite">
                 </div>
             </div>
             
+            <!-- Descripción / Instrucciones (fusionado) -->
             <div class="grupo">
-                <label>📄 Descripción</label>
-                <textarea id="tareaDescripcion" rows="3" placeholder="Descripción detallada de la tarea..."></textarea>
+                <label>📋 Descripción / Instrucciones</label>
+                <textarea id="tareaDescripcion" rows="5" placeholder="Descripción detallada de la tarea e instrucciones para el técnico..."></textarea>
             </div>
             
-            <div class="grupo">
-                <label>📋 Orden de trabajo</label>
-                <textarea id="tareaOrdenTrabajo" rows="4" placeholder="Instrucciones detalladas para el técnico..."></textarea>
-            </div>
-            
-            <div class="row-flex">
-                <div class="grupo">
-                    <label>📝 Nota interna (solo gerente)</label>
-                    <textarea id="tareaNotaInterna" rows="2" placeholder="Nota interna..."></textarea>
-                </div>
-                <div class="grupo">
-                    <label>📝 Nota para el cliente</label>
-                    <textarea id="tareaNotaCliente" rows="2" placeholder="Nota visible para el cliente..."></textarea>
-                </div>
-            </div>
-            
+            <!-- Botones -->
             <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px;">
                 <button id="btnGuardarTarea" class="btn-success">💾 Guardar tarea</button>
                 <button id="btnCancelarTarea" class="btn-danger">✖ Cancelar</button>
@@ -1053,6 +1171,10 @@ export async function renderizarDetalleTarea(tarea, onCambiarEstado, onReasignar
                 <div class="row-flex">
                     <div class="grupo"><strong>Cliente:</strong> ${escapeHtml(tarea.cliente?.nombre || '-')}</div>
                     <div class="grupo"><strong>Técnico:</strong> ${escapeHtml(tarea.perfiles?.nombre_razon_social || 'Sin asignar')}</div>
+                </div>
+                <div class="row-flex">
+                    <div class="grupo"><strong>Servicio:</strong> ${tarea.servicio?.icono || ''} ${escapeHtml(tarea.servicio?.nombre || '-')}</div>
+                    <div class="grupo"><strong>Tipo:</strong> ${escapeHtml(tarea.tipo_tarea?.nombre || '-')}</div>
                 </div>
                 <div class="row-flex">
                     <div class="grupo"><strong>Prioridad:</strong> ${getPrioridadBadge(tarea.prioridad)}</div>
@@ -1154,6 +1276,36 @@ function getEstadoBadgeClass(estado) {
         'cancelada': 'badge-cancelada'
     }
     return clases[estado] || 'badge-pendiente'
+}
+
+// ============================================================
+// ACTUALIZAR TAREA
+// ============================================================
+
+export async function actualizarTarea(tareaId, datos) {
+    try {
+        const updateData = {}
+        
+        if (datos.titulo) updateData.titulo = datos.titulo
+        if (datos.descripcion) updateData.descripcion = datos.descripcion
+        if (datos.prioridad) updateData.prioridad = datos.prioridad
+        if (datos.fecha_fin_prevista) updateData.fecha_fin_prevista = datos.fecha_fin_prevista
+        if (datos.tiempo_estimado_minutos) updateData.tiempo_estimado_minutos = datos.tiempo_estimado_minutos
+        
+        updateData.updated_at = new Date()
+        
+        const { error } = await sb
+            .from('tareas')
+            .update(updateData)
+            .eq('id', tareaId)
+        
+        if (error) throw error
+        
+        return true
+    } catch (error) {
+        console.error('Error actualizando tarea:', error)
+        return false
+    }
 }
 
 // ============================================================
@@ -1466,7 +1618,9 @@ export function aplicarFiltrosTareas(tareas, filtros) {
             t.cliente?.nombre?.toLowerCase().includes(busqueda) ||
             t.activos?.nombre?.toLowerCase().includes(busqueda) ||
             t.activos?.direccion?.toLowerCase().includes(busqueda) ||
-            t.activos?.localidad?.toLowerCase().includes(busqueda)
+            t.activos?.localidad?.toLowerCase().includes(busqueda) ||
+            t.servicio?.nombre?.toLowerCase().includes(busqueda) ||
+            t.tipo_tarea?.nombre?.toLowerCase().includes(busqueda)
         )
     }
     
@@ -1534,6 +1688,9 @@ export default {
     cargarClientes,
     cargarClientesDeEmpresa,
     cargarActivos,
+    cargarServicios,
+    cargarTiposTarea,
+    cargarPlantillasTarea,
     crearTarea,
     asignarTarea,
     reasignarTarea,

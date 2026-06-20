@@ -1,5 +1,5 @@
 // gerente/js/main.js
-// Punto de entrada principal del panel gerente - VERSIÓN ACTUALIZADA
+// Punto de entrada principal del panel gerente - VERSIÓN COMPLETA CON DEEPSEEK
 
 import { sb } from './config/supabase.js'
 import { 
@@ -43,6 +43,11 @@ let facturasData = []
 let pagosData = []
 let vacacionesData = []
 let ausenciasData = []
+
+// Variables para servicios y tipos
+let serviciosData = []
+let tiposTareaData = []
+let plantillasData = []
 
 // ============================================================
 // INICIALIZACIÓN
@@ -198,12 +203,19 @@ async function cargarDatosIniciales() {
     facturacionModule = await import('./modules/facturacion.js')
     impuestosModule = await import('./modules/impuestos.js')
     
+    // Cargar servicios, tipos y plantillas
+    serviciosData = await tareasModule.cargarServicios()
+    tiposTareaData = await tareasModule.cargarTiposTarea()
+    plantillasData = await tareasModule.cargarPlantillasTarea(currentEmpresaId)
+    
+    console.log('📋 Servicios cargados:', serviciosData.length)
+    console.log('📋 Tipos de tarea cargados:', tiposTareaData.length)
+    console.log('📋 Plantillas cargadas:', plantillasData.length)
+    
     tareasData = await tareasModule.cargarTareas(currentEmpresaId)
     
-    // ✅ Recargar técnicos con depuración
     tecnicosInternosData = await personalModule.cargarTecnicosInternos(currentEmpresaId)
-    console.log('📋 Técnicos internos cargados en cargarDatosIniciales:', tecnicosInternosData)
-    console.log('📋 Cantidad:', tecnicosInternosData.length)
+    console.log('📋 Técnicos internos cargados:', tecnicosInternosData.length)
     
     tecnicosExternosData = await personalModule.cargarTecnicosExternos(currentEmpresaId)
     clientesData = await clientesModule.cargarClientes(currentEmpresaId)
@@ -255,12 +267,17 @@ async function renderizarTareas() {
         const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
         const clientes = await tareasModule.cargarClientesDeEmpresa(currentEmpresaId)
         
+        // Recargar servicios y tipos para el formulario
+        const servicios = await tareasModule.cargarServicios()
+        const tiposTarea = await tareasModule.cargarTiposTarea()
+        const plantillas = await tareasModule.cargarPlantillasTarea(currentEmpresaId)
+        
         return `<div class="container">
             <div class="card">
                 <div class="card-header">📋 Tareas
                     <button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button>
                 </div>
-                ${renderizarFormularioCrear(clientes, tecnicos)}
+                ${renderizarFormularioCrear(clientes, tecnicos, servicios, tiposTarea, plantillas)}
             </div>
         </div>`
     }
@@ -273,7 +290,6 @@ async function renderizarTareas() {
         }
     }
     
-    // Vista lista (default) - ✅ Ahora con await
     return await renderizarListaTareas()
 }
 
@@ -284,16 +300,10 @@ async function renderizarTareas() {
 async function renderizarListaTareas() {
     const { renderizarListaTareas } = tareasModule
     
-    // ✅ Recargar tareas desde la base de datos para asegurar que tienen cliente
     const tareasRecargadas = await tareasModule.cargarTareas(currentEmpresaId)
-    
-    // ✅ Actualizar la variable global
     tareasData = tareasRecargadas
     
-    console.log('📋 Tareas recargadas con cliente:', tareasData.map(t => ({
-        titulo: t.titulo,
-        cliente: t.cliente?.nombre
-    })))
+    console.log('📋 Tareas recargadas:', tareasData.length)
     
     const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
     const clientes = clientesData || []
@@ -305,19 +315,71 @@ async function renderizarListaTareas() {
 }
 
 // ============================================================
+// ENRIQUECER DESCRIPCIÓN CON DEEPSEEK
+// ============================================================
+
+async function enriquecerDescripcion(servicio, tipo, descripcion, cliente, activo) {
+    try {
+        const { data: session } = await sb.auth.getSession()
+        
+        const response = await fetch(
+            `https://idbdkxhhqeuarcqcaweo.supabase.co/functions/v1/enriquecer-tarea`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({
+                    servicio: servicio || '',
+                    tipo: tipo || '',
+                    descripcion: descripcion || '',
+                    cliente: cliente || '',
+                    activo: activo || ''
+                })
+            }
+        )
+        
+        const result = await response.json()
+        
+        if (!response.ok) {
+            console.error('Error en enriquecer-tarea:', result)
+            return null
+        }
+        
+        return result.enriquecido || null
+    } catch (error) {
+        console.error('Error llamando a enriquecer-tarea:', error)
+        return null
+    }
+}
+
+// ============================================================
 // ✅ NUEVO: RENDERIZAR DETALLE DE TAREA CON CAMBIO DE ESTADO
+// ============================================================
+
+// ============================================================
+// ✅ NUEVO: RENDERIZAR DETALLE DE TAREA CON EDITOR DE DESCRIPCIÓN
 // ============================================================
 
 async function renderizarDetalleTarea(tarea) {
     const { renderizarDetalleTarea, cambiarEstadoTarea, reasignarTarea } = tareasModule
     
-    // Obtener historial
     const historial = await tareasModule.getHistorialAsignaciones(tarea.id)
     const historialEstados = await tareasModule.getHistorialEstados(tarea.id)
     
-    const html = await renderizarDetalleTarea(tarea, null, null)
+    // ✅ Obtener activo y dirección desde la base de datos
+    const activoNombre = tarea.activos?.nombre || 'No especificado'
+    const activoDireccion = tarea.activos?.direccion || 'Sin dirección'
+    const activoLocalidad = tarea.activos?.localidad || ''
+    const activoContacto = tarea.activos?.contacto || ''
+    const ubicacionCompleta = activoDireccion + (activoLocalidad ? `, ${activoLocalidad}` : '')
     
-    // Envolver en container
+    // ✅ Si la descripción contiene HTML, mostrarla como HTML
+    const descripcionHTML = tarea.descripcion?.includes('<div') 
+        ? tarea.descripcion 
+        : `<p>${escapeHtml(tarea.descripcion || '-')}</p>`
+    
     return `<div class="container">
         <div class="card">
             <div class="card-header">
@@ -325,15 +387,32 @@ async function renderizarDetalleTarea(tarea) {
                 <div style="float:right;">
                     <button id="btnVolverTareas" class="btn-warning" style="margin-right:8px;">◀ Volver</button>
                     <button id="btnReasignarTarea" class="btn-info" style="background:#e67e22;">🔄 Reasignar</button>
+                    <button id="btnEditarDescripcion" class="btn-info" style="background:#0284c7;">✏️ Editar descripción</button>
                 </div>
             </div>
             
-            <!-- Información de la tarea -->
             <div style="background:var(--ios-bg); padding:16px; border-radius:12px;">
                 <div class="row-flex">
                     <div class="grupo"><strong>Cliente:</strong> ${escapeHtml(tarea.cliente?.nombre || '-')}</div>
                     <div class="grupo"><strong>Técnico:</strong> ${escapeHtml(tarea.perfiles?.nombre_razon_social || 'Sin asignar')}</div>
                 </div>
+                <div class="row-flex">
+                    <div class="grupo"><strong>Servicio:</strong> ${tarea.servicio?.icono || ''} ${escapeHtml(tarea.servicio?.nombre || '-')}</div>
+                    <div class="grupo"><strong>Tipo:</strong> ${escapeHtml(tarea.tipo_tarea?.nombre || '-')}</div>
+                </div>
+                
+                <!-- ✅ UBICACIÓN DEL ACTIVO (desde base de datos) -->
+                <div class="orden-ubicacion" style="background:#e0f2fe; padding:12px 16px; border-radius:8px; margin-bottom:12px; border-left:4px solid #0284c7;">
+                    <h4 style="margin:0 0 4px 0; font-size:13px; color:#0369a1;">📍 Ubicación del activo</h4>
+                    <p style="margin:2px 0; font-size:13px; color:#0c4a6e;">
+                        <strong>Activo:</strong> ${escapeHtml(activoNombre)}
+                    </p>
+                    <p style="margin:2px 0; font-size:13px; color:#0c4a6e;">
+                        <strong>Dirección:</strong> ${escapeHtml(ubicacionCompleta || 'Sin dirección')}
+                    </p>
+                    ${activoContacto ? `<p style="margin:2px 0; font-size:13px; color:#0c4a6e;"><strong>Contacto:</strong> ${escapeHtml(activoContacto)}</p>` : ''}
+                </div>
+                
                 <div class="row-flex">
                     <div class="grupo"><strong>Prioridad:</strong> ${getPrioridadBadge(tarea.prioridad)}</div>
                     <div class="grupo"><strong>Estado:</strong> ${getEstadoBadge(tarea.estado)}</div>
@@ -351,17 +430,21 @@ async function renderizarDetalleTarea(tarea) {
                 ${tarea.motivo_suspension ? `<div><strong>Motivo suspensión:</strong> ${escapeHtml(tarea.motivo_suspension)}</div>` : ''}
                 
                 <div style="margin-top:12px;">
-                    <strong>Descripción:</strong><br>
-                    ${escapeHtml(tarea.descripcion || '-')}
+                    <strong>📋 Descripción / Instrucciones:</strong>
+                    <div id="descripcionContainer" class="descripcion-container" style="margin-top:8px;">
+                        ${descripcionHTML}
+                    </div>
+                    <div id="editorDescripcion" style="display:none; margin-top:12px;">
+                        <textarea id="textoDescripcion" rows="12" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--ios-border); font-family:monospace; font-size:14px;">${escapeHtml(tarea.descripcion || '')}</textarea>
+                        <div style="display:flex; gap:12px; margin-top:8px;">
+                            <button id="btnGuardarDescripcion" class="btn-success">💾 Guardar</button>
+                            <button id="btnCancelarEdicionDescripcion" class="btn-danger">✖ Cancelar</button>
+                            <button id="btnRegenerarDescripcion" class="btn-info" style="background:#8b5cf6;">🔄 Regenerar con IA</button>
+                        </div>
+                    </div>
                 </div>
-                ${tarea.orden_trabajo ? `
-                <div style="margin-top:12px;">
-                    <strong>📋 Orden de trabajo:</strong><br>
-                    <div style="background:white; padding:12px; border-radius:8px;">${escapeHtml(tarea.orden_trabajo)}</div>
-                </div>` : ''}
             </div>
             
-            <!-- ✅ NUEVO: Botones para cambiar estado -->
             ${getEstadosDisponibles(tarea.estado).length > 0 ? `
             <div style="margin-top:16px; padding:16px; background:#f8fafc; border-radius:12px;">
                 <strong>🔄 Cambiar estado:</strong>
@@ -377,7 +460,6 @@ async function renderizarDetalleTarea(tarea) {
                 </div>
             </div>` : ''}
             
-            <!-- Historial de estados -->
             ${historialEstados && historialEstados.length > 0 ? `
             <div class="card" style="margin-top:16px;">
                 <div class="card-header">📜 Historial de estados</div>
@@ -391,7 +473,6 @@ async function renderizarDetalleTarea(tarea) {
                 `).join('')}
             </div>` : ''}
             
-            <!-- Historial de asignaciones -->
             ${historial && historial.length > 0 ? `
             <div class="card" style="margin-top:16px;">
                 <div class="card-header">🔄 Historial de asignaciones</div>
@@ -430,7 +511,6 @@ function getEstadoBadgeClass(estado) {
 async function handleCambiarEstado(tareaId, nuevoEstado) {
     const { cambiarEstadoTarea } = tareasModule
     
-    // Si es suspensión, pedir motivo
     if (nuevoEstado === ESTADOS_TAREA.SUSPENDIDA) {
         const motivo = prompt('📝 Motivo de la suspensión:')
         if (!motivo) {
@@ -445,7 +525,6 @@ async function handleCambiarEstado(tareaId, nuevoEstado) {
         return
     }
     
-    // Confirmar cambio
     const estadoLabel = getEstadoLabel(nuevoEstado)
     mostrarModalConfirmacion(
         `¿Confirmas el cambio de estado a "${estadoLabel}"?`,
@@ -472,10 +551,9 @@ async function handleReasignarTarea(tareaId) {
         return
     }
     
-    // Obtener técnicos disponibles
     const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
     const tecnicosOptions = tecnicos
-        .filter(t => t.id !== tarea.perfil_id) // Excluir al técnico actual
+        .filter(t => t.id !== tarea.perfil_id)
         .map(t => `<option value="${t.id}">${escapeHtml(t.nombre_razon_social)}</option>`)
         .join('')
     
@@ -538,51 +616,99 @@ async function handleReasignarTarea(tareaId) {
 }
 
 // ============================================================
-// FUNCIONES DE TAREAS (CRUD)
+// FUNCIONES DE TAREAS (CRUD) - ACTUALIZADO CON SERVICIOS, TIPOS Y DEEPSEEK
 // ============================================================
 
 async function guardarNuevaTarea() {
     const clienteId = document.getElementById('tareaCliente')?.value
     const activoId = document.getElementById('tareaActivo')?.value || null
     const tecnicoId = document.getElementById('tareaTecnico')?.value || null
+    const servicioId = document.getElementById('tareaServicio')?.value || null
+    const tipoTareaId = document.getElementById('tareaTipo')?.value || null
+    const plantillaId = document.getElementById('tareaPlantilla')?.value || null
     const prioridad = document.getElementById('tareaPrioridad')?.value || 'media'
-    const titulo = document.getElementById('tareaTitulo')?.value.trim()
     const descripcion = document.getElementById('tareaDescripcion')?.value.trim()
-    const ordenTrabajo = document.getElementById('tareaOrdenTrabajo')?.value.trim()
     const fechaLimite = document.getElementById('tareaFechaLimite')?.value || null
     const tiempoEstimado = parseInt(document.getElementById('tareaTiempoEstimado')?.value) || null
-    const notaInterna = document.getElementById('tareaNotaInterna')?.value.trim() || null
-    const notaCliente = document.getElementById('tareaNotaCliente')?.value.trim() || null
     
-    if (!clienteId || !titulo) {
-        mostrarMensaje('Completa los campos obligatorios', 'error')
+    // ✅ Generar título automático
+    let titulo = ''
+    let servicio = ''
+    let tipo = ''
+    if (servicioId && tipoTareaId) {
+        const servicioObj = serviciosData.find(s => s.id === servicioId)
+        const tipoObj = tiposTareaData.find(t => t.id === tipoTareaId)
+        if (servicioObj && tipoObj) {
+            servicio = servicioObj.nombre
+            tipo = tipoObj.nombre
+            titulo = `${servicio} - ${tipo}`
+        }
+    }
+    
+    if (!titulo) {
+        titulo = 'Tarea de servicio'
+    }
+    
+    if (!clienteId || !servicioId || !tipoTareaId) {
+        mostrarMensaje('Completa los campos obligatorios (Servicio, Tipo y Cliente)', 'error')
         return
     }
+    
+    // ✅ Obtener cliente y activo para enriquecer
+    const cliente = clientesData.find(c => c.id === clienteId)
+    const activo = activosData.find(a => a.id === activoId)
+    
+    // ✅ Enriquecer descripción con DeepSeek
+    mostrarModalCarga('📝 Generando descripción profesional...')
+    
+    let descripcionFinal = descripcion || 'Tarea de mantenimiento'
+    try {
+        const enriquecida = await enriquecerDescripcion(
+            servicio,
+            tipo,
+            descripcion || 'Tarea de mantenimiento',
+            cliente?.nombre || '',
+            activo?.nombre || ''
+        )
+        if (enriquecida) {
+            descripcionFinal = enriquecida
+            console.log('✅ Descripción enriquecida correctamente')
+        } else {
+            console.warn('⚠️ No se pudo enriquecer la descripción, usando la original')
+        }
+    } catch (error) {
+        console.warn('⚠️ Error en enriquecimiento:', error)
+    }
+    
+    cerrarModalCarga()
     
     const { crearTarea } = tareasModule
     const nuevaTarea = await crearTarea({
         clienteId,
         activoId,
         tecnicoId,
+        servicioId,
+        tipoTareaId,
+        plantillaId,
         titulo,
-        descripcion,
+        descripcion: descripcionFinal,
         prioridad,
         fechaLimite,
-        ordenTrabajo,
         tiempoEstimado,
-        notaInterna,
-        notaCliente
+        notaInterna: null,
+        notaCliente: null
     })
     
     if (nuevaTarea) {
         await cargarDatosIniciales()
         localStorage.setItem('gerente_tareas_subvista', 'lista')
         await renderizarPanel()
+        mostrarMensaje('✅ Tarea creada con descripción profesional', 'exito')
     }
 }
 
 // ============================================================
-// PERSONAL (sin cambios)
+// PERSONAL
 // ============================================================
 
 async function renderizarPersonal() {
@@ -592,7 +718,6 @@ async function renderizarPersonal() {
         personalModule = await import('./modules/personal.js')
     }
     
-    // Recargar datos antes de renderizar
     tecnicosInternosData = await personalModule.cargarTecnicosInternos(currentEmpresaId)
     tecnicosExternosData = await personalModule.cargarTecnicosExternos(currentEmpresaId)
     vacacionesData = await personalModule.cargarVacaciones(currentEmpresaId)
@@ -643,7 +768,7 @@ async function renderizarPersonalSubvista(subvista) {
 }
 
 // ============================================================
-// CLIENTES (sin cambios)
+// CLIENTES
 // ============================================================
 
 async function renderizarClientes() {
@@ -680,259 +805,6 @@ async function renderizarClientes() {
         </div>
     </div>`
 }
-
-// ============================================================
-// FUNCIONES DE PERSONAL (ya existentes)
-// ============================================================
-
-async function editarTecnico(id, tipo) {
-    const tecnicos = tipo === 'interno' ? tecnicosInternosData : tecnicosExternosData
-    const tecnico = tecnicos.find(t => t.id === id)
-    if (!tecnico) return
-    
-    const { renderizarModalEditarTecnico } = personalModule
-    const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co"
-    
-    const modal = document.createElement('div')
-    modal.className = 'modal-overlay'
-    modal.style.display = 'flex'
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 650px;">
-            <h3>✏️ Editar ${tipo === 'interno' ? 'trabajador interno' : 'trabajador externo'}</h3>
-            ${renderizarModalEditarTecnico(tecnico, tipo)}
-        </div>
-    `
-    document.body.appendChild(modal)
-    
-    document.getElementById('btnGuardarEdicionTecnico').onclick = async () => {
-        const datos = {
-            nombre: document.getElementById('editTecNombre').value.trim(),
-            email: document.getElementById('editTecEmail').value.trim(),
-            telefono: document.getElementById('editTecTelefono').value.trim(),
-            especialidad: document.getElementById('editTecEspecialidad').value.trim(),
-            fechaAlta: document.getElementById('editTecFechaAlta').value || null,
-            fechaFin: document.getElementById('editTecFechaFin').value || null,
-            seguridadSocial: document.getElementById('editTecSeguridadSocial').value.trim(),
-            activo: document.getElementById('editTecActivo').value === 'true'
-        }
-        
-        // Actualizar nick
-        const nuevoNick = document.getElementById('editTecNick').value.trim()
-        if (nuevoNick && nuevoNick !== tecnico.nick) {
-            const { data: existente } = await sb
-                .from('perfiles')
-                .select('id')
-                .eq('nick', nuevoNick)
-                .neq('user_id', tecnico.user_id)
-                .maybeSingle()
-            
-            if (existente) {
-                mostrarMensaje('❌ El nick ya está en uso', 'error')
-                return
-            }
-            
-            await sb.from('perfiles').update({ nick: nuevoNick }).eq('user_id', tecnico.user_id)
-            await sb.from('tecnicos').update({ nick: nuevoNick }).eq('id', id)
-            
-            try {
-                const { data: session } = await sb.auth.getSession()
-                await fetch(`${SUPABASE_URL}/functions/v1/actualizar-metadata-tecnico`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({
-                        user_id: tecnico.user_id,
-                        nick: nuevoNick,
-                        nombre: datos.nombre
-                    })
-                })
-            } catch (error) {
-                console.error('Error actualizando metadata:', error)
-            }
-        }
-        
-        // Actualizar contraseña
-        const nuevaPassword = document.getElementById('editTecPassword').value
-        if (nuevaPassword && nuevaPassword.length >= 6) {
-            try {
-                const { data: session } = await sb.auth.getSession()
-                await fetch(`${SUPABASE_URL}/functions/v1/actualizar-password-tecnico`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({
-                        user_id: tecnico.user_id,
-                        nueva_password: nuevaPassword
-                    })
-                })
-                mostrarMensaje('✅ Contraseña actualizada', 'exito')
-            } catch (error) {
-                console.error('Error actualizando password:', error)
-            }
-        }
-        
-        let exito = false
-        if (tipo === 'interno') {
-            datos.salario_hora = parseFloat(document.getElementById('editTecSalario').value) || 0
-            exito = await personalModule.actualizarTecnicoInterno(id, datos)
-        } else {
-            datos.empresa_externa = document.getElementById('editTecEmpresaExterna').value.trim()
-            exito = await personalModule.actualizarTecnicoExterno(id, datos)
-        }
-        
-        if (exito) {
-            modal.remove()
-            await cargarDatosIniciales()
-            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
-            localStorage.setItem('gerente_personal_subvista', subvista)
-            await renderizarPanel()
-            mostrarMensaje('✅ Cambios guardados', 'exito')
-        }
-    }
-    
-    document.getElementById('btnCancelarEdicionTecnico').onclick = () => modal.remove()
-    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
-}
-
-async function eliminarTecnico(id) {
-    mostrarModalConfirmacion('¿Eliminar este trabajador?', async () => {
-        const exito = await personalModule.eliminarTecnico(id)
-        if (exito) {
-            await cargarDatosIniciales()
-            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
-            localStorage.setItem('gerente_personal_subvista', subvista)
-            await renderizarPanel()
-        }
-    })
-}
-
-async function eliminarTecnicoExterno(id) {
-    mostrarModalConfirmacion('¿Eliminar este trabajador externo?', async () => {
-        const exito = await personalModule.eliminarTecnicoExterno(id)
-        if (exito) {
-            await cargarDatosIniciales()
-            const subvista = localStorage.getItem('gerente_personal_subvista') || 'externos'
-            localStorage.setItem('gerente_personal_subvista', subvista)
-            await renderizarPanel()
-        }
-    })
-}
-
-async function aprobarVacacion(id, estado) {
-    const exito = await personalModule.aprobarVacaciones(id, estado, currentPerfil?.id)
-    if (exito) {
-        await cargarDatosIniciales()
-        await renderizarPanel()
-    }
-}
-
-function mostrarModalAgregarTecnico(tipo = 'interno') {
-    const { renderizarModalAgregarTecnico } = personalModule
-    
-    const modal = document.createElement('div')
-    modal.className = 'modal-overlay'
-    modal.style.display = 'flex'
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
-            <h3>${tipo === 'interno' ? '➕ Alta de trabajador interno' : '➕ Alta de trabajador externo'}</h3>
-            ${renderizarModalAgregarTecnico(tipo)}
-        </div>
-    `
-    document.body.appendChild(modal)
-    
-    // Funcionalidad de vista previa
-    const tipoSelect = document.getElementById('tecTipo')
-    const nombreInput = document.getElementById('tecNombre')
-    const apellidoInput = document.getElementById('tecApellido')
-    const emailInput = document.getElementById('tecEmail')
-    const previewEmail = document.getElementById('previewEmail')
-    const previewNick = document.getElementById('previewNick')
-    
-    function actualizarPreview() {
-        const nombre = nombreInput?.value.trim() || 'nombre'
-        const apellido = apellidoInput?.value.trim() || 'apellido'
-        const email = emailInput?.value.trim()
-        const dominio = currentUser?.email?.split('@')[1] || 'empresa.es'
-        const prefijo = tipoSelect?.value === 'interno' ? 'INT' : 'EXT'
-        const nick = `${nombre.toLowerCase()}${apellido.toLowerCase()}`
-        
-        if (previewEmail) {
-            previewEmail.textContent = email || `${prefijo}0001@${dominio}`
-        }
-        if (previewNick) {
-            previewNick.textContent = nick
-        }
-    }
-    
-    if (tipoSelect) tipoSelect.onchange = actualizarPreview
-    if (nombreInput) nombreInput.oninput = actualizarPreview
-    if (apellidoInput) apellidoInput.oninput = actualizarPreview
-    if (emailInput) emailInput.oninput = actualizarPreview
-    
-    document.getElementById('btnGuardarTecnico').onclick = async () => {
-        const tipo = document.getElementById('tecTipo').value
-        const nombre = document.getElementById('tecNombre').value.trim()
-        const apellido = document.getElementById('tecApellido').value.trim()
-        const dni = document.getElementById('tecDni').value.trim()
-        const telefono = document.getElementById('tecTelefono').value.trim()
-        const emailPersonal = document.getElementById('tecEmail').value.trim()
-        const fechaNacimiento = document.getElementById('tecFechaNacimiento').value
-        const fechaAlta = document.getElementById('tecFechaAlta').value
-        const fechaFin = document.getElementById('tecFechaFin').value
-        const especialidad = document.getElementById('tecEspecialidad').value.trim()
-        const seguridadSocial = document.getElementById('tecSeguridadSocial').value.trim()
-        const salario = parseFloat(document.getElementById('tecSalario').value) || 0
-        const empresaExterna = document.getElementById('tecEmpresaExterna').value.trim()
-        
-        if (!nombre || !apellido) {
-            mostrarMensaje('Nombre y apellido obligatorios', 'error')
-            return
-        }
-        if (!dni) {
-            mostrarMensaje('DNI/NIE obligatorio', 'error')
-            return
-        }
-        
-        const datos = {
-            nombre,
-            apellido,
-            dni,
-            telefono,
-            email: emailPersonal || null,
-            fechaNacimiento: fechaNacimiento || null,
-            fechaAlta: fechaAlta || null,
-            fechaFin: fechaFin || null,
-            especialidad: especialidad || null,
-            seguridadSocial: seguridadSocial || null,
-            salario: salario,
-            empresaExterna: empresaExterna || null
-        }
-        
-        const email = currentUser?.email
-        const exito = tipo === 'interno' 
-            ? await personalModule.crearTecnicoInterno(datos, currentEmpresaId, email) 
-            : await personalModule.crearTecnicoExterno(datos, currentEmpresaId, email)
-        
-        if (exito) {
-            modal.remove()
-            await cargarDatosIniciales()
-            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
-            localStorage.setItem('gerente_personal_subvista', subvista)
-            await renderizarPanel()
-        }
-    }
-    
-    document.getElementById('btnCancelarTecnico').onclick = () => modal.remove()
-    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
-}
-
-// ============================================================
-// FUNCIONES DE CLIENTES (ya existentes)
-// ============================================================
 
 async function mostrarListaClientes() {
     if (clientesData.length === 0) {
@@ -1195,6 +1067,252 @@ async function mostrarModalEditarActivo(activoId, clienteId) {
     newBtnGuardar.addEventListener('click', guardarHandler)
     newBtnCancelar.addEventListener('click', cancelarHandler)
     modal.onclick = (e) => { if (e.target === modal) cancelarHandler() }
+}
+
+// ============================================================
+// FUNCIONES DE PERSONAL
+// ============================================================
+
+async function editarTecnico(id, tipo) {
+    const tecnicos = tipo === 'interno' ? tecnicosInternosData : tecnicosExternosData
+    const tecnico = tecnicos.find(t => t.id === id)
+    if (!tecnico) return
+    
+    const { renderizarModalEditarTecnico } = personalModule
+    const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co"
+    
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+    modal.style.display = 'flex'
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 650px;">
+            <h3>✏️ Editar ${tipo === 'interno' ? 'trabajador interno' : 'trabajador externo'}</h3>
+            ${renderizarModalEditarTecnico(tecnico, tipo)}
+        </div>
+    `
+    document.body.appendChild(modal)
+    
+    document.getElementById('btnGuardarEdicionTecnico').onclick = async () => {
+        const datos = {
+            nombre: document.getElementById('editTecNombre').value.trim(),
+            email: document.getElementById('editTecEmail').value.trim(),
+            telefono: document.getElementById('editTecTelefono').value.trim(),
+            especialidad: document.getElementById('editTecEspecialidad').value.trim(),
+            fechaAlta: document.getElementById('editTecFechaAlta').value || null,
+            fechaFin: document.getElementById('editTecFechaFin').value || null,
+            seguridadSocial: document.getElementById('editTecSeguridadSocial').value.trim(),
+            activo: document.getElementById('editTecActivo').value === 'true'
+        }
+        
+        const nuevoNick = document.getElementById('editTecNick').value.trim()
+        if (nuevoNick && nuevoNick !== tecnico.nick) {
+            const { data: existente } = await sb
+                .from('perfiles')
+                .select('id')
+                .eq('nick', nuevoNick)
+                .neq('user_id', tecnico.user_id)
+                .maybeSingle()
+            
+            if (existente) {
+                mostrarMensaje('❌ El nick ya está en uso', 'error')
+                return
+            }
+            
+            await sb.from('perfiles').update({ nick: nuevoNick }).eq('user_id', tecnico.user_id)
+            await sb.from('tecnicos').update({ nick: nuevoNick }).eq('id', id)
+            
+            try {
+                const { data: session } = await sb.auth.getSession()
+                await fetch(`${SUPABASE_URL}/functions/v1/actualizar-metadata-tecnico`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({
+                        user_id: tecnico.user_id,
+                        nick: nuevoNick,
+                        nombre: datos.nombre
+                    })
+                })
+            } catch (error) {
+                console.error('Error actualizando metadata:', error)
+            }
+        }
+        
+        const nuevaPassword = document.getElementById('editTecPassword').value
+        if (nuevaPassword && nuevaPassword.length >= 6) {
+            try {
+                const { data: session } = await sb.auth.getSession()
+                await fetch(`${SUPABASE_URL}/functions/v1/actualizar-password-tecnico`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({
+                        user_id: tecnico.user_id,
+                        nueva_password: nuevaPassword
+                    })
+                })
+                mostrarMensaje('✅ Contraseña actualizada', 'exito')
+            } catch (error) {
+                console.error('Error actualizando password:', error)
+            }
+        }
+        
+        let exito = false
+        if (tipo === 'interno') {
+            datos.salario_hora = parseFloat(document.getElementById('editTecSalario').value) || 0
+            exito = await personalModule.actualizarTecnicoInterno(id, datos)
+        } else {
+            datos.empresa_externa = document.getElementById('editTecEmpresaExterna').value.trim()
+            exito = await personalModule.actualizarTecnicoExterno(id, datos)
+        }
+        
+        if (exito) {
+            modal.remove()
+            await cargarDatosIniciales()
+            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
+            localStorage.setItem('gerente_personal_subvista', subvista)
+            await renderizarPanel()
+            mostrarMensaje('✅ Cambios guardados', 'exito')
+        }
+    }
+    
+    document.getElementById('btnCancelarEdicionTecnico').onclick = () => modal.remove()
+    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
+}
+
+async function eliminarTecnico(id) {
+    mostrarModalConfirmacion('¿Eliminar este trabajador?', async () => {
+        const exito = await personalModule.eliminarTecnico(id)
+        if (exito) {
+            await cargarDatosIniciales()
+            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
+            localStorage.setItem('gerente_personal_subvista', subvista)
+            await renderizarPanel()
+        }
+    })
+}
+
+async function eliminarTecnicoExterno(id) {
+    mostrarModalConfirmacion('¿Eliminar este trabajador externo?', async () => {
+        const exito = await personalModule.eliminarTecnicoExterno(id)
+        if (exito) {
+            await cargarDatosIniciales()
+            const subvista = localStorage.getItem('gerente_personal_subvista') || 'externos'
+            localStorage.setItem('gerente_personal_subvista', subvista)
+            await renderizarPanel()
+        }
+    })
+}
+
+async function aprobarVacacion(id, estado) {
+    const exito = await personalModule.aprobarVacaciones(id, estado, currentPerfil?.id)
+    if (exito) {
+        await cargarDatosIniciales()
+        await renderizarPanel()
+    }
+}
+
+function mostrarModalAgregarTecnico(tipo = 'interno') {
+    const { renderizarModalAgregarTecnico } = personalModule
+    
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+    modal.style.display = 'flex'
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <h3>${tipo === 'interno' ? '➕ Alta de trabajador interno' : '➕ Alta de trabajador externo'}</h3>
+            ${renderizarModalAgregarTecnico(tipo)}
+        </div>
+    `
+    document.body.appendChild(modal)
+    
+    const tipoSelect = document.getElementById('tecTipo')
+    const nombreInput = document.getElementById('tecNombre')
+    const apellidoInput = document.getElementById('tecApellido')
+    const emailInput = document.getElementById('tecEmail')
+    const previewEmail = document.getElementById('previewEmail')
+    const previewNick = document.getElementById('previewNick')
+    
+    function actualizarPreview() {
+        const nombre = nombreInput?.value.trim() || 'nombre'
+        const apellido = apellidoInput?.value.trim() || 'apellido'
+        const email = emailInput?.value.trim()
+        const dominio = currentUser?.email?.split('@')[1] || 'empresa.es'
+        const prefijo = tipoSelect?.value === 'interno' ? 'INT' : 'EXT'
+        const nick = `${nombre.toLowerCase()}${apellido.toLowerCase()}`
+        
+        if (previewEmail) {
+            previewEmail.textContent = email || `${prefijo}0001@${dominio}`
+        }
+        if (previewNick) {
+            previewNick.textContent = nick
+        }
+    }
+    
+    if (tipoSelect) tipoSelect.onchange = actualizarPreview
+    if (nombreInput) nombreInput.oninput = actualizarPreview
+    if (apellidoInput) apellidoInput.oninput = actualizarPreview
+    if (emailInput) emailInput.oninput = actualizarPreview
+    
+    document.getElementById('btnGuardarTecnico').onclick = async () => {
+        const tipo = document.getElementById('tecTipo').value
+        const nombre = document.getElementById('tecNombre').value.trim()
+        const apellido = document.getElementById('tecApellido').value.trim()
+        const dni = document.getElementById('tecDni').value.trim()
+        const telefono = document.getElementById('tecTelefono').value.trim()
+        const emailPersonal = document.getElementById('tecEmail').value.trim()
+        const fechaNacimiento = document.getElementById('tecFechaNacimiento').value
+        const fechaAlta = document.getElementById('tecFechaAlta').value
+        const fechaFin = document.getElementById('tecFechaFin').value
+        const especialidad = document.getElementById('tecEspecialidad').value.trim()
+        const seguridadSocial = document.getElementById('tecSeguridadSocial').value.trim()
+        const salario = parseFloat(document.getElementById('tecSalario').value) || 0
+        const empresaExterna = document.getElementById('tecEmpresaExterna').value.trim()
+        
+        if (!nombre || !apellido) {
+            mostrarMensaje('Nombre y apellido obligatorios', 'error')
+            return
+        }
+        if (!dni) {
+            mostrarMensaje('DNI/NIE obligatorio', 'error')
+            return
+        }
+        
+        const datos = {
+            nombre,
+            apellido,
+            dni,
+            telefono,
+            email: emailPersonal || null,
+            fechaNacimiento: fechaNacimiento || null,
+            fechaAlta: fechaAlta || null,
+            fechaFin: fechaFin || null,
+            especialidad: especialidad || null,
+            seguridadSocial: seguridadSocial || null,
+            salario: salario,
+            empresaExterna: empresaExterna || null
+        }
+        
+        const email = currentUser?.email
+        const exito = tipo === 'interno' 
+            ? await personalModule.crearTecnicoInterno(datos, currentEmpresaId, email) 
+            : await personalModule.crearTecnicoExterno(datos, currentEmpresaId, email)
+        
+        if (exito) {
+            modal.remove()
+            await cargarDatosIniciales()
+            const subvista = localStorage.getItem('gerente_personal_subvista') || 'internos'
+            localStorage.setItem('gerente_personal_subvista', subvista)
+            await renderizarPanel()
+        }
+    }
+    
+    document.getElementById('btnCancelarTecnico').onclick = () => modal.remove()
+    modal.onclick = (e) => { if (e.target === modal) modal.remove() }
 }
 
 // ============================================================
@@ -1473,7 +1591,6 @@ function asignarEventosFiltrosTareas() {
             if (typeof tareasModule.renderizarTablaTareas === 'function') {
                 container.innerHTML = tareasModule.renderizarTablaTareas(resultado)
             } else {
-                // Fallback: reconstruir la tabla
                 let html = `<table class="data-table"><thead><tr>
                     <th>Nº Tarea</th><th>Título</th><th>Cliente / Activo</th>
                     <th>Técnico</th><th>Prioridad</th><th>Estado</th>
@@ -1503,7 +1620,6 @@ function asignarEventosFiltrosTareas() {
                 container.innerHTML = html
             }
             
-            // Reasignar eventos
             document.querySelectorAll('.ver-tarea').forEach(btn => {
                 btn.addEventListener('click', () => {
                     localStorage.setItem('gerente_tareas_subvista', 'detalle')
@@ -1595,7 +1711,6 @@ function asignarEventosFiltrosTareas() {
         })
     }
     
-    // --- EVENTOS ---
     const buscarInput = document.getElementById('buscarTarea')
     if (buscarInput) {
         let timeoutId = null
@@ -1628,7 +1743,11 @@ function asignarEventosFiltrosTareas() {
 }
 
 // ============================================================
-// ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA
+// ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA CON FILTROS DINÁMICOS
+// ============================================================
+
+// ============================================================
+// ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA CON EDITOR DE DESCRIPCIÓN
 // ============================================================
 
 function asignarEventosSubmodulos() {
@@ -1636,66 +1755,166 @@ function asignarEventosSubmodulos() {
     // TAREAS
     // ============================================================
     
-    // Botón crear tarea desde lista
     document.getElementById('btnCrearTareaLista')?.addEventListener('click', () => {
         localStorage.setItem('gerente_tareas_subvista', 'crear')
         renderizarPanel()
     })
     
-    // Botón volver a lista de tareas
     document.getElementById('btnVolverTareas')?.addEventListener('click', () => {
         localStorage.setItem('gerente_tareas_subvista', 'lista')
         renderizarPanel()
     })
     
-    // Guardar nueva tarea
     document.getElementById('btnGuardarTarea')?.addEventListener('click', guardarNuevaTarea)
     
-    // Cancelar creación de tarea
     document.getElementById('btnCancelarTarea')?.addEventListener('click', () => {
         localStorage.setItem('gerente_tareas_subvista', 'lista')
         renderizarPanel()
     })
     
-    // ✅ Cargar activos al seleccionar cliente (VERSIÓN CORREGIDA)
-    const clienteSelect = document.getElementById('tareaCliente')
-    if (clienteSelect) {
-        // Eliminar eventos anteriores (evita duplicados)
-        const newClienteSelect = clienteSelect.cloneNode(true)
-        clienteSelect.parentNode.replaceChild(newClienteSelect, clienteSelect)
-        
-        newClienteSelect.addEventListener('change', async function() {
-            const clienteId = this.value
-            const activoSelect = document.getElementById('tareaActivo')
+    // ✅ FILTROS DINÁMICOS: Servicio → Tipos → Plantillas
+    setTimeout(() => {
+        const servicioSelect = document.getElementById('tareaServicio')
+        if (servicioSelect) {
+            const newServicioSelect = servicioSelect.cloneNode(true)
+            servicioSelect.parentNode?.replaceChild(newServicioSelect, servicioSelect)
             
-            console.log('📌 Cliente seleccionado:', clienteId)
-            
-            if (!clienteId) {
-                activoSelect.innerHTML = '<option value="">-- Seleccionar activo --</option>'
-                return
-            }
-            
-            try {
-                console.log('🔄 Cargando activos...')
-                const activos = await tareasModule.cargarActivos(clienteId)
-                console.log('📦 Activos recibidos:', activos)
+            newServicioSelect.addEventListener('change', async function() {
+                const servicioId = this.value
+                const tipoSelect = document.getElementById('tareaTipo')
+                const plantillaContainer = document.getElementById('plantillaContainer')
+                const plantillaSelect = document.getElementById('tareaPlantilla')
                 
-                let options = '<option value="">-- Seleccionar activo --</option>'
-                if (activos && activos.length > 0) {
-                    activos.forEach(a => {
-                        options += `<option value="${a.id}">${escapeHtml(a.nombre)}</option>`
-                    })
-                } else {
-                    options += '<option value="" disabled>📭 Sin activos</option>'
+                if (!servicioId) {
+                    if (tipoSelect) tipoSelect.innerHTML = '<option value="">-- Seleccionar tipo --</option>'
+                    if (plantillaContainer) plantillaContainer.style.display = 'none'
+                    return
                 }
-                activoSelect.innerHTML = options
-                console.log('✅ Selector actualizado')
-            } catch (error) {
-                console.error('❌ Error cargando activos:', error)
-                activoSelect.innerHTML = '<option value="">-- Error al cargar --</option>'
-            }
-        })
-    }
+                
+                try {
+                    const tipos = await tareasModule.cargarTiposTarea(servicioId)
+                    
+                    let options = '<option value="">-- Seleccionar tipo --</option>'
+                    if (tipos && tipos.length > 0) {
+                        tipos.forEach(t => {
+                            options += `<option value="${t.id}">${escapeHtml(t.nombre)}</option>`
+                        })
+                    } else {
+                        options += '<option value="" disabled>📭 Sin tipos</option>'
+                    }
+                    if (tipoSelect) tipoSelect.innerHTML = options
+                    
+                    if (plantillaContainer) plantillaContainer.style.display = 'none'
+                    if (plantillaSelect) plantillaSelect.innerHTML = '<option value="">-- Seleccionar plantilla --</option>'
+                } catch (error) {
+                    console.error('Error cargando tipos:', error)
+                }
+            })
+        }
+        
+        const tipoSelect = document.getElementById('tareaTipo')
+        if (tipoSelect) {
+            const newTipoSelect = tipoSelect.cloneNode(true)
+            tipoSelect.parentNode?.replaceChild(newTipoSelect, tipoSelect)
+            
+            newTipoSelect.addEventListener('change', async function() {
+                const tipoId = this.value
+                const plantillaContainer = document.getElementById('plantillaContainer')
+                const plantillaSelect = document.getElementById('tareaPlantilla')
+                
+                if (!tipoId) {
+                    if (plantillaContainer) plantillaContainer.style.display = 'none'
+                    return
+                }
+                
+                try {
+                    const plantillas = await tareasModule.cargarPlantillasTarea(currentEmpresaId, tipoId)
+                    
+                    let options = '<option value="">-- Seleccionar plantilla --</option>'
+                    if (plantillas && plantillas.length > 0) {
+                        plantillas.forEach(p => {
+                            options += `<option value="${p.id}">${escapeHtml(p.titulo)}</option>`
+                        })
+                        if (plantillaContainer) plantillaContainer.style.display = 'flex'
+                    } else {
+                        options += '<option value="" disabled>📭 Sin plantillas</option>'
+                        if (plantillaContainer) plantillaContainer.style.display = 'none'
+                    }
+                    if (plantillaSelect) plantillaSelect.innerHTML = options
+                } catch (error) {
+                    console.error('Error cargando plantillas:', error)
+                }
+            })
+        }
+        
+        const plantillaSelect = document.getElementById('tareaPlantilla')
+        if (plantillaSelect) {
+            const newPlantillaSelect = plantillaSelect.cloneNode(true)
+            plantillaSelect.parentNode?.replaceChild(newPlantillaSelect, plantillaSelect)
+            
+            newPlantillaSelect.addEventListener('change', async function() {
+                const plantillaId = this.value
+                const tituloInput = document.getElementById('tareaTitulo')
+                const descripcionTextarea = document.getElementById('tareaDescripcion')
+                const tiempoEstimadoInput = document.getElementById('tareaTiempoEstimado')
+                const prioridadSelect = document.getElementById('tareaPrioridad')
+                const ordenTrabajoTextarea = document.getElementById('tareaOrdenTrabajo')
+                
+                if (!plantillaId) return
+                
+                try {
+                    const { data: plantilla } = await sb
+                        .from('plantillas_tarea')
+                        .select('*')
+                        .eq('id', plantillaId)
+                        .single()
+                    
+                    if (plantilla) {
+                        if (tituloInput) tituloInput.value = plantilla.titulo || ''
+                        if (descripcionTextarea) descripcionTextarea.value = plantilla.descripcion || ''
+                        if (tiempoEstimadoInput) tiempoEstimadoInput.value = plantilla.tiempo_estimado || ''
+                        if (prioridadSelect && plantilla.prioridad) prioridadSelect.value = plantilla.prioridad
+                        if (ordenTrabajoTextarea) ordenTrabajoTextarea.value = plantilla.orden_trabajo || ''
+                    }
+                } catch (error) {
+                    console.error('Error cargando plantilla:', error)
+                }
+            })
+        }
+        
+        const clienteSelect = document.getElementById('tareaCliente')
+        if (clienteSelect) {
+            const newClienteSelect = clienteSelect.cloneNode(true)
+            clienteSelect.parentNode?.replaceChild(newClienteSelect, clienteSelect)
+            
+            newClienteSelect.addEventListener('change', async function() {
+                const clienteId = this.value
+                const activoSelect = document.getElementById('tareaActivo')
+                
+                if (!clienteId) {
+                    if (activoSelect) activoSelect.innerHTML = '<option value="">-- Seleccionar activo --</option>'
+                    return
+                }
+                
+                try {
+                    const activos = await tareasModule.cargarActivos(clienteId)
+                    
+                    let options = '<option value="">-- Seleccionar activo --</option>'
+                    if (activos && activos.length > 0) {
+                        activos.forEach(a => {
+                            options += `<option value="${a.id}">${escapeHtml(a.nombre)}</option>`
+                        })
+                    } else {
+                        options += '<option value="" disabled>📭 Sin activos</option>'
+                    }
+                    if (activoSelect) activoSelect.innerHTML = options
+                } catch (error) {
+                    console.error('❌ Error cargando activos:', error)
+                    if (activoSelect) activoSelect.innerHTML = '<option value="">-- Error al cargar --</option>'
+                }
+            })
+        }
+    }, 200)
     
     // Eventos para cambiar estado en detalle
     document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
@@ -1706,13 +1925,11 @@ function asignarEventosSubmodulos() {
         })
     })
     
-    // Evento para reasignar tarea desde detalle
     document.getElementById('btnReasignarTarea')?.addEventListener('click', () => {
         const tareaId = localStorage.getItem('gerente_tarea_detalle')
         if (tareaId) handleReasignarTarea(tareaId)
     })
     
-    // Ver detalle de tarea
     document.querySelectorAll('.ver-tarea').forEach(btn => {
         btn.addEventListener('click', () => {
             localStorage.setItem('gerente_tareas_subvista', 'detalle')
@@ -1721,12 +1938,119 @@ function asignarEventosSubmodulos() {
         })
     })
     
-    // Asignar/Reasignar tarea desde lista
     document.querySelectorAll('.asignar-tarea').forEach(btn => {
         btn.addEventListener('click', () => {
             const tareaId = btn.dataset.id
             handleReasignarTarea(tareaId)
         })
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Botón editar
+    document.getElementById('btnEditarDescripcion')?.addEventListener('click', function() {
+        const container = document.getElementById('descripcionContainer')
+        const editor = document.getElementById('editorDescripcion')
+        
+        if (container && editor) {
+            container.style.display = 'none'
+            editor.style.display = 'block'
+            
+            // Cargar el texto actual en el editor
+            const textarea = document.getElementById('textoDescripcion')
+            if (textarea) {
+                // Obtener el texto plano del container
+                let textoPlano = container.textContent || container.innerText || ''
+                // Limpiar saltos de línea extra
+                textoPlano = textoPlano.trim()
+                textarea.value = textoPlano
+            }
+        }
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Guardar
+    document.getElementById('btnGuardarDescripcion')?.addEventListener('click', async function() {
+        const textarea = document.getElementById('textoDescripcion')
+        const nuevoTexto = textarea?.value || ''
+        
+        const tareaId = localStorage.getItem('gerente_tarea_detalle')
+        if (!tareaId) {
+            mostrarMensaje('Error: Tarea no encontrada', 'error')
+            return
+        }
+        
+        mostrarModalCarga('Guardando descripción...')
+        
+        try {
+            const { error } = await sb
+                .from('tareas')
+                .update({ 
+                    descripcion: nuevoTexto, 
+                    updated_at: new Date() 
+                })
+                .eq('id', tareaId)
+            
+            if (error) throw error
+            
+            cerrarModalCarga()
+            mostrarMensaje('✅ Descripción actualizada', 'exito')
+            
+            // Recargar el detalle
+            await cargarDatosIniciales()
+            await renderizarPanel()
+            
+        } catch (error) {
+            cerrarModalCarga()
+            console.error('Error guardando descripción:', error)
+            mostrarMensaje('Error al guardar la descripción', 'error')
+        }
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Cancelar
+    document.getElementById('btnCancelarEdicionDescripcion')?.addEventListener('click', function() {
+        const container = document.getElementById('descripcionContainer')
+        const editor = document.getElementById('editorDescripcion')
+        
+        if (container && editor) {
+            container.style.display = 'block'
+            editor.style.display = 'none'
+        }
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Regenerar con IA
+    document.getElementById('btnRegenerarDescripcion')?.addEventListener('click', async function() {
+        const tareaId = localStorage.getItem('gerente_tarea_detalle')
+        const tarea = tareasData.find(t => t.id === tareaId)
+        if (!tarea) {
+            mostrarMensaje('Error: Tarea no encontrada', 'error')
+            return
+        }
+        
+        mostrarModalCarga('🔄 Regenerando descripción con IA...')
+        
+        try {
+            const enriquecida = await enriquecerDescripcion(
+                tarea.servicio?.nombre || '',
+                tarea.tipo_tarea?.nombre || '',
+                tarea.descripcion || '',
+                tarea.cliente?.nombre || '',
+                tarea.activos?.nombre || ''
+            )
+            
+            cerrarModalCarga()
+            
+            if (enriquecida) {
+                const textarea = document.getElementById('textoDescripcion')
+                if (textarea) {
+                    textarea.value = enriquecida
+                    mostrarMensaje('✅ Descripción regenerada correctamente', 'exito')
+                }
+            } else {
+                mostrarMensaje('❌ No se pudo regenerar la descripción', 'error')
+            }
+        } catch (error) {
+            cerrarModalCarga()
+            console.error('Error regenerando descripción:', error)
+            mostrarMensaje('Error al regenerar la descripción', 'error')
+        }
     })
     
     // ============================================================
@@ -1751,7 +2075,6 @@ function asignarEventosSubmodulos() {
         renderizarPanel()
     })
     
-    // Botón guardar cliente en formulario de alta
     document.getElementById('btnGuardarCliente')?.addEventListener('click', async () => {
         const nombre = document.getElementById('cliNombre')?.value.trim()
         const nifCif = document.getElementById('cliNif')?.value.trim()
