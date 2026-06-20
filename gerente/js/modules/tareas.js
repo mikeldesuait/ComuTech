@@ -77,7 +77,7 @@ export async function cargarTareas(empresaId) {
             .select(`
                 *,
                 perfiles!perfil_id(id, nombre_razon_social, email, nick),
-                empresas!empresa_id(id, nombre_empresa),
+                cliente:clientes!cliente_id(id, nombre),
                 activos!activo_id(id, nombre, direccion)
             `)
             .eq('empresa_id', empresaId)
@@ -181,6 +181,10 @@ export async function cargarActivos(clienteId) {
 // CREAR NUEVA TAREA (CON NUEVO ESTADO INICIAL)
 // ============================================================
 
+// ============================================================
+// CREAR NUEVA TAREA (CON NUEVO ESTADO INICIAL Y FORMATO TDDMMNNNN)
+// ============================================================
+
 export async function crearTarea(datos) {
     const { 
         clienteId, activoId, tecnicoId, titulo, descripcion, 
@@ -196,20 +200,30 @@ export async function crearTarea(datos) {
     mostrarModalCarga('Creando tarea...')
     
     try {
-        // Generar número de tarea
+        // ✅ Generar número de tarea: TDDMMNNNN (día+mes+secuencia del día)
+        const hoy = new Date()
+        const dia = String(hoy.getDate()).padStart(2, '0')
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0')
+        const fechaStr = `${dia}${mes}` // Ej: '2006' para 20 de junio
+        
+        // Buscar la última tarea del día actual (mismo día y mes)
         const { data: ultimaTarea } = await sb
             .from('tareas')
             .select('numero_tarea')
+            .like('numero_tarea', `T${fechaStr}%`)
             .order('created_at', { ascending: false })
             .limit(1)
         
-        let numeroTarea = 'T001'
+        let secuencia = 1
         if (ultimaTarea && ultimaTarea.length > 0) {
-            const ultimoNumero = parseInt(ultimaTarea[0].numero_tarea.slice(1))
-            numeroTarea = `T${String(ultimoNumero + 1).padStart(3, '0')}`
+            const numStr = ultimaTarea[0].numero_tarea
+            const ultimaSecuencia = parseInt(numStr.slice(-4))
+            secuencia = ultimaSecuencia + 1
         }
         
-        // ✅ Obtener empresa_id del gerente
+        const numeroTarea = `T${fechaStr}${String(secuencia).padStart(4, '0')}`
+        
+        // Obtener empresa_id del gerente
         const empresaId = await getEmpresaId()
         if (!empresaId) {
             throw new Error('No se pudo obtener la empresa del gerente')
@@ -221,6 +235,7 @@ export async function crearTarea(datos) {
             .from('tareas')
             .insert({
                 empresa_id: empresaId,
+                cliente_id: clienteId,
                 perfil_id: tecnicoId || null,
                 activo_id: activoId || null,
                 numero_tarea: numeroTarea,
@@ -239,7 +254,10 @@ export async function crearTarea(datos) {
             .select()
             .single()
         
-        if (error) throw error
+        if (error) {
+            console.error('Error en insert:', error)
+            throw error
+        }
         
         // Registrar en historial de estados
         await registrarCambioEstado(
@@ -282,7 +300,7 @@ export async function crearTarea(datos) {
     } catch (error) {
         cerrarModalCarga()
         console.error('Error creando tarea:', error)
-        mostrarMensaje('Error al crear tarea', 'error')
+        mostrarMensaje('Error al crear tarea: ' + error.message, 'error')
         return null
     }
 }
@@ -495,11 +513,11 @@ async function registrarCambioEstado(tareaId, estadoAnterior, estadoNuevo, usuar
                 estado_anterior: estadoAnterior,
                 estado_nuevo: estadoNuevo,
                 usuario_tipo: usuarioTipo,
-                usuario_id: await getPerfilId(),
+                perfil_id: await getPerfilId(),  // ✅ Solo perfil_id
                 comentario: comentario,
                 fecha: new Date()
             })
-        
+        // ❌ ELIMINAR usuario_id si no existe
         if (error) console.error('Error registrando historial:', error)
     } catch (error) {
         console.error('Error en registrarCambioEstado:', error)
@@ -551,7 +569,7 @@ async function crearNotificacionCliente(clienteId, titulo, mensaje, tipo, tareaI
 }
 
 // ============================================================
-// REGISTRAR HISTORIAL DE ASIGNACIONES
+// REGISTRAR HISTORIAL DE ASIGNACIONES (CORREGIDO)
 // ============================================================
 
 async function registrarHistorialAsignacion(tareaId, tecnicoId, tipo, motivo = null) {
@@ -661,7 +679,7 @@ export async function getHistorialEstados(tareaId) {
 }
 
 // ============================================================
-// OBTENER HISTORIAL DE ASIGNACIONES
+// OBTENER HISTORIAL DE ASIGNACIONES (CORREGIDO)
 // ============================================================
 
 export async function getHistorialAsignaciones(tareaId) {
@@ -669,8 +687,8 @@ export async function getHistorialAsignaciones(tareaId) {
         .from('historial_asignaciones')
         .select(`
             *,
-            perfiles!tecnico_id(id, nombre_razon_social),
-            perfiles!asignado_por(id, nombre_razon_social)
+            tecnico:perfiles!tecnico_id(id, nombre_razon_social),
+            asignador:perfiles!asignado_por(id, nombre_razon_social)
         `)
         .eq('tarea_id', tareaId)
         .order('fecha_asignacion', { ascending: false })
@@ -836,7 +854,7 @@ function renderizarTablaTareas(tareas) {
     
     for (const tarea of tareas) {
         const tecnicoNombre = tarea.perfiles?.nombre_razon_social || 'Sin asignar'
-        const clienteNombre = tarea.empresas?.nombre_empresa || '-'
+        const clienteNombre = tarea.cliente?.nombre || '-'
         const activoNombre = tarea.activos?.nombre || ''
         const activoDireccion = tarea.activos?.direccion || ''
         
@@ -1033,7 +1051,7 @@ export async function renderizarDetalleTarea(tarea, onCambiarEstado, onReasignar
             
             <div style="background:var(--ios-bg); padding:16px; border-radius:12px;">
                 <div class="row-flex">
-                    <div class="grupo"><strong>Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || '-')}</div>
+                    <div class="grupo"><strong>Cliente:</strong> ${escapeHtml(tarea.cliente?.nombre || '-')}</div>
                     <div class="grupo"><strong>Técnico:</strong> ${escapeHtml(tarea.perfiles?.nombre_razon_social || 'Sin asignar')}</div>
                 </div>
                 <div class="row-flex">
@@ -1107,7 +1125,7 @@ export async function renderizarDetalleTarea(tarea, onCambiarEstado, onReasignar
                 ${historialAsignaciones.slice(0, 10).map(h => `
                     <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
                         ${h.tipo === 'asignacion' ? '📌 Asignada' : '🔄 Reasignada'} a 
-                        ${escapeHtml(h.perfiles?.nombre_razon_social || '?')} 
+                        ${escapeHtml(h.tecnico?.nombre_razon_social || '?')} 
                         el ${formatearFecha(h.fecha_asignacion)}
                         ${h.motivo ? `<br><span style="color:#6b7280;">Motivo: ${escapeHtml(h.motivo)}</span>` : ''}
                     </div>
@@ -1445,7 +1463,7 @@ export function aplicarFiltrosTareas(tareas, filtros) {
             t.numero_tarea?.toLowerCase().includes(busqueda) ||
             t.descripcion?.toLowerCase().includes(busqueda) ||
             t.perfiles?.nombre_razon_social?.toLowerCase().includes(busqueda) ||
-            t.empresas?.nombre_empresa?.toLowerCase().includes(busqueda) ||
+            t.cliente?.nombre?.toLowerCase().includes(busqueda) ||
             t.activos?.nombre?.toLowerCase().includes(busqueda) ||
             t.activos?.direccion?.toLowerCase().includes(busqueda) ||
             t.activos?.localidad?.toLowerCase().includes(busqueda)
@@ -1461,7 +1479,7 @@ export function aplicarFiltrosTareas(tareas, filtros) {
     }
     
     if (filtros.cliente && filtros.cliente !== 'todos') {
-        resultado = resultado.filter(t => t.empresa_id === filtros.cliente)
+        resultado = resultado.filter(t => t.cliente_id === filtros.cliente)
     }
     
     if (filtros.prioridad && filtros.prioridad !== 'todos') {

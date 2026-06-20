@@ -19,6 +19,7 @@ export async function cargarTecnicosInternos(empresaId) {
     if (!empresaId) return []
     
     try {
+        // ✅ Filtrar por tipo = 'interno'
         const { data, error } = await sb
             .from('tecnicos')
             .select('*')
@@ -29,6 +30,7 @@ export async function cargarTecnicosInternos(empresaId) {
         if (error) throw error
         
         tecnicosInternos = data || []
+        console.log('✅ cargarTecnicosInternos devolvió:', tecnicosInternos.length, 'técnicos')
         return tecnicosInternos
         
     } catch (error) {

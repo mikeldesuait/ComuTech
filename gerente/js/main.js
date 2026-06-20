@@ -199,7 +199,12 @@ async function cargarDatosIniciales() {
     impuestosModule = await import('./modules/impuestos.js')
     
     tareasData = await tareasModule.cargarTareas(currentEmpresaId)
+    
+    // ✅ Recargar técnicos con depuración
     tecnicosInternosData = await personalModule.cargarTecnicosInternos(currentEmpresaId)
+    console.log('📋 Técnicos internos cargados en cargarDatosIniciales:', tecnicosInternosData)
+    console.log('📋 Cantidad:', tecnicosInternosData.length)
+    
     tecnicosExternosData = await personalModule.cargarTecnicosExternos(currentEmpresaId)
     clientesData = await clientesModule.cargarClientes(currentEmpresaId)
     activosData = []
@@ -242,17 +247,12 @@ async function renderizarPanel() {
 // RENDERIZADO DE TAREAS (ACTUALIZADO)
 // ============================================================
 
-// ============================================================
-// RENDERIZADO DE TAREAS (ACTUALIZADO)
-// ============================================================
-
 async function renderizarTareas() {
     const subvista = localStorage.getItem('gerente_tareas_subvista') || 'lista'
     
     if (subvista === 'crear') {
         const { renderizarFormularioCrear } = tareasModule
         const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
-        // ✅ CAMBIADO: usar cargarClientesDeEmpresa en lugar de cargarClientes
         const clientes = await tareasModule.cargarClientesDeEmpresa(currentEmpresaId)
         
         return `<div class="container">
@@ -273,35 +273,34 @@ async function renderizarTareas() {
         }
     }
     
-    // Vista lista (default)
-    return renderizarListaTareas()
+    // Vista lista (default) - ✅ Ahora con await
+    return await renderizarListaTareas()
 }
-
-
-// ============================================================
-// RENDERIZAR LISTA DE TAREAS CON RESUMEN
-// ============================================================
 
 // ============================================================
 // RENDERIZAR LISTA DE TAREAS CON RESUMEN, FILTROS Y BÚSQUEDA
 // ============================================================
 
-function renderizarListaTareas() {
-    const { renderizarListaTareas, aplicarFiltrosTareas } = tareasModule
+async function renderizarListaTareas() {
+    const { renderizarListaTareas } = tareasModule
     
-    // Obtener técnicos activos para las estadísticas
-    const tecnicosActivos = tecnicosInternosData.filter(t => t.activo !== false)
+    // ✅ Recargar tareas desde la base de datos para asegurar que tienen cliente
+    const tareasRecargadas = await tareasModule.cargarTareas(currentEmpresaId)
     
-    // Obtener clientes
+    // ✅ Actualizar la variable global
+    tareasData = tareasRecargadas
+    
+    console.log('📋 Tareas recargadas con cliente:', tareasData.map(t => ({
+        titulo: t.titulo,
+        cliente: t.cliente?.nombre
+    })))
+    
+    const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
     const clientes = clientesData || []
-    
-    // Obtener activos
     const activos = activosData || []
     
-    // Generar HTML inicial con todos los datos
-    const html = renderizarListaTareas(tareasData, null, null, tecnicosActivos, clientes, activos)
+    const html = renderizarListaTareas(tareasData, null, null, tecnicos, clientes, activos)
     
-    // Envolver en container
     return `<div class="container" id="tareasContainer">${html}</div>`
 }
 
@@ -332,7 +331,7 @@ async function renderizarDetalleTarea(tarea) {
             <!-- Información de la tarea -->
             <div style="background:var(--ios-bg); padding:16px; border-radius:12px;">
                 <div class="row-flex">
-                    <div class="grupo"><strong>Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || '-')}</div>
+                    <div class="grupo"><strong>Cliente:</strong> ${escapeHtml(tarea.cliente?.nombre || '-')}</div>
                     <div class="grupo"><strong>Técnico:</strong> ${escapeHtml(tarea.perfiles?.nombre_razon_social || 'Sin asignar')}</div>
                 </div>
                 <div class="row-flex">
@@ -341,7 +340,7 @@ async function renderizarDetalleTarea(tarea) {
                 </div>
                 <div class="row-flex">
                     <div class="grupo"><strong>Fecha creación:</strong> ${formatearFecha(tarea.created_at)}</div>
-                    <div class="grupo"><strong>Fecha límite:</strong> ${formatearFecha(tarea.fecha_limite) || 'Sin fecha'}</div>
+                    <div class="grupo"><strong>Fecha límite:</strong> ${formatearFecha(tarea.fecha_fin_prevista) || 'Sin fecha'}</div>
                 </div>
                 ${tarea.fecha_aceptacion ? `<div><strong>Fecha aceptación:</strong> ${formatearFecha(tarea.fecha_aceptacion)}</div>` : ''}
                 ${tarea.fecha_desplazamiento ? `<div><strong>Inicio desplazamiento:</strong> ${formatearFecha(tarea.fecha_desplazamiento)}</div>` : ''}
@@ -399,7 +398,7 @@ async function renderizarDetalleTarea(tarea) {
                 ${historial.slice(0, 10).map(h => `
                     <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
                         ${h.tipo === 'asignacion' ? '📌 Asignada' : '🔄 Reasignada'} a 
-                        ${escapeHtml(h.perfiles?.nombre_razon_social || '?')} 
+                        ${escapeHtml(h.tecnico?.nombre_razon_social || '?')} 
                         el ${formatearFecha(h.fecha_asignacion)}
                         ${h.motivo ? `<br><span style="color:#6b7280;">Motivo: ${escapeHtml(h.motivo)}</span>` : ''}
                     </div>
@@ -1423,7 +1422,6 @@ async function mostrarIVA() {
     })
 }
 
-
 // ============================================================
 // EVENTOS DE FILTROS DE TAREAS
 // ============================================================
@@ -1484,7 +1482,7 @@ function asignarEventosFiltrosTareas() {
                 
                 for (const t of resultado) {
                     const tecnicoNombre = t.perfiles?.nombre_razon_social || 'Sin asignar'
-                    const clienteNombre = t.empresas?.nombre_empresa || '-'
+                    const clienteNombre = t.cliente?.nombre || '-'
                     const puedeReasignar = !['terminada', 'cancelada'].includes(t.estado)
                     
                     html += `<tr>
@@ -1494,7 +1492,7 @@ function asignarEventosFiltrosTareas() {
                         <td>${escapeHtml(tecnicoNombre)}</td>
                         <td>${getPrioridadBadge(t.prioridad)}</td>
                         <td>${getEstadoBadge(t.estado)}</td>
-                        <td style="font-size:12px;">${formatearFecha(t.fecha_limite) || '-'}</td>
+                        <td style="font-size:12px;">${formatearFecha(t.fecha_fin_prevista) || '-'}</td>
                         <td>
                             <button class="btn-sm ver-tarea" data-id="${t.id}" style="background:#0284c7; color:white;">👁️ Ver</button>
                             ${puedeReasignar ? `<button class="btn-sm asignar-tarea" data-id="${t.id}" style="background:#e67e22; color:white;">🔄</button>` : ''}
@@ -1628,11 +1626,6 @@ function asignarEventosFiltrosTareas() {
     
     setTimeout(aplicarFiltrosYActualizar, 300)
 }
-
-
-// ============================================================
-// ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA
-// ============================================================
 
 // ============================================================
 // ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA
