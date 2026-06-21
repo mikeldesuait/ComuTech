@@ -1,5 +1,5 @@
 // gerente/js/main.js
-// Punto de entrada principal del panel gerente - VERSIÓN COMPLETA CON EDITOR CONTENTEDITABLE
+// Punto de entrada principal del panel gerente - VERSIÓN COMPLETA CON DEEPSEEK
 
 import { sb } from './config/supabase.js'
 import { 
@@ -267,6 +267,7 @@ async function renderizarTareas() {
         const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
         const clientes = await tareasModule.cargarClientesDeEmpresa(currentEmpresaId)
         
+        // Recargar servicios y tipos para el formulario
         const servicios = await tareasModule.cargarServicios()
         const tiposTarea = await tareasModule.cargarTiposTarea()
         const plantillas = await tareasModule.cargarPlantillasTarea(currentEmpresaId)
@@ -277,32 +278,6 @@ async function renderizarTareas() {
                     <button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button>
                 </div>
                 ${renderizarFormularioCrear(clientes, tecnicos, servicios, tiposTarea, plantillas)}
-            </div>
-        </div>`
-    }
-    
-    // ✅ NUEVO: Editar tarea
-    if (subvista === 'editar') {
-        const tareaId = localStorage.getItem('gerente_tarea_editar')
-        const tarea = tareasData.find(t => t.id === tareaId)
-        if (!tarea) {
-            localStorage.setItem('gerente_tareas_subvista', 'lista')
-            return await renderizarListaTareas()
-        }
-        
-        const { renderizarFormularioEditar } = tareasModule
-        const tecnicos = await tareasModule.cargarTecnicos(currentEmpresaId)
-        const clientes = await tareasModule.cargarClientesDeEmpresa(currentEmpresaId)
-        const servicios = await tareasModule.cargarServicios()
-        const tiposTarea = await tareasModule.cargarTiposTarea()
-        const plantillas = await tareasModule.cargarPlantillasTarea(currentEmpresaId)
-        
-        return `<div class="container">
-            <div class="card">
-                <div class="card-header">✏️ Editar Tarea
-                    <button id="btnVolverTareas" class="btn-warning" style="float:right;">◀ Volver</button>
-                </div>
-                ${renderizarFormularioEditar(tarea, clientes, tecnicos, servicios, tiposTarea, plantillas)}
             </div>
         </div>`
     }
@@ -380,7 +355,11 @@ async function enriquecerDescripcion(servicio, tipo, descripcion, cliente, activ
 }
 
 // ============================================================
-// RENDERIZAR DETALLE DE TAREA CON EDITOR DE DESCRIPCIÓN
+// ✅ NUEVO: RENDERIZAR DETALLE DE TAREA CON CAMBIO DE ESTADO
+// ============================================================
+
+// ============================================================
+// ✅ NUEVO: RENDERIZAR DETALLE DE TAREA CON EDITOR DE DESCRIPCIÓN
 // ============================================================
 
 async function renderizarDetalleTarea(tarea) {
@@ -389,82 +368,17 @@ async function renderizarDetalleTarea(tarea) {
     const historial = await tareasModule.getHistorialAsignaciones(tarea.id)
     const historialEstados = await tareasModule.getHistorialEstados(tarea.id)
     
+    // ✅ Obtener activo y dirección desde la base de datos
     const activoNombre = tarea.activos?.nombre || 'No especificado'
     const activoDireccion = tarea.activos?.direccion || 'Sin dirección'
     const activoLocalidad = tarea.activos?.localidad || ''
     const activoContacto = tarea.activos?.contacto || ''
     const ubicacionCompleta = activoDireccion + (activoLocalidad ? `, ${activoLocalidad}` : '')
     
+    // ✅ Si la descripción contiene HTML, mostrarla como HTML
     const descripcionHTML = tarea.descripcion?.includes('<div') 
         ? tarea.descripcion 
         : `<p>${escapeHtml(tarea.descripcion || '-')}</p>`
-    
-    // ============================================================
-    // 📜 HISTORIAL UNIFICADO
-    // ============================================================
-    const historialCombinado = [];
-    
-    if (historialEstados && historialEstados.length > 0) {
-        historialEstados.forEach(h => {
-            historialCombinado.push({
-                fecha: h.fecha,
-                fecha_hora: h.fecha_hora || h.fecha,
-                tipo: 'estado',
-                estado: h.estado_nuevo,
-                comentario: h.comentario || '',
-                usuario: h.usuario_tipo || 'sistema',
-                badge: getEstadoBadgeClass(h.estado_nuevo),
-                label: getEstadoLabel(h.estado_nuevo)
-            });
-        });
-    }
-    
-    if (historial && historial.length > 0) {
-        historial.forEach(h => {
-            const nombreTecnico = h.tecnico?.nombre_razon_social || 'técnico';
-            const motivo = h.motivo ? ` (${h.motivo})` : '';
-            const accion = h.tipo === 'asignacion' ? 'Asignada' : 'Reasignada';
-            historialCombinado.push({
-                fecha: h.fecha_asignacion,
-                fecha_hora: h.fecha_asignacion,
-                tipo: 'asignacion',
-                estado: null,
-                comentario: `${accion} a ${nombreTecnico}${motivo}`,
-                usuario: 'gerente',
-                badge: 'badge-info',
-                label: '🔄 Asignación'
-            });
-        });
-    }
-    
-    historialCombinado.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    
-    const historialHTML = historialCombinado.length > 0 ? `
-    <div class="card" style="margin-top:16px;">
-        <div class="card-header">📜 Historial de cambios</div>
-        ${historialCombinado.slice(0, 20).map(h => `
-            <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
-                <span class="badge ${h.badge}">${h.label}</span>
-                <span style="color:#6b7280;">${(() => {
-                    try {
-                        const d = new Date(h.fecha_hora);
-                        if (isNaN(d.getTime())) return 'Sin fecha';
-                        return d.toLocaleString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    } catch(e) {
-                        return 'Sin fecha';
-                    }
-                })()}</span>
-                ${h.comentario ? `<span style="color:#6b7280;">- ${escapeHtml(h.comentario)}</span>` : ''}
-                <span style="color:#6b7280; font-size:11px;">(${h.usuario})</span>
-            </div>
-        `).join('')}
-    </div>` : '';
     
     return `<div class="container">
         <div class="card">
@@ -487,6 +401,7 @@ async function renderizarDetalleTarea(tarea) {
                     <div class="grupo"><strong>Tipo:</strong> ${escapeHtml(tarea.tipo_tarea?.nombre || '-')}</div>
                 </div>
                 
+                <!-- ✅ UBICACIÓN DEL ACTIVO (desde base de datos) -->
                 <div class="orden-ubicacion" style="background:#e0f2fe; padding:12px 16px; border-radius:8px; margin-bottom:12px; border-left:4px solid #0284c7;">
                     <h4 style="margin:0 0 4px 0; font-size:13px; color:#0369a1;">📍 Ubicación del activo</h4>
                     <p style="margin:2px 0; font-size:13px; color:#0c4a6e;">
@@ -545,8 +460,31 @@ async function renderizarDetalleTarea(tarea) {
                 </div>
             </div>` : ''}
             
-            ${historialHTML}
+            ${historialEstados && historialEstados.length > 0 ? `
+            <div class="card" style="margin-top:16px;">
+                <div class="card-header">📜 Historial de estados</div>
+                ${historialEstados.slice(0, 10).map(h => `
+                    <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
+                        <span class="badge ${getEstadoBadgeClass(h.estado_nuevo)}">${getEstadoLabel(h.estado_nuevo)}</span>
+                        <span style="color:#6b7280;">${formatearFecha(h.fecha)}</span>
+                        ${h.comentario ? `<span style="color:#6b7280;">- ${escapeHtml(h.comentario)}</span>` : ''}
+                        <span style="color:#6b7280; font-size:11px;">(${h.usuario_tipo})</span>
+                    </div>
+                `).join('')}
+            </div>` : ''}
             
+            ${historial && historial.length > 0 ? `
+            <div class="card" style="margin-top:16px;">
+                <div class="card-header">🔄 Historial de asignaciones</div>
+                ${historial.slice(0, 10).map(h => `
+                    <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
+                        ${h.tipo === 'asignacion' ? '📌 Asignada' : '🔄 Reasignada'} a 
+                        ${escapeHtml(h.tecnico?.nombre_razon_social || '?')} 
+                        el ${formatearFecha(h.fecha_asignacion)}
+                        ${h.motivo ? `<br><span style="color:#6b7280;">Motivo: ${escapeHtml(h.motivo)}</span>` : ''}
+                    </div>
+                `).join('')}
+            </div>` : ''}
         </div>
     </div>`
 }
@@ -567,7 +505,7 @@ function getEstadoBadgeClass(estado) {
 }
 
 // ============================================================
-// FUNCIÓN PARA CAMBIAR ESTADO DESDE EL DETALLE
+// ✅ NUEVO: FUNCIÓN PARA CAMBIAR ESTADO DESDE EL DETALLE
 // ============================================================
 
 async function handleCambiarEstado(tareaId, nuevoEstado) {
@@ -603,7 +541,7 @@ async function handleCambiarEstado(tareaId, nuevoEstado) {
 }
 
 // ============================================================
-// FUNCIÓN PARA REASIGNAR TAREA
+// ✅ NUEVO: FUNCIÓN PARA REASIGNAR TAREA
 // ============================================================
 
 async function handleReasignarTarea(tareaId) {
@@ -720,20 +658,17 @@ async function guardarNuevaTarea() {
     const cliente = clientesData.find(c => c.id === clienteId)
     const activo = activosData.find(a => a.id === activoId)
     
-    // ✅ Enriquecer descripción con DeepSeek - CORREGIDO
+    // ✅ Enriquecer descripción con DeepSeek
     mostrarModalCarga('📝 Generando descripción profesional...')
     
     let descripcionFinal = descripcion || 'Tarea de mantenimiento'
     try {
-        // ✅ Asegurar que servicio y tipo tengan valor
-        const nombreServicio = servicio || 'Servicio general';
-        const nombreTipo = tipo || 'Tarea general';
         const enriquecida = await enriquecerDescripcion(
-            nombreServicio,
-            nombreTipo,
+            servicio,
+            tipo,
             descripcion || 'Tarea de mantenimiento',
-            cliente?.nombre || 'Cliente',
-            activo?.nombre || 'Activo'
+            cliente?.nombre || '',
+            activo?.nombre || ''
         )
         if (enriquecida) {
             descripcionFinal = enriquecida
@@ -1837,142 +1772,7 @@ function asignarEventosSubmodulos() {
         renderizarPanel()
     })
     
-    // ✅ EDITOR DE DESCRIPCIÓN - Abrir formulario de edición
-    document.getElementById('btnEditarDescripcion')?.addEventListener('click', function() {
-        const tareaId = localStorage.getItem('gerente_tarea_detalle');
-        if (!tareaId) {
-            mostrarMensaje('Error: Tarea no encontrada', 'error');
-            return;
-        }
-        localStorage.setItem('gerente_tareas_subvista', 'editar');
-        localStorage.setItem('gerente_tarea_editar', tareaId);
-        renderizarPanel();
-    });
-
-    // ✅ GUARDAR EDICIÓN DE TAREA
-    document.getElementById('btnGuardarEdicionTarea')?.addEventListener('click', async function() {
-        const tareaId = document.getElementById('editTareaId')?.value;
-        if (!tareaId) {
-            mostrarMensaje('Error: Tarea no encontrada', 'error');
-            return;
-        }
-        
-        const descripcionDiv = document.getElementById('editTareaDescripcion');
-        let descripcion = '';
-        if (descripcionDiv) {
-            descripcion = descripcionDiv.innerHTML || '';
-            if (!descripcion.trim() || descripcion === '<br>') {
-                descripcion = descripcionDiv.textContent || '';
-            }
-        }
-        
-        const titulo = document.getElementById('editTareaTitulo')?.value.trim();
-        const prioridad = document.getElementById('editTareaPrioridad')?.value;
-        const estado = document.getElementById('editTareaEstado')?.value;
-        const fechaLimite = document.getElementById('editTareaFechaLimite')?.value || null;
-        const tiempoEstimado = parseInt(document.getElementById('editTareaTiempoEstimado')?.value) || null;
-        const tecnicoId = document.getElementById('editTareaTecnico')?.value || null;
-        const clienteId = document.getElementById('editTareaCliente')?.value;
-        const activoId = document.getElementById('editTareaActivo')?.value || null;
-        const servicioId = document.getElementById('editTareaServicio')?.value;
-        const tipoTareaId = document.getElementById('editTareaTipo')?.value;
-        const plantillaId = document.getElementById('editTareaPlantilla')?.value || null;
-        
-        if (!titulo || !clienteId || !servicioId || !tipoTareaId) {
-            mostrarMensaje('Completa los campos obligatorios (Título, Cliente, Servicio y Tipo)', 'error');
-            return;
-        }
-        
-        mostrarModalCarga('Guardando cambios...');
-        
-        try {
-            const { error } = await sb
-                .from('tareas')
-                .update({
-                    titulo: titulo,
-                    descripcion: descripcion,
-                    prioridad: prioridad || 'media',
-                    estado: estado || 'pendiente_aceptacion',
-                    fecha_fin_prevista: fechaLimite,
-                    tiempo_estimado_minutos: tiempoEstimado,
-                    perfil_id: tecnicoId,
-                    cliente_id: clienteId,
-                    activo_id: activoId,
-                    servicio_id: servicioId,
-                    tipo_tarea_id: tipoTareaId,
-                    plantilla_id: plantillaId,
-                    updated_at: new Date()
-                })
-                .eq('id', tareaId);
-            
-            if (error) throw error;
-            
-            cerrarModalCarga();
-            mostrarMensaje('✅ Tarea actualizada correctamente', 'exito');
-            
-            await cargarDatosIniciales();
-            localStorage.setItem('gerente_tareas_subvista', 'detalle');
-            await renderizarPanel();
-            
-        } catch (error) {
-            cerrarModalCarga();
-            console.error('Error guardando tarea:', error);
-            mostrarMensaje('Error al guardar los cambios: ' + error.message, 'error');
-        }
-    });
-
-    // ✅ CANCELAR EDICIÓN
-    document.getElementById('btnCancelarEdicionTarea')?.addEventListener('click', function() {
-        localStorage.setItem('gerente_tareas_subvista', 'detalle');
-        renderizarPanel();
-    });
-
-    // ✅ REGENERAR DESCRIPCIÓN CON IA EN EDICIÓN
-    document.getElementById('btnRegenerarDescEditar')?.addEventListener('click', async function() {
-        const tareaId = document.getElementById('editTareaId')?.value;
-        if (!tareaId) {
-            mostrarMensaje('Error: Tarea no encontrada', 'error');
-            return;
-        }
-        
-        const tarea = tareasData.find(t => t.id === tareaId);
-        if (!tarea) {
-            mostrarMensaje('Error: Tarea no encontrada', 'error');
-            return;
-        }
-        
-        mostrarModalCarga('🔄 Regenerando descripción con IA...');
-        
-        try {
-            const nombreServicio = tarea.servicio?.nombre || 'Servicio general';
-            const nombreTipo = tarea.tipo_tarea?.nombre || 'Tarea general';
-            const enriquecida = await enriquecerDescripcion(
-                nombreServicio,
-                nombreTipo,
-                tarea.descripcion || 'Tarea de mantenimiento',
-                tarea.cliente?.nombre || 'Cliente',
-                tarea.activos?.nombre || 'Activo'
-            );
-            
-            cerrarModalCarga();
-            
-            if (enriquecida) {
-                const descripcionDiv = document.getElementById('editTareaDescripcion');
-                if (descripcionDiv) {
-                    descripcionDiv.innerHTML = enriquecida;
-                    mostrarMensaje('✅ Descripción regenerada correctamente', 'exito');
-                }
-            } else {
-                mostrarMensaje('❌ No se pudo regenerar la descripción', 'error');
-            }
-        } catch (error) {
-            cerrarModalCarga();
-            console.error('Error regenerando descripción:', error);
-            mostrarMensaje('Error al regenerar la descripción', 'error');
-        }
-    });
-
-    // ✅ FILTROS DINÁMICOS: Servicio → Tipos → Plantillas (CREAR)
+    // ✅ FILTROS DINÁMICOS: Servicio → Tipos → Plantillas
     setTimeout(() => {
         const servicioSelect = document.getElementById('tareaServicio')
         if (servicioSelect) {
@@ -2116,45 +1916,6 @@ function asignarEventosSubmodulos() {
         }
     }, 200)
     
-    // ✅ FILTROS DINÁMICOS PARA ACTIVOS EN EDICIÓN
-    setTimeout(() => {
-        const editClienteSelect = document.getElementById('editTareaCliente');
-        if (editClienteSelect) {
-            const newEditClienteSelect = editClienteSelect.cloneNode(true);
-            editClienteSelect.parentNode?.replaceChild(newEditClienteSelect, editClienteSelect);
-            
-            newEditClienteSelect.addEventListener('change', async function() {
-                const clienteId = this.value;
-                const activoSelect = document.getElementById('editTareaActivo');
-                
-                if (!clienteId) {
-                    if (activoSelect) activoSelect.innerHTML = '<option value="">-- Seleccionar activo --</option>';
-                    return;
-                }
-                
-                try {
-                    const activos = await tareasModule.cargarActivos(clienteId);
-                    let options = '<option value="">-- Seleccionar activo --</option>';
-                    if (activos && activos.length > 0) {
-                        const tareaId = document.getElementById('editTareaId')?.value;
-                        const tarea = tareasData.find(t => t.id === tareaId);
-                        const activoActual = tarea?.activo_id || '';
-                        
-                        activos.forEach(a => {
-                            options += `<option value="${a.id}" ${a.id === activoActual ? 'selected' : ''}>${escapeHtml(a.nombre)}</option>`;
-                        });
-                    } else {
-                        options += '<option value="" disabled>📭 Sin activos</option>';
-                    }
-                    if (activoSelect) activoSelect.innerHTML = options;
-                } catch (error) {
-                    console.error('❌ Error cargando activos:', error);
-                    if (activoSelect) activoSelect.innerHTML = '<option value="">-- Error al cargar --</option>';
-                }
-            });
-        }
-    }, 300);
-    
     // Eventos para cambiar estado en detalle
     document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -2182,6 +1943,114 @@ function asignarEventosSubmodulos() {
             const tareaId = btn.dataset.id
             handleReasignarTarea(tareaId)
         })
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Botón editar
+    document.getElementById('btnEditarDescripcion')?.addEventListener('click', function() {
+        const container = document.getElementById('descripcionContainer')
+        const editor = document.getElementById('editorDescripcion')
+        
+        if (container && editor) {
+            container.style.display = 'none'
+            editor.style.display = 'block'
+            
+            // Cargar el texto actual en el editor
+            const textarea = document.getElementById('textoDescripcion')
+            if (textarea) {
+                // Obtener el texto plano del container
+                let textoPlano = container.textContent || container.innerText || ''
+                // Limpiar saltos de línea extra
+                textoPlano = textoPlano.trim()
+                textarea.value = textoPlano
+            }
+        }
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Guardar
+    document.getElementById('btnGuardarDescripcion')?.addEventListener('click', async function() {
+        const textarea = document.getElementById('textoDescripcion')
+        const nuevoTexto = textarea?.value || ''
+        
+        const tareaId = localStorage.getItem('gerente_tarea_detalle')
+        if (!tareaId) {
+            mostrarMensaje('Error: Tarea no encontrada', 'error')
+            return
+        }
+        
+        mostrarModalCarga('Guardando descripción...')
+        
+        try {
+            const { error } = await sb
+                .from('tareas')
+                .update({ 
+                    descripcion: nuevoTexto, 
+                    updated_at: new Date() 
+                })
+                .eq('id', tareaId)
+            
+            if (error) throw error
+            
+            cerrarModalCarga()
+            mostrarMensaje('✅ Descripción actualizada', 'exito')
+            
+            // Recargar el detalle
+            await cargarDatosIniciales()
+            await renderizarPanel()
+            
+        } catch (error) {
+            cerrarModalCarga()
+            console.error('Error guardando descripción:', error)
+            mostrarMensaje('Error al guardar la descripción', 'error')
+        }
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Cancelar
+    document.getElementById('btnCancelarEdicionDescripcion')?.addEventListener('click', function() {
+        const container = document.getElementById('descripcionContainer')
+        const editor = document.getElementById('editorDescripcion')
+        
+        if (container && editor) {
+            container.style.display = 'block'
+            editor.style.display = 'none'
+        }
+    })
+    
+    // ✅ EDITOR DE DESCRIPCIÓN - Regenerar con IA
+    document.getElementById('btnRegenerarDescripcion')?.addEventListener('click', async function() {
+        const tareaId = localStorage.getItem('gerente_tarea_detalle')
+        const tarea = tareasData.find(t => t.id === tareaId)
+        if (!tarea) {
+            mostrarMensaje('Error: Tarea no encontrada', 'error')
+            return
+        }
+        
+        mostrarModalCarga('🔄 Regenerando descripción con IA...')
+        
+        try {
+            const enriquecida = await enriquecerDescripcion(
+                tarea.servicio?.nombre || '',
+                tarea.tipo_tarea?.nombre || '',
+                tarea.descripcion || '',
+                tarea.cliente?.nombre || '',
+                tarea.activos?.nombre || ''
+            )
+            
+            cerrarModalCarga()
+            
+            if (enriquecida) {
+                const textarea = document.getElementById('textoDescripcion')
+                if (textarea) {
+                    textarea.value = enriquecida
+                    mostrarMensaje('✅ Descripción regenerada correctamente', 'exito')
+                }
+            } else {
+                mostrarMensaje('❌ No se pudo regenerar la descripción', 'error')
+            }
+        } catch (error) {
+            cerrarModalCarga()
+            console.error('Error regenerando descripción:', error)
+            mostrarMensaje('Error al regenerar la descripción', 'error')
+        }
     })
     
     // ============================================================

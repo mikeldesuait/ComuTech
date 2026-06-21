@@ -3,7 +3,7 @@
 
 import { sb } from '../config/supabase.js'
 import { 
-    mostrarMensaje, formatearFecha, escapeHtml, 
+    mostrarMensaje, formatearFecha,formatearFechaHora, escapeHtml, 
     getEstadoBadge, getPrioridadBadge, 
     mostrarModalCarga, cerrarModalCarga, 
     mostrarModalConfirmacion, mostrarModalInformativo 
@@ -520,13 +520,27 @@ export async function reasignarTarea(tareaId, nuevoTecnicoId, motivo = '') {
         
         if (updateError) throw updateError
         
-        await registrarCambioEstado(
-            tareaId,
-            tareaActual.estado,
-            nuevoEstado,
-            'gerente',
-            `Reasignada al técnico ${nuevoTecnicoId} - ${motivo}`
-        )
+        // ✅ MEJOR - Con nombre del técnico
+const nombreTecnico = await getNombreTecnico(nuevoTecnicoId)
+await registrarCambioEstado(
+    tareaId,
+    tareaActual.estado,
+    nuevoEstado,
+    'gerente',
+    `Reasignada a ${nombreTecnico} - ${motivo}`
+)
+async function getNombreTecnico(tecnicoId) {
+    try {
+        const { data } = await sb
+            .from('perfiles')
+            .select('nombre_razon_social')
+            .eq('id', tecnicoId)
+            .single()
+        return data?.nombre_razon_social || 'técnico'
+    } catch {
+        return 'técnico'
+    }
+}
         
         await registrarHistorialAsignacion(tareaId, nuevoTecnicoId, 'reasignacion', motivo)
         
@@ -593,7 +607,7 @@ async function registrarCambioEstado(tareaId, estadoAnterior, estadoNuevo, usuar
                 usuario_tipo: usuarioTipo,
                 perfil_id: await getPerfilId(),
                 comentario: comentario,
-                fecha: new Date()
+                fecha: new Date().toISOString()  // ✅ Guarda fecha y hora
             })
         
         if (error) console.error('Error registrando historial:', error)
@@ -646,20 +660,38 @@ async function crearNotificacionCliente(clienteId, titulo, mensaje, tipo, tareaI
     }
 }
 
+
 // ============================================================
-// REGISTRAR HISTORIAL DE ASIGNACIONES (CORREGIDO)
+// REGISTRAR HISTORIAL DE ASIGNACIONES (CORREGIDO - OPCIÓN 1)
 // ============================================================
 
 async function registrarHistorialAsignacion(tareaId, tecnicoId, tipo, motivo = null) {
     try {
+        // ✅ Obtener el usuario actual
         const { data: { user } } = await sb.auth.getUser()
+        if (!user) {
+            console.error('No hay usuario autenticado')
+            return
+        }
+        
+        // ✅ Buscar el perfil del usuario
+        const { data: perfil, error: perfilError } = await sb
+            .from('perfiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle()
+        
+        if (perfilError || !perfil) {
+            console.error('Perfil no encontrado para el usuario:', user.id)
+            return
+        }
         
         const { error } = await sb
             .from('historial_asignaciones')
             .insert({
                 tarea_id: tareaId,
                 tecnico_id: tecnicoId,
-                asignado_por: user?.id,
+                asignado_por: perfil.id,  // ✅ AHORA ES perfil.id
                 tipo: tipo,
                 motivo: motivo
             })
@@ -744,7 +776,7 @@ export async function getHistorialEstados(tareaId) {
     try {
         const { data, error } = await sb
             .from('historial_estados_tareas')
-            .select('*')
+            .select('*, fecha_hora')  // ✅ FORZAR fecha_hora
             .eq('tarea_id', tareaId)
             .order('fecha', { ascending: false })
         
@@ -1100,16 +1132,177 @@ export function renderizarFormularioCrear(clientes, tecnicos, servicios, tiposTa
                 </div>
             </div>
             
-            <!-- Descripción / Instrucciones (fusionado) -->
-            <div class="grupo">
-                <label>📋 Descripción / Instrucciones</label>
-                <textarea id="tareaDescripcion" rows="5" placeholder="Descripción detallada de la tarea e instrucciones para el técnico..."></textarea>
-            </div>
+            <!-- Descripción / Instrucciones -->
+<div class="grupo">
+    <label>📋 Descripción / Instrucciones</label>
+    <div id="editTareaDescripcion" contenteditable="true" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--ios-border); font-size:14px; min-height:300px; background:white; overflow-y:auto; line-height:1.6;">
+        ${tarea.descripcion || ''}
+    </div>
+    <small style="color:var(--ios-gray);">Puedes editar el contenido directamente. Usa Ctrl+B para negrita, Ctrl+I para cursiva.</small>
+</div>
             
             <!-- Botones -->
             <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px;">
                 <button id="btnGuardarTarea" class="btn-success">💾 Guardar tarea</button>
                 <button id="btnCancelarTarea" class="btn-danger">✖ Cancelar</button>
+            </div>
+        </div>
+    `
+}
+
+// ============================================================
+// RENDERIZAR FORMULARIO EDITAR TAREA (CON DATOS CARGADOS)
+// ============================================================
+
+export function renderizarFormularioEditar(tarea, clientes, tecnicos, servicios, tiposTarea, plantillas) {
+    const clientesOptions = clientes.map(c => 
+        `<option value="${c.id}" ${c.id === tarea.cliente_id ? 'selected' : ''}>${escapeHtml(c.nombre)}</option>`
+    ).join('')
+    
+    const tecnicosOptions = `
+        <option value="">-- Sin asignar --</option>
+        ${tecnicos.map(t => 
+            `<option value="${t.id}" ${t.id === tarea.perfil_id ? 'selected' : ''}>${escapeHtml(t.nombre_razon_social)}</option>`
+        ).join('')}
+    `
+    
+    const serviciosOptions = `
+        <option value="">-- Seleccionar servicio --</option>
+        ${servicios.map(s => 
+            `<option value="${s.id}" ${s.id === tarea.servicio_id ? 'selected' : ''} data-icon="${s.icono || '📋'}">${s.icono || '📋'} ${escapeHtml(s.nombre)}</option>`
+        ).join('')}
+    `
+    
+    const tiposOptions = `
+        <option value="">-- Seleccionar tipo --</option>
+        ${tiposTarea.map(t => 
+            `<option value="${t.id}" ${t.id === tarea.tipo_tarea_id ? 'selected' : ''} data-servicio="${t.servicio_id}">${escapeHtml(t.nombre)}</option>`
+        ).join('')}
+    `
+    
+    const plantillasOptions = `
+        <option value="">-- Seleccionar plantilla --</option>
+        ${plantillas.map(p => 
+            `<option value="${p.id}" ${p.id === tarea.plantilla_id ? 'selected' : ''} data-tipo="${p.tipo_tarea_id}">${escapeHtml(p.titulo)}</option>`
+        ).join('')}
+    `
+    
+    return `
+        <div class="card">
+            <div class="card-header">✏️ Editar tarea</div>
+            <input type="hidden" id="editTareaId" value="${tarea.id}">
+            
+            <!-- Servicio y Tipo -->
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🏗️ Servicio *</label>
+                    <select id="editTareaServicio" required>
+                        ${serviciosOptions}
+                    </select>
+                </div>
+                <div class="grupo">
+                    <label>📋 Tipo de tarea *</label>
+                    <select id="editTareaTipo" required>
+                        ${tiposOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Plantilla -->
+            <div class="row-flex" id="editPlantillaContainer" style="display:${tarea.plantilla_id ? 'flex' : 'none'};">
+                <div class="grupo">
+                    <label>📄 Plantilla</label>
+                    <select id="editTareaPlantilla">
+                        ${plantillasOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Cliente y Activo -->
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>🏢 Cliente *</label>
+                    <select id="editTareaCliente" required>
+                        <option value="">-- Seleccionar cliente --</option>
+                        ${clientesOptions}
+                    </select>
+                </div>
+                <div class="grupo">
+                    <label>🏗️ Activo</label>
+                    <select id="editTareaActivo">
+                        <option value="">-- Seleccionar activo --</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Técnico y Prioridad -->
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>👨‍🔧 Técnico</label>
+                    <select id="editTareaTecnico">
+                        ${tecnicosOptions}
+                    </select>
+                </div>
+                <div class="grupo">
+                    <label>⭐ Prioridad</label>
+                    <select id="editTareaPrioridad">
+                        <option value="baja" ${tarea.prioridad === 'baja' ? 'selected' : ''}>🟢 Baja</option>
+                        <option value="media" ${tarea.prioridad === 'media' ? 'selected' : ''}>🟡 Media</option>
+                        <option value="alta" ${tarea.prioridad === 'alta' ? 'selected' : ''}>🔴 Alta</option>
+                        <option value="urgente" ${tarea.prioridad === 'urgente' ? 'selected' : ''}>🔥 Urgente</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Tiempo estimado y Fecha límite -->
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>⏱️ Tiempo estimado (minutos)</label>
+                    <input type="number" id="editTareaTiempoEstimado" placeholder="60" min="1" value="${tarea.tiempo_estimado_minutos || ''}">
+                </div>
+                <div class="grupo">
+                    <label>📅 Fecha límite</label>
+                    <input type="date" id="editTareaFechaLimite" value="${tarea.fecha_fin_prevista || ''}">
+                </div>
+            </div>
+            
+            <!-- Título -->
+            <div class="grupo">
+                <label>📝 Título *</label>
+                <input type="text" id="editTareaTitulo" value="${escapeHtml(tarea.titulo || '')}" placeholder="Título de la tarea">
+            </div>
+            
+            <!-- Descripción / Instrucciones (contentEditable) -->
+            <div class="grupo">
+                <label>📋 Descripción / Instrucciones</label>
+                <div id="editTareaDescripcion" contenteditable="true" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--ios-border); font-size:14px; min-height:300px; background:white; overflow-y:auto; line-height:1.6;">
+                    ${tarea.descripcion || ''}
+                </div>
+            </div>
+            
+            <!-- Estado -->
+            <div class="row-flex">
+                <div class="grupo">
+                    <label>📌 Estado</label>
+                    <select id="editTareaEstado">
+                        <option value="pendiente_aceptacion" ${tarea.estado === 'pendiente_aceptacion' ? 'selected' : ''}>⏳ Pendiente aceptación</option>
+                        <option value="vista" ${tarea.estado === 'vista' ? 'selected' : ''}>👁️ Vista</option>
+                        <option value="aceptada" ${tarea.estado === 'aceptada' ? 'selected' : ''}>✅ Aceptada</option>
+                        <option value="rechazada" ${tarea.estado === 'rechazada' ? 'selected' : ''}>❌ Rechazada</option>
+                        <option value="en_desplazamiento" ${tarea.estado === 'en_desplazamiento' ? 'selected' : ''}>🚗 En desplazamiento</option>
+                        <option value="trabajando_onsite" ${tarea.estado === 'trabajando_onsite' ? 'selected' : ''}>🔧 Trabajando OnSite</option>
+                        <option value="terminada" ${tarea.estado === 'terminada' ? 'selected' : ''}>✅ Terminada</option>
+                        <option value="suspendida" ${tarea.estado === 'suspendida' ? 'selected' : ''}>⏸️ Suspendida</option>
+                        <option value="cancelada" ${tarea.estado === 'cancelada' ? 'selected' : ''}>❌ Cancelada</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Botones -->
+            <div class="btn-group" style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
+                <button id="btnGuardarEdicionTarea" class="btn-success">💾 Guardar cambios</button>
+                <button id="btnCancelarEdicionTarea" class="btn-danger">✖ Cancelar</button>
+                <button id="btnRegenerarDescEditar" class="btn-info" style="background:#8b5cf6;">🔄 Regenerar con IA</button>
             </div>
         </div>
     `
@@ -1228,33 +1421,9 @@ export async function renderizarDetalleTarea(tarea, onCambiarEstado, onReasignar
                 </div>
             </div>` : ''}
             
-            ${historialEstados.length > 0 ? `
-            <div class="card" style="margin-top:16px;">
-                <div class="card-header">📜 Historial de estados</div>
-                ${historialEstados.slice(0, 10).map(h => `
-                    <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
-                        <span class="badge ${getEstadoBadgeClass(h.estado_nuevo)}">${getEstadoLabel(h.estado_nuevo)}</span>
-                        <span style="color:#6b7280;">${formatearFecha(h.fecha)}</span>
-                        ${h.comentario ? `<span style="color:#6b7280;">- ${escapeHtml(h.comentario)}</span>` : ''}
-                        <span style="color:#6b7280; font-size:11px;">(${h.usuario_tipo})</span>
-                    </div>
-                `).join('')}
-            </div>` : ''}
-            
-            ${historialAsignaciones.length > 0 ? `
-            <div class="card" style="margin-top:16px;">
-                <div class="card-header">🔄 Historial de asignaciones</div>
-                ${historialAsignaciones.slice(0, 10).map(h => `
-                    <div style="padding:6px 0; border-bottom:1px solid var(--ios-border); font-size:13px;">
-                        ${h.tipo === 'asignacion' ? '📌 Asignada' : '🔄 Reasignada'} a 
-                        ${escapeHtml(h.tecnico?.nombre_razon_social || '?')} 
-                        el ${formatearFecha(h.fecha_asignacion)}
-                        ${h.motivo ? `<br><span style="color:#6b7280;">Motivo: ${escapeHtml(h.motivo)}</span>` : ''}
-                    </div>
-                `).join('')}
-            </div>` : ''}
-        </div>
-    `
+</div>
+
+`
     
     return html
 }
@@ -1704,6 +1873,7 @@ export default {
     renderizarFiltrosTareas,
     aplicarFiltrosTareas,
     renderizarFormularioCrear,
+    renderizarFormularioEditar,  // ✅ NUEVA
     renderizarModalAsignar,
     renderizarDetalleTarea,
     getNotificaciones,
