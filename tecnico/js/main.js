@@ -1,5 +1,5 @@
 // tecnico/js/main.js
-// Punto de entrada principal del panel técnico
+// PANEL TÉCNICO - VERSIÓN COMPLETA CON ORDEN DE TRABAJO EN PANTALLA COMPLETA
 
 import { sb } from './config/supabase.js'
 import { 
@@ -7,17 +7,13 @@ import {
     getCurrentUser, getCurrentPerfil, getIsExterno 
 } from './modules/auth.js'
 import {
-    cargarTareas, getTareasNuevas, getTareasActivas, 
-    getTareasCompletadas, getContadores, getTareaById,
-    aceptarTarea, cancelarTarea, guardarNotaInterna, 
-    guardarInformeCliente, marcarComoLeida
+    cargarTareas, getTareasPendientes, getTareasActivas, 
+    getTareasCompletadas, getTodasTareas, getContadores, 
+    getTareaById, actualizarEstadoTarea
 } from './modules/tareas.js'
 import {
-    registrarEvento,
-    suspenderTarea, 
-    finalizarTrabajo,
-    getSeguimientoTarea, 
-    calcularTiemposTotales
+    registrarEvento, suspenderTarea, finalizarTrabajo,
+    getSeguimientoTarea, calcularTiemposTotales
 } from './modules/seguimiento.js'
 import {
     renderizarMediciones, obtenerMediciones, limpiarMediciones,
@@ -25,276 +21,319 @@ import {
     formatearMedicion
 } from './modules/mediciones.js'
 import {
-    materialesPorServicio, renderizarSelectMateriales,
-    agregarMaterial, eliminarMaterial, getMaterialesTarea,
-    calcularTotalMateriales
+    renderizarSelectMateriales, agregarMaterial, eliminarMaterial,
+    getMaterialesTarea, calcularTotalMateriales, renderizarListaMateriales
 } from './modules/materiales.js'
+import { renderizarPerfil } from './modules/perfil.js'
 import {
-    renderizarListaTareas, renderizarListaCompletadas,
-    renderizarPerfil, renderizarFiltrosCompletadas,
-    actualizarContadores, mostrarModalAceptarTarea,
-    mostrarModalInforme, mostrarModalAlbaran,
-    mostrarModalDetalleTarea, mostrarModalOrdenTrabajo,
-    cerrarTodosModales
+    renderizarTablaTareas, renderizarFiltrosTareas, renderizarSubPestanas,
+    mostrarModalAceptarTarea, mostrarModalDetalleTarea,
+    mostrarModalOrdenTrabajo, mostrarModalAlbaran
 } from './modules/ui.js'
-import { mostrarMensaje, formatearFecha, escapeHtml, getNowLocalISO } from './modules/utils.js'
+import { mostrarMensaje, formatearFecha, escapeHtml, getNowLocalISO, getEstadoBadge, getPrioridadBadge, getEstadoLabel } from './utils/utils.js'
 
-// ============================================================
-// VARIABLES GLOBALES DEL MÓDULO
-// ============================================================
-
-let tabActiva = 'nuevas'
-let tareasFiltradas = []
+let tabActiva = 'tareas'
+let subTabActiva = 'todas'
 let tareaActual = null
 let pasoActual = 0
 let medicionesTemp = []
 let materialesTemp = []
-let autoSaveInterval = null
-let pendingActions = []  // Cola de acciones pendientes sin internet
 
 // ============================================================
-// AUTO-GUARDADO DE PROGRESO LOCAL
+// FUNCIONES AUXILIARES
 // ============================================================
 
-function guardarProgresoLocal() {
-    if (!tareaActual) return
-    
-    const progreso = {
-        tareaId: tareaActual.id,
-        pasoActual: pasoActual,
-        notaInterna: document.getElementById('notaInterna')?.value || '',
-        notaCliente: document.getElementById('notaCliente')?.value || '',
-        medicionesTemp: medicionesTemp,
-        materialesTemp: materialesTemp,
-        timestamp: Date.now()
+function getEstadoBadgeClass(estado) {
+    const clases = {
+        'pendiente_aceptacion': 'badge-pendiente',
+        'vista': 'badge-info',
+        'aceptada': 'badge-activo',
+        'rechazada': 'badge-inactivo',
+        'en_desplazamiento': 'badge-warning',
+        'trabajando_onsite': 'badge-info',
+        'terminada': 'badge-completada',
+        'suspendida': 'badge-danger',
+        'cancelada': 'badge-cancelada'
     }
-    
-    localStorage.setItem(`progreso_tarea_${tareaActual.id}`, JSON.stringify(progreso))
-    
-    const indicator = document.getElementById('btnAutoSaveIndicator')
-    if (indicator) {
-        indicator.innerHTML = '💾 Guardado automático'
-        setTimeout(() => {
-            if (indicator) indicator.innerHTML = '💾 Guardado'
-        }, 2000)
-    }
-    
-    console.log('📦 Progreso guardado localmente')
+    return clases[estado] || 'badge-pendiente'
 }
 
-function cargarProgresoLocal(tareaId) {
-    const stored = localStorage.getItem(`progreso_tarea_${tareaId}`)
-    if (!stored) return false
+// ============================================================
+// ABRIR ORDEN DE TRABAJO CON BOTONES ACEPTAR/RECHAZAR (PANTALLA COMPLETA)
+// ============================================================
+
+function abrirOrdenTrabajoConAccion(tarea) {
+    document.getElementById('dashboardPanel').style.display = 'none'
+    document.getElementById('trabajoScreen').style.display = 'none'
     
-    try {
-        const progreso = JSON.parse(stored)
-        
-        const tareaEstaActiva = tareaActual.estado !== 'completada' && 
-                                tareaActual.estado !== 'cancelada' &&
-                                tareaActual.estado !== 'facturada'
-        
-        if (progreso.tareaId === tareaId && tareaEstaActiva) {
-            pasoActual = progreso.pasoActual
-            medicionesTemp = progreso.medicionesTemp || []
-            materialesTemp = progreso.materialesTemp || []
+    let container = document.getElementById('ordenAceptarScreen')
+    if (!container) {
+        container = document.createElement('div')
+        container.id = 'ordenAceptarScreen'
+        container.style.display = 'block'
+        container.style.position = 'fixed'
+        container.style.top = '0'
+        container.style.left = '0'
+        container.style.right = '0'
+        container.style.bottom = '0'
+        container.style.background = 'var(--ios-bg)'
+        container.style.zIndex = '200'
+        container.style.overflowY = 'auto'
+        document.body.appendChild(container)
+    }
+    container.style.display = 'block'
+    
+    let contenido = tarea.orden_trabajo || tarea.descripcion || 'Sin instrucciones'
+    const esHtml = contenido.includes('<div') || contenido.includes('<h') || contenido.includes('<p') || contenido.includes('<ul')
+    
+    const fechaPropuesta = new Date()
+    fechaPropuesta.setDate(fechaPropuesta.getDate() + 7)
+    const fechaStr = fechaPropuesta.toISOString().split('T')[0]
+    const horaStr = '10:00'
+    
+    const html = `
+    <div style="max-width: 900px; margin: 0 auto; padding: 16px; padding-bottom: 100px;">
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <span style="font-size: 20px; font-weight: 700; color: #1e4663;">
+                        📋 ${escapeHtml(tarea.numero_tarea || 'Sin número')} - ${escapeHtml(tarea.titulo || '')}
+                    </span>
+                </div>
+                <button id="btnCerrarOrdenAceptar" class="btn-danger" style="padding: 8px 20px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600;">✖ Cerrar</button>
+            </div>
             
-            setTimeout(() => {
-                const notaInterna = document.getElementById('notaInterna')
-                const notaCliente = document.getElementById('notaCliente')
-                if (notaInterna) notaInterna.value = progreso.notaInterna || ''
-                if (notaCliente) notaCliente.value = progreso.notaCliente || ''
-            }, 100)
+            <div style="background: var(--ios-bg); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div><strong>Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || tarea.cliente?.nombre || '-')}</div>
+                    <div><strong>Servicio:</strong> ${escapeHtml(tarea.servicio?.nombre || '-')}</div>
+                    <div><strong>Prioridad:</strong> ${getPrioridadBadge(tarea.prioridad)}</div>
+                    <div><strong>Estado:</strong> ${getEstadoBadge(tarea.estado)}</div>
+                    <div><strong>Fecha creación:</strong> ${formatearFecha(tarea.created_at)}</div>
+                    ${tarea.fecha_aceptacion ? `<div><strong>Fecha aceptación:</strong> ${formatearFecha(tarea.fecha_aceptacion)}</div>` : ''}
+                </div>
+                ${tarea.fecha_desplazamiento ? `<div style="margin-top:8px;"><strong>Inicio desplazamiento:</strong> ${formatearFecha(tarea.fecha_desplazamiento)}</div>` : ''}
+                ${tarea.fecha_llegada ? `<div><strong>Llegada al sitio:</strong> ${formatearFecha(tarea.fecha_llegada)}</div>` : ''}
+                ${tarea.fecha_fin_trabajo ? `<div><strong>Finalización:</strong> ${formatearFecha(tarea.fecha_fin_trabajo)}</div>` : ''}
+            </div>
             
-            mostrarMensaje('📦 Progreso recuperado automáticamente', 'exito')
-            console.log('📦 Progreso restaurado:', progreso)
-            return true
+            ${tarea.activos ? `
+            <div style="background: #e0f2fe; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #0284c7;">
+                <h4 style="margin: 0 0 4px 0; font-size: 13px; color: #0369a1;">📍 Ubicación del activo</h4>
+                <p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;">
+                    <strong>Activo:</strong> ${escapeHtml(tarea.activos.nombre || '-')}
+                </p>
+                <p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;">
+                    <strong>Dirección:</strong> ${escapeHtml((tarea.activos.direccion || '') + (tarea.activos.localidad ? `, ${tarea.activos.localidad}` : '')) || 'Sin dirección'}
+                </p>
+                ${tarea.activos.contacto ? `<p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;"><strong>Contacto:</strong> ${escapeHtml(tarea.activos.contacto)}</p>` : ''}
+            </div>` : ''}
+            
+            <div style="margin-top: 12px;">
+                <strong style="font-size: 16px;">📋 ORDEN DE TRABAJO</strong>
+                <div style="margin-top: 8px; background: #f8fafc; border-radius: 12px; padding: 20px; font-size: 14px; line-height: 1.8; color: #1e293b;">
+                    ${esHtml ? contenido : `<pre style="white-space: pre-wrap; font-family: inherit; margin: 0; font-size: 14px; line-height: 1.8;">${escapeHtml(contenido)}</pre>`}
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--ios-border);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--ios-gray);">📅 Fecha propuesta</label>
+                        <input type="date" id="ordenFechaPropuesta" value="${fechaStr}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--ios-border);">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--ios-gray);">⏰ Hora propuesta</label>
+                        <input type="time" id="ordenHoraPropuesta" value="${horaStr}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--ios-border);">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 16px;">
+                    <button id="btnAceptarTareaCompleta" class="btn-success" style="flex:1; padding:14px; border-radius:40px; border:none; color:white; font-weight:600; cursor:pointer;">✅ Aceptar tarea</button>
+                    <button id="btnRechazarTareaCompleta" class="btn-danger" style="flex:1; padding:14px; border-radius:40px; border:none; color:white; font-weight:600; cursor:pointer;">❌ Rechazar</button>
+                </div>
+            </div>
+        </div>
+    </div>`
+    
+    container.innerHTML = html
+    
+    document.getElementById('btnCerrarOrdenAceptar').onclick = () => {
+        container.style.display = 'none'
+        document.getElementById('dashboardPanel').style.display = 'block'
+    }
+    
+    document.getElementById('btnAceptarTareaCompleta').onclick = async () => {
+        const fecha = document.getElementById('ordenFechaPropuesta').value
+        const hora = document.getElementById('ordenHoraPropuesta').value
+        if (!fecha || !hora) {
+            mostrarMensaje('Completa fecha y hora propuesta', 'error')
+            return
+        }
+        await actualizarEstadoTarea(tarea.id, 'aceptada', { 
+            fecha_propuesta: fecha, 
+            hora_propuesta: hora, 
+            leida: true 
+        })
+        container.style.display = 'none'
+        document.getElementById('dashboardPanel').style.display = 'block'
+        await recargarTodo()
+        mostrarMensaje('✅ Tarea aceptada', 'exito')
+    }
+    
+    document.getElementById('btnRechazarTareaCompleta').onclick = async () => {
+        const motivo = prompt('Motivo del rechazo:')
+        if (motivo && motivo.trim() !== '') {
+            await actualizarEstadoTarea(tarea.id, 'rechazada', { 
+                motivo_rechazo: motivo, 
+                leida: true 
+            })
+            container.style.display = 'none'
+            document.getElementById('dashboardPanel').style.display = 'block'
+            await recargarTodo()
+            mostrarMensaje('❌ Tarea rechazada', 'exito')
         } else {
-            localStorage.removeItem(`progreso_tarea_${tareaId}`)
+            mostrarMensaje('Debes indicar un motivo', 'error')
         }
-    } catch(e) { 
-        console.error('Error cargando progreso:', e)
     }
-    return false
-}
-
-function limpiarProgresoLocal(tareaId) {
-    localStorage.removeItem(`progreso_tarea_${tareaId}`)
-    console.log('🗑️ Progreso local limpiado para tarea:', tareaId)
 }
 
 // ============================================================
-// SISTEMA OFFLINE-FIRST (cola de acciones pendientes)
+// ABRIR ORDEN DE TRABAJO (SOLO LECTURA - PANTALLA COMPLETA)
 // ============================================================
 
-function queueAction(actionType, data) {
-    const action = {
-        id: Date.now(),
-        type: actionType,
-        data: data,
-        timestamp: Date.now(),
-        synced: false
+function abrirOrdenTrabajoCompleta(tarea) {
+    document.getElementById('dashboardPanel').style.display = 'none'
+    document.getElementById('trabajoScreen').style.display = 'none'
+    
+    let container = document.getElementById('ordenCompletaScreen')
+    if (!container) {
+        container = document.createElement('div')
+        container.id = 'ordenCompletaScreen'
+        container.style.display = 'block'
+        container.style.position = 'fixed'
+        container.style.top = '0'
+        container.style.left = '0'
+        container.style.right = '0'
+        container.style.bottom = '0'
+        container.style.background = 'var(--ios-bg)'
+        container.style.zIndex = '200'
+        container.style.overflowY = 'auto'
+        document.body.appendChild(container)
     }
+    container.style.display = 'block'
     
-    pendingActions.push(action)
-    localStorage.setItem('pending_actions', JSON.stringify(pendingActions))
-    console.log('📦 Acción encolada (sin internet):', action)
-}
-
-async function syncPendingActions() {
-    if (!navigator.onLine) {
-        console.log('📡 Sin conexión, acciones pendientes:', pendingActions.length)
-        return
-    }
+    let contenido = tarea.orden_trabajo || tarea.descripcion || 'Sin instrucciones'
+    const esHtml = contenido.includes('<div') || contenido.includes('<h') || contenido.includes('<p') || contenido.includes('<ul')
     
-    if (pendingActions.length === 0) return
-    
-    console.log('🔄 Sincronizando', pendingActions.length, 'acciones...')
-    
-    for (const action of pendingActions) {
-        if (action.synced) continue
-        
-        try {
-            if (action.type === 'REGISTRAR_EVENTO') {
-                await registrarEvento(action.data.tareaId, action.data.evento, action.data.motivo)
-            } else if (action.type === 'GUARDAR_MEDICION') {
-                await guardarMedicion(action.data.tareaId, action.data.medicion)
-            } else if (action.type === 'AGREGAR_MATERIAL') {
-                await agregarMaterial(action.data.tareaId, action.data.material)
-            } else if (action.type === 'GUARDAR_NOTA_INTERNA') {
-                await guardarNotaInterna(action.data.tareaId, action.data.texto)
-            } else if (action.type === 'GUARDAR_INFORME') {
-                await guardarInformeCliente(action.data.tareaId, action.data.texto)
-            }
+    const html = `
+    <div style="max-width: 900px; margin: 0 auto; padding: 16px; padding-bottom: 100px;">
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <span style="font-size: 20px; font-weight: 700; color: #1e4663;">
+                        📋 ${escapeHtml(tarea.numero_tarea || 'Sin número')} - ${escapeHtml(tarea.titulo || '')}
+                    </span>
+                </div>
+                <button id="btnCerrarOrdenCompleta" class="btn-danger" style="padding: 8px 20px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600;">✖ Cerrar</button>
+            </div>
             
-            action.synced = true
-            console.log('✅ Acción sincronizada:', action.type)
+            <div style="background: var(--ios-bg); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div><strong>Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || tarea.cliente?.nombre || '-')}</div>
+                    <div><strong>Servicio:</strong> ${escapeHtml(tarea.servicio?.nombre || '-')}</div>
+                    <div><strong>Prioridad:</strong> ${getPrioridadBadge(tarea.prioridad)}</div>
+                    <div><strong>Estado:</strong> ${getEstadoBadge(tarea.estado)}</div>
+                    <div><strong>Fecha creación:</strong> ${formatearFecha(tarea.created_at)}</div>
+                    ${tarea.fecha_aceptacion ? `<div><strong>Fecha aceptación:</strong> ${formatearFecha(tarea.fecha_aceptacion)}</div>` : ''}
+                </div>
+                ${tarea.fecha_desplazamiento ? `<div style="margin-top:8px;"><strong>Inicio desplazamiento:</strong> ${formatearFecha(tarea.fecha_desplazamiento)}</div>` : ''}
+                ${tarea.fecha_llegada ? `<div><strong>Llegada al sitio:</strong> ${formatearFecha(tarea.fecha_llegada)}</div>` : ''}
+                ${tarea.fecha_fin_trabajo ? `<div><strong>Finalización:</strong> ${formatearFecha(tarea.fecha_fin_trabajo)}</div>` : ''}
+            </div>
             
-        } catch (error) {
-            console.error('❌ Error sincronizando:', action.type, error)
-        }
+            ${tarea.activos ? `
+            <div style="background: #e0f2fe; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #0284c7;">
+                <h4 style="margin: 0 0 4px 0; font-size: 13px; color: #0369a1;">📍 Ubicación del activo</h4>
+                <p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;">
+                    <strong>Activo:</strong> ${escapeHtml(tarea.activos.nombre || '-')}
+                </p>
+                <p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;">
+                    <strong>Dirección:</strong> ${escapeHtml((tarea.activos.direccion || '') + (tarea.activos.localidad ? `, ${tarea.activos.localidad}` : '')) || 'Sin dirección'}
+                </p>
+                ${tarea.activos.contacto ? `<p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;"><strong>Contacto:</strong> ${escapeHtml(tarea.activos.contacto)}</p>` : ''}
+            </div>` : ''}
+            
+            <div style="margin-top: 12px;">
+                <strong style="font-size: 16px;">📋 ORDEN DE TRABAJO</strong>
+                <div style="margin-top: 8px; background: #f8fafc; border-radius: 12px; padding: 20px; font-size: 14px; line-height: 1.8; color: #1e293b;">
+                    ${esHtml ? contenido : `<pre style="white-space: pre-wrap; font-family: inherit; margin: 0; font-size: 14px; line-height: 1.8;">${escapeHtml(contenido)}</pre>`}
+                </div>
+            </div>
+        </div>
+    </div>`
+    
+    container.innerHTML = html
+    
+    document.getElementById('btnCerrarOrdenCompleta').onclick = () => {
+        container.style.display = 'none'
+        document.getElementById('dashboardPanel').style.display = 'block'
     }
-    
-    pendingActions = pendingActions.filter(a => !a.synced)
-    localStorage.setItem('pending_actions', JSON.stringify(pendingActions))
-    
-    console.log('✅ Sincronización completada. Pendientes:', pendingActions.length)
-}
-
-// Función offline-first para registrar evento
-async function registrarEventoOffline(tareaId, evento, motivo = null) {
-    if (!navigator.onLine) {
-        queueAction('REGISTRAR_EVENTO', { tareaId, evento, motivo })
-        mostrarMensaje('📦 Sin conexión. Se guardará al recuperar internet', 'info')
-        
-        // Actualizar UI localmente
-        if (evento === 'INICIO_DESPLAZAMIENTO') {
-            pasoActual = 2
-            renderizarPantallaTrabajo()
-        } else if (evento === 'LLEGADA') {
-            pasoActual = 4
-            renderizarPantallaTrabajo()
-        } else if (evento === 'INICIO_TRABAJO') {
-            pasoActual = 4
-            renderizarPantallaTrabajo()
-        }
-        guardarProgresoLocal()
-        return true
-    }
-    
-    return await registrarEvento(tareaId, evento, motivo)
 }
 
 // ============================================================
-// INICIALIZACIÓN
+// INICIALIZACIÓN - LOGIN
 // ============================================================
 
 export async function init() {
     console.log('🚀 Iniciando Panel Técnico')
     
-    // Cargar acciones pendientes guardadas
-    const stored = localStorage.getItem('pending_actions')
-    if (stored) {
-        pendingActions = JSON.parse(stored)
-        console.log('📦 Acciones pendientes cargadas:', pendingActions.length)
-        if (navigator.onLine && pendingActions.length > 0) {
-            syncPendingActions()
-        }
+    const btnLogin = document.getElementById('btnLogin')
+    const identificador = document.getElementById('identificador')
+    const password = document.getElementById('password')
+    const errorMsg = document.getElementById('errorMsg')
+    
+    if (btnLogin) {
+        const nuevoBtn = btnLogin.cloneNode(true)
+        btnLogin.parentNode.replaceChild(nuevoBtn, btnLogin)
+        
+        nuevoBtn.addEventListener('click', async function(e) {
+            e.preventDefault()
+            const nick = identificador.value.trim()
+            const pass = password.value
+            
+            if (!nick || !pass) {
+                errorMsg.innerText = 'Introduce nick y contraseña'
+                return
+            }
+            
+            try {
+                await hacerLogin(nick, pass)
+                errorMsg.innerText = ''
+                await mostrarDashboard()
+            } catch (error) {
+                errorMsg.innerText = error.message || 'Error al iniciar sesión'
+            }
+        })
     }
     
-    // Escuchar cambios de conexión
-    window.addEventListener('online', () => {
-        console.log('🌐 Conexión recuperada, sincronizando...')
-        syncPendingActions()
-    })
-    
-    window.addEventListener('offline', () => {
-        console.log('⚠️ Sin conexión, los datos se guardarán localmente')
-    })
-    
-    // Sincronizar cada 30 segundos
-    setInterval(() => {
-        if (navigator.onLine && pendingActions.length > 0) {
-            syncPendingActions()
-        }
-    }, 30000)
-    
-    setupLoginListener()
+    if (password) {
+        password.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+                const btn = document.getElementById('btnLogin')
+                if (btn) btn.click()
+            }
+        })
+    }
     
     const tieneSesion = await verificarSesion()
     if (tieneSesion) {
         await mostrarDashboard()
     } else {
-        mostrarLoginPanel()
+        document.getElementById('loginPanel').style.display = 'flex'
+        document.getElementById('dashboardPanel').style.display = 'none'
+        document.getElementById('trabajoScreen').style.display = 'none'
     }
-}
-
-function setupLoginListener() {
-    const btnLogin = document.getElementById('btnLogin')
-    if (btnLogin) {
-        const newBtn = btnLogin.cloneNode(true)
-        btnLogin.parentNode.replaceChild(newBtn, btnLogin)
-        
-        newBtn.onclick = async () => {
-            const identificador = document.getElementById('identificador').value.trim()
-            const password = document.getElementById('password').value
-            
-            try {
-                await hacerLogin(identificador, password)
-                await mostrarDashboard()
-            } catch (error) {
-                const errorMsg = document.getElementById('errorMsg')
-                if (errorMsg) errorMsg.innerText = error.message
-            }
-        }
-    }
-    
-    const passwordInput = document.getElementById('password')
-    if (passwordInput) {
-        passwordInput.onkeypress = (e) => {
-            if (e.key === 'Enter') {
-                const btnLogin = document.getElementById('btnLogin')
-                if (btnLogin) btnLogin.click()
-            }
-        }
-    }
-}
-
-function mostrarLoginPanel() {
-    const loginPanel = document.getElementById('loginPanel')
-    const dashboardPanel = document.getElementById('dashboardPanel')
-    const trabajoScreen = document.getElementById('trabajoScreen')
-    
-    if (loginPanel) loginPanel.style.display = 'flex'
-    if (dashboardPanel) dashboardPanel.style.display = 'none'
-    if (trabajoScreen) trabajoScreen.style.display = 'none'
-    
-    const errorMsg = document.getElementById('errorMsg')
-    if (errorMsg) errorMsg.innerText = ''
-    
-    const identificador = document.getElementById('identificador')
-    const password = document.getElementById('password')
-    if (identificador) identificador.value = ''
-    if (password) password.value = ''
 }
 
 // ============================================================
@@ -302,584 +341,337 @@ function mostrarLoginPanel() {
 // ============================================================
 
 async function mostrarDashboard() {
-    const loginPanel = document.getElementById('loginPanel')
-    const dashboardPanel = document.getElementById('dashboardPanel')
-    
-    if (loginPanel) loginPanel.style.display = 'none'
-    if (dashboardPanel) dashboardPanel.style.display = 'block'
-    
-    setupDashboardListeners()
+    document.getElementById('loginPanel').style.display = 'none'
+    document.getElementById('dashboardPanel').style.display = 'block'
     
     const perfil = getCurrentPerfil()
-    const empresaInfo = await getEmpresaInfo()
+    document.getElementById('nombreTecnico').innerHTML = perfil?.nombre_razon_social || 'Técnico'
+    document.getElementById('emailTecnico').innerHTML = getCurrentUser()?.email || ''
+    document.getElementById('nombreEmpresaBanner').innerHTML = await getEmpresaNombre()
     
-    const nombreTecnico = document.getElementById('nombreTecnico')
-    const emailTecnico = document.getElementById('emailTecnico')
-    const nombreEmpresaBanner = document.getElementById('nombreEmpresaBanner')
-    
-    if (nombreTecnico) nombreTecnico.innerHTML = perfil?.nombre_razon_social || 'Técnico'
-    if (emailTecnico) emailTecnico.innerHTML = getCurrentUser()?.email || ''
-    if (nombreEmpresaBanner) nombreEmpresaBanner.innerHTML = empresaInfo?.nombre_empresa || 'Mi Empresa'
-    
-    await recargarTodo()
-}
-
-function setupDashboardListeners() {
-    const btnLogout = document.getElementById('btnLogout')
-    if (btnLogout) {
-        const newBtn = btnLogout.cloneNode(true)
-        btnLogout.parentNode.replaceChild(newBtn, btnLogout)
-        newBtn.onclick = async () => {
-            await cerrarSesion()
-            mostrarLoginPanel()
-        }
+    document.getElementById('btnLogout').onclick = async () => { 
+        await cerrarSesion(); 
+        window.location.reload() 
     }
     
-    const btnRefrescar = document.getElementById('btnRefrescar')
-    if (btnRefrescar) {
-        const newBtn = btnRefrescar.cloneNode(true)
-        btnRefrescar.parentNode.replaceChild(newBtn, btnRefrescar)
-        newBtn.onclick = async () => {
-            mostrarMensaje('🔄 Refrescando...', 'exito')
-            await recargarTodo()
-        }
+    document.getElementById('btnRefrescar').onclick = async () => { 
+        mostrarMensaje('🔄 Refrescando...', 'exito')
+        await recargarTodo() 
     }
     
     document.querySelectorAll('.nav-item').forEach(btn => {
-        const newBtn = btn.cloneNode(true)
-        btn.parentNode.replaceChild(newBtn, btn)
-        newBtn.onclick = () => {
+        btn.onclick = () => {
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'))
-            newBtn.classList.add('active')
-            tabActiva = newBtn.dataset.tab
+            btn.classList.add('active')
+            tabActiva = btn.dataset.tab
             renderizarPanel()
         }
     })
     
-    const btnBack = document.getElementById('btnBackTrabajo')
-    if (btnBack) {
-        const newBtn = btnBack.cloneNode(true)
-        btnBack.parentNode.replaceChild(newBtn, btnBack)
-        newBtn.onclick = volverAlPanel
-    }
+    document.getElementById('btnBackTrabajo').onclick = volverAlPanel
+    
+    await recargarTodo()
 }
 
-async function getEmpresaInfo() {
+async function getEmpresaNombre() {
     const empresaId = getCurrentPerfil()?.empresa_id
-    if (!empresaId) return { nombre_empresa: 'Sin empresa' }
-    
+    if (!empresaId) return 'Sin empresa'
     try {
-        const { data, error } = await sb
-            .from('empresas')
-            .select('nombre_empresa')
-            .eq('id', empresaId)
-            .maybeSingle()
-        
-        if (error || !data) return { nombre_empresa: 'Empresa no encontrada' }
-        return data
-    } catch (error) {
-        console.error('Error en getEmpresaInfo:', error)
-        return { nombre_empresa: 'Error' }
-    }
+        const { data } = await sb.from('empresas').select('nombre_empresa').eq('id', empresaId).maybeSingle()
+        return data?.nombre_empresa || 'Sin empresa'
+    } catch { return 'Sin empresa' }
 }
 
 // ============================================================
-// RECARGAR TODO
+// RECARGAR Y RENDERIZAR
 // ============================================================
 
 async function recargarTodo() {
     await cargarTareas()
-    actualizarContadores(
-        getTareasNuevas().length,
-        getTareasActivas().length,
-        getTareasCompletadas().length
-    )
     renderizarPanel()
 }
-
-// ============================================================
-// RENDERIZAR PANEL PRINCIPAL
-// ============================================================
 
 function renderizarPanel() {
     const container = document.getElementById('contenidoPanel')
     if (!container) return
     
-    let contenido = ''
-    
-    if (tabActiva === 'nuevas') {
-        contenido = renderizarListaTareas(getTareasNuevas(), 'nuevas')
-    } else if (tabActiva === 'activas') {
-        contenido = renderizarListaTareas(getTareasActivas(), 'activas')
-    } else if (tabActiva === 'completadas') {
-        tareasFiltradas = [...getTareasCompletadas()]
-        contenido = renderizarFiltrosCompletadas() + renderizarListaCompletadas(tareasFiltradas)
+    if (tabActiva === 'tareas') {
+        renderizarTareas()
+    } else if (tabActiva === 'materiales') {
+        container.innerHTML = renderizarListaMateriales()
+    } else if (tabActiva === 'seguimiento') {
+        renderizarSeguimiento()
     } else if (tabActiva === 'perfil') {
         const perfil = getCurrentPerfil()
-        contenido = renderizarPerfil(
-            perfil?.nombre_razon_social || 'Técnico',
-            getCurrentUser()?.email || '',
+        container.innerHTML = renderizarPerfil(
+            perfil?.nombre_razon_social || 'Técnico', 
+            getCurrentUser()?.email || '', 
             getIsExterno()
         )
-    }
-    
-    container.innerHTML = contenido
-    
-    if (tabActiva === 'nuevas' || tabActiva === 'activas') {
-        document.querySelectorAll('.btn-leer').forEach(btn => {
-            btn.onclick = () => abrirTarea(btn.dataset.id, btn.dataset.tipo)
-        })
-    } else if (tabActiva === 'completadas') {
-        document.querySelectorAll('.btn-ver-detalle').forEach(btn => {
-            btn.onclick = () => verDetalleCompletada(btn.dataset.id)
-        })
-        
-        const btnFiltrar = document.getElementById('btnFiltrar')
-        const btnLimpiar = document.getElementById('btnLimpiarFiltros')
-        const filtroBuscar = document.getElementById('filtroBuscar')
-        const filtroTipo = document.getElementById('filtroTipo')
-        const filtroFechaDesde = document.getElementById('filtroFechaDesde')
-        const filtroFechaHasta = document.getElementById('filtroFechaHasta')
-        
-        if (btnFiltrar) btnFiltrar.onclick = aplicarFiltrosCompletadas
-        if (btnLimpiar) btnLimpiar.onclick = limpiarFiltrosCompletadas
-        if (filtroBuscar) filtroBuscar.oninput = aplicarFiltrosCompletadas
-        if (filtroTipo) filtroTipo.onchange = aplicarFiltrosCompletadas
-        if (filtroFechaDesde) filtroFechaDesde.onchange = aplicarFiltrosCompletadas
-        if (filtroFechaHasta) filtroFechaHasta.onchange = aplicarFiltrosCompletadas
-    } else if (tabActiva === 'perfil') {
-        const btnCerrarSesion = document.getElementById('btnCerrarSesionPerfil')
-        if (btnCerrarSesion) {
-            btnCerrarSesion.onclick = async () => {
-                await cerrarSesion()
-                mostrarLoginPanel()
-            }
+        document.getElementById('btnCerrarSesionPerfil').onclick = async () => {
+            await cerrarSesion()
+            window.location.reload()
         }
     }
 }
 
 // ============================================================
-// FILTROS PARA COMPLETADAS
+// RENDERIZAR TAREAS
 // ============================================================
 
-function aplicarFiltrosCompletadas() {
-    const todas = getTareasCompletadas()
-    const buscar = document.getElementById('filtroBuscar')?.value.toLowerCase() || ''
-    const tipo = document.getElementById('filtroTipo')?.value || ''
-    const desde = document.getElementById('filtroFechaDesde')?.value
-    const hasta = document.getElementById('filtroFechaHasta')?.value
+function renderizarTareas() {
+    const container = document.getElementById('contenidoPanel')
+    let tareas = getTodasTareas()
     
-    tareasFiltradas = todas.filter(t => {
+    if (subTabActiva === 'pendientes') tareas = getTareasPendientes()
+    else if (subTabActiva === 'activas') tareas = getTareasActivas()
+    else if (subTabActiva === 'completadas') tareas = getTareasCompletadas()
+    
+    const html = `<div class="container">
+        <div class="card">
+            <div class="card-header">
+                📋 Tareas <span style="font-size:14px; font-weight:400; color:var(--ios-gray);">${tareas.length} tareas</span>
+                <button id="btnRefrescarTareas" class="btn-sm" style="background:#2c7a4d; color:white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">🔄 Refrescar</button>
+            </div>
+            ${renderizarSubPestanas(subTabActiva)}
+            ${renderizarFiltrosTareas()}
+            <div id="tablaTareasContainer">
+                ${renderizarTablaTareas(tareas, subTabActiva)}
+            </div>
+        </div>
+    </div>`
+    
+    container.innerHTML = html
+    
+    document.querySelectorAll('.sub-tab').forEach(btn => {
+        btn.onclick = () => {
+            subTabActiva = btn.dataset.subtab
+            renderizarTareas()
+        }
+    })
+    
+    document.getElementById('btnRefrescarTareas').onclick = async () => {
+        await recargarTodo()
+    }
+    
+    document.querySelectorAll('.btn-accion-tarea').forEach(btn => {
+        btn.onclick = () => manejarAccionTarea(btn.dataset.id, btn.dataset.accion)
+    })
+    
+    document.getElementById('btnLimpiarFiltros')?.addEventListener('click', () => {
+        document.getElementById('buscarTarea').value = ''
+        document.getElementById('filtroEstado').value = 'todos'
+        document.getElementById('filtroPrioridad').value = 'todos'
+        aplicarFiltrosTareas()
+    })
+    
+    document.querySelectorAll('#buscarTarea, #filtroEstado, #filtroPrioridad').forEach(el => {
+        el.addEventListener('input', aplicarFiltrosTareas)
+        el.addEventListener('change', aplicarFiltrosTareas)
+    })
+}
+
+function aplicarFiltrosTareas() {
+    const buscar = document.getElementById('buscarTarea')?.value.toLowerCase() || ''
+    const estado = document.getElementById('filtroEstado')?.value || 'todos'
+    const prioridad = document.getElementById('filtroPrioridad')?.value || 'todos'
+    
+    let tareas = []
+    if (subTabActiva === 'pendientes') tareas = getTareasPendientes()
+    else if (subTabActiva === 'activas') tareas = getTareasActivas()
+    else if (subTabActiva === 'completadas') tareas = getTareasCompletadas()
+    else tareas = getTodasTareas()
+    
+    tareas = tareas.filter(t => {
         if (buscar) {
-            const texto = `${t.empresas?.nombre_empresa} ${t.activos?.nombre}`.toLowerCase()
+            const texto = `${t.numero_tarea || ''} ${t.titulo || ''} ${t.empresas?.nombre_empresa || ''} ${t.activos?.nombre || ''} ${t.activos?.direccion || ''}`.toLowerCase()
             if (!texto.includes(buscar)) return false
         }
-        if (tipo && t.prioridad !== tipo) return false
-        if (desde && t.completada_en?.split('T')[0] < desde) return false
-        if (hasta && t.completada_en?.split('T')[0] > hasta) return false
+        if (estado !== 'todos' && t.estado !== estado) return false
+        if (prioridad !== 'todos' && t.prioridad !== prioridad) return false
         return true
     })
     
-    const container = document.getElementById('contenidoPanel')
-    if (container) {
-        container.innerHTML = renderizarFiltrosCompletadas() + renderizarListaCompletadas(tareasFiltradas)
-        document.querySelectorAll('.btn-ver-detalle').forEach(btn => {
-            btn.onclick = () => verDetalleCompletada(btn.dataset.id)
-        })
-        const btnFiltrar = document.getElementById('btnFiltrar')
-        const btnLimpiar = document.getElementById('btnLimpiarFiltros')
-        if (btnFiltrar) btnFiltrar.onclick = aplicarFiltrosCompletadas
-        if (btnLimpiar) btnLimpiar.onclick = limpiarFiltrosCompletadas
-    }
-}
-
-function limpiarFiltrosCompletadas() {
-    const inputs = ['filtroBuscar', 'filtroFechaDesde', 'filtroFechaHasta']
-    inputs.forEach(id => {
-        const el = document.getElementById(id)
-        if (el) el.value = ''
+    document.getElementById('tablaTareasContainer').innerHTML = renderizarTablaTareas(tareas, subTabActiva)
+    
+    document.querySelectorAll('.btn-accion-tarea').forEach(btn => {
+        btn.onclick = () => manejarAccionTarea(btn.dataset.id, btn.dataset.accion)
     })
-    const select = document.getElementById('filtroTipo')
-    if (select) select.value = ''
-    aplicarFiltrosCompletadas()
 }
 
 // ============================================================
-// VER DETALLE DE TAREA COMPLETADA
+// MANEJAR ACCIONES DE TAREAS
 // ============================================================
 
-async function verDetalleCompletada(id) {
+async function manejarAccionTarea(id, accion) {
     const tarea = await getTareaById(id)
-    if (!tarea) return
-    
-    const mediciones = await getMedicionesTarea(id)
-    const materiales = await getMaterialesTarea(id)
-    const seguimiento = await getSeguimientoTarea(id)
-    const { tiempoDesplazamiento, tiempoTrabajo } = calcularTiemposTotales(seguimiento)
-    
-    const eventosPorDia = new Map()
-    seguimiento.forEach(ev => {
-        const fechaStr = ev.inicio ? ev.inicio.split('T')[0] : 'Sin fecha'
-        if (!eventosPorDia.has(fechaStr)) eventosPorDia.set(fechaStr, [])
-        eventosPorDia.get(fechaStr).push(ev)
-    })
-    
-    let html = `
-        <strong>📋 ID:</strong> ${tarea.numero_tarea || tarea.id}<br>
-        <strong>🏢 Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || '-')}<br>
-        <strong>📅 Fecha asignación:</strong> ${formatearFecha(tarea.fecha_asignacion)}<br>
-        ${tarea.fecha_propuesta ? `<strong>📅 Fecha propuesta:</strong> ${formatearFecha(tarea.fecha_propuesta)} a las ${tarea.hora_propuesta || '--:--'}<br>` : ''}
-        ${tarea.completada_en ? `<strong>✅ Fecha finalización:</strong> ${new Date(tarea.completada_en).toLocaleString()}<br>` : ''}
-        <hr>
-        <strong>⏱️ TIEMPOS TOTALES:</strong><br>
-        <div class="tiempo-linea"><span class="tiempo-titulo">🚗 Tiempo de desplazamiento:</span><span>${formatearDuracion(tiempoDesplazamiento)}</span></div>
-        <div class="tiempo-linea"><span class="tiempo-titulo">⚙️ Tiempo de trabajo efectivo:</span><span>${formatearDuracion(tiempoTrabajo)}</span></div>
-    `
-    
-    mostrarModalDetalleTarea(html)
-}
-
-function formatearDuracion(minutos) {
-    if (!minutos && minutos !== 0) return 'No registrado'
-    if (minutos === 0) return '1 min'
-    const horas = Math.floor(minutos / 60)
-    const mins = minutos % 60
-    if (horas > 0 && mins > 0) return `${horas}h ${mins}min`
-    if (horas > 0) return `${horas}h`
-    return `${mins}min`
-}
-
-// ============================================================
-// ABRIR TAREA (PANTALLA DE TRABAJO)
-// ============================================================
-
-async function abrirTarea(id, tipo) {
-    const tarea = await getTareaById(id)
-    if (!tarea) return
-    
-    tareaActual = tarea
-    
-    if (tarea.estado === 'pendiente' && !tarea.leida) {
-        mostrarModalAceptarTarea(
-            tarea.orden_trabajo,
-            async (fecha, hora) => {
-                await aceptarTarea(id, fecha, hora)
-                await recargarTodo()
-                abrirTarea(id, 'activa')
-            },
-            async (motivo) => {
-                await cancelarTarea(id, motivo)
-                await recargarTodo()
-                volverAlPanel()
-            },
-            () => {
-                console.log('Usuario volvió sin aceptar ni rechazar')
-                volverAlPanel()
-            }
-        )
+    if (!tarea) {
+        mostrarMensaje('❌ Tarea no encontrada', 'error')
         return
     }
+    tareaActual = tarea
     
-    // Recuperar progreso guardado si existe
-    let progresoRecuperado = false
-    if (tarea.estado !== 'completada' && tarea.estado !== 'cancelada' && tarea.estado !== 'facturada') {
-        progresoRecuperado = cargarProgresoLocal(id)
+    if (accion === 'leer' || accion === 'aceptar') {
+        abrirOrdenTrabajoConAccion(tarea)
+    } else if (accion === 'desplazamiento') {
+        await registrarEvento(id, 'INICIO_DESPLAZAMIENTO')
+        await recargarTodo()
+    } else if (accion === 'llegada') {
+        await registrarEvento(id, 'LLEGADA')
+        await recargarTodo()
+    } else if (accion === 'trabajar') {
+        abrirPantallaTrabajo(id)
+    } else if (accion === 'reactivar') {
+        await actualizarEstadoTarea(id, 'aceptada')
+        await recargarTodo()
+    } else if (accion === 'detalle') {
+        mostrarDetalleTarea(tarea)
+    } else if (accion === 'ver_orden') {
+        abrirOrdenTrabajoCompleta(tarea)
+    } else {
+        mostrarMensaje('❌ Acción no reconocida', 'error')
     }
-    
-    // Solo determinar paso según estado si NO hay progreso recuperado
-    if (!progresoRecuperado) {
-        if (tarea.estado === 'en_progreso') pasoActual = 1
-        else if (tarea.estado === 'desplazamiento') pasoActual = 2
-        else if (tarea.estado === 'suspendida') pasoActual = 1
-        else pasoActual = 1
-    }
-    
-    materialesTemp = await getMaterialesTarea(id)
-    
-    // Si no hay mediciones temporales recuperadas, inicializar vacío
-    if (!medicionesTemp || medicionesTemp.length === 0) {
-        medicionesTemp = []
-    }
-    
-    const trabajoTitulo = document.getElementById('trabajoTitulo')
-    if (trabajoTitulo) trabajoTitulo.innerHTML = tarea.activos?.nombre || tarea.titulo || 'Tarea'
-    
-    const trabajoScreen = document.getElementById('trabajoScreen')
-    const dashboardPanel = document.getElementById('dashboardPanel')
-    if (trabajoScreen) trabajoScreen.style.display = 'block'
-    if (dashboardPanel) dashboardPanel.style.display = 'none'
-    
-    renderizarPantallaTrabajo()
-    
-    if (autoSaveInterval) clearInterval(autoSaveInterval)
-    autoSaveInterval = setInterval(() => guardarProgresoLocal(), 30000)
 }
 
 // ============================================================
-// RENDERIZAR PANTALLA DE TRABAJO
+// PANTALLA DE TRABAJO
 // ============================================================
+
+function abrirPantallaTrabajo(id) {
+    const tarea = tareaActual
+    if (!tarea) return
+    medicionesTemp = []
+    materialesTemp = []
+    pasoActual = 4
+    
+    document.getElementById('trabajoTitulo').innerHTML = tarea.activos?.nombre || tarea.titulo || 'Tarea'
+    document.getElementById('trabajoScreen').style.display = 'block'
+    document.getElementById('dashboardPanel').style.display = 'none'
+    renderizarPantallaTrabajo()
+}
 
 function renderizarPantallaTrabajo() {
     const content = document.getElementById('trabajoContent')
-    if (!content) return
+    const tarea = tareaActual
+    if (!tarea) return
     
-    const servicioTipo = tareaActual.servicio_tipo || 'OTRO'
+    const servicioTipo = tarea.servicio_tipo || 'OTRO'
     
-    let html = `
-        <div class="stepper">
-            <div class="step ${pasoActual >= 1 ? 'completed' : ''} ${pasoActual === 1 ? 'active' : ''}">
-                <span class="step-icon">🚗</span><span>Desplazamiento</span>
-            </div>
-            <div class="step ${pasoActual >= 2 ? 'completed' : ''} ${pasoActual === 2 ? 'active' : ''}">
-                <span class="step-icon">📍</span><span>Llegada</span>
-            </div>
-            <div class="step ${pasoActual >= 4 ? 'completed' : ''} ${pasoActual === 4 ? 'active' : ''}">
-                <span class="step-icon">⚙️</span><span>Trabajo</span>
-            </div>
-            <div class="step ${pasoActual >= 5 ? 'completed' : ''} ${pasoActual === 5 ? 'active' : ''}">
-                <span class="step-icon">🏁</span><span>Cierre</span>
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label>📋 ORDEN DE TRABAJO</label>
-            <button class="btn-orden-trabajo" id="btnVerOrdenTrabajo">📄 Ver orden de trabajo</button>
-        </div>
-    `
+    let html = `<div class="stepper">
+        <div class="step completed"><span class="step-icon">✅</span><span>Aceptada</span></div>
+        <div class="step completed"><span class="step-icon">🚗</span><span>Desplazamiento</span></div>
+        <div class="step completed"><span class="step-icon">📍</span><span>Llegada</span></div>
+        <div class="step active"><span class="step-icon">⚙️</span><span>Trabajo</span></div>
+        <div class="step"><span class="step-icon">🏁</span><span>Cierre</span></div>
+    </div>
+    <div class="form-group">
+        <label>📋 ORDEN DE TRABAJO</label>
+        <button class="btn-info" id="btnVerOrdenTrabajo" style="padding:10px 20px; border-radius:30px; border:none; color:white; cursor:pointer;">📄 Ver orden de trabajo</button>
+    </div>`
     
-    if (pasoActual === 1) {
-        html += `
-            <div class="card-tarea" style="text-align: center; margin-top: 20px;">
-                <h3>🚗 Fase de Desplazamiento</h3>
-                <p>Registra el inicio de tu desplazamiento hacia el lugar de trabajo.</p>
-                <button class="action-btn" id="btnIniciarDesplazamiento">🚗 INICIAR DESPLAZAMIENTO</button>
-                <button class="action-btn action-btn-danger" id="btnCancelarTarea">❌ CANCELAR TAREA</button>
-            </div>
-        `
-    } else if (pasoActual === 2) {
-        html += `
-            <div class="card-tarea" style="text-align: center; margin-top: 20px;">
-                <h3>📍 ¿Has llegado al lugar?</h3>
-                <p>Registra tu llegada. Esto finalizará el tiempo de desplazamiento.</p>
-                <button class="action-btn" id="btnRegistrarLlegada">📍 REGISTRAR LLEGADA</button>
-                <button class="action-btn action-btn-danger" id="btnCancelarTarea">❌ CANCELAR TAREA</button>
-            </div>
-        `
-    } else if (pasoActual === 4) {
-        html += `
-            <div class="card-tarea">
-                <h3>⚙️ Registro de trabajo</h3>
-                <p>Registra las mediciones, materiales y observaciones.</p>
-            </div>
-        `
-        html += renderizarMediciones(servicioTipo)
-        html += `<div class="button-group-right"><button class="btn-add-material" id="btnRegistrarMedicion">➕ Registrar medición</button></div>`
-        
-        if (medicionesTemp.length > 0) {
-            html += `<div class="mediciones-list"><label>📊 Mediciones registradas:</label>`
-            medicionesTemp.forEach((med, idx) => {
-                const texto = formatearMedicion({ parametros: med.parametros, created_at: med.fecha })
-                html += `<div class="medicion-listado-item">
-                    <span class="medicion-listado-info">${texto}</span>
-                    <button class="btn-eliminar-medicion-listado" data-idx="${idx}">✖</button>
-                </div>`
-            })
-            html += `</div>`
-        }
-        
-        html += `
-            <div class="form-group">
-                <label>🧰 MATERIALES USADOS</label>
-                <div class="material-row">
-                    <select id="selectMaterial" class="material-select">
-                        ${renderizarSelectMateriales(servicioTipo)}
-                    </select>
-                    <input type="number" id="materialCantidad" class="material-cantidad" placeholder="Cantidad" step="0.01" value="1">
-                    <input type="number" id="materialPrecio" class="material-precio" placeholder="Precio unitario (€)" step="0.01" readonly>
-                    <input type="text" id="materialUnidad" class="material-unidad" placeholder="Unidad" readonly>
-                    <button class="btn-add-material" id="btnAgregarMaterial">➕ Añadir</button>
-                </div>
-                <div id="listadoMateriales"></div>
-            </div>
-            
-            <div class="form-group">
-                <label>📝 NOTA INTERNA (solo para ti)</label>
-                <textarea id="notaInterna" rows="2" placeholder="Escribe aquí tus notas...">${tareaActual.nota_interna || ''}</textarea>
-                <div class="button-group-right">
-                    <button class="btn-ia" id="btnGuardarNotaInterna">💾 Guardar</button>
-                </div>
-            </div>
-            
-            <div class="form-group nota-obligatoria">
-                <label>📝 INFORME PARA EL CLIENTE</label>
-                <textarea id="notaCliente" rows="3" placeholder="Describe el trabajo realizado...">${tareaActual.nota_cliente || ''}</textarea>
-                <div class="button-group-right">
-                    <button class="btn-ia" id="btnGuardarInforme">💾 Guardar</button>
-                </div>
-                <small>⚠️ Completa este informe antes de finalizar la tarea</small>
-            </div>
-            
-            <div class="form-group">
-                <label>📎 ADJUNTAR FOTOS / JUSTIFICANTES</label>
-                <div class="upload-area" id="uploadArea">📸 Haz clic o arrastra para subir foto</div>
-                <input type="file" id="fileInput" accept="image/*,application/pdf" style="display:none;" multiple>
-                <div id="adjuntosContainer" class="adjuntos-list"></div>
-            </div>
-        `
-        
-        if (getIsExterno()) {
-            html += `<button class="action-btn" id="btnMostrarAlbaran" style="background:#6b21a5;">💰 REGISTRAR ALBARÁN</button>`
-        }
-        
-        html += `<button class="action-btn action-btn-secondary" id="btnSuspenderTarea">⏸️ SUSPENDER TAREA</button>`
-        
-        const notaClienteActual = document.getElementById('notaCliente')?.value || tareaActual.nota_cliente || ''
-        const disabled = !notaClienteActual.trim() ? 'disabled' : ''
-        html += `<button class="action-btn" id="btnFinalizarTrabajo" ${disabled}>🏁 FINALIZAR TRABAJO</button>`
+    html += renderizarMediciones(servicioTipo)
+    html += `<button class="btn-success" id="btnRegistrarMedicion" style="padding:10px 20px; border-radius:30px; border:none; color:white; cursor:pointer; margin:8px 0;">➕ Registrar medición</button>`
+    
+    if (medicionesTemp.length > 0) {
+        html += `<div><label>📊 Mediciones registradas:</label>`
+        medicionesTemp.forEach((med, idx) => {
+            html += `<div style="display:flex; justify-content:space-between; padding:8px; background:var(--ios-bg); border-radius:8px; margin:4px 0;">
+                <span>${formatearMedicion({ parametros: med.parametros, created_at: med.fecha })}</span>
+                <button class="btn-eliminar-medicion-listado" data-idx="${idx}" style="background:#fee2e2; border:none; padding:4px 12px; border-radius:20px; color:var(--ios-red); cursor:pointer;">✖</button>
+            </div>`
+        })
+        html += `</div>`
     }
+    
+    html += `<div class="form-group"><label>🧰 MATERIALES USADOS</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <select id="selectMaterial" style="flex:2; min-width:150px; padding:10px; border-radius:12px; border:1px solid var(--ios-border);">${renderizarSelectMateriales(servicioTipo)}</select>
+            <input type="number" id="materialCantidad" placeholder="Cantidad" step="0.01" value="1" style="width:100px; padding:10px; border-radius:12px; border:1px solid var(--ios-border);">
+            <input type="number" id="materialPrecio" placeholder="Precio" step="0.01" readonly style="width:100px; padding:10px; border-radius:12px; border:1px solid var(--ios-border); background:var(--ios-bg);">
+            <input type="text" id="materialUnidad" placeholder="Unidad" readonly style="width:100px; padding:10px; border-radius:12px; border:1px solid var(--ios-border); background:var(--ios-bg);">
+            <button class="btn-add-material" id="btnAgregarMaterial" style="background:#2c7a4d; color:white; border:none; padding:10px 20px; border-radius:30px; cursor:pointer;">➕ Añadir</button>
+        </div>
+        <div id="listadoMateriales"></div>
+    </div>`
+    
+    html += `<div class="form-group"><label>📝 NOTA INTERNA</label>
+        <textarea id="notaInterna" rows="2" placeholder="Notas internas...">${tarea.nota_interna || ''}</textarea>
+        <button class="btn-info" id="btnGuardarNotaInterna" style="padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer; margin-top:8px;">💾 Guardar</button>
+    </div>`
+    
+    html += `<div class="form-group" style="border-left:3px solid var(--ios-red); padding-left:12px;">
+        <label>📝 INFORME PARA EL CLIENTE</label>
+        <textarea id="notaCliente" rows="3" placeholder="Describe el trabajo realizado...">${tarea.nota_cliente || ''}</textarea>
+        <button class="btn-info" id="btnGuardarInforme" style="padding:8px 16px; border-radius:30px; border:none; color:white; cursor:pointer; margin-top:8px;">💾 Guardar</button>
+        <small style="color:var(--ios-red);">⚠️ Completa este informe antes de finalizar</small>
+    </div>`
+    
+    if (getIsExterno()) {
+        html += `<button class="btn-warning" id="btnMostrarAlbaran" style="padding:14px; border-radius:50px; border:none; color:white; width:100%; margin:8px 0; cursor:pointer; font-weight:600;">💰 REGISTRAR ALBARÁN</button>`
+    }
+    
+    html += `<button class="btn-danger" id="btnSuspenderTarea" style="padding:14px; border-radius:50px; border:none; color:white; width:100%; margin:8px 0; cursor:pointer; font-weight:600;">⏸️ SUSPENDER TAREA</button>`
+    
+    const disabled = !(document.getElementById('notaCliente')?.value || tarea.nota_cliente || '').trim()
+    html += `<button class="btn-success" id="btnFinalizarTrabajo" ${disabled ? 'disabled style="opacity:0.5;"' : ''} style="padding:14px; border-radius:50px; border:none; color:white; width:100%; margin:8px 0; cursor:pointer; font-weight:600;">🏁 FINALIZAR TRABAJO</button>`
     
     content.innerHTML = html
     asignarEventosPantallaTrabajo(servicioTipo)
     cargarMaterialesListado()
-    cargarAdjuntos()
 }
-
-// ============================================================
-// ASIGNAR EVENTOS DE LA PANTALLA DE TRABAJO
-// ============================================================
 
 function asignarEventosPantallaTrabajo(servicioTipo) {
-    const btnOrden = document.getElementById('btnVerOrdenTrabajo')
-    if (btnOrden) btnOrden.onclick = () => mostrarModalOrdenTrabajo(tareaActual.orden_trabajo)
+    document.getElementById('btnVerOrdenTrabajo').onclick = () => 
+        abrirOrdenTrabajoCompleta(tareaActual)
     
-    const btnDesplazamiento = document.getElementById('btnIniciarDesplazamiento')
-    if (btnDesplazamiento) {
-        btnDesplazamiento.onclick = async () => {
-            await registrarEventoOffline(tareaActual.id, 'INICIO_DESPLAZAMIENTO')
-            pasoActual = 2
-            renderizarPantallaTrabajo()
-            guardarProgresoLocal()
-        }
-    }
-    
-    const btnLlegada = document.getElementById('btnRegistrarLlegada')
-    if (btnLlegada) {
-        btnLlegada.onclick = async () => {
-            await registrarEventoOffline(tareaActual.id, 'LLEGADA')
-            pasoActual = 4
-            renderizarPantallaTrabajo()
-            guardarProgresoLocal()
-        }
-    }
-    
-    const btnInicioTrabajo = document.getElementById('btnIniciarTrabajo')
-    if (btnInicioTrabajo) {
-        btnInicioTrabajo.onclick = async () => {
-            await registrarEventoOffline(tareaActual.id, 'INICIO_TRABAJO')
-            pasoActual = 4
-            renderizarPantallaTrabajo()
-            guardarProgresoLocal()
-        }
-    }
-    
-    const btnCancelar = document.getElementById('btnCancelarTarea')
-    if (btnCancelar) {
-        btnCancelar.onclick = async () => {
-            const motivo = prompt('Motivo de cancelación:')
-            if (motivo) {
-                await cancelarTarea(tareaActual.id, motivo)
-                limpiarProgresoLocal(tareaActual.id)
-                volverAlPanel()
-            }
-        }
-    }
-    
-    const btnSuspender = document.getElementById('btnSuspenderTarea')
-    if (btnSuspender) {
-        btnSuspender.onclick = async () => {
-            await suspenderTarea(tareaActual.id)
-            guardarProgresoLocal()
-            volverAlPanel()
-        }
-    }
-    
-    const btnFinalizar = document.getElementById('btnFinalizarTrabajo')
-    if (btnFinalizar) {
-        btnFinalizar.onclick = async () => {
-            const notaCliente = document.getElementById('notaCliente')?.value || ''
-            if (!notaCliente.trim()) {
-                mostrarMensaje('❌ Completa el informe del cliente antes de finalizar', 'error')
-                return
-            }
-            await finalizarTrabajoCompleto()
-        }
-    }
-    
-    const btnRegMedicion = document.getElementById('btnRegistrarMedicion')
-    if (btnRegMedicion) {
-        btnRegMedicion.onclick = () => registrarMedicionTemp(servicioTipo)
-    }
+    document.getElementById('btnRegistrarMedicion').onclick = () => registrarMedicionTemp(servicioTipo)
     
     document.querySelectorAll('.btn-eliminar-medicion-listado').forEach(btn => {
-        btn.onclick = () => eliminarMedicionTemp(parseInt(btn.dataset.idx))
+        btn.onclick = () => {
+            medicionesTemp.splice(parseInt(btn.dataset.idx), 1)
+            renderizarPantallaTrabajo()
+        }
     })
     
-    const selectMaterial = document.getElementById('selectMaterial')
-    if (selectMaterial) {
-        selectMaterial.onchange = function() {
-            const selected = this.options[this.selectedIndex]
-            const unidad = selected?.dataset?.unidad || ''
-            const precio = selected?.dataset?.precio || ''
-            const unidadInput = document.getElementById('materialUnidad')
-            const precioInput = document.getElementById('materialPrecio')
-            if (unidadInput) unidadInput.value = unidad
-            if (precioInput) precioInput.value = precio
+    document.getElementById('selectMaterial').onchange = function() {
+        const selected = this.options[this.selectedIndex]
+        document.getElementById('materialUnidad').value = selected?.dataset?.unidad || ''
+        document.getElementById('materialPrecio').value = selected?.dataset?.precio || ''
+    }
+    
+    document.getElementById('btnAgregarMaterial').onclick = agregarMaterialTarea
+    document.getElementById('btnGuardarNotaInterna').onclick = async () => {
+        const nota = document.getElementById('notaInterna').value
+        await sb.from('tareas').update({ nota_interna: nota }).eq('id', tareaActual.id)
+        mostrarMensaje('✅ Nota guardada', 'exito')
+    }
+    document.getElementById('btnGuardarInforme').onclick = async () => {
+        const informe = document.getElementById('notaCliente').value
+        await sb.from('tareas').update({ nota_cliente: informe }).eq('id', tareaActual.id)
+        mostrarMensaje('✅ Informe guardado', 'exito')
+        document.getElementById('btnFinalizarTrabajo').disabled = false
+        document.getElementById('btnFinalizarTrabajo').style.opacity = '1'
+    }
+    document.getElementById('btnSuspenderTarea').onclick = async () => {
+        await suspenderTarea(tareaActual.id)
+        volverAlPanel()
+    }
+    document.getElementById('btnFinalizarTrabajo').onclick = async () => {
+        const notaCliente = document.getElementById('notaCliente').value
+        if (!notaCliente.trim()) {
+            mostrarMensaje('❌ Completa el informe del cliente', 'error')
+            return
         }
+        await finalizarTrabajo(tareaActual.id)
+        volverAlPanel()
     }
-    
-    const btnAgregarMaterial = document.getElementById('btnAgregarMaterial')
-    if (btnAgregarMaterial) {
-        btnAgregarMaterial.onclick = () => agregarMaterialTarea()
-    }
-    
-    const btnGuardarNota = document.getElementById('btnGuardarNotaInterna')
-    if (btnGuardarNota) {
-        btnGuardarNota.onclick = () => {
-            const nota = document.getElementById('notaInterna')?.value || ''
-            guardarNotaInterna(tareaActual.id, nota)
-            guardarProgresoLocal()
-        }
-    }
-    
-    const btnGuardarInforme = document.getElementById('btnGuardarInforme')
-    if (btnGuardarInforme) {
-        btnGuardarInforme.onclick = () => {
-            const informe = document.getElementById('notaCliente')?.value || ''
-            guardarInformeCliente(tareaActual.id, informe)
-            guardarProgresoLocal()
-            const btnFinalizarTmp = document.getElementById('btnFinalizarTrabajo')
-            if (btnFinalizarTmp && informe.trim()) {
-                btnFinalizarTmp.disabled = false
-            }
-        }
-    }
-    
-    const btnAlbaran = document.getElementById('btnMostrarAlbaran')
-    if (btnAlbaran) {
-        btnAlbaran.onclick = () => {
-            const totalMateriales = calcularTotalMateriales(materialesTemp)
-            mostrarModalAlbaran(totalMateriales, async (datos) => {
-                await guardarAlbaran(datos)
-            }, () => {})
-        }
-    }
-    
-    configurarSubidaAdjuntos()
+    document.getElementById('btnMostrarAlbaran')?.addEventListener('click', () => {
+        const totalMateriales = calcularTotalMateriales(materialesTemp)
+        mostrarModalAlbaran(totalMateriales, async (datos) => {
+            await guardarAlbaran(datos)
+        }, () => {})
+    })
 }
-
-// ============================================================
-// MEDICIONES
-// ============================================================
 
 function registrarMedicionTemp(servicioTipo) {
     const medicion = obtenerMediciones(servicioTipo)
@@ -898,39 +690,13 @@ function registrarMedicionTemp(servicioTipo) {
     
     limpiarMediciones(servicioTipo)
     renderizarPantallaTrabajo()
-    guardarProgresoLocal()
-    
-    // Si hay internet, guardar inmediatamente
-    if (navigator.onLine) {
-        guardarMedicion(tareaActual.id, {
-            servicio_tipo: servicioTipo,
-            parametros: medicion,
-            notas_tecnico: '',
-            fecha: new Date().toISOString()
-        })
-    } else {
-        queueAction('GUARDAR_MEDICION', {
-            tareaId: tareaActual.id,
-            medicion: {
-                servicio_tipo: servicioTipo,
-                parametros: medicion,
-                notas_tecnico: '',
-                fecha: new Date().toISOString()
-            }
-        })
-        mostrarMensaje('📦 Sin conexión. Medición guardada localmente', 'info')
-    }
+    guardarMedicion(tareaActual.id, {
+        servicio_tipo: servicioTipo,
+        parametros: medicion,
+        notas_tecnico: '',
+        fecha: new Date().toISOString()
+    })
 }
-
-function eliminarMedicionTemp(idx) {
-    medicionesTemp.splice(idx, 1)
-    renderizarPantallaTrabajo()
-    guardarProgresoLocal()
-}
-
-// ============================================================
-// MATERIALES
-// ============================================================
 
 async function agregarMaterialTarea() {
     const select = document.getElementById('selectMaterial')
@@ -940,34 +706,17 @@ async function agregarMaterialTarea() {
     const unidad = document.getElementById('materialUnidad')?.value || 'unidad'
     
     if (!nombre || cantidad <= 0) {
-        mostrarMensaje('Selecciona un material y cantidad válida', 'error')
+        mostrarMensaje('Selecciona material y cantidad', 'error')
         return
     }
     
     const materialData = { nombre, cantidad, precioUnitario, unidad }
-    
-    if (!navigator.onLine) {
-        // Sin internet: guardar en cola y en local temporal
-        const materialTemp = {
-            id: Date.now(),
-            descripcion: `${nombre}: ${cantidad} ${unidad} (${precioUnitario.toFixed(2)}€/${unidad})`,
-            importe_total: cantidad * precioUnitario
-        }
-        materialesTemp.push(materialTemp)
-        queueAction('AGREGAR_MATERIAL', { tareaId: tareaActual.id, material: materialData })
-        mostrarMensaje('📦 Sin conexión. Material guardado localmente', 'info')
-        renderizarPantallaTrabajo()
-        guardarProgresoLocal()
-        return
-    }
-    
     const nuevoMaterial = await agregarMaterial(tareaActual.id, materialData)
+    
     if (nuevoMaterial) {
         materialesTemp.push(nuevoMaterial)
         renderizarPantallaTrabajo()
-        guardarProgresoLocal()
-        
-        select.value = ''
+        document.getElementById('selectMaterial').value = ''
         document.getElementById('materialCantidad').value = '1'
         document.getElementById('materialPrecio').value = ''
         document.getElementById('materialUnidad').value = ''
@@ -977,21 +726,15 @@ async function agregarMaterialTarea() {
 function cargarMaterialesListado() {
     const container = document.getElementById('listadoMateriales')
     if (!container) return
-    
-    if (materialesTemp.length === 0) {
-        container.innerHTML = ''
-        return
-    }
+    if (materialesTemp.length === 0) { container.innerHTML = ''; return }
     
     let html = ''
     materialesTemp.forEach((m, idx) => {
         const importe = typeof m.importe_total === 'number' ? m.importe_total.toFixed(2) : m.importe_total
-        html += `
-            <div class="material-listado-item">
-                <span class="material-listado-info">${m.descripcion} - ${importe}€</span>
-                <button class="btn-eliminar-material-listado" data-idx="${idx}">✖</button>
-            </div>
-        `
+        html += `<div style="display:flex; justify-content:space-between; padding:8px; background:var(--ios-bg); border-radius:8px; margin:4px 0;">
+            <span>${m.descripcion} - ${importe}€</span>
+            <button class="btn-eliminar-material-listado" data-idx="${idx}" style="background:#fee2e2; border:none; padding:4px 12px; border-radius:20px; color:var(--ios-red); cursor:pointer;">✖</button>
+        </div>`
     })
     container.innerHTML = html
     
@@ -999,140 +742,14 @@ function cargarMaterialesListado() {
         btn.onclick = async () => {
             const idx = parseInt(btn.dataset.idx)
             const material = materialesTemp[idx]
-            if (material.id && navigator.onLine) {
-                await eliminarMaterial(material.id)
-            }
+            if (material.id) await eliminarMaterial(material.id)
             materialesTemp.splice(idx, 1)
             renderizarPantallaTrabajo()
-            guardarProgresoLocal()
         }
     })
 }
-
-// ============================================================
-// ADJUNTOS
-// ============================================================
-
-async function configurarSubidaAdjuntos() {
-    const uploadArea = document.getElementById('uploadArea')
-    const fileInput = document.getElementById('fileInput')
-    
-    if (!uploadArea || !fileInput) return
-    
-    uploadArea.onclick = () => fileInput.click()
-    
-    fileInput.onchange = async (e) => {
-        const files = Array.from(e.target.files)
-        for (const file of files) {
-            await subirAdjunto(file)
-        }
-        fileInput.value = ''
-        cargarAdjuntos()
-    }
-    
-    uploadArea.ondragover = (e) => e.preventDefault()
-    uploadArea.ondrop = async (e) => {
-        e.preventDefault()
-        const files = Array.from(e.dataTransfer.files)
-        for (const file of files) {
-            await subirAdjunto(file)
-        }
-        cargarAdjuntos()
-    }
-}
-
-async function subirAdjunto(file) {
-    if (!navigator.onLine) {
-        mostrarMensaje('📦 Sin conexión. No se pueden subir archivos', 'error')
-        return null
-    }
-    
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`
-    const filePath = `${getCurrentPerfil()?.id}/${tareaActual.id}/${fileName}`
-    
-    const { error } = await sb.storage.from('tarea-adjuntos').upload(filePath, file)
-    if (error) {
-        mostrarMensaje('Error al subir archivo: ' + error.message, 'error')
-        return null
-    }
-    
-    const { data: urlData } = sb.storage.from('tarea-adjuntos').getPublicUrl(filePath)
-    
-    await sb.from('adjuntos_tarea').insert({
-        tarea_id: tareaActual.id,
-        tecnico_id: getCurrentPerfil()?.id,
-        nombre_archivo: file.name,
-        tipo_archivo: file.type,
-        url: urlData.publicUrl,
-        tamano_bytes: file.size,
-        subido_en: new Date().toISOString(),
-        es_justificante: true
-    })
-    
-    mostrarMensaje(`✅ ${file.name} subido`, 'exito')
-    return true
-}
-
-async function cargarAdjuntos() {
-    const { data } = await sb
-        .from('adjuntos_tarea')
-        .select('*')
-        .eq('tarea_id', tareaActual.id)
-    
-    const container = document.getElementById('adjuntosContainer')
-    if (!container) return
-    
-    if (!data || data.length === 0) {
-        container.innerHTML = '<div class="adjunto-item">No hay adjuntos</div>'
-        return
-    }
-    
-    container.innerHTML = data.map(a => `
-        <div class="adjunto-item">
-            <a href="${a.url}" target="_blank">📎 ${a.nombre_archivo}</a>
-            <small>${(a.tamano_bytes / 1024).toFixed(1)}KB</small>
-        </div>
-    `).join('')
-}
-
-// ============================================================
-// FINALIZAR TRABAJO
-// ============================================================
-
-async function finalizarTrabajoCompleto() {
-    const notaCliente = document.getElementById('notaCliente')?.value || ''
-    if (!notaCliente.trim()) {
-        mostrarMensaje('❌ Debes generar y guardar el informe del cliente antes de finalizar', 'error')
-        return
-    }
-    
-    const guardarMedicionesFn = async (tareaId, medicion) => {
-        await guardarMedicion(tareaId, {
-            servicio_tipo: medicion.servicio_tipo,
-            parametros: medicion.parametros,
-            notas_tecnico: document.getElementById('notaInterna')?.value || '',
-            fecha: medicion.fecha
-        })
-    }
-    
-    const exito = await finalizarTrabajo(tareaActual.id, medicionesTemp, guardarMedicionesFn)
-    if (exito) {
-        limpiarProgresoLocal(tareaActual.id)
-        volverAlPanel()
-    }
-}
-
-// ============================================================
-// ALBARÁN
-// ============================================================
 
 async function guardarAlbaran(datos) {
-    if (!navigator.onLine) {
-        mostrarMensaje('📦 Sin conexión. No se puede guardar albarán', 'error')
-        return
-    }
-    
     const { error } = await sb.from('facturas_externas').insert({
         tarea_id: tareaActual.id,
         tecnico_id: getCurrentPerfil()?.id,
@@ -1143,7 +760,6 @@ async function guardarAlbaran(datos) {
         total_general: datos.total,
         pagada: false
     })
-    
     if (error) {
         mostrarMensaje('❌ Error al guardar albarán', 'error')
     } else {
@@ -1151,16 +767,56 @@ async function guardarAlbaran(datos) {
     }
 }
 
-// ============================================================
-// VOLVER AL PANEL PRINCIPAL
-// ============================================================
-
 function volverAlPanel() {
-    if (autoSaveInterval) clearInterval(autoSaveInterval)
-    guardarProgresoLocal()
     document.getElementById('trabajoScreen').style.display = 'none'
     document.getElementById('dashboardPanel').style.display = 'block'
     recargarTodo()
+}
+
+async function mostrarDetalleTarea(tarea) {
+    const mediciones = await getMedicionesTarea(tarea.id)
+    const materiales = await getMaterialesTarea(tarea.id)
+    const seguimiento = await getSeguimientoTarea(tarea.id)
+    const { tiempoDesplazamiento, tiempoTrabajo } = calcularTiemposTotales(seguimiento)
+    
+    let html = `<strong>📋 Nº:</strong> ${tarea.numero_tarea || tarea.id}<br>
+        <strong>🏢 Cliente:</strong> ${escapeHtml(tarea.empresas?.nombre_empresa || '-')}<br>
+        <strong>📅 Asignada:</strong> ${formatearFecha(tarea.fecha_asignacion)}<br>
+        ${tarea.fecha_propuesta ? `<strong>📅 Propuesta:</strong> ${formatearFecha(tarea.fecha_propuesta)} a las ${tarea.hora_propuesta || '--:--'}<br>` : ''}
+        ${tarea.completada_en ? `<strong>✅ Finalizada:</strong> ${new Date(tarea.completada_en).toLocaleString()}<br>` : ''}
+        <hr><strong>⏱️ TIEMPOS:</strong><br>
+        <div>🚗 Desplazamiento: ${formatearDuracion(tiempoDesplazamiento)}</div>
+        <div>⚙️ Trabajo: ${formatearDuracion(tiempoTrabajo)}</div>`
+    
+    if (mediciones.length > 0) {
+        html += `<hr><strong>📊 Mediciones:</strong><br>${mediciones.map(m => `<div>${formatearMedicion(m)}</div>`).join('')}`
+    }
+    if (materiales.length > 0) {
+        html += `<hr><strong>🧰 Materiales:</strong><br>${materiales.map(m => `<div>${m.descripcion} - ${m.importe_total?.toFixed(2) || 0}€</div>`).join('')}`
+    }
+    mostrarModalDetalleTarea(html)
+}
+
+function formatearDuracion(minutos) {
+    if (!minutos && minutos !== 0) return 'No registrado'
+    if (minutos === 0) return '1 min'
+    const horas = Math.floor(minutos / 60)
+    const mins = minutos % 60
+    if (horas > 0 && mins > 0) return `${horas}h ${mins}min`
+    if (horas > 0) return `${horas}h`
+    return `${mins}min`
+}
+
+function renderizarSeguimiento() {
+    const container = document.getElementById('contenidoPanel')
+    container.innerHTML = `<div class="container"><div class="card">
+        <div class="card-header">⏱️ Historial de trabajo</div>
+        <div class="text-center" style="padding:40px; color:var(--ios-gray);">
+            <p>📊 Resumen de tu actividad</p>
+            <p style="font-size:13px; margin-top:8px;">Tareas completadas: ${getTareasCompletadas().length}</p>
+            <p style="font-size:13px;">Tareas activas: ${getTareasActivas().length}</p>
+        </div>
+    </div></div>`
 }
 
 export default { init }

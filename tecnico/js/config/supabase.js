@@ -1,6 +1,4 @@
 // tecnico/js/config/supabase.js
-// Cliente de Supabase para el panel técnico
-
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
 const SUPABASE_URL = "https://idbdkxhhqeuarcqcaweo.supabase.co"

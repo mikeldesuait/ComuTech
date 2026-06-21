@@ -1,0 +1,43 @@
+<!-- tecnico/templates/tareas/lista.html -->
+<!-- Lista de tareas con filtros -->
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            📋 Tareas
+            <span style="font-size:14px; font-weight:400; color:var(--ios-gray);" id="contadorTareas">0 tareas</span>
+            <button id="btnRefrescarTareas" class="btn-sm" style="background:#2c7a4d; color:white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">🔄 Refrescar</button>
+        </div>
+        
+        <!-- Subpestañas -->
+        <div id="subPestanasContainer" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;"></div>
+        
+        <!-- Filtros -->
+        <div class="filtros-bar" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center;">
+            <input type="text" id="buscarTarea" placeholder="🔍 Buscar por título, número, cliente, técnico, dirección..." style="flex:3; min-width:200px; padding:8px 14px; border-radius:20px; border:1px solid var(--ios-border); font-size:13px;">
+            <select id="filtroEstado" style="padding:8px 14px; border-radius:20px; border:1px solid var(--ios-border); font-size:13px; background:var(--ios-card);">
+                <option value="todos">Todos los estados</option>
+                <option value="pendiente_aceptacion">⏳ Pendiente aceptación</option>
+                <option value="vista">👁️ Vista</option>
+                <option value="aceptada">✅ Aceptada</option>
+                <option value="rechazada">❌ Rechazada</option>
+                <option value="en_desplazamiento">🚗 En desplazamiento</option>
+                <option value="trabajando_onsite">🔧 Trabajando OnSite</option>
+                <option value="terminada">✅ Terminada</option>
+                <option value="suspendida">⏸️ Suspendida</option>
+                <option value="cancelada">❌ Cancelada</option>
+            </select>
+            <select id="filtroPrioridad" style="padding:8px 14px; border-radius:20px; border:1px solid var(--ios-border); font-size:13px; background:var(--ios-card);">
+                <option value="todos">Todas las prioridades</option>
+                <option value="baja">🟢 Baja</option>
+                <option value="media">🟡 Media</option>
+                <option value="alta">🔴 Alta</option>
+                <option value="urgente">🔥 Urgente</option>
+            </select>
+            <button id="btnLimpiarFiltros" class="btn-sm" style="background:#6b7280; color:white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">🗑️ Limpiar</button>
+        </div>
+        
+        <!-- Tabla de tareas -->
+        <div id="tablaTareasContainer"></div>
+    </div>
+</div>

@@ -1,390 +1,145 @@
 // tecnico/js/modules/ui.js
-// Renderizado de la interfaz de usuario (listas, pantallas, modales)
+import { formatearFecha, escapeHtml, getEstadoBadge, getPrioridadBadge, getEstadoLabel } from '../utils/utils.js'
+import { getBotonInteligente } from './tareas.js'
 
-import { 
-    getPrioridadClass, getTipoIcono, getTipoClass, 
-    getEstadoClass, getEstadoTexto, formatearFecha,
-    escapeHtml
-} from './utils.js'
+// tecnico/js/modules/ui.js - renderizarTablaTareas CON BOTÓN VER ORDEN
 
-// ============================================================
-// RENDERIZAR LISTA DE TAREAS (cards)
-// ============================================================
-
-export function renderizarListaTareas(tareas, tipo, onTareaClick) {
+export function renderizarTablaTareas(tareas, tipo, onAccion) {
     if (!tareas || tareas.length === 0) {
-        return `
-            <div class="container">
-                <div class="card-tarea text-center">
-                    📭 No hay tareas ${tipo === 'nuevas' ? 'nuevas' : (tipo === 'activas' ? 'activas' : 'completadas')}
-                </div>
-            </div>
-        `
+        return `<div class="text-center" style="padding: 40px; color: var(--ios-gray);">📭 No hay tareas ${tipo === 'pendientes' ? 'pendientes' : tipo === 'activas' ? 'activas' : 'completadas'}</div>`
     }
     
-    let html = '<div class="container">'
+    let html = `<div style="overflow-x: auto;"><table class="data-table"><thead><tr>
+        <th>Nº Tarea</th><th>Título</th><th>Cliente / Activo</th><th>Técnico</th><th>Prioridad</th><th>Estado</th><th>Fecha</th><th>Acciones</th>
+    </tr></thead><tbody>`
     
-    tareas.forEach(tarea => {
-        const clienteNombre = tarea.empresas?.nombre_empresa || 'Cliente'
-        const activoNombre = tarea.activos?.nombre || 'Sin activo'
-        const direccion = tarea.activos?.direccion || ''
+    for (const tarea of tareas) {
+        const boton = getBotonInteligente(tarea)
+        const clienteNombre = tarea.empresas?.nombre_empresa || tarea.cliente?.nombre || '-'
+        const activoNombre = tarea.activos?.nombre || ''
+        const tecnicoNombre = tarea.perfiles?.nombre_razon_social || 'Sin asignar'
+        const fechaLimite = tarea.fecha_fin_prevista || tarea.fecha_asignacion || tarea.created_at
         
-        let botonTexto = ''
-        if (tipo === 'nuevas') {
-            botonTexto = '👁️ Leer y aceptar'
-        } else if (tarea.estado === 'ACEPTADA') {
-            botonTexto = '🚗 Iniciar desplazamiento'
-        } else if (tarea.estado === 'SUSPENDIDA') {
-            botonTexto = '⏸️ Continuar (suspendida)'
-        } else {
-            botonTexto = '🔧 Continuar trabajo'
-        }
+        // ✅ Botón principal (acción según estado)
+        let botonesHtml = `<button class="btn-sm btn-accion-tarea" data-id="${tarea.id}" data-accion="${boton.accion}" style="background:#2c7a4d; color:white; border:none; padding:6px 14px; border-radius:30px; font-size:13px; cursor:pointer;">${boton.texto}</button>`
         
-        html += `
-            <div class="card-tarea ${getPrioridadClass(tarea.prioridad)}" data-id="${tarea.id}">
-                <div class="card-header-tarea">
-                    <span class="badge ${getTipoClass(tarea.prioridad)}">
-                        ${getTipoIcono(tarea.prioridad)} ${tarea.prioridad || 'MANTENIMIENTO'}
-                    </span>
-                    <span class="badge ${getEstadoClass(tarea.estado)}">
-                        ${getEstadoTexto(tarea.estado)}
-                    </span>
-                </div>
-                <div class="tarea-cliente">${escapeHtml(clienteNombre)}</div>
-                <div class="tarea-direccion">${escapeHtml(activoNombre)} - ${escapeHtml(direccion)}</div>
-                <div class="tarea-direccion">📅 Asignada: ${formatearFecha(tarea.fecha_asignacion)}</div>
-                <button class="btn-leer" data-id="${tarea.id}" data-tipo="${tipo}">
-                    ${botonTexto}
-                </button>
-            </div>
-        `
-    })
+        // ✅ Botón "Ver orden" SIEMPRE visible
+        botonesHtml += ` <button class="btn-sm btn-accion-tarea" data-id="${tarea.id}" data-accion="ver_orden" style="background:#6b21a5; color:white; border:none; padding:6px 14px; border-radius:30px; font-size:13px; cursor:pointer;">📄 Ver orden</button>`
+        
+        html += `<tr>
+            <td><strong>${escapeHtml(tarea.numero_tarea)}</strong></td>
+            <td>${escapeHtml(tarea.titulo)}</td>
+            <td>${escapeHtml(clienteNombre)}${activoNombre ? `<br><small style="color:var(--ios-gray);">🏗️ ${escapeHtml(activoNombre)}</small>` : ''}</td>
+            <td>${escapeHtml(tecnicoNombre)}</td>
+            <td>${getPrioridadBadge(tarea.prioridad)}</td>
+            <td>${getEstadoBadge(tarea.estado)}</td>
+            <td style="font-size:12px;">${formatearFecha(fechaLimite)}</td>
+            <td>${botonesHtml}</td>
+        </tr>`
+    }
     
-    html += '</div>'
+    html += `</tbody></table></div>`
     return html
 }
 
-// ============================================================
-// RENDERIZAR LISTA DE TAREAS COMPLETADAS (con filtros)
-// ============================================================
-
-export function renderizarListaCompletadas(tareas, onVerDetalle) {
-    if (!tareas || tareas.length === 0) {
-        return `
-            <div class="container">
-                <div class="card-tarea text-center">
-                    📭 No hay tareas completadas
-                </div>
-            </div>
-        `
-    }
-    
-    let html = '<div class="container">'
-    
-    tareas.forEach(tarea => {
-        const clienteNombre = tarea.empresas?.nombre_empresa || 'Cliente'
-        const activoNombre = tarea.activos?.nombre || 'Sin activo'
-        const direccion = tarea.activos?.direccion || ''
-        const fechaCompletada = tarea.completada_en?.split('T')[0] || tarea.fecha_asignacion
-        
-        html += `
-            <div class="card-tarea ${getPrioridadClass(tarea.prioridad)}" data-id="${tarea.id}">
-                <div class="card-header-tarea">
-                    <span class="badge ${getTipoClass(tarea.prioridad)}">
-                        ${getTipoIcono(tarea.prioridad)} ${tarea.prioridad || 'MANTENIMIENTO'}
-                    </span>
-                    <span class="badge ${getEstadoClass(tarea.estado)}">
-                        ${getEstadoTexto(tarea.estado)}
-                    </span>
-                </div>
-                <div class="tarea-cliente">${escapeHtml(clienteNombre)}</div>
-                <div class="tarea-direccion">${escapeHtml(activoNombre)} - ${escapeHtml(direccion)}</div>
-                <div class="tarea-direccion">📅 Completada: ${formatearFecha(fechaCompletada)}</div>
-                <button class="btn-ver-detalle" data-id="${tarea.id}">
-                    👁️ Ver detalle completo
-                </button>
-            </div>
-        `
-    })
-    
-    html += '</div>'
-    return html
+export function renderizarFiltrosTareas() {
+    return `<div class="filtros-bar">
+        <input type="text" id="buscarTarea" placeholder="🔍 Buscar por título, número, cliente, técnico, dirección..." style="flex:3; min-width:200px;">
+        <select id="filtroEstado"><option value="todos">Todos los estados</option>
+            <option value="pendiente_aceptacion">⏳ Pendiente aceptación</option>
+            <option value="vista">👁️ Vista</option>
+            <option value="aceptada">✅ Aceptada</option>
+            <option value="rechazada">❌ Rechazada</option>
+            <option value="en_desplazamiento">🚗 En desplazamiento</option>
+            <option value="trabajando_onsite">🔧 Trabajando OnSite</option>
+            <option value="terminada">✅ Terminada</option>
+            <option value="suspendida">⏸️ Suspendida</option>
+            <option value="cancelada">❌ Cancelada</option>
+        </select>
+        <select id="filtroPrioridad"><option value="todos">Todas las prioridades</option>
+            <option value="baja">🟢 Baja</option><option value="media">🟡 Media</option>
+            <option value="alta">🔴 Alta</option><option value="urgente">🔥 Urgente</option>
+        </select>
+        <button id="btnLimpiarFiltros" class="btn-sm" style="background:#6b7280; color:white;">🗑️ Limpiar</button>
+    </div>`
 }
 
-// ============================================================
-// RENDERIZAR PERFIL DEL TÉCNICO
-// ============================================================
-
-export function renderizarPerfil(tecnicoNombre, tecnicoEmail, isExterno, onCerrarSesion) {
-    return `
-        <div class="container">
-            <div class="card-tarea">
-                <h3>👤 Mi perfil</h3>
-                <p><strong>Nombre:</strong> ${escapeHtml(tecnicoNombre)}</p>
-                <p><strong>Email:</strong> ${escapeHtml(tecnicoEmail)}</p>
-                ${isExterno ? '<p><strong>Tipo:</strong> Técnico externo</p>' : ''}
-                <hr>
-                <button class="btn-leer" id="btnCerrarSesionPerfil">🚪 Cerrar sesión</button>
-            </div>
-        </div>
-    `
+export function renderizarSubPestanas(activa) {
+    const tabs = [
+        { id: 'todas', label: '📋 Todas' },
+        { id: 'pendientes', label: '⏳ Pendientes' },
+        { id: 'activas', label: '▶️ Activas' },
+        { id: 'completadas', label: '🏁 Completadas' }
+    ]
+    return `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">${tabs.map(t => `<button class="btn-sm sub-tab ${t.id === activa ? 'btn-success' : 'btn-info'}" data-subtab="${t.id}" style="${t.id === activa ? 'background:#2c7a4d; color:white;' : 'background:#e2e8f0;'}">${t.label}</button>`).join('')}</div>`
 }
-
-// ============================================================
-// RENDERIZAR FILTROS PARA COMPLETADAS
-// ============================================================
-
-export function renderizarFiltrosCompletadas() {
-    return `
-        <div class="filtros-bar">
-            <div class="buscador-container">
-                <input type="text" id="filtroBuscar" placeholder="🔍 Buscar (cliente, activo)" autocomplete="off">
-            </div>
-            <select id="filtroTipo">
-                <option value="">Todos los tipos</option>
-                <option value="URGENCIA">🔴 Urgencia</option>
-                <option value="AVERIA">🟠 Avería</option>
-                <option value="MANTENIMIENTO">🟢 Mantenimiento</option>
-                <option value="REVISION">🔵 Revisión</option>
-                <option value="PRESUPUESTO">🟡 Presupuesto</option>
-            </select>
-            <input type="date" id="filtroFechaDesde" placeholder="Desde">
-            <input type="date" id="filtroFechaHasta" placeholder="Hasta">
-            <button class="btn-filtrar" id="btnFiltrar">🔍 Filtrar</button>
-            <button class="btn-filtrar" id="btnLimpiarFiltros" style="background:#64748b;">🗑️ Limpiar</button>
-        </div>
-    `
-}
-
-// ============================================================
-// ACTUALIZAR CONTADORES EN HEADER
-// ============================================================
-
-export function actualizarContadores(nuevas, activas, completadas) {
-    const contNuevas = document.getElementById('contNuevas')
-    const contActivas = document.getElementById('contActivas')
-    const contCompletadas = document.getElementById('contCompletadas')
-    
-    if (contNuevas) contNuevas.innerText = nuevas
-    if (contActivas) contActivas.innerText = activas
-    if (contCompletadas) contCompletadas.innerText = completadas
-}
-
-// ============================================================
-// MOSTRAR MODAL DE ACEPTAR TAREA
-// ============================================================
 
 export function mostrarModalAceptarTarea(ordenTrabajo, onAceptar, onRechazar, onVolver) {
-    console.log('📢 mostrarModalAceptarTarea ejecutándose');
-    
     const modal = document.getElementById('modalAceptarTarea')
-    if (!modal) {
-        console.error('❌ Modal modalAceptarTarea no encontrado');
-        return;
-    }
-    
-    // Rellenar orden de trabajo
+    if (!modal) return
     const ordenDiv = document.getElementById('modalOrdenTrabajo')
     if (ordenDiv) {
-        ordenDiv.innerHTML = ordenTrabajo || 'Sin instrucciones'
+        const contenido = ordenTrabajo || '📋 No hay instrucciones específicas para esta tarea.'
+        const esHtml = contenido.includes('<div') || contenido.includes('<h') || contenido.includes('<ul')
+        if (esHtml) { ordenDiv.innerHTML = contenido; ordenDiv.style.whiteSpace = 'normal' }
+        else { ordenDiv.textContent = contenido; ordenDiv.style.whiteSpace = 'pre-wrap' }
     }
-    
-    // Fecha propuesta: hoy + 7 días
     const fechaInput = document.getElementById('modalFechaPropuesta')
-    if (fechaInput) {
-        const fecha = new Date()
-        fecha.setDate(fecha.getDate() + 7)
-        fechaInput.value = fecha.toISOString().split('T')[0]
-    }
-    
-    // Hora propuesta: 10:00
+    if (fechaInput) { const f = new Date(); f.setDate(f.getDate() + 7); fechaInput.value = f.toISOString().split('T')[0] }
     const horaInput = document.getElementById('modalHoraPropuesta')
-    if (horaInput) {
-        horaInput.value = '10:00'
-    }
-    
-    // Mostrar modal
+    if (horaInput) horaInput.value = '10:00'
     modal.style.display = 'flex'
-    
-    // Configurar botones
-    const btnAceptar = document.getElementById('btnConfirmarAceptar')
-    const btnRechazar = document.getElementById('btnRechazarTarea')
-    const btnVolver = document.getElementById('btnVolverAceptar')
-    
-    // Si no existen los botones, los creamos
-    const botonesContainer = document.querySelector('#modalAceptarTarea .modal-buttons')
-    if (botonesContainer && (!btnRechazar || !btnVolver)) {
-        botonesContainer.innerHTML = `
-            <button id="btnConfirmarAceptar" class="btn-aceptar">✅ Aceptar</button>
-            <button id="btnRechazarTarea" class="btn-danger">❌ Rechazar</button>
-            <button id="btnVolverAceptar" class="btn-cancelar">◀ Volver</button>
-        `
+    document.getElementById('btnConfirmarAceptar').onclick = () => {
+        const fecha = document.getElementById('modalFechaPropuesta').value; const hora = document.getElementById('modalHoraPropuesta').value
+        if (!fecha || !hora) { alert('Completa fecha y hora propuesta'); return }
+        modal.style.display = 'none'; onAceptar(fecha, hora)
     }
-    
-    const newBtnAceptar = document.getElementById('btnConfirmarAceptar')
-    const newBtnRechazar = document.getElementById('btnRechazarTarea')
-    const newBtnVolver = document.getElementById('btnVolverAceptar')
-    
-    if (!newBtnAceptar || !newBtnRechazar || !newBtnVolver) {
-        console.error('❌ Botones no encontrados');
-        return;
-    }
-    
-    // Limpiar eventos anteriores
-    const cleanBtnAceptar = newBtnAceptar.cloneNode(true)
-    const cleanBtnRechazar = newBtnRechazar.cloneNode(true)
-    const cleanBtnVolver = newBtnVolver.cloneNode(true)
-    newBtnAceptar.parentNode.replaceChild(cleanBtnAceptar, newBtnAceptar)
-    newBtnRechazar.parentNode.replaceChild(cleanBtnRechazar, newBtnRechazar)
-    newBtnVolver.parentNode.replaceChild(cleanBtnVolver, newBtnVolver)
-    
-    // Evento Aceptar
-    cleanBtnAceptar.onclick = () => {
-        const fecha = document.getElementById('modalFechaPropuesta').value
-        const hora = document.getElementById('modalHoraPropuesta').value
-        if (!fecha || !hora) {
-            alert('Completa fecha y hora propuesta')
-            return
-        }
-        modal.style.display = 'none'
-        onAceptar(fecha, hora)
-    }
-    
-    // Evento Rechazar
-    cleanBtnRechazar.onclick = () => {
+    document.getElementById('btnRechazarTarea').onclick = () => {
         const motivo = prompt('Motivo del rechazo:')
-        if (motivo && motivo.trim() !== '') {
-            modal.style.display = 'none'
-            onRechazar(motivo)
-        } else {
-            alert('Debes indicar un motivo para rechazar la tarea')
-        }
+        if (motivo && motivo.trim() !== '') { modal.style.display = 'none'; onRechazar(motivo) }
+        else alert('Debes indicar un motivo')
     }
-    
-    // Evento Volver
-    cleanBtnVolver.onclick = () => {
-        modal.style.display = 'none'
-        if (onVolver) onVolver()
-    }
+    document.getElementById('btnVolverAceptar').onclick = () => { modal.style.display = 'none'; if (onVolver) onVolver() }
 }
-
-// ============================================================
-// MOSTRAR MODAL DE INFORME
-// ============================================================
-
-export function mostrarModalInforme(informe, onAceptar, onRegenerar, onCancelar) {
-    const modal = document.getElementById('modalInformeCliente')
-    if (!modal) return
-    
-    document.getElementById('informePreview').innerHTML = informe || 'No se pudo generar el informe'
-    modal.style.display = 'flex'
-    
-    const btnAceptar = document.getElementById('btnAceptarInforme')
-    const btnRegenerar = document.getElementById('btnRegenerarInforme')
-    const btnCancelar = document.getElementById('btnCancelarInforme')
-    
-    btnAceptar.onclick = () => {
-        modal.style.display = 'none'
-        onAceptar()
-    }
-    btnRegenerar.onclick = () => onRegenerar()
-    btnCancelar.onclick = () => {
-        modal.style.display = 'none'
-        onCancelar()
-    }
-}
-
-// ============================================================
-// MOSTRAR MODAL DE ALBARÁN
-// ============================================================
-
-export function mostrarModalAlbaran(totalMateriales, onGuardar, onCancelar) {
-    const modal = document.getElementById('modalAlbaran')
-    if (!modal) return
-    
-    document.getElementById('albaranMateriales').value = totalMateriales.toFixed(2)
-    actualizarTotalAlbaran()
-    
-    modal.style.display = 'flex'
-    
-    const inputs = ['albaranHoras', 'albaranPrecioHora', 'albaranDietas']
-    inputs.forEach(id => {
-        const el = document.getElementById(id)
-        if (el) el.addEventListener('input', actualizarTotalAlbaran)
-    })
-    
-    const btnGuardar = document.getElementById('btnAceptarAlbaran')
-    const btnCancelar = document.getElementById('btnCancelarAlbaran')
-    
-    btnGuardar.onclick = () => {
-        const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0
-        const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0
-        const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0
-        const total = (horas * precioHora) + totalMateriales + dietas
-        
-        modal.style.display = 'none'
-        onGuardar({ horas, precioHora, dietas, total })
-    }
-    
-    btnCancelar.onclick = () => {
-        modal.style.display = 'none'
-        onCancelar()
-    }
-}
-
-function actualizarTotalAlbaran() {
-    const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0
-    const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0
-    const materiales = parseFloat(document.getElementById('albaranMateriales')?.value) || 0
-    const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0
-    const total = (horas * precioHora) + materiales + dietas
-    document.getElementById('albaranTotal').value = total.toFixed(2) + ' €'
-}
-
-// ============================================================
-// MOSTRAR MODAL DE DETALLE DE TAREA COMPLETADA
-// ============================================================
 
 export function mostrarModalDetalleTarea(contenido) {
     const modal = document.getElementById('modalDetalleTarea')
     if (!modal) return
-    
     document.getElementById('detalleTareaContent').innerHTML = contenido
     modal.style.display = 'flex'
-    
-    const btnCerrar = document.getElementById('btnCerrarDetalle')
-    btnCerrar.onclick = () => { modal.style.display = 'none' }
+    document.getElementById('btnCerrarDetalle').onclick = () => modal.style.display = 'none'
 }
-
-// ============================================================
-// MOSTRAR MODAL DE ORDEN DE TRABAJO
-// ============================================================
 
 export function mostrarModalOrdenTrabajo(ordenTrabajo) {
     const modal = document.getElementById('modalVerOrden')
     if (!modal) return
-    
     document.getElementById('ordenTrabajoContent').innerHTML = ordenTrabajo || 'Sin instrucciones'
     modal.style.display = 'flex'
-    
-    const btnCerrar = document.getElementById('btnCerrarOrden')
-    btnCerrar.onclick = () => { modal.style.display = 'none' }
+    document.getElementById('btnCerrarOrden').onclick = () => modal.style.display = 'none'
 }
 
-// ============================================================
-// CERRAR TODOS LOS MODALES
-// ============================================================
-
-export function cerrarTodosModales() {
-    const modales = [
-        'modalAceptarTarea',
-        'modalInformeCliente',
-        'modalAlbaran',
-        'modalDetalleTarea',
-        'modalVerOrden'
-    ]
-    modales.forEach(id => {
-        const modal = document.getElementById(id)
-        if (modal) modal.style.display = 'none'
+export function mostrarModalAlbaran(totalMateriales, onGuardar, onCancelar) {
+    const modal = document.getElementById('modalAlbaran')
+    if (!modal) return
+    document.getElementById('albaranMateriales').value = totalMateriales.toFixed(2)
+    const actualizarTotal = () => {
+        const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0
+        const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0
+        const materiales = parseFloat(document.getElementById('albaranMateriales')?.value) || 0
+        const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0
+        document.getElementById('albaranTotal').value = ((horas * precioHora) + materiales + dietas).toFixed(2) + ' €'
+    }
+    ['albaranHoras', 'albaranPrecioHora', 'albaranDietas'].forEach(id => {
+        document.getElementById(id).addEventListener('input', actualizarTotal)
     })
+    actualizarTotal()
+    modal.style.display = 'flex'
+    document.getElementById('btnAceptarAlbaran').onclick = () => {
+        const horas = parseFloat(document.getElementById('albaranHoras')?.value) || 0
+        const precioHora = parseFloat(document.getElementById('albaranPrecioHora')?.value) || 0
+        const dietas = parseFloat(document.getElementById('albaranDietas')?.value) || 0
+        const total = (horas * precioHora) + totalMateriales + dietas
+        modal.style.display = 'none'; onGuardar({ horas, precioHora, dietas, total })
+    }
+    document.getElementById('btnCancelarAlbaran').onclick = () => { modal.style.display = 'none'; onCancelar() }
 }

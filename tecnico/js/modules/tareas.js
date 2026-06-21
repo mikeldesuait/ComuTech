@@ -1,66 +1,55 @@
 // tecnico/js/modules/tareas.js
-// Gestión de tareas del técnico
-
 import { sb } from '../config/supabase.js'
 import { getCurrentTecnicoId } from './auth.js'
-import { mostrarMensaje, formatearFecha, escapeHtml } from './utils.js'
+import { mostrarMensaje, formatearFecha, escapeHtml, getEstadoBadge, getPrioridadBadge, getEstadoLabel } from '../utils/utils.js'
 
 let todasTareas = []
-let tareasNuevas = []
+let tareasPendientes = []
 let tareasActivas = []
 let tareasCompletadas = []
 
-// ============================================================
-// CARGAR TAREAS DEL TÉCNICO
-// ============================================================
+// ESTADOS
+export const ESTADOS = {
+    PENDIENTE_ACEPTACION: 'pendiente_aceptacion',
+    VISTA: 'vista',
+    ACEPTADA: 'aceptada',
+    RECHAZADA: 'rechazada',
+    EN_DESPLAZAMIENTO: 'en_desplazamiento',
+    TRABAJANDO_ONSITE: 'trabajando_onsite',
+    TERMINADA: 'terminada',
+    SUSPENDIDA: 'suspendida',
+    CANCELADA: 'cancelada'
+}
+
+// BOTÓN INTELIGENTE POR ESTADO
+export function getBotonInteligente(tarea) {
+    const config = {
+        'pendiente_aceptacion': { texto: '👁️ Leer y aceptar', clase: 'btn-info', accion: 'leer' },
+        'vista': { texto: '✅ Aceptar / ❌ Rechazar', clase: 'btn-success', accion: 'aceptar' },
+        'aceptada': { texto: '🚗 Iniciar desplazamiento', clase: 'btn-info', accion: 'desplazamiento' },
+        'en_desplazamiento': { texto: '📍 Registrar llegada', clase: 'btn-warning', accion: 'llegada' },
+        'trabajando_onsite': { texto: '🔧 Continuar trabajo', clase: 'btn-success', accion: 'trabajar' },
+        'suspendida': { texto: '▶️ Reactivar', clase: 'btn-warning', accion: 'reactivar' },
+        'terminada': { texto: '📋 Ver detalle', clase: 'btn-info', accion: 'detalle' },
+        'rechazada': { texto: '📋 Ver detalle', clase: 'btn-info', accion: 'detalle' },
+        'cancelada': { texto: '📋 Ver detalle', clase: 'btn-info', accion: 'detalle' }
+    }
+    return config[tarea.estado] || { texto: '👁️ Ver', clase: 'btn-info', accion: 'detalle' }
+}
 
 export async function cargarTareas() {
     const tecnicoId = getCurrentTecnicoId()
     if (!tecnicoId) return false
-    
     try {
-        const { data, error } = await sb
-            .from('tareas')
-            .select(`
-                *,
-                empresas!empresa_id(id, nombre_empresa)
-            `)
-            .eq('perfil_id', tecnicoId)
-            .order('fecha_asignacion', { ascending: false })
-        
+        const { data, error } = await sb.from('tareas')
+            .select(`*, empresas:empresas!empresa_id(id, nombre_empresa), activos:activos!activo_id(id, nombre, direccion, localidad, contacto)`)
+            .eq('perfil_id', tecnicoId).order('fecha_asignacion', { ascending: false })
         if (error) throw error
-        
         todasTareas = data || []
-        
-        // Clasificar por estado (normalizando a minúsculas)
-        tareasNuevas = todasTareas.filter(t => 
-            t.estado?.toLowerCase() === 'pendiente' && !t.leida
-        )
-        
-        tareasActivas = todasTareas.filter(t => {
-            const estado = t.estado?.toLowerCase()
-            return estado === 'en_progreso' || 
-                   estado === 'desplazamiento' || 
-                   estado === 'en_curso' || 
-                   estado === 'suspendida'
-        })
-        
-        tareasCompletadas = todasTareas.filter(t => {
-            const estado = t.estado?.toLowerCase()
-            return estado === 'completada' || 
-                   estado === 'cancelada' ||
-                   estado === 'facturada'
-        })
-        
-        console.log('Tareas cargadas:', {
-            total: todasTareas.length,
-            nuevas: tareasNuevas.length,
-            activas: tareasActivas.length,
-            completadas: tareasCompletadas.length
-        })
-        
+        tareasPendientes = todasTareas.filter(t => t.estado === 'pendiente_aceptacion' || t.estado === 'vista')
+        tareasActivas = todasTareas.filter(t => ['aceptada', 'en_desplazamiento', 'trabajando_onsite', 'suspendida'].includes(t.estado))
+        tareasCompletadas = todasTareas.filter(t => ['terminada', 'rechazada', 'cancelada'].includes(t.estado))
         return true
-        
     } catch (error) {
         console.error('Error cargando tareas:', error)
         mostrarMensaje('Error al cargar tareas', 'error')
@@ -68,234 +57,40 @@ export async function cargarTareas() {
     }
 }
 
-// ============================================================
-// OBTENER TAREAS POR CATEGORÍA
-// ============================================================
-
-export function getTareasNuevas() {
-    return [...tareasNuevas]
-}
-
-export function getTareasActivas() {
-    return [...tareasActivas]
-}
-
-export function getTareasCompletadas() {
-    return [...tareasCompletadas]
-}
-
-export function getTodasTareas() {
-    return [...todasTareas]
-}
-
-// ============================================================
-// OBTENER CONTADORES
-// ============================================================
+export function getTareasPendientes() { return [...tareasPendientes] }
+export function getTareasActivas() { return [...tareasActivas] }
+export function getTareasCompletadas() { return [...tareasCompletadas] }
+export function getTodasTareas() { return [...todasTareas] }
 
 export function getContadores() {
-    return {
-        nuevas: tareasNuevas.length,
-        activas: tareasActivas.length,
-        completadas: tareasCompletadas.length
-    }
+    return { pendientes: tareasPendientes.length, activas: tareasActivas.length, completadas: tareasCompletadas.length }
 }
 
-// ============================================================
-// OBTENER TAREA POR ID (con datos del activo)
-// ============================================================
-
 export async function getTareaById(id) {
-    // Buscar en caché primero
     const cached = todasTareas.find(t => t.id === id)
-    if (cached && cached.activos) return cached
-    
-    // Si no está, buscar en BD con JOIN a activos
-    const { data, error } = await sb
-        .from('tareas')
-        .select(`
-            *,
-            empresas!empresa_id(id, nombre_empresa),
-            activos!activo_id(*)
-        `)
-        .eq('id', id)
-        .single()
-    
-    if (error) {
-        console.error('Error obteniendo tarea:', error)
-        return null
-    }
-    
+    if (cached) return cached
+    const { data, error } = await sb.from('tareas').select(`*, cliente:clientes!cliente_id(id, nombre), activos:activos!activo_id(*), empresas:empresas!empresa_id(id, nombre_empresa)`).eq('id', id).single()
+    if (error) { console.error('Error:', error); return null }
     return data
 }
 
-// ============================================================
-// ACTUALIZAR ESTADO DE TAREA
-// ============================================================
-
 export async function actualizarEstadoTarea(id, estado, datosAdicionales = {}) {
-    console.log('📤 Actualizando tarea:', { id, estado, datosAdicionales })
-    
-    const updateData = {
-        estado: estado,
-        updated_at: new Date().toISOString()
-    }
-    
+    const updateData = { estado, updated_at: new Date().toISOString() }
+    if (estado === 'vista') updateData.leida = true
+    if (estado === 'aceptada') { updateData.fecha_aceptacion = new Date().toISOString(); updateData.leida = true }
+    if (estado === 'en_desplazamiento') updateData.fecha_desplazamiento = new Date().toISOString()
+    if (estado === 'trabajando_onsite') updateData.fecha_llegada = new Date().toISOString()
+    if (estado === 'terminada') { updateData.fecha_fin_trabajo = new Date().toISOString(); updateData.completada_en = new Date().toISOString() }
+    if (estado === 'suspendida') updateData.fecha_suspension = new Date().toISOString()
+    if (estado === 'cancelada') updateData.motivo_cancelacion = datosAdicionales.motivo_cancelacion || 'Cancelada por el técnico'
     if (datosAdicionales.fecha_propuesta) updateData.fecha_propuesta = datosAdicionales.fecha_propuesta
     if (datosAdicionales.hora_propuesta) updateData.hora_propuesta = datosAdicionales.hora_propuesta
     if (datosAdicionales.leida !== undefined) updateData.leida = datosAdicionales.leida
-    if (datosAdicionales.motivo_cancelacion) updateData.motivo_cancelacion = datosAdicionales.motivo_cancelacion
     if (datosAdicionales.nota_interna) updateData.nota_interna = datosAdicionales.nota_interna
     if (datosAdicionales.nota_cliente) updateData.nota_cliente = datosAdicionales.nota_cliente
-    if (datosAdicionales.completada_en) updateData.completada_en = datosAdicionales.completada_en
-    if (datosAdicionales.iniciada_en) updateData.iniciada_en = datosAdicionales.iniciada_en
-    
-    const { error } = await sb
-        .from('tareas')
-        .update(updateData)
-        .eq('id', id)
-    
-    if (error) {
-        console.error('❌ Error en actualizarEstadoTarea:', error)
-        mostrarMensaje('Error al actualizar estado', 'error')
-        return false
-    }
-    
-    console.log('✅ Tarea actualizada correctamente')
-    
-    // Actualizar caché
+    const { error } = await sb.from('tareas').update(updateData).eq('id', id)
+    if (error) { mostrarMensaje('Error al actualizar estado', 'error'); return false }
     const tareaIndex = todasTareas.findIndex(t => t.id === id)
-    if (tareaIndex !== -1) {
-        todasTareas[tareaIndex].estado = estado
-        Object.assign(todasTareas[tareaIndex], updateData)
-    }
-    
+    if (tareaIndex !== -1) { todasTareas[tareaIndex].estado = estado; Object.assign(todasTareas[tareaIndex], updateData) }
     return true
-}
-
-// ============================================================
-// ACEPTAR TAREA (con fecha y hora propuesta)
-// ============================================================
-
-export async function aceptarTarea(id, fechaPropuesta, horaPropuesta) {
-    return actualizarEstadoTarea(id, 'en_progreso', {
-        fecha_propuesta: fechaPropuesta,
-        hora_propuesta: horaPropuesta + ':00',
-        leida: true
-    })
-}
-
-// ============================================================
-// CANCELAR TAREA
-// ============================================================
-
-export async function cancelarTarea(id, motivo) {
-    return actualizarEstadoTarea(id, 'cancelada', {
-        motivo_cancelacion: motivo,
-        leida: true
-    })
-}
-
-// ============================================================
-// GUARDAR NOTA INTERNA
-// ============================================================
-
-export async function guardarNotaInterna(id, notaInterna) {
-    const { error } = await sb
-        .from('tareas')
-        .update({ nota_interna: notaInterna })
-        .eq('id', id)
-    
-    if (error) {
-        mostrarMensaje('Error al guardar nota', 'error')
-        return false
-    }
-    
-    const tareaIndex = todasTareas.findIndex(t => t.id === id)
-    if (tareaIndex !== -1) {
-        todasTareas[tareaIndex].nota_interna = notaInterna
-    }
-    
-    mostrarMensaje('Nota guardada', 'exito')
-    return true
-}
-
-// ============================================================
-// GUARDAR INFORME PARA CLIENTE
-// ============================================================
-
-export async function guardarInformeCliente(id, informe) {
-    const { error } = await sb
-        .from('tareas')
-        .update({ nota_cliente: informe })
-        .eq('id', id)
-    
-    if (error) {
-        mostrarMensaje('Error al guardar informe', 'error')
-        return false
-    }
-    
-    const tareaIndex = todasTareas.findIndex(t => t.id === id)
-    if (tareaIndex !== -1) {
-        todasTareas[tareaIndex].nota_cliente = informe
-    }
-    
-    mostrarMensaje('Informe guardado', 'exito')
-    return true
-}
-
-// ============================================================
-// MARCAR COMO LEÍDA
-// ============================================================
-
-export async function marcarComoLeida(id) {
-    const { error } = await sb
-        .from('tareas')
-        .update({ leida: true })
-        .eq('id', id)
-    
-    if (error) return false
-    
-    const tareaIndex = todasTareas.findIndex(t => t.id === id)
-    if (tareaIndex !== -1) {
-        todasTareas[tareaIndex].leida = true
-    }
-    
-    return true
-}
-
-// ============================================================
-// RENDERIZADO DE TAREAS (para UI)
-// ============================================================
-
-export function renderizarTareaCard(tarea, tipo) {
-    const clienteNombre = tarea.empresas?.nombre_empresa || 'Cliente'
-    
-    let botonTexto = ''
-    if (tipo === 'nueva') {
-        botonTexto = '👁️ Leer y aceptar'
-    } else if (tarea.estado === 'en_progreso') {
-        botonTexto = '🚗 Iniciar desplazamiento'
-    } else if (tarea.estado === 'suspendida') {
-        botonTexto = '⏸️ Continuar (suspendida)'
-    } else {
-        botonTexto = '🔧 Continuar trabajo'
-    }
-    
-    return `
-        <div class="card-tarea prioridad-${tarea.prioridad?.toLowerCase() || 'media'}">
-            <div class="card-header-tarea">
-                <span class="badge tipo-${tarea.prioridad?.toLowerCase() || 'media'}">
-                    ${tarea.prioridad || 'MEDIA'}
-                </span>
-                <span class="badge estado-${tarea.estado?.toLowerCase() || 'pendiente'}">
-                    ${tarea.estado || 'PENDIENTE'}
-                </span>
-            </div>
-            <div class="tarea-cliente">${escapeHtml(clienteNombre)}</div>
-            <div class="tarea-direccion">📅 Asignada: ${formatearFecha(tarea.fecha_asignacion)}</div>
-            <button class="btn-leer" data-id="${tarea.id}" data-tipo="${tipo}">
-                ${botonTexto}
-            </button>
-        </div>
-    `
 }

@@ -1,0 +1,181 @@
+<!-- tecnico/templates/tareas/detalle.html -->
+<!-- Detalle completo de tarea (pantalla completa) -->
+
+<div class="container" style="max-width: 900px; margin: 0 auto; padding: 16px;">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+                <span style="font-size: 20px; font-weight: 700; color: #1e4663;">
+                    📋 <span id="detalleNumeroTarea">Cargando...</span>
+                </span>
+                <span style="font-size: 16px; font-weight: 500; color: #2c7a4d; margin-left: 8px;" id="detalleTituloTarea"></span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button id="btnDetalleVolver" class="btn-warning" style="padding: 8px 16px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600;">◀ Volver</button>
+                <button id="btnDetalleReasignar" class="btn-info" style="padding: 8px 16px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600; background: #e67e22;">🔄 Reasignar</button>
+                <button id="btnDetalleEditarDesc" class="btn-info" style="padding: 8px 16px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600; background: #0284c7;">✏️ Editar descripción</button>
+            </div>
+        </div>
+        
+        <!-- Información general -->
+        <div id="detalleInformacion" style="background: var(--ios-bg); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div><strong>Cliente:</strong> <span id="detalleCliente">-</span></div>
+                <div><strong>Técnico:</strong> <span id="detalleTecnico">-</span></div>
+                <div><strong>Servicio:</strong> <span id="detalleServicio">-</span></div>
+                <div><strong>Tipo:</strong> <span id="detalleTipo">-</span></div>
+                <div><strong>Prioridad:</strong> <span id="detallePrioridad">-</span></div>
+                <div><strong>Estado:</strong> <span id="detalleEstado">-</span></div>
+                <div><strong>Fecha creación:</strong> <span id="detalleFechaCreacion">-</span></div>
+                <div><strong>Fecha límite:</strong> <span id="detalleFechaLimite">-</span></div>
+            </div>
+        </div>
+        
+        <!-- Ubicación del activo -->
+        <div id="detalleUbicacion" style="background: #e0f2fe; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #0284c7; display: none;">
+            <h4 style="margin: 0 0 4px 0; font-size: 13px; color: #0369a1;">📍 Ubicación del activo</h4>
+            <p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;">
+                <strong>Activo:</strong> <span id="detalleActivoNombre">-</span>
+            </p>
+            <p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;">
+                <strong>Dirección:</strong> <span id="detalleActivoDireccion">-</span>
+            </p>
+            <p style="margin: 2px 0; font-size: 13px; color: #0c4a6e;" id="detalleActivoContactoContainer">
+                <strong>Contacto:</strong> <span id="detalleActivoContacto">-</span>
+            </p>
+        </div>
+        
+        <!-- Descripción / Orden de trabajo -->
+        <div style="margin-top: 12px;">
+            <strong style="font-size: 16px;">📋 Descripción / Instrucciones:</strong>
+            <div id="detalleDescripcionContainer" class="descripcion-container" style="margin-top: 8px; background: #f8fafc; border-radius: 12px; padding: 16px; font-size: 14px; line-height: 1.6;">
+                <div id="detalleDescripcion">Cargando...</div>
+            </div>
+            
+            <!-- Editor de descripción -->
+            <div id="detalleEditorDescripcion" style="display: none; margin-top: 12px;">
+                <textarea id="detalleTextoDescripcion" rows="12" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--ios-border); font-family: monospace; font-size: 14px; line-height: 1.6; min-height: 200px; resize: vertical; background: var(--ios-card); color: #1c1c1e;"></textarea>
+                <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap;">
+                    <button id="detalleBtnGuardarDesc" class="btn-success" style="padding: 10px 20px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600;">💾 Guardar</button>
+                    <button id="detalleBtnCancelarDesc" class="btn-danger" style="padding: 10px 20px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600;">✖ Cancelar</button>
+                    <button id="detalleBtnRegenerarDesc" class="btn-info" style="padding: 10px 20px; border-radius: 30px; border: none; color: white; cursor: pointer; font-weight: 600; background: #8b5cf6;">🔄 Regenerar con IA</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cambiar estado -->
+        <div id="detalleCambiarEstado" style="margin-top: 16px; padding: 16px; background: #f8fafc; border-radius: 12px; display: none;">
+            <strong>🔄 Cambiar estado:</strong>
+            <div id="detalleBotonesEstado" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;"></div>
+        </div>
+        
+        <!-- Historial de estados -->
+        <div id="detalleHistorialEstados" class="card" style="margin-top: 16px; display: none;">
+            <div class="card-header">📜 Historial de estados</div>
+            <div id="detalleHistorialEstadosLista"></div>
+        </div>
+        
+        <!-- Historial de asignaciones -->
+        <div id="detalleHistorialAsignaciones" class="card" style="margin-top: 16px; display: none;">
+            <div class="card-header">🔄 Historial de asignaciones</div>
+            <div id="detalleHistorialAsignacionesLista"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .descripcion-container .orden-trabajo {
+        max-width: 100%;
+    }
+    .descripcion-container .orden-header {
+        background: #1e4663;
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    .descripcion-container .orden-header h2 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        color: white;
+    }
+    .descripcion-container .orden-header p {
+        margin: 2px 0;
+        font-size: 13px;
+        opacity: 0.9;
+        color: white;
+    }
+    .descripcion-container .seccion-resumen {
+        background: #dbeafe;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        border-left: 4px solid #1e40af;
+    }
+    .descripcion-container .seccion-resumen h3 {
+        margin: 0 0 6px 0;
+        font-size: 14px;
+        color: #1e40af;
+    }
+    .descripcion-container .seccion-pasos {
+        background: #f0fdf4;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        border-left: 4px solid #166534;
+    }
+    .descripcion-container .seccion-pasos h3 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: #166534;
+    }
+    .descripcion-container .seccion-pasos ol {
+        margin: 4px 0;
+        padding-left: 24px;
+    }
+    .descripcion-container .seccion-pasos ol li {
+        margin-bottom: 4px;
+        color: #1e293b;
+    }
+    .descripcion-container .seccion-herramientas {
+        background: #fef3c7;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        border-left: 4px solid #92400e;
+    }
+    .descripcion-container .seccion-herramientas h3 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: #92400e;
+    }
+    .descripcion-container .seccion-herramientas ul {
+        margin: 4px 0;
+        padding-left: 20px;
+    }
+    .descripcion-container .seccion-herramientas ul li {
+        margin-bottom: 2px;
+        color: #1e293b;
+        list-style-type: disc;
+    }
+    .descripcion-container .seccion-prevencion {
+        background: #fef2f2;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border-left: 4px solid #991b1b;
+    }
+    .descripcion-container .seccion-prevencion h3 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: #991b1b;
+    }
+    .descripcion-container .seccion-prevencion ul {
+        margin: 4px 0;
+        padding-left: 20px;
+    }
+    .descripcion-container .seccion-prevencion ul li {
+        margin-bottom: 4px;
+        color: #1e293b;
+        list-style-type: disc;
+    }
+</style>

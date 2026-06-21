@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Panel Técnico · COMUTECH</title>
     <link rel="stylesheet" href="css/styles.css">
-    
-    <!-- iOS Web App -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="COMUTECH Técnico">
-    
-    <!-- LIBRERÍAS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -40,42 +36,19 @@
                 <button id="btnLogout" class="btn-logout">🚪 Salir</button>
             </div>
         </div>
-        <div class="contadores">
-            <div class="contador-item">
-                <span class="contador-numero" id="contNuevas">0</span>
-                <span class="contador-label">Nuevas</span>
-            </div>
-            <div class="contador-item">
-                <span class="contador-numero" id="contActivas">0</span>
-                <span class="contador-label">Activas</span>
-            </div>
-            <div class="contador-item">
-                <span class="contador-numero" id="contCompletadas">0</span>
-                <span class="contador-label">Completadas</span>
-            </div>
-        </div>
     </div>
-    
     <div id="contenidoPanel"></div>
-    
+    <!-- TAB BAR -->
     <div class="bottom-nav">
-        <button class="nav-item active" data-tab="nuevas">
-            <span>📋</span><span>Nuevas</span>
-        </button>
-        <button class="nav-item" data-tab="activas">
-            <span>▶️</span><span>Activas</span>
-        </button>
-        <button class="nav-item" data-tab="completadas">
-            <span>🏁</span><span>Completadas</span>
-        </button>
-        <button class="nav-item" data-tab="perfil">
-            <span>👤</span><span>Perfil</span>
-        </button>
+        <button class="nav-item active" data-tab="tareas"><span>📋</span><span>Tareas</span></button>
+        <button class="nav-item" data-tab="materiales"><span>📦</span><span>Materiales</span></button>
+        <button class="nav-item" data-tab="seguimiento"><span>⏱️</span><span>Seguimiento</span></button>
+        <button class="nav-item" data-tab="perfil"><span>👤</span><span>Perfil</span></button>
     </div>
 </div>
 
 <!-- PANTALLA DE TRABAJO -->
-<div id="trabajoScreen" class="screen">
+<div id="trabajoScreen" class="screen" style="display: none;">
     <div class="screen-header">
         <button class="btn-back" id="btnBackTrabajo">←</button>
         <span style="font-weight: 600; flex:1;" id="trabajoTitulo">Cargando...</span>
@@ -84,70 +57,29 @@
     <div class="screen-content" id="trabajoContent"></div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODALES                                                      -->
-<!-- ============================================================ -->
-
-<!-- Modal Aceptar Tarea -->
+<!-- MODALES -->
 <div id="modalAceptarTarea" class="modal-overlay">
     <div class="modal-content">
         <h3>✅ Aceptar tarea</h3>
-        <div class="form-group">
-            <label>📋 ORDEN DE TRABAJO</label>
-            <div class="detalle-info" id="modalOrdenTrabajo" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;"></div>
-        </div>
-        <div class="form-group">
-            <label>📅 Fecha propuesta</label>
-            <input type="date" id="modalFechaPropuesta">
-        </div>
-        <div class="form-group">
-            <label>⏰ Hora propuesta</label>
-            <input type="time" id="modalHoraPropuesta">
-        </div>
+        <div class="form-group"><label>📋 ORDEN DE TRABAJO</label><div class="detalle-info" id="modalOrdenTrabajo"></div></div>
+        <div class="form-group"><label>📅 Fecha propuesta</label><input type="date" id="modalFechaPropuesta"></div>
+        <div class="form-group"><label>⏰ Hora propuesta</label><input type="time" id="modalHoraPropuesta"></div>
         <div class="modal-buttons">
             <button id="btnConfirmarAceptar" class="btn-aceptar">✅ Aceptar</button>
-            <button id="btnCancelarAceptar" class="btn-cancelar">❌ Cancelar</button>
+            <button id="btnRechazarTarea" class="btn-danger" style="background:#dc2626; color:white; border:none; padding:12px; border-radius:40px; font-weight:600; cursor:pointer;">❌ Rechazar</button>
+            <button id="btnVolverAceptar" class="btn-cancelar">◀ Volver</button>
         </div>
     </div>
 </div>
 
-<!-- Modal Informe Cliente -->
-<div id="modalInformeCliente" class="modal-overlay">
-    <div class="modal-content">
-        <h3>📋 Informe para el cliente</h3>
-        <div class="detalle-info" id="informePreview"></div>
-        <div class="modal-buttons">
-            <button id="btnAceptarInforme" class="btn-aceptar">✅ Aceptar</button>
-            <button id="btnRegenerarInforme" class="btn-regenerar">🔄 Generar otro</button>
-            <button id="btnCancelarInforme" class="btn-cancelar">✖ Cancelar</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Albarán -->
 <div id="modalAlbaran" class="modal-overlay">
     <div class="modal-content">
         <h3>💰 ALBARÁN DE SERVICIO</h3>
-        <div class="form-group">
-            <label>⏱️ Horas trabajadas</label>
-            <input type="number" id="albaranHoras" step="0.5" placeholder="0" value="0">
-        </div>
-        <div class="form-group">
-            <label>💰 Precio por hora (€)</label>
-            <input type="number" id="albaranPrecioHora" step="0.01" placeholder="0.00" value="0">
-        </div>
-        <div class="form-group">
-            <label>🧰 Materiales (€)</label>
-            <input type="number" id="albaranMateriales" step="0.01" placeholder="0.00" readonly>
-        </div>
-        <div class="form-group">
-            <label>🚗 Dietas / desplazamiento (€)</label>
-            <input type="number" id="albaranDietas" step="0.01" placeholder="0.00" value="0">
-        </div>
-        <div class="form-group">
-            <label><strong>💰 TOTAL (€)</strong></label>
-            <input type="text" id="albaranTotal" readonly style="font-weight: bold; font-size: 1.1rem;">
-        </div>
+        <div class="form-group"><label>⏱️ Horas trabajadas</label><input type="number" id="albaranHoras" step="0.5" placeholder="0" value="0"></div>
+        <div class="form-group"><label>💰 Precio por hora (€)</label><input type="number" id="albaranPrecioHora" step="0.01" placeholder="0.00" value="0"></div>
+        <div class="form-group"><label>🧰 Materiales (€)</label><input type="number" id="albaranMateriales" step="0.01" placeholder="0.00" readonly></div>
+        <div class="form-group"><label>🚗 Dietas / desplazamiento (€)</label><input type="number" id="albaranDietas" step="0.01" placeholder="0.00" value="0"></div>
+        <div class="form-group"><label><strong>💰 TOTAL (€)</strong></label><input type="text" id="albaranTotal" readonly style="font-weight: bold; font-size: 1.1rem;"></div>
         <div class="modal-buttons">
             <button id="btnAceptarAlbaran" class="btn-aceptar">✅ Guardar albarán</button>
             <button id="btnCancelarAlbaran" class="btn-cancelar">✖ Cancelar</button>
@@ -155,25 +87,19 @@
     </div>
 </div>
 
-<!-- Modal Detalle Tarea Completada -->
 <div id="modalDetalleTarea" class="modal-overlay">
     <div class="modal-content">
         <h3>📋 Detalle completo de la tarea</h3>
         <div id="detalleTareaContent" class="detalle-info"></div>
-        <div class="modal-buttons">
-            <button id="btnCerrarDetalle" class="btn-cancelar">✖ Cerrar</button>
-        </div>
+        <div class="modal-buttons"><button id="btnCerrarDetalle" class="btn-cancelar">✖ Cerrar</button></div>
     </div>
 </div>
 
-<!-- Modal Ver Orden de Trabajo -->
 <div id="modalVerOrden" class="modal-overlay">
     <div class="modal-content">
         <h3>📋 ORDEN DE TRABAJO</h3>
-        <div class="detalle-info" id="ordenTrabajoContent" style="white-space: pre-wrap;"></div>
-        <div class="modal-buttons">
-            <button id="btnCerrarOrden" class="btn-cancelar">✖ Cerrar</button>
-        </div>
+        <div id="ordenTrabajoContent" class="detalle-info" style="white-space: pre-wrap;"></div>
+        <div class="modal-buttons"><button id="btnCerrarOrden" class="btn-cancelar">✖ Cerrar</button></div>
     </div>
 </div>
 
@@ -181,6 +107,5 @@
     import { init } from './js/main.js'
     init()
 </script>
-
 </body>
 </html>
