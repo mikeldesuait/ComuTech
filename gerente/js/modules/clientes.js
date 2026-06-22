@@ -173,7 +173,6 @@ export async function regenerarCodigoAcceso(id) {
         if (error) throw error
         
         cerrarModalCarga()
-        mostrarMensaje(`✅ Nuevo código: ${codigo}`, 'exito')
         return codigo
         
     } catch (error) {
@@ -546,7 +545,7 @@ function aplicarFiltrosClientes(onEditar, onRegenerarCodigo, onToggleAcceso, onV
 export function renderizarFormularioCrearCliente() {
     return `
         <div class="card">
-            <div class="card-header">➕ Nuevo Cliente</div>
+            
             
             <div class="row-flex">
                 <div class="grupo"><label>🏢 Nombre *</label><input type="text" id="cliNombre" class="full-width" placeholder="Razón social"></div>
@@ -598,14 +597,23 @@ export function renderizarFormularioCrearCliente() {
 // RENDERIZAR ACTIVOS DE UN CLIENTE (con botón mapa mejorado)
 // ============================================================
 
+// ============================================================
+// RENDERIZAR ACTIVOS DE UN CLIENTE (CON BOTÓN VOLVER)
+// ============================================================
+
 export function renderizarActivosCliente(activos, clienteNombre, onEditar, onEliminar) {
     if (!activos || activos.length === 0) {
         return `
             <div class="card" style="margin-top:16px;">
-                <div class="card-header">🏗️ Activos de ${escapeHtml(clienteNombre)}</div>
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <span>🏗️ Activos de ${escapeHtml(clienteNombre)}</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btnVolverClientes" class="btn-warning btn-sm" style="padding:6px 14px; border-radius:30px; border:none; color:white; cursor:pointer; background:#f59e0b;">◀ Volver</button>
+                        <button id="btnAgregarActivo" class="btn-success btn-sm" style="padding:6px 14px; border-radius:30px; border:none; color:white; cursor:pointer;">➕ Alta Activo</button>
+                    </div>
+                </div>
                 <div class="text-center" style="padding: 20px;">
                     <p>No hay activos registrados</p>
-                    <button id="btnAgregarActivo" class="btn-success">➕ Agregar activo</button>
                 </div>
             </div>
         `
@@ -613,8 +621,12 @@ export function renderizarActivosCliente(activos, clienteNombre, onEditar, onEli
     
     let html = `
         <div class="card" style="margin-top:16px;">
-            <div class="card-header">🏗️ Activos de ${escapeHtml(clienteNombre)}
-                <button id="btnAgregarActivo" class="btn-success btn-sm" style="float:right;">➕ Agregar</button>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <span>🏗️ Activos de ${escapeHtml(clienteNombre)}</span>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btnVolverClientes" class="btn-warning btn-sm" style="padding:6px 14px; border-radius:30px; border:none; color:white; cursor:pointer; background:#f59e0b;">◀ Volver</button>
+                    <button id="btnAgregarActivo" class="btn-success btn-sm" style="padding:6px 14px; border-radius:30px; border:none; color:white; cursor:pointer;">➕ Alta Activo</button>
+                </div>
             </div>
             <div style="overflow-x:auto;">
                 <table class="data-table">
@@ -635,27 +647,26 @@ export function renderizarActivosCliente(activos, clienteNombre, onEditar, onEli
         const horario = `${a.hora_apertura || '--:--'} - ${a.hora_cierre || '--:--'}`
         const tieneCoordenadas = a.latitud && a.longitud
         
-        // Botón mapa mejorado con detección de móvil
         const mapaBtn = tieneCoordenadas 
             ? `<button class="btn-sm ver-mapa" 
                 data-lat="${a.latitud}" 
                 data-lon="${a.longitud}" 
                 data-nombre="${escapeHtml(a.nombre)}" 
-                style="background:#0284c7; color:white; font-size:12px;">
+                style="background:#0284c7; color:white; font-size:12px; border:none; padding:4px 12px; border-radius:30px; cursor:pointer;">
                 🗺️ Ver
             </button>`
             : `<span class="badge badge-inactivo" style="font-size: 10px;">❌ Sin mapa</span>`
         
         html += `
             <tr>
-                <td><strong>${escapeHtml(a.nombre)}</strong><br><small>${escapeHtml(a.direccion || '')}</small></td>
+                <td><strong>${escapeHtml(a.nombre)}</strong><br><small style="color:var(--ios-gray);">${escapeHtml(a.direccion || '')}</small></td>
                 <td>${horario}</td>
                 <td>${escapeHtml(a.tipo_acceso || 'libre')}</td>
                 <td>${escapeHtml(a.contacto || '-')}</td>
                 <td>${mapaBtn}</td>
                 <td>
-                    <button class="btn-sm editar-activo" data-id="${a.id}" style="background:#e67e22;">✏️</button>
-                    <button class="btn-sm eliminar-activo" data-id="${a.id}" style="background:#dc2626;">🗑️</button>
+                    <button class="btn-sm editar-activo" data-id="${a.id}" style="background:#e67e22; color:white; border:none; padding:4px 12px; border-radius:30px; cursor:pointer;">✏️</button>
+                    <button class="btn-sm eliminar-activo" data-id="${a.id}" style="background:#dc2626; color:white; border:none; padding:4px 12px; border-radius:30px; cursor:pointer;">🗑️</button>
                 </td>
             </tr>
         `

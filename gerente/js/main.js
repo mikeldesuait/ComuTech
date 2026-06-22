@@ -49,6 +49,10 @@ let serviciosData = []
 let tiposTareaData = []
 let plantillasData = []
 
+// Variables de paginación para clientes
+let paginaClientesActual = 1;
+const itemsPorPaginaClientes = 10;
+
 // ============================================================
 // INICIALIZACIÓN
 // ============================================================
@@ -862,7 +866,7 @@ async function renderizarClientes() {
     return `<div class="container">
         <div class="card">
             <div class="card-header">🏢 Clientes
-                <button id="btnAltaCliente" class="btn-success btn-sm" style="float:right;">➕ Alta</button>
+                <button id="btnAltaCliente" class="btn-success btn-sm" style="float:right;">➕ Alta cliente</button>
             </div>
             <div id="clientesSubcontenido">
                 <div class="text-center" style="padding:40px;">Cargando clientes...</div>
@@ -871,25 +875,220 @@ async function renderizarClientes() {
     </div>`
 }
 
+// ============================================================
+// MOSTRAR LISTA DE CLIENTES CON PAGINACIÓN
+// ============================================================
+
 async function mostrarListaClientes() {
     if (clientesData.length === 0) {
         document.getElementById('clientesSubcontenido').innerHTML = `
             <div class="text-center" style="padding:40px;">
                 <p>🏢 No hay clientes registrados</p>
+                <button id="btnAltaCliente" class="btn-success" style="margin-top:16px;">➕ Nuevo cliente</button>
             </div>
         `
+        document.getElementById('btnAltaCliente')?.addEventListener('click', () => mostrarAltaCliente())
         return
     }
     
-    const { renderizarListaClientes } = clientesModule
-    const html = renderizarListaClientes(
-        clientesData,
-        (id) => editarCliente(id),
-        (id) => regenerarCodigoCliente(id),
-        (id, activo) => toggleAccesoCliente(id, activo),
-        (id) => mostrarActivosCliente(id)
-    )
-    document.getElementById('clientesSubcontenido').innerHTML = html
+    // Usar la función con paginación
+    renderizarPaginaClientes(paginaClientesActual)
+}
+
+// ============================================================
+// RENDERIZAR PÁGINA DE CLIENTES
+// ============================================================
+
+function renderizarPaginaClientes(pagina) {
+    paginaClientesActual = pagina
+    const inicio = (pagina - 1) * itemsPorPaginaClientes
+    const fin = inicio + itemsPorPaginaClientes
+    const clientesPagina = clientesData.slice(inicio, fin)
+    const totalPaginas = Math.ceil(clientesData.length / itemsPorPaginaClientes)
+    
+    const container = document.getElementById('clientesSubcontenido')
+    if (!container) return
+    
+    let html = `
+    <div class="card" style="margin-top:16px;">
+        <div class="filtros-bar" style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div style="flex: 2; min-width: 150px;">
+                <input type="text" id="buscarCliente" placeholder="🔍 Buscar por nombre, NIF, email, teléfono o código..." style="width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border);">
+            </div>
+            <select id="filtroEstadoCliente" style="padding: 10px; border-radius: 20px; border: 1px solid var(--ios-border); background: white;">
+                <option value="todos">📌 Todos</option>
+                <option value="activo">✅ Activos</option>
+                <option value="inactivo">🔒 Inactivos</option>
+            </select>
+            <button id="btnLimpiarFiltrosClientes" class="btn-sm" style="background: #6b7280; color: white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">🗑️ Limpiar</button>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>NIF/CIF</th>
+                        <th>Contacto</th>
+                        <th>Código acceso</th>
+                        <th>Estado</th>
+                        <th>Activos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `
+    
+    for (const c of clientesPagina) {
+        html += `
+            <tr>
+                <td><strong>${escapeHtml(c.nombre || '-')}</strong><br><small style="color:var(--ios-gray);">${escapeHtml(c.direccion || '')}</small></td>
+                <td>${escapeHtml(c.nif_cif || '-')}</td>
+                <td>${escapeHtml(c.email || '-')}<br>${escapeHtml(c.telefono || '-')}</td>
+                <td><span class="badge badge-activo" style="font-family: monospace;">${escapeHtml(c.codigo_acceso || '-')}</span></td>
+                <td>${c.acceso_activo ? '<span class="badge badge-activo">✅ Activo</span>' : '<span class="badge badge-inactivo">🔒 Inactivo</span>'}</td>
+                <td><button class="btn-sm ver-activos" data-id="${c.id}" style="background:#0284c7; color:white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">🏗️ Ver</button></td>
+                <td>
+                    <button class="btn-sm editar-cliente" data-id="${c.id}" style="background:#e67e22; color:white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">✏️</button>
+                    <button class="btn-sm regenerar-codigo" data-id="${c.id}" style="background:#0284c7; color:white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">🔄</button>
+                    <button class="btn-sm toggle-acceso" data-id="${c.id}" data-activo="${c.acceso_activo}" style="background:${c.acceso_activo ? '#dc2626' : '#2c7a4d'}; color:white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">${c.acceso_activo ? '🔒' : '✅'}</button>
+                </td>
+            </tr>
+        `
+    }
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+            ${pagina > 1 ? `<button class="btn-sm pagina-cliente" data-pagina="${pagina - 1}" style="background: #64748b; color: white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">◀ Anterior</button>` : ''}
+            ${Array.from({length: totalPaginas}, (_, i) => i + 1).map(p => `
+                <button class="btn-sm pagina-cliente ${p === pagina ? 'active' : ''}" data-pagina="${p}" style="${p === pagina ? 'background: #2c7a4d; color: white;' : 'background: #e2e8f0; color: black;'} border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">${p}</button>
+            `).join('')}
+            ${pagina < totalPaginas ? `<button class="btn-sm pagina-cliente" data-pagina="${pagina + 1}" style="background: #64748b; color: white; border:none; padding:6px 14px; border-radius:30px; cursor:pointer;">Siguiente ▶</button>` : ''}
+        </div>
+    </div>
+    `
+    
+    container.innerHTML = html
+    
+    // Asignar eventos
+    setTimeout(() => {
+        // Botón "Alta cliente"
+        document.getElementById('btnAltaCliente')?.addEventListener('click', () => mostrarAltaCliente())
+        
+        // Paginación
+        document.querySelectorAll('.pagina-cliente').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                const pagina = parseInt(this.dataset.pagina)
+                if (!isNaN(pagina)) {
+                    renderizarPaginaClientes(pagina)
+                }
+            }
+        })
+        
+        // Ver activos
+        document.querySelectorAll('.ver-activos').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                const id = this.dataset.id
+                mostrarActivosCliente(id)
+            }
+        })
+        
+        // Editar cliente
+        document.querySelectorAll('.editar-cliente').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                const id = this.dataset.id
+                editarCliente(id)
+            }
+        })
+        
+        // Regenerar código
+        document.querySelectorAll('.regenerar-codigo').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                const id = this.dataset.id
+                regenerarCodigoCliente(id)
+            }
+        })
+        
+        // Toggle acceso
+        document.querySelectorAll('.toggle-acceso').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                const id = this.dataset.id
+                const activo = this.dataset.activo === 'true'
+                toggleAccesoCliente(id, activo)
+            }
+        })
+        
+        // Limpiar filtros
+        document.getElementById('btnLimpiarFiltrosClientes')?.addEventListener('click', function() {
+            document.getElementById('buscarCliente').value = ''
+            document.getElementById('filtroEstadoCliente').value = 'todos'
+            renderizarPaginaClientes(1)
+        })
+        
+        // Buscar cliente (con debounce)
+        const buscarInput = document.getElementById('buscarCliente')
+        if (buscarInput) {
+            let timeoutId = null
+            buscarInput.addEventListener('input', function() {
+                clearTimeout(timeoutId)
+                timeoutId = setTimeout(() => aplicarFiltrosClientes(), 300)
+            })
+        }
+        
+        // Filtro de estado
+        document.getElementById('filtroEstadoCliente')?.addEventListener('change', function() {
+            aplicarFiltrosClientes()
+        })
+        
+    }, 100)
+}
+
+// ============================================================
+// APLICAR FILTROS A CLIENTES
+// ============================================================
+
+function aplicarFiltrosClientes() {
+    const buscar = document.getElementById('buscarCliente')?.value.toLowerCase() || ''
+    const filtroEstado = document.getElementById('filtroEstadoCliente')?.value || 'todos'
+    
+    let filtrados = [...clientesData]
+    
+    if (buscar) {
+        filtrados = filtrados.filter(c => 
+            c.nombre?.toLowerCase().includes(buscar) ||
+            c.nif_cif?.toLowerCase().includes(buscar) ||
+            c.email?.toLowerCase().includes(buscar) ||
+            c.telefono?.toLowerCase().includes(buscar) ||
+            c.codigo_acceso?.toLowerCase().includes(buscar) ||
+            c.direccion?.toLowerCase().includes(buscar)
+        )
+    }
+    
+    if (filtroEstado === 'activo') {
+        filtrados = filtrados.filter(c => c.acceso_activo === true)
+    } else if (filtroEstado === 'inactivo') {
+        filtrados = filtrados.filter(c => c.acceso_activo === false)
+    }
+    
+    // Guardar los clientes filtrados
+    const originalClientes = clientesData
+    clientesData = filtrados
+    
+    // Reiniciar a página 1
+    paginaClientesActual = 1
+    renderizarPaginaClientes(1)
+    
+    // Restaurar clientesData original para futuras operaciones
+    setTimeout(() => {
+        clientesData = originalClientes
+    }, 100)
 }
 
 async function mostrarAltaCliente() {
@@ -941,61 +1140,198 @@ async function editarCliente(id) {
     document.getElementById('btnCancelarEdicionCliente').onclick = () => modal.remove()
 }
 
+// ============================================================
+// REGENERAR CÓDIGO DE ACCESO CON CONFIRMACIÓN
+// ============================================================
+
 async function regenerarCodigoCliente(id) {
-    const nuevoCodigo = await clientesModule.regenerarCodigoAcceso(id)
-    if (nuevoCodigo) {
-        await cargarDatosIniciales()
-        await renderizarPanel()
+    const cliente = clientesData.find(c => c.id === id)
+    if (!cliente) {
+        mostrarMensaje('Cliente no encontrado', 'error')
+        return
     }
+    
+    // ✅ Mostrar confirmación antes de regenerar
+    mostrarModalConfirmacion(
+        `⚠️ ¿Estás seguro de que quieres regenerar el código de acceso de <strong>${escapeHtml(cliente.nombre)}</strong>?<br><br>
+        Código actual: <strong style="font-family:monospace; background:#f1f5f9; padding:4px 8px; border-radius:4px;">${escapeHtml(cliente.codigo_acceso || 'Sin código')}</strong><br><br>
+        <span style="color:var(--ios-red);">⚠️ El cliente perderá el acceso con el código anterior.</span>`,
+        async () => {
+            const nuevoCodigo = await clientesModule.regenerarCodigoAcceso(id)
+            if (nuevoCodigo) {
+                mostrarMensaje(`✅ Nuevo código: ${nuevoCodigo}`, 'exito')
+                await cargarDatosIniciales()
+                renderizarPaginaClientes(paginaClientesActual)
+            }
+        },
+        '✅ Sí, regenerar',
+        '❌ Cancelar'
+    )
 }
 
+
+// ============================================================
+// TOGGLE ACCESO DE CLIENTE CON CONFIRMACIÓN
+// ============================================================
+
 async function toggleAccesoCliente(id, activo) {
-    const exito = await clientesModule.toggleAccesoCliente(id, !activo)
-    if (exito) {
-        await cargarDatosIniciales()
-        await renderizarPanel()
+    const cliente = clientesData.find(c => c.id === id)
+    if (!cliente) {
+        mostrarMensaje('Cliente no encontrado', 'error')
+        return
+    }
+    
+    const nuevoEstado = !activo
+    const estadoTexto = nuevoEstado ? 'ACTIVAR' : 'DESACTIVAR'
+    const estadoColor = nuevoEstado ? '#2c7a4d' : '#dc2626'
+    const estadoEmoji = nuevoEstado ? '✅' : '🔒'
+    const mensajeAdicional = nuevoEstado ? 
+        '✅ El cliente podrá acceder al sistema.' : 
+        '🔒 El cliente <strong>no podrá</strong> acceder al sistema.'
+    
+    // ✅ Mostrar confirmación antes de cambiar el acceso
+    mostrarModalConfirmacion(
+        `⚠️ ¿Estás seguro de que quieres <strong style="color:${estadoColor};">${estadoTexto}</strong> el acceso de <strong>${escapeHtml(cliente.nombre)}</strong>?<br><br>
+        ${mensajeAdicional}`,
+        async () => {
+            try {
+                // ✅ USAR sb DIRECTAMENTE (ya importado)
+                const { error } = await sb
+                    .from('clientes')
+                    .update({ acceso_activo: nuevoEstado })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                mostrarMensaje(`✅ Acceso ${estadoTexto} correctamente`, 'exito')
+                
+                // ✅ RECARGAR VISTA SIN RECARGAR PÁGINA
+                const empresaId = currentEmpresaId || getCurrentEmpresaId();
+                const { data: clientes } = await sb
+                    .from('clientes')
+                    .select('*')
+                    .eq('empresa_id', empresaId)
+                    .order('nombre');
+                
+                clientesData = clientes || [];
+                await renderizarClientes();
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                mostrarMensaje('Error al cambiar el acceso', 'error');
+            }
+        },
+        `${estadoEmoji} Sí, ${estadoTexto}`,
+        '❌ Cancelar'
+    )
+}
+
+// ============================================================
+// RECARGAR VISTA DE CLIENTES SIN RECARGAR TODA LA PÁGINA
+// ============================================================
+
+async function recargarVistaClientes() {
+    try {
+        const empresaId = currentEmpresaId || getCurrentEmpresaId();
+        const { data: clientes } = await sb
+            .from('clientes')
+            .select('*')
+            .eq('empresa_id', empresaId)
+            .order('nombre');
+        
+        clientesData = clientes || [];
+        await renderizarClientes();
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+        location.reload();
     }
 }
 
 async function mostrarActivosCliente(clienteId) {
     const cliente = clientesData.find(c => c.id === clienteId)
-    if (!cliente) return
+    if (!cliente) {
+        mostrarMensaje('Cliente no encontrado', 'error')
+        return
+    }
+    
+    // ✅ Guardar el cliente ID en localStorage
+    localStorage.setItem('gerente_cliente_activo', clienteId)
+    localStorage.setItem('gerente_tab_activa', 'clientes')
+    localStorage.setItem('gerente_clientes_subvista', 'activos')
     
     const activos = await clientesModule.cargarActivos(clienteId)
     const { renderizarActivosCliente } = clientesModule
     
     document.getElementById('clientesSubcontenido').innerHTML = renderizarActivosCliente(activos, cliente.nombre)
     
-    document.getElementById('btnVolverClientes')?.addEventListener('click', () => {
-        localStorage.setItem('gerente_clientes_subvista', 'lista')
-        renderizarPanel()
-    })
-    
-    document.getElementById('btnAgregarActivo')?.addEventListener('click', () => mostrarModalCrearActivo(clienteId))
-    document.querySelectorAll('.editar-activo').forEach(btn => {
-        btn.addEventListener('click', () => mostrarModalEditarActivo(btn.dataset.id, clienteId))
-    })
-    document.querySelectorAll('.eliminar-activo').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar este activo?')) {
-                await clientesModule.eliminarActivo(btn.dataset.id)
-                mostrarActivosCliente(clienteId)
+    // ✅ ASIGNAR EVENTOS DE ACTIVOS
+    setTimeout(() => {
+        // ✅ Volver a la lista (manteniendo la página)
+        document.getElementById('btnVolverClientes')?.addEventListener('click', () => {
+            localStorage.removeItem('gerente_cliente_activo')
+            localStorage.setItem('gerente_clientes_subvista', 'lista')
+            mostrarListaClientes()
+        })
+        
+        document.getElementById('btnAgregarActivo')?.addEventListener('click', () => mostrarModalCrearActivo(clienteId))
+        
+        document.querySelectorAll('.editar-activo').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                const activoId = this.dataset.id
+                mostrarModalEditarActivo(activoId, clienteId)
             }
         })
-    })
-    document.querySelectorAll('.ver-mapa').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const lat = parseFloat(btn.dataset.lat)
-            const lon = parseFloat(btn.dataset.lon)
-            const nombre = btn.dataset.nombre || 'Ubicación'
-            if (lat && lon) {
-                window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank')
-                mostrarMensaje(`📍 Abriendo mapa de ${nombre}`, 'exito')
-            } else {
-                mostrarMensaje('❌ Sin coordenadas', 'error')
+        
+        // ✅ ELIMINAR ACTIVO CON CONFIRMACIÓN
+        document.querySelectorAll('.eliminar-activo').forEach(btn => {
+            btn.onclick = async function(e) {
+                e.preventDefault()
+                const activoId = this.dataset.id
+                const activoNombre = this.closest('tr')?.querySelector('td:first-child')?.textContent?.trim() || 'este activo'
+                
+                mostrarModalConfirmacion(
+                    `⚠️ ¿Estás seguro de que quieres eliminar el activo <strong>${escapeHtml(activoNombre)}</strong>?<br><br>
+                    <span style="color: var(--ios-red);">⚠️ Esta acción no se puede deshacer.</span>`,
+                    async () => {
+                        try {
+                            const { error } = await sb
+                                .from('activos')
+                                .delete()
+                                .eq('id', activoId)
+                            
+                            if (error) throw error
+                            
+                            mostrarMensaje('✅ Activo eliminado', 'exito')
+                            await mostrarActivosCliente(clienteId)
+                            
+                        } catch (error) {
+                            console.error('❌ Error:', error)
+                            mostrarMensaje('Error al eliminar el activo', 'error')
+                        }
+                    },
+                    '🗑️ Sí, eliminar',
+                    '❌ Cancelar'
+                )
             }
         })
-    })
+        
+        document.querySelectorAll('.ver-mapa').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault()
+                const lat = parseFloat(this.dataset.lat)
+                const lon = parseFloat(this.dataset.lon)
+                const nombre = this.dataset.nombre || 'Ubicación'
+                if (lat && lon) {
+                    window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank')
+                    mostrarMensaje(`📍 Abriendo mapa de ${nombre}`, 'exito')
+                } else {
+                    mostrarMensaje('❌ Sin coordenadas', 'error')
+                }
+            }
+        })
+    }, 100)
 }
 
 function mostrarModalCrearActivo(clienteId) {
@@ -1024,30 +1360,35 @@ function mostrarModalCrearActivo(clienteId) {
     const btnCancelar = document.getElementById('btnCancelarActivo')
     
     const guardarHandler = async () => {
-        const datos = {
-            nombre: document.getElementById('activoNombre').value.trim(),
-            tipoAcceso: document.getElementById('activoTipoAcceso').value,
-            contacto: document.getElementById('activoContacto').value,
-            horaApertura: document.getElementById('activoHoraApertura').value,
-            horaCierre: document.getElementById('activoHoraCierre').value,
-            direccion: document.getElementById('activoDireccion').value,
-            localidad: document.getElementById('activoLocalidad').value,
-            codigoPostal: document.getElementById('activoCodigoPostal').value,
-            instrucciones: document.getElementById('activoInstrucciones').value,
-            latitud: document.getElementById('activoLatitud').value || null,
-            longitud: document.getElementById('activoLongitud').value || null,
-            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
-        }
-        if (!datos.nombre) {
-            mostrarMensaje('El nombre del activo es obligatorio', 'error')
-            return
-        }
-        await clientesModule.crearActivo(datos, clienteId)
-        modal.style.display = 'none'
-        mostrarActivosCliente(clienteId)
-        btnGuardar.removeEventListener('click', guardarHandler)
-        btnCancelar.removeEventListener('click', cancelarHandler)
+    const horaApertura = document.getElementById('activoHoraApertura').value;
+    const horaCierre = document.getElementById('activoHoraCierre').value;
+    
+    const datos = {
+        nombre: document.getElementById('activoNombre').value.trim(),
+        tipoAcceso: document.getElementById('activoTipoAcceso').value,
+        contacto: document.getElementById('activoContacto').value,
+        horaApertura: horaApertura && horaApertura.trim() !== '' ? horaApertura : null,
+        horaCierre: horaCierre && horaCierre.trim() !== '' ? horaCierre : null,
+        direccion: document.getElementById('activoDireccion').value,
+        localidad: document.getElementById('activoLocalidad').value,
+        codigoPostal: document.getElementById('activoCodigoPostal').value,
+        instrucciones: document.getElementById('activoInstrucciones').value,
+        latitud: document.getElementById('activoLatitud').value || null,
+        longitud: document.getElementById('activoLongitud').value || null,
+        datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
     }
+    
+    if (!datos.nombre) {
+        mostrarMensaje('El nombre del activo es obligatorio', 'error')
+        return
+    }
+    
+    await clientesModule.crearActivo(datos, clienteId)
+    modal.style.display = 'none'
+    mostrarActivosCliente(clienteId)
+    btnGuardar.removeEventListener('click', guardarHandler)
+    btnCancelar.removeEventListener('click', cancelarHandler)
+}
     
     const cancelarHandler = () => {
         modal.style.display = 'none'
@@ -1094,30 +1435,35 @@ async function mostrarModalEditarActivo(activoId, clienteId) {
     const btnCancelar = document.getElementById('btnCancelarActivo')
     
     const guardarHandler = async () => {
-        const datos = {
-            nombre: document.getElementById('activoNombre').value.trim(),
-            tipoAcceso: document.getElementById('activoTipoAcceso').value,
-            contacto: document.getElementById('activoContacto').value,
-            horaApertura: document.getElementById('activoHoraApertura').value,
-            horaCierre: document.getElementById('activoHoraCierre').value,
-            direccion: document.getElementById('activoDireccion').value,
-            localidad: document.getElementById('activoLocalidad').value,
-            codigoPostal: document.getElementById('activoCodigoPostal').value,
-            instrucciones: document.getElementById('activoInstrucciones').value,
-            latitud: document.getElementById('activoLatitud').value || null,
-            longitud: document.getElementById('activoLongitud').value || null,
-            datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
-        }
-        if (!datos.nombre) {
-            mostrarMensaje('El nombre del activo es obligatorio', 'error')
-            return
-        }
-        await clientesModule.actualizarActivo(activoId, datos)
-        modal.style.display = 'none'
-        mostrarActivosCliente(clienteId)
-        btnGuardar.removeEventListener('click', guardarHandler)
-        btnCancelar.removeEventListener('click', cancelarHandler)
+    const horaApertura = document.getElementById('activoHoraApertura').value;
+    const horaCierre = document.getElementById('activoHoraCierre').value;
+    
+    const datos = {
+        nombre: document.getElementById('activoNombre').value.trim(),
+        tipoAcceso: document.getElementById('activoTipoAcceso').value,
+        contacto: document.getElementById('activoContacto').value,
+        horaApertura: horaApertura && horaApertura.trim() !== '' ? horaApertura : null,
+        horaCierre: horaCierre && horaCierre.trim() !== '' ? horaCierre : null,
+        direccion: document.getElementById('activoDireccion').value,
+        localidad: document.getElementById('activoLocalidad').value,
+        codigoPostal: document.getElementById('activoCodigoPostal').value,
+        instrucciones: document.getElementById('activoInstrucciones').value,
+        latitud: document.getElementById('activoLatitud').value || null,
+        longitud: document.getElementById('activoLongitud').value || null,
+        datosTecnicos: document.getElementById('activoDatosTecnicos').value || null
     }
+    
+    if (!datos.nombre) {
+        mostrarMensaje('El nombre del activo es obligatorio', 'error')
+        return
+    }
+    
+    await clientesModule.actualizarActivo(activoId, datos)
+    modal.style.display = 'none'
+    mostrarActivosCliente(clienteId)
+    btnGuardar.removeEventListener('click', guardarHandler)
+    btnCancelar.removeEventListener('click', cancelarHandler)
+}
     
     const cancelarHandler = () => {
         modal.style.display = 'none'
@@ -1808,10 +2154,6 @@ function asignarEventosFiltrosTareas() {
 }
 
 // ============================================================
-// ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA CON FILTROS DINÁMICOS
-// ============================================================
-
-// ============================================================
 // ASIGNAR EVENTOS DE SUBMÓDULOS - VERSIÓN COMPLETA CON EDITOR DE DESCRIPCIÓN
 // ============================================================
 
@@ -2115,6 +2457,55 @@ function asignarEventosSubmodulos() {
             })
         }
     }, 200)
+    
+    // ✅ ✅ ✅ NUEVO: FILTROS DINÁMICOS PARA SERVICIO → TIPOS EN EDICIÓN
+    setTimeout(() => {
+        const editServicioSelect = document.getElementById('editTareaServicio');
+        if (editServicioSelect) {
+            const newEditServicioSelect = editServicioSelect.cloneNode(true);
+            editServicioSelect.parentNode?.replaceChild(newEditServicioSelect, editServicioSelect);
+            
+            newEditServicioSelect.addEventListener('change', async function() {
+                const servicioId = this.value;
+                const tipoSelect = document.getElementById('editTareaTipo');
+                
+                if (!servicioId) {
+                    if (tipoSelect) tipoSelect.innerHTML = '<option value="">-- Seleccionar tipo --</option>';
+                    return;
+                }
+                
+                try {
+                    const { data: tipos, error } = await sb
+                        .from('tipos_tarea')
+                        .select('*')
+                        .eq('servicio_id', servicioId)
+                        .eq('activo', true)
+                        .order('nombre');
+                    
+                    if (error) throw error;
+                    
+                    let options = '<option value="">-- Seleccionar tipo --</option>';
+                    if (tipos && tipos.length > 0) {
+                        tipos.forEach(t => {
+                            options += `<option value="${t.id}">${escapeHtml(t.nombre)}</option>`;
+                        });
+                    } else {
+                        options += '<option value="" disabled>📭 Sin tipos para este servicio</option>';
+                    }
+                    if (tipoSelect) tipoSelect.innerHTML = options;
+                    
+                } catch (error) {
+                    console.error('❌ Error cargando tipos:', error);
+                    if (tipoSelect) tipoSelect.innerHTML = '<option value="">-- Error al cargar --</option>';
+                }
+            });
+            
+            // Disparar el evento para cargar los tipos iniciales
+            if (newEditServicioSelect.value) {
+                newEditServicioSelect.dispatchEvent(new Event('change'));
+            }
+        }
+    }, 300);
     
     // ✅ FILTROS DINÁMICOS PARA ACTIVOS EN EDICIÓN
     setTimeout(() => {
